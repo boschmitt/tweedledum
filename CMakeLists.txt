@@ -11,6 +11,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 # =============================================================================
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 
+# Libs
+# =============================================================================
+add_subdirectory(libs)
+
 # Examples
 # =============================================================================
 if(TWEEDLEDUM_EXAMPLES)
