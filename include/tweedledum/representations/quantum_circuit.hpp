@@ -5,10 +5,13 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "circuit/dag_path.hpp"
 #include "gate_kinds.hpp"
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace tweedledum {
 
@@ -100,10 +103,14 @@ private:
 	};
 };
 
+template<typename CircuitRep>
+class quantum_circuit : public CircuitRep {
 public:
-	void add_qubit(std::string const& qubit = {})
+	void add_qubit(std::string const& qubit)
 	{
-		std::cout << "Add qubit: " << qubit << '\n';
+		auto qubit_id = this->create_qubit();
+		label_to_id_.emplace(qubit, qubit_id);
+		id_to_label_.emplace_back(qubit);
 	}
 
 	void mark_as_input(std::string const& qubit)
@@ -118,17 +125,48 @@ public:
 
 	void add_gate(gate_kinds kind, std::string const& target)
 	{
-		std::cout << "Add " << gate_name(kind)
-		          << " gate to qubit: " << target << '\n';
+		auto qubit_id = label_to_id_[target];
+		add_gate(kind, qubit_id);
+	}
+
+	void add_gate(gate_kinds kind, std::uint32_t target_id)
+	{
+		gate single_target_gate;
+		single_target_gate.kind(kind);
+		single_target_gate.target(target_id);
+		this->do_add_gate(single_target_gate);
 	}
 
 	void add_controlled_gate(gate_kinds kind, std::string const& control,
 	                         std::string const& target)
 	{
-		std::cout << "Add " << gate_name(kind)
-		          << " gate to qubits: " << control << ", " << target
-		          << '\n';
+		auto target_id = label_to_id_[target];
+		auto control_id = label_to_id_[control];
+		add_controlled_gate(kind, control_id, target_id);
 	}
+
+	void add_controlled_gate(gate_kinds kind, std::uint32_t control_id,
+	                         std::uint32_t target_id)
+	{
+		gate controlled_gate;
+		controlled_gate.kind(kind);
+		controlled_gate.control(control_id);
+		controlled_gate.target(target_id);
+		this->do_add_gate(controlled_gate);
+	}
+
+	template<typename Fn>
+	void foreach_qubit(Fn&& fn) const
+	{
+		auto index = 0u;
+		for (auto& label : id_to_label_) {
+			fn(index++, label);
+		}
+	}
+
+private:
+	std::unordered_map<std::string, std::uint32_t> label_to_id_;
+	std::vector<std::string> id_to_label_;
 };
 
 } // namespace tweedledum
