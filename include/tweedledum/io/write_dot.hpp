@@ -22,7 +22,7 @@ inline std::vector<std::uint32_t> compute_node_levels(Network const& dag)
 	std::vector<std::uint32_t> levels(dag.size(), 0);
 
 	dag.foreach_node([&](auto node, auto index) {
-		if (node.is_input()) {
+		if (node.gate.is(gate_kinds::input)) {
 			return;
 		}
 		auto node_level = 0u;

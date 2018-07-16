@@ -11,6 +11,8 @@
 namespace tweedledum {
 
 enum class gate_kinds : std::uint8_t {
+	input,
+	output,
 	identity,
 	// Single-qubit Clifford gates
 	pauli_x,      // Pauli-X gate
@@ -28,6 +30,8 @@ enum class gate_kinds : std::uint8_t {
 };
 
 static const std::string token_names[] = {
+    "Input",
+    "Output",
     "Identity",
     "Pauli-X",
     "Pauli-Y",
