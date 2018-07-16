@@ -5,7 +5,9 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "../quantum_circuit_interface.hpp"
 #include "foreach.hpp"
+#include "nodes.hpp"
 
 #include <array>
 #include <limits>
@@ -28,61 +30,11 @@ namespace tweedledum {
  * Some natural properties like depth can be computed directly from the graph.
  */
 template<typename Gate>
-struct dag_path {
+struct dag_path final : public quantum_circuit_interface<Gate> {
 public:
 	using gate_type = Gate;
-
-	struct node_pointer {
-	public:
-		static constexpr auto max
-		    = std::numeric_limits<std::uint32_t>::max();
-
-		node_pointer() = default;
-
-		node_pointer(std::uint32_t data)
-		    : data(data)
-		{}
-
-		node_pointer(std::uint32_t index, std::uint32_t flag)
-		    : flag(flag)
-		    , index(index)
-		{}
-
-		union {
-			std::uint32_t data;
-			struct {
-				std::uint32_t flag : 1;
-				std::uint32_t index : 31;
-			};
-		};
-
-		bool operator==(node_pointer const& other) const
-		{
-			return data == other.data;
-		}
-	};
-
-	struct node {
-		gate_type gate;
-		std::array<std::vector<node_pointer>, gate_type::max_num_qubits>
-		    qubit;
-
-		bool is_input() const
-		{
-			if (qubit[0].empty() && qubit[1].empty()) {
-				return true;
-			}
-			return false;
-		}
-
-		bool is_output() const
-		{
-			if (qubit[0].empty() && not qubit[1].empty()) {
-				return true;
-			}
-			return false;
-		}
-	};
+	using node_type = uniform_node<gate_type, gate_type::max_num_qubits, 1>;
+	using node_ptr_type = typename node_type::pointer_type;
 
 public:
 	dag_path()
@@ -94,17 +46,19 @@ public:
 	{
 		// std::cout << "Create qubit\n";
 		auto qubit_id = static_cast<std::uint32_t>(inputs.size());
-		auto index = nodes.size();
+		auto index = static_cast<std::uint32_t>(nodes.size());
 
 		// Create input node
 		auto& input_node = nodes.emplace_back();
+		input_node.gate.kind(gate_kinds::input);
 		input_node.gate.target(qubit_id);
 		inputs.emplace_back(index, false);
 
 		// Create ouput node
 		auto& output_node = outputs.emplace_back();
-		output_node.qubit[1].emplace_back(index, true);
+		output_node.gate.kind(gate_kinds::output);
 		output_node.gate.target(qubit_id);
+		output_node.qubit[0][0] = {index, true};
 
 		// std::cout << "[done]\n";
 		return qubit_id;
@@ -166,33 +120,31 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_child(node& n, Fn&& fn) const
+	void foreach_child(node_type& n, Fn&& fn) const
 	{
-		static_assert(detail::is_callable_without_index_v<Fn, node_pointer, void> ||
-		              detail::is_callable_with_index_v<Fn, node_pointer, void> );
+		static_assert(detail::is_callable_without_index_v<Fn, node_ptr_type, void> ||
+		              detail::is_callable_with_index_v<Fn, node_ptr_type, void> );
 
 		for (auto qubit_id = 0u; qubit_id < n.qubit.size(); ++qubit_id) {
-			auto begin = n.qubit[qubit_id].begin();
-			auto end = n.qubit[qubit_id].end();
-			while (begin != end) {
-				if constexpr (detail::is_callable_without_index_v<Fn, node_pointer, void>) {
-					fn(*begin++);
-				} else if constexpr (detail::is_callable_with_index_v<Fn, node_pointer, void>) {
-					fn(*begin++, qubit_id);
-				}
+			if (n.qubit[qubit_id][0] == node_ptr_type::max) {
+				continue;
+			}
+			if constexpr (detail::is_callable_without_index_v<Fn, node_ptr_type, void>) {
+				fn(n.qubit[qubit_id][0]);
+			} else if constexpr (detail::is_callable_with_index_v<Fn, node_ptr_type, void>) {
+				fn(n.qubit[qubit_id][0], qubit_id);
 			}
 		}
 	}
 
 	template<typename Fn>
-	void foreach_child(node& n, std::uint32_t qubit_id, Fn&& fn) const
+	void foreach_child(node_type& n, std::uint32_t qubit_id, Fn&& fn) const
 	{
 		auto index = n.gate.get_input_id(qubit_id);
-		for (auto arc : n.qubit[index]) {
-			if (arc.flag) {
-				fn(arc);
-			}
+		if (n.qubit[index][0] == node_ptr_type::max) {
+			return;
 		}
+		fn(n.qubit[index][0]);
 	}
 
 private:
@@ -208,17 +160,17 @@ private:
 		          << gate_name(node.gate.kind()) << ")\n";
 
 		foreach_child(output, [&node, input_id](auto arc) {
-			node.qubit[input_id].emplace_back(arc);
+			node.qubit[input_id][0] = arc;
 		});
-		output.qubit[1].clear();
-		output.qubit[1].emplace_back(node_index, true);
+		// output.qubit[1].clear();
+		output.qubit[0][0] = {node_index, true};
 		return;
 	}
 
 public:
-	std::vector<node_pointer> inputs;
-	std::vector<node> nodes;
-	std::vector<node> outputs;
+	std::vector<node_ptr_type> inputs;
+	std::vector<node_type> nodes;
+	std::vector<node_type> outputs;
 };
 
 } // namespace tweedledum

@@ -5,7 +5,6 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "circuit/dag_path.hpp"
 #include "gate_kinds.hpp"
 
 #include <iostream>
@@ -103,8 +102,10 @@ private:
 	};
 };
 
-template<typename CircuitRep>
-class quantum_circuit : public CircuitRep {
+template<typename Gate>
+class quantum_circuit_interface {
+	using gate_type = Gate;
+
 public:
 	void add_qubit(std::string const& qubit)
 	{
@@ -163,6 +164,12 @@ public:
 			fn(index++, label);
 		}
 	}
+
+private:
+	virtual std::uint32_t create_qubit() = 0;
+	virtual void do_add_gate(gate_type gate) = 0;
+	virtual std::uint32_t size() const = 0;
+	virtual std::uint32_t num_qubits() const = 0;
 
 private:
 	std::unordered_map<std::string, std::uint32_t> label_to_id_;
