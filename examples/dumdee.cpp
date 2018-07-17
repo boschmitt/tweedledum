@@ -5,6 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #include <cstdlib>
 #include <iostream>
+#include <tweedledum/algorithms/optimization/gate_cancellation.hpp>
 #include <tweedledum/io/dotqc.hpp>
 #include <tweedledum/io/write_dot.hpp>
 #include <tweedledum/io/write_qpic.hpp>
@@ -23,5 +24,8 @@ int main(int argc, char** argv)
 	dotqc_read(argv[1], reader, identify_gate_kind());
 	write_dot(qc_path, "qc_dag_path.dot");
 	write_qpic(qc_path, "qc_dat_path.qpic");
+	single_qubit_gate_cancellation(qc_path);
+	two_qubit_gate_cancellation(qc_path);
+	write_dot(qc_path, "qc_dag_path_opt.dot");
 	return EXIT_SUCCESS;
 }
