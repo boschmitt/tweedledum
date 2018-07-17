@@ -7,7 +7,7 @@
 
 #include "../quantum_circuit_interface.hpp"
 #include "foreach.hpp"
-#include "nodes.hpp"
+#include "storage.hpp"
 
 #include <array>
 #include <limits>
@@ -29,53 +29,32 @@ namespace tweedledum {
  *
  * Some natural properties like depth can be computed directly from the graph.
  */
-template<typename Gate>
-struct dag_path final : public quantum_circuit_interface<Gate> {
+template<typename GateType>
+struct dag_path final : public quantum_circuit_interface<GateType> {
 public:
-	using gate_type = Gate;
-	using node_type = uniform_node<gate_type, gate_type::max_num_qubits, 1>;
+	using gate_type = GateType;
+	using node_type = uniform_node<gate_type, 1, 1>;
 	using node_ptr_type = typename node_type::pointer_type;
+	using storage_type = storage<node_type>;
 
 public:
 	dag_path()
+	    : storage_(std::make_shared<storage_type>())
+	{}
+
+	dag_path(std::shared_ptr<storage_type> storage)
+	    : storage_(storage)
+	{}
+
+
+	std::uint32_t size() const
 	{
-		nodes.reserve(1024u);
+		return storage_->nodes.size() + storage_->outputs.size();
 	}
 
-	std::uint32_t create_qubit()
+	std::uint32_t num_qubits() const
 	{
-		// std::cout << "Create qubit\n";
-		auto qubit_id = static_cast<std::uint32_t>(inputs.size());
-		auto index = static_cast<std::uint32_t>(nodes.size());
-
-		// Create input node
-		auto& input_node = nodes.emplace_back();
-		input_node.gate.kind(gate_kinds::input);
-		input_node.gate.target(qubit_id);
-		inputs.emplace_back(index, false);
-
-		// Create ouput node
-		auto& output_node = outputs.emplace_back();
-		output_node.gate.kind(gate_kinds::output);
-		output_node.gate.target(qubit_id);
-		output_node.qubit[0][0] = {index, true};
-
-		// std::cout << "[done]\n";
-		return qubit_id;
-	}
-
-	void do_add_gate(gate_type gate)
-	{
-		auto node_index = nodes.size();
-		auto& node = nodes.emplace_back();
-
-		node.gate = gate;
-		node.gate.foreach_control([&](auto qubit_id, auto control_id) {
-			connect_node(qubit_id, control_id, node_index);
-		});
-		node.gate.foreach_target([&](auto qubit_id, auto target_id) {
-			connect_node(qubit_id, target_id, node_index);
-		});
+		return storage_->inputs.size();
 	}
 
 	std::uint32_t size() const
@@ -91,31 +70,31 @@ public:
 	template<typename Fn>
 	void foreach_node(Fn&& fn) const
 	{
-		detail::foreach_element(nodes.begin(), nodes.end(), fn);
-		detail::foreach_element(outputs.begin(), outputs.end(), fn, nodes.size());
+		detail::foreach_element(storage_->nodes.cbegin(), storage_->nodes.cend(), fn);
+		detail::foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn, storage_->nodes.size());
 	}
 
 	template<typename Fn>
 	void foreach_input(Fn&& fn) const
 	{
-		for (auto arc : inputs) {
-			fn(nodes[arc.index], arc.index);
+		for (auto arc : storage_->inputs) {
+			fn(storage_->nodes[arc.index], arc.index);
 		}
 	}
 
 	template<typename Fn>
 	void foreach_output(Fn&& fn) const
 	{
-		std::uint32_t index = nodes.size();
-		detail::foreach_element(outputs.begin(), outputs.end(), fn, index);
+		std::uint32_t index = storage_->nodes.size();
+		detail::foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn, index);
 	}
 
 	template<typename Fn>
 	void foreach_gate(Fn&& fn) const
 	{
-		std::uint32_t index = inputs.size();
-		auto begin = nodes.begin() + index;
-		auto end = nodes.end();
+		std::uint32_t index = storage_->inputs.size();
+		auto begin = storage_->nodes.cbegin() + index;
+		auto end = storage_->nodes.cend();
 		detail::foreach_element(begin, end, fn, index);
 	}
 
@@ -148,12 +127,49 @@ public:
 	}
 
 private:
+
+	std::uint32_t create_qubit()
+	{
+		// std::cout << "Create qubit\n";
+		auto qubit_id = static_cast<std::uint32_t>(storage_->inputs.size());
+		auto index = static_cast<std::uint32_t>(storage_->nodes.size());
+
+		// Create input node
+		auto& input_node = storage_->nodes.emplace_back();
+		input_node.gate.kind(gate_kinds::input);
+		input_node.gate.target(qubit_id);
+		storage_->inputs.emplace_back(index, false);
+
+		// Create ouput node
+		auto& output_node = storage_->outputs.emplace_back();
+		output_node.gate.kind(gate_kinds::output);
+		output_node.gate.target(qubit_id);
+		output_node.qubit[0][0] = {index, true};
+
+		// std::cout << "[done]\n";
+		return qubit_id;
+	}
+
+	void do_add_gate(gate_type gate)
+	{
+		auto node_index = storage_->nodes.size();
+		auto& node = storage_->nodes.emplace_back();
+
+		node.gate = gate;
+		node.gate.foreach_control([&](auto qubit_id, auto control_id) {
+			connect_node(qubit_id, control_id, node_index);
+		});
+		node.gate.foreach_target([&](auto qubit_id, auto target_id) {
+			connect_node(qubit_id, target_id, node_index);
+		});
+	}
+
 	void connect_node(std::uint32_t qubit_id, std::uint32_t input_id,
 	                  std::uint32_t node_index)
 	{
-		assert(outputs[qubit_id].qubit[1].size() > 0);
-		auto& node = nodes.at(node_index);
-		auto& output = outputs.at(qubit_id);
+		assert(storage_->outputs[qubit_id].qubit[1].size() > 0);
+		auto& node = storage_->nodes.at(node_index);
+		auto& output = storage_->outputs.at(qubit_id);
 
 		std::cout << "[" << qubit_id << ":" << node_index
 		          << "] Connecting node ("
@@ -167,10 +183,8 @@ private:
 		return;
 	}
 
-public:
-	std::vector<node_ptr_type> inputs;
-	std::vector<node_type> nodes;
-	std::vector<node_type> outputs;
+private:
+	std::shared_ptr<storage_type> storage_;
 };
 
 } // namespace tweedledum

@@ -47,32 +47,59 @@ public:
 	}
 };
 
-template<typename G, int NumQubits = 2, int PointerFieldSize = 1>
+union cauint32_t {
+	std::uint32_t w{0};
+	struct {
+		std::uint32_t b0 : 8;
+		std::uint32_t b1 : 8;
+		std::uint32_t b2 : 8;
+		std::uint32_t b3 : 8;
+	};
+};
+
+template<typename GateType, int PointerFieldSize = 1, int DataSize = 0>
 struct regular_node {
-	using gate_type = G;
 	using pointer_type = node_pointer<PointerFieldSize>;
 
-	gate_type gate;
-	std::array<std::vector<pointer_type>, NumQubits> qubit;
+	GateType gate;
+	std::array<std::vector<pointer_type>, GateType::max_num_qubits> qubit;
+	std::array<cauint32_t, DataSize> data;
 
-	bool operator==(regular_node<G, NumQubits> const& other) const
+	bool operator==(regular_node<GateType, PointerFieldSize, DataSize> const& other) const
 	{
 		return gate == other.gate;
 	}
 };
 
-template<typename G, int NumQubits = 2, int PointerFieldSize = 1>
+template<typename GateType, int PointerFieldSize = 1, int DataSize = 0>
 struct uniform_node {
-	using gate_type = G;
 	using pointer_type = node_pointer<PointerFieldSize>;
 
-	gate_type gate;
-	std::array<std::array<pointer_type, 2>, NumQubits> qubit;
+	GateType gate;
+	std::array<std::array<pointer_type, 2>, GateType::max_num_qubits> qubit;
+	std::array<cauint32_t, DataSize> data;
 
-	bool operator==(uniform_node<G, NumQubits> const& other) const
+	bool operator==(uniform_node<GateType, PointerFieldSize, DataSize> const& other) const
 	{
 		return gate == other.gate;
 	}
+};
+
+template<typename NodeType>
+struct storage {
+	storage()
+	{
+		nodes.reserve(1024u);
+	}
+
+	storage(std::uint32_t size)
+	{
+		nodes.reserve(size);
+	}
+
+	std::vector<typename NodeType::pointer_type> inputs;
+	std::vector<NodeType> nodes;
+	std::vector<NodeType> outputs;
 };
 
 } // namespace tweedledum
