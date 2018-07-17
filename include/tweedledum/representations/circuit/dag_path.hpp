@@ -57,14 +57,14 @@ public:
 		return storage_->inputs.size();
 	}
 
-	std::uint32_t size() const
+	node_type& get_node(std::uint32_t index)
 	{
-		return nodes.size() + outputs.size();
+		return storage_->nodes[index];
 	}
 
-	std::uint32_t num_qubits() const
+	std::vector<node_ptr_type> get_children(node_type const& node, std::uint32_t id)
 	{
-		return inputs.size();
+		return {node.qubit[id][0]};
 	}
 
 	template<typename Fn>
@@ -168,6 +168,36 @@ public:
 			return;
 		}
 		fn(n.qubit[index][0]);
+	}
+
+	void clear_marks()
+	{
+		std::for_each(storage_->nodes.begin(), storage_->nodes.end(), [](auto& n) { n.data[0].b0 = 0; });
+	}
+
+	auto mark(node_type& n)
+	{
+		return n.data[0].b0;
+	}
+
+	void mark(node_type& n, std::uint8_t value)
+	{
+		n.data[0].b0 = value;
+	}
+
+	void remove_marked_nodes()
+	{
+		auto old_storage = storage_;
+		storage_ = std::make_shared<storage_type>(old_storage->nodes.size());
+		for (auto i = 0u; i < old_storage->inputs.size(); ++i) {
+			create_qubit();
+		}
+		for (auto &node : old_storage->nodes) {
+			if (node.gate.is(gate_kinds::input) || mark(node)) {
+				continue;
+			}
+			do_add_gate(node.gate);
+		}
 	}
 
 private:
