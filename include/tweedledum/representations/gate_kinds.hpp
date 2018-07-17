@@ -51,4 +51,27 @@ inline std::string_view gate_name(gate_kinds kind)
 	return token_names[static_cast<std::uint8_t>(kind)];
 }
 
+inline gate_kinds gate_adjoint(gate_kinds kind)
+{ 
+	switch (kind) {
+	case gate_kinds::hadamard:
+		return gate_kinds::hadamard;
+
+	case gate_kinds::phase:
+		return gate_kinds::phase_dagger;
+
+	case gate_kinds::phase_dagger:
+		return gate_kinds::phase;
+
+	case gate_kinds::t:
+		return gate_kinds::t_dagger;
+
+	case gate_kinds::t_dagger:
+		return gate_kinds::t;
+
+	default:
+		return gate_kinds::unknown;
+	}
+}
+
 } // namespace tweedledum
