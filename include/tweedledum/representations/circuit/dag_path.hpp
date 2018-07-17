@@ -126,6 +126,50 @@ public:
 		fn(n.qubit[index][0]);
 	}
 
+	template<typename Fn>
+	void foreach_node(Fn&& fn)
+	{
+		detail::foreach_element(storage_->nodes.begin(), storage_->nodes.end(), fn);
+		detail::foreach_element(storage_->outputs.begin(), storage_->outputs.end(), fn, storage_->nodes.size());
+	}
+
+	template<typename Fn>
+	void foreach_gate(Fn&& fn)
+	{
+		std::uint32_t index = storage_->inputs.size();
+		auto begin = storage_->nodes.begin() + index;
+		auto end = storage_->nodes.end();
+		detail::foreach_element(begin, end, fn, index);
+	}
+
+	template<typename Fn>
+	void foreach_child(node_type& n, Fn&& fn)
+	{
+		static_assert(detail::is_callable_without_index_v<Fn, node_ptr_type, void> ||
+		              detail::is_callable_with_index_v<Fn, node_ptr_type, void> );
+
+		for (auto qubit_id = 0u; qubit_id < n.qubit.size(); ++qubit_id) {
+			if (n.qubit[qubit_id][0] == node_ptr_type::max) {
+				continue;
+			}
+			if constexpr (detail::is_callable_without_index_v<Fn, node_ptr_type, void>) {
+				fn(n.qubit[qubit_id][0]);
+			} else if constexpr (detail::is_callable_with_index_v<Fn, node_ptr_type, void>) {
+				fn(n.qubit[qubit_id][0], qubit_id);
+			}
+		}
+	}
+
+	template<typename Fn>
+	void foreach_child(node_type& n, std::uint32_t qubit_id, Fn&& fn)
+	{
+		auto index = n.gate.get_input_id(qubit_id);
+		if (n.qubit[index][0] == node_ptr_type::max) {
+			return;
+		}
+		fn(n.qubit[index][0]);
+	}
+
 private:
 
 	std::uint32_t create_qubit()
