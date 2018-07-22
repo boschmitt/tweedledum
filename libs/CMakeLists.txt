@@ -1,5 +1,9 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt < bruno [at] oschmitt [dot] com >
+
+add_library(dum_fmt INTERFACE)
+target_include_directories(dum_fmt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/fmt)
+target_compile_definitions(dum_fmt INTERFACE FMT_HEADER_ONLY)
+
 
 add_library(tweedledee INTERFACE)
 target_link_libraries(tweedledee INTERFACE c++experimental)
