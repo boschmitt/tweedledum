@@ -1,4 +1,5 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
+# Author(s): Bruno Schmitt
 
 add_library(dum_fmt INTERFACE)
 target_include_directories(dum_fmt INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/fmt)

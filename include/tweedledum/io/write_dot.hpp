@@ -1,11 +1,11 @@
 /*------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt < bruno [at] oschmitt [dot] com >
+| Author(s): Bruno Schmitt
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../representations/gate_kinds.hpp"
+#include "../networks/gates/gate_kinds.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -22,7 +22,7 @@ inline std::vector<std::uint32_t> compute_node_levels(Network const& dag)
 	std::vector<std::uint32_t> levels(dag.size(), 0);
 
 	dag.foreach_node([&](auto node, auto index) {
-		if (node.gate.is(gate_kinds::input)) {
+		if (node.gate.is(gate_kinds_t::input)) {
 			return;
 		}
 		auto node_level = 0u;
@@ -89,7 +89,7 @@ inline void write_dot(Network const& dag, std::string filename = "test.dot")
 				return;
 			}
 			fprintf(file, "\t\tNode%d [label = \"%d\"", index, index);
-			if (node.gate.is(gate_kinds::cnot))
+			if (node.gate.is(gate_kinds_t::cx))
 				fprintf(file, ", shape = doublecircle");
 			else
 				fprintf(file, ", shape = ellipse");

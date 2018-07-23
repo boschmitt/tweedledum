@@ -1,28 +1,31 @@
 /*------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt < bruno [at] oschmitt [dot] com >
+| Author(s): Bruno Schmitt
 *-----------------------------------------------------------------------------*/
 #pragma once
+
+#include "../../networks/gates/gate_kinds.hpp"
 
 #include <algorithm>
 #include <iostream>
 #include <vector>
 
-#include "../../representations/gate_kinds.hpp"
-
 namespace tweedledum {
 
 template<typename Network>
-void single_qubit_gate_cancellation(Network& net)
+void single_qubit_gate_cancellation(Network& net, bool remove_gates = true)
 {
 	auto to_delete = 0u;
-	net.foreach_gate([&net, &to_delete] (auto& node) {
-		auto children = net.get_children(node, 0);
+	net.foreach_gate([&net, &to_delete](auto& node) {
+		if (node.gate.is_controlled()) {
+			return;
+		}
+		auto children = net.get_children(node, node.gate.target());
 		for (auto child : children) {
 			auto& child_node = net.get_node(child.index);
 			if (net.mark(child_node)) {
-				return;
+				continue;
 			}
 			if (node.gate.is(gate_adjoint(child_node.gate.kind()))) {
 				net.mark(node, 1);
@@ -32,23 +35,25 @@ void single_qubit_gate_cancellation(Network& net)
 			}
 		}
 	});
-	net.remove_marked_nodes();
+	if (remove_gates) {
+		net.remove_marked_nodes();
+	}
 	std::cout << "I deleted: " << to_delete << " gates.\n";
 }
 
 template<typename Network>
-void two_qubit_gate_cancellation(Network& net)
+void controlled_gate_cancellation(Network& net, bool remove_gates = true)
 {
 	auto to_delete = 0u;
-	net.foreach_gate([&net, &to_delete] (auto& node) {
-		if (not node.gate.is(gate_kinds::cnot)) {
+	net.foreach_gate([&net, &to_delete](auto& node) {
+		if (node.gate.is_controlled() == false) {
 			return;
 		}
-		auto children = net.get_children(node, 0);
+		auto children = net.get_children(node, node.gate.target());
 		for (auto child : children) {
 			auto& child_node = net.get_node(child.index);
-			if (net.mark(child_node) || not child_node.gate.is(gate_kinds::cnot)) {
-				return;
+			if (net.mark(child_node) || node.gate.is_controlled() == false) {
+				continue;
 			}
 			if (node == child_node) {
 				net.mark(node, 1);
@@ -58,9 +63,10 @@ void two_qubit_gate_cancellation(Network& net)
 			}
 		}
 	});
-	net.remove_marked_nodes();
+	if (remove_gates) {
+		net.remove_marked_nodes();
+	}
 	std::cout << "I deleted: " << to_delete << " gates.\n";
 }
 
 } // namespace tweedledum
-
