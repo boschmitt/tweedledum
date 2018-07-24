@@ -27,6 +27,7 @@ static void write_qpic(Circuit& circuit, std::string filename = "test.qpic",
 	fprintf(file, "\n");
 	circuit.foreach_gate([&](auto node) {
 		switch (node.gate.kind()) {
+		case gate_kinds_t::pauli_x:
 		case gate_kinds_t::cx:
 		case gate_kinds_t::mcx:
 			node.gate.foreach_control(
@@ -35,6 +36,7 @@ static void write_qpic(Circuit& circuit, std::string filename = "test.qpic",
 			    [&](auto qubit) { fprintf(file, "+q%d ", qubit); });
 			break;
 
+		case gate_kinds_t::pauli_z:
 		case gate_kinds_t::cz:
 		case gate_kinds_t::mcz:
 			node.gate.foreach_target(
