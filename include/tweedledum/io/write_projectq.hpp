@@ -34,27 +34,27 @@ void write_projectq(Network const& circ, std::ostream& out)
 
 		std::string controls, targets;
 
-		circ.foreach_control(g, make_qubit_list(controls));
-		circ.foreach_target(g, make_qubit_list(targets));
+		g.foreach_control(make_qubit_list(controls));
+		g.foreach_target(make_qubit_list(targets));
 
 		char u;
-		switch (circ.gate_type(g)) {
+		switch (g.kind()) {
 		default:
 			assert(false);
 			break;
-		case gate_type_t::mcx:
+		case gate_kinds_t::mcx:
 			u = 'X';
 			break;
-		case gate_type_t::mcy:
+		case gate_kinds_t::mcy:
 			u = 'Y';
 			break;
-		case gate_type_t::mcz:
+		case gate_kinds_t::mcz:
 			u = 'Z';
 			break;
 		}
 
 		out << fmt::format("C(All({}), {}) | ([{}], [{}])\n", u,
-		                   circ.num_controls(g), controls, targets);
+		                   g.num_controls(), controls, targets);
 	});
 }
 

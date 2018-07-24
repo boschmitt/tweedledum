@@ -59,13 +59,13 @@ void transformation_based_synthesis(Network& circ, std::vector<uint16_t>& perm)
 
 		/* move 0s to 1s */
 		if (const uint16_t t01 = x & ~y) {
-			update_permutation(circ, perm, y, t01);
+			update_permutation(perm, y, t01);
 			gates.emplace_back(y, t01);
 		}
 
 		/* move 1s to 0s */
 		if (const uint16_t t10 = ~x & y) {
-			update_permutation(circ, perm, x, t10);
+			update_permutation(perm, x, t10);
 			gates.emplace_back(x, t10);
 		}
 
@@ -75,7 +75,6 @@ void transformation_based_synthesis(Network& circ, std::vector<uint16_t>& perm)
 	for (const auto [c, t] : gates) {
 		circ.add_toffoli(c, t);
 	}
-	return circ;
 }
 
 template<typename Network>
@@ -103,24 +102,24 @@ void transformation_based_synthesis_bidirectional(Network& circ,
 		if (__builtin_popcount(x ^ y) <= __builtin_popcount(x ^ xs)) {
 			/* move 0s to 1s */
 			if (const uint16_t t01 = x & ~y) {
-				update_permutation(circ, perm, y, t01);
+				update_permutation(perm, y, t01);
 				pos = gates.emplace(pos, y, t01);
 			}
 			/* move 1s to 0s */
 			if (const uint16_t t10 = ~x & y) {
-				update_permutation(circ, perm, x, t10);
+				update_permutation(perm, x, t10);
 				pos = gates.emplace(pos, x, t10);
 			}
 		} else {
 			/* move 0s to 1s */
 			if (const uint16_t t01 = ~xs & x) {
-				update_permutation_inv(circ, perm, xs, t01);
+				update_permutation_inv(perm, xs, t01);
 				pos = gates.emplace(pos, xs, t01);
 				pos++;
 			}
 			/* move 1s to 0s */
 			if (const uint16_t t10 = xs & ~x) {
-				update_permutation_inv(circ, perm, x, t10);
+				update_permutation_inv(perm, x, t10);
 				pos = gates.emplace(pos, x, t10);
 				pos++;
 			}
@@ -131,7 +130,6 @@ void transformation_based_synthesis_bidirectional(Network& circ,
 	for (const auto [c, t] : gates) {
 		circ.add_toffoli(c, t);
 	}
-	return circ;
 }
 
 template<typename Network>
@@ -171,14 +169,14 @@ void transformation_based_synthesis_multidirectional(
 		/* map z |-> x */
 		/* move 0s to 1s */
 		if (const uint16_t t01 = ~z & x) {
-			update_permutation_inv(circ, perm, z, t01);
+			update_permutation_inv(perm, z, t01);
 			pos = gates.emplace(pos, z, t01);
 			pos++;
 		}
 
 		/* move 1s to 0s */
 		if (const uint16_t t10 = z & ~x) {
-			update_permutation_inv(circ, perm, x, t10);
+			update_permutation_inv(perm, x, t10);
 			pos = gates.emplace(pos, x, t10);
 			pos++;
 		}
@@ -186,13 +184,13 @@ void transformation_based_synthesis_multidirectional(
 		/* map y |-> x */
 		/* move 0s to 1s */
 		if (const uint16_t t01 = x & ~y) {
-			update_permutation(circ, perm, y, t01);
+			update_permutation(perm, y, t01);
 			pos = gates.emplace(pos, y, t01);
 		}
 
 		/* move 1s to 0s */
 		if (const uint16_t t10 = ~x & y) {
-			update_permutation(circ, perm, x, t10);
+			update_permutation(perm, x, t10);
 			pos = gates.emplace(pos, x, t10);
 		}
 
@@ -201,7 +199,6 @@ void transformation_based_synthesis_multidirectional(
 	for (const auto [c, t] : gates) {
 		circ.add_toffoli(c, t);
 	}
-	return circ;
 }
 
 }; // namespace tweedledum

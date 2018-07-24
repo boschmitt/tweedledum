@@ -110,7 +110,6 @@ void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm)
 	for (const auto [c, t] : gates) {
 		circ.add_toffoli(c, t);
 	}
-	return circ;
 }
 
 }; // namespace tweedledum

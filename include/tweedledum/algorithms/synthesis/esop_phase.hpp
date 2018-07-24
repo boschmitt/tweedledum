@@ -25,8 +25,8 @@ void esop_phase_synthesis(Network& circ, kitty::dynamic_truth_table const& tt)
 		circ.allocate_qubit();
 	}
 	for (const auto& cube : esop_from_pprm(tt)) {
-		std::vector<Network::qubit> controls;
-		std::vector<Network::qubit> targets;
+		std::vector<typename Network::qubit> controls;
+		std::vector<typename Network::qubit> targets;
 		for (auto i = 0; i < tt.num_vars(); ++i) {
 			if (!cube.get_mask(i)) {
 				continue;
@@ -42,7 +42,6 @@ void esop_phase_synthesis(Network& circ, kitty::dynamic_truth_table const& tt)
 			circ.add_toffoli(controls, targets);
 		}
 	}
-	return circ;
 }
 
 }; // namespace tweedledum

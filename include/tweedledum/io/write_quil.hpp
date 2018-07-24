@@ -24,7 +24,7 @@ void write_quil(Network const& circ, std::ostream& out)
 {
 	circ.foreach_node([&](auto const& n) {
 		auto const& g = n.gate;
-		if (g.gate_kind() != gate_kinds_t::mcx) {
+		if (g.kind() != gate_kinds_t::mcx) {
 			std::cerr << "[w] unsupported gate type\n";
 			return true;
 		}

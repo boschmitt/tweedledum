@@ -48,7 +48,7 @@ struct mct_gate {
 		}
 	}
 
-	gate_kinds_t gate_kind() const
+	gate_kinds_t kind() const
 	{
 		return gate_kinds_t::mcx;
 	}
