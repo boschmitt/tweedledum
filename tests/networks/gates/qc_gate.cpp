@@ -11,7 +11,6 @@
 #include <tweedledum/networks/gates/gate_kinds.hpp>
 #include <tweedledum/networks/gates/qc_gate.hpp>
 
-// TODO: fininsh
 TEST_CASE("Check dependency among single qubit gates", "qc_gate")
 {
 	using namespace tweedledum;
@@ -62,6 +61,64 @@ TEST_CASE("Check dependency among single qubit gates", "qc_gate")
 				CHECK_FALSE(rotation_z.is_dependent(t_dagger));
 				CHECK_FALSE(rotation_z.is_dependent(phase));
 				CHECK_FALSE(rotation_z.is_dependent(phase_dagger));
+			}
+		}
+		WHEN("they are both Rx") {
+			THEN("they are independent") {
+				CHECK_FALSE(rotation_x.is_dependent(pauli_x));
+				CHECK_FALSE(pauli_x.is_dependent(rotation_x));
+			}
+		}
+		WHEN("one is hadamard and the other a rotation") {
+			THEN("they are dependent") {
+				CHECK(hadamard.is_dependent(pauli_z));
+				CHECK(hadamard.is_dependent(pauli_x));
+				CHECK(hadamard.is_dependent(t));
+				CHECK(hadamard.is_dependent(t_dagger));
+				CHECK(hadamard.is_dependent(phase));
+				CHECK(hadamard.is_dependent(phase_dagger));
+				CHECK(hadamard.is_dependent(rotation_x));
+				CHECK(hadamard.is_dependent(rotation_z));
+
+				CHECK(pauli_z.is_dependent(hadamard));
+				CHECK(pauli_x.is_dependent(hadamard));
+				CHECK(t.is_dependent(hadamard));
+				CHECK(t_dagger.is_dependent(hadamard));
+				CHECK(phase.is_dependent(hadamard));
+				CHECK(phase_dagger.is_dependent(hadamard));
+				CHECK(rotation_x.is_dependent(hadamard));
+				CHECK(rotation_z.is_dependent(hadamard));
+			}
+		}
+		WHEN("one is Rz and the Rx") {
+			THEN("they are dependent") {
+				CHECK(pauli_z.is_dependent(rotation_x));
+				CHECK(t.is_dependent(rotation_x));
+				CHECK(t_dagger.is_dependent(rotation_x));
+				CHECK(phase.is_dependent(rotation_x));
+				CHECK(phase_dagger.is_dependent(rotation_x));
+				CHECK(rotation_z.is_dependent(rotation_x));
+
+				CHECK(pauli_z.is_dependent(pauli_x));
+				CHECK(t.is_dependent(pauli_x));
+				CHECK(t_dagger.is_dependent(pauli_x));
+				CHECK(phase.is_dependent(pauli_x));
+				CHECK(phase_dagger.is_dependent(pauli_x));
+				CHECK(rotation_z.is_dependent(pauli_x));
+
+				CHECK(rotation_x.is_dependent(pauli_z));
+				CHECK(rotation_x.is_dependent(t));
+				CHECK(rotation_x.is_dependent(t_dagger));
+				CHECK(rotation_x.is_dependent(phase));
+				CHECK(rotation_x.is_dependent(phase_dagger));
+				CHECK(rotation_x.is_dependent(rotation_z));
+
+				CHECK(pauli_x.is_dependent(pauli_z));
+				CHECK(pauli_x.is_dependent(t));
+				CHECK(pauli_x.is_dependent(t_dagger));
+				CHECK(pauli_x.is_dependent(phase));
+				CHECK(pauli_x.is_dependent(phase_dagger));
+				CHECK(pauli_x.is_dependent(rotation_z));
 			}
 		}
 	}
