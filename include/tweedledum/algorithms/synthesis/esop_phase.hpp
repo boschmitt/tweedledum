@@ -6,8 +6,8 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../representations/netlist.hpp"
-#include "../../representations/mct_gate.hpp"
+#include "../../networks/netlist.hpp"
+#include "../../networks/gates/mct_gate.hpp"
 
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/esop.hpp>

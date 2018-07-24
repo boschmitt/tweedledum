@@ -6,7 +6,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../representations/netlist.hpp"
+#include "../../networks/netlist.hpp"
 
 #include <cmath>
 #include <cstdint>
