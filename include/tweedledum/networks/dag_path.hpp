@@ -56,9 +56,9 @@ public:
 		return storage_->inputs.size();
 	}
 
-	node_type& get_node(uint32_t index)
+	node_type& get_node(node_ptr_type node_ptr)
 	{
-		return storage_->nodes[index];
+		return storage_->nodes[node_ptr.index];
 	}
 
 	std::vector<node_ptr_type> get_children(node_type const& node, uint32_t qubit_id)
@@ -66,12 +66,12 @@ public:
 		std::vector<node_ptr_type> ret;
 		auto input_id = node.gate.get_input_id(qubit_id);
 		auto child = node.qubit[input_id][0];
-		auto child_node = get_node(child.index);
+		auto child_node = get_node(child);
 		while (not node.gate.is_dependent(child_node.gate)) {
 			ret.emplace_back(child);
 			input_id = child_node.gate.get_input_id(qubit_id);
 			child = child_node.qubit[input_id][0];
-			child_node = get_node(child.index);
+			child_node = get_node(child);
 		}
 		ret.emplace_back(child);
 		return ret;

@@ -23,7 +23,7 @@ void single_qubit_gate_cancellation(Network& net, bool remove_gates = true)
 		}
 		auto children = net.get_children(node, node.gate.target());
 		for (auto child : children) {
-			auto& child_node = net.get_node(child.index);
+			auto& child_node = net.get_node(child);
 			if (net.mark(child_node)) {
 				continue;
 			}
@@ -51,7 +51,7 @@ void controlled_gate_cancellation(Network& net, bool remove_gates = true)
 		}
 		auto children = net.get_children(node, node.gate.target());
 		for (auto child : children) {
-			auto& child_node = net.get_node(child.index);
+			auto& child_node = net.get_node(child);
 			if (net.mark(child_node) || node.gate.is_controlled() == false) {
 				continue;
 			}
