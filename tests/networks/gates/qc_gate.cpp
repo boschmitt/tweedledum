@@ -14,16 +14,17 @@
 TEST_CASE("Check dependency among single qubit gates", "qc_gate")
 {
 	using namespace tweedledum;
+	uint32_t q0 = 0;
 	GIVEN("two single qubit gates") {
-		qc_gate hadamard(gate_kinds_t::hadamard, 0);
-		qc_gate pauli_z(gate_kinds_t::pauli_z, 0);
-		qc_gate pauli_x(gate_kinds_t::pauli_x, 0);
-		qc_gate t(gate_kinds_t::t, 0);
-		qc_gate t_dagger(gate_kinds_t::t_dagger, 0);
-		qc_gate phase(gate_kinds_t::phase, 0);
-		qc_gate phase_dagger(gate_kinds_t::phase_dagger, 0);
-		qc_gate rotation_x(gate_kinds_t::rotation_x, 0);
-		qc_gate rotation_z(gate_kinds_t::rotation_z, 0);
+		qc_gate hadamard(gate_kinds_t::hadamard, q0);
+		qc_gate pauli_z(gate_kinds_t::pauli_z, q0);
+		qc_gate pauli_x(gate_kinds_t::pauli_x, q0);
+		qc_gate t(gate_kinds_t::t, q0);
+		qc_gate t_dagger(gate_kinds_t::t_dagger, q0);
+		qc_gate phase(gate_kinds_t::phase, q0);
+		qc_gate phase_dagger(gate_kinds_t::phase_dagger, q0);
+		qc_gate rotation_x(gate_kinds_t::rotation_x, q0);
+		qc_gate rotation_z(gate_kinds_t::rotation_z, q0);
 		WHEN("they are both Rz") {
 			THEN("they are independent") {
 				CHECK_FALSE(pauli_z.is_dependent(t));
@@ -127,16 +128,19 @@ TEST_CASE("Check dependency among single qubit gates", "qc_gate")
 TEST_CASE("Check CX CX dependency", "qc_gate")
 {
 	using namespace tweedledum;
+	uint32_t q0 = 0;
+	uint32_t q1 = 1;
+	uint32_t q2 = 2;
 	GIVEN("two CX gates") {
 		WHEN("the controls are equal and the targets are equal") {
-			// 0 -@--@--
-			// 1 -X--X--
-			qc_gate g0(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate g1(gate_kinds_t::cx, /* target */ 1, 0);
-			// 0 -X--X--
-			// 1 -@--@--
-			qc_gate g2(gate_kinds_t::cx, /* target */ 0, 1);
-			qc_gate g3(gate_kinds_t::cx, /* target */ 0, 1);
+			// q0 -@--@--
+			// q1 -X--X--
+			qc_gate g0(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate g1(gate_kinds_t::cx, /* target */ q1, q0);
+			// q0 -X--X--
+			// q1 -@--@--
+			qc_gate g2(gate_kinds_t::cx, /* target */ q0, q1);
+			qc_gate g3(gate_kinds_t::cx, /* target */ q0, q1);
 			THEN( "they are independent" ) {
 				CHECK_FALSE(g0.is_dependent(g1));
 				CHECK_FALSE(g1.is_dependent(g0));
@@ -145,37 +149,37 @@ TEST_CASE("Check CX CX dependency", "qc_gate")
 			}
 		}
 		WHEN("the controls are different and the targets are equal") {
-			// 0 -@-----
-			// 1 -X--X--
-			// 2 ----@--
-			qc_gate g0(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate g1(gate_kinds_t::cx, /* target */ 1, 2);
+			// q0 -@-----
+			// q1 -X--X--
+			// q2 ----@--
+			qc_gate g0(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate g1(gate_kinds_t::cx, /* target */ q1, q2);
 			THEN( "they are independent" ) {
 				CHECK_FALSE(g0.is_dependent(g1));
 				CHECK_FALSE(g1.is_dependent(g0));
 			}
 		}
 		WHEN("the controls are equal and the targets are different") {
-			// 0 -@--@--
-			// 1 -X--|--
-			// 2 ----X--
-			qc_gate g0(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate g1(gate_kinds_t::cx, /* target */ 2, 0);
+			// q0 -@--@--
+			// q1 -X--|--
+			// q2 ----X--
+			qc_gate g0(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate g1(gate_kinds_t::cx, /* target */ q2, q0);
 			THEN( "they are independent" ) {
 				CHECK_FALSE(g0.is_dependent(g1));
 				CHECK_FALSE(g1.is_dependent(g0));
 			}
 		}
 		WHEN("the control of one is target of the other") {
-			// 0 -@-----
-			// 1 -X--@--
-			// 2 ----X--
-			qc_gate g0(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate g1(gate_kinds_t::cx, /* target */ 2, 1);
-			// 0 -@--X--
-			// 1 -X--@--
-			qc_gate g2(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate g3(gate_kinds_t::cx, /* target */ 0, 1);
+			// q0 -@-----
+			// q1 -X--@--
+			// q2 ----X--
+			qc_gate g0(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate g1(gate_kinds_t::cx, /* target */ q2, q1);
+			// q0 -@--X--
+			// q1 -X--@--
+			qc_gate g2(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate g3(gate_kinds_t::cx, /* target */ q0, q1);
 			THEN( "they are dependent" ) {
 				CHECK(g0.is_dependent(g1));
 				CHECK(g1.is_dependent(g0));
@@ -189,13 +193,15 @@ TEST_CASE("Check CX CX dependency", "qc_gate")
 TEST_CASE("Check CX Rx dependency", "qc_gate")
 {
 	using namespace tweedledum;
+	uint32_t q0 = 0;
+	uint32_t q1 = 1;
 	GIVEN("two gates: CX and X") {
 		WHEN("Rx acts on the control of CX") {
 			// 0 -@--Rx-
 			// 1 -X-----
-			qc_gate cx(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate pauli_x(gate_kinds_t::pauli_x, 0);
-			qc_gate rx(gate_kinds_t::rotation_x, 0);
+			qc_gate cx(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate pauli_x(gate_kinds_t::pauli_x, q0);
+			qc_gate rx(gate_kinds_t::rotation_x, q0);
 			THEN("they are dependent") {
 				CHECK(cx.is_dependent(pauli_x));
 				CHECK(pauli_x.is_dependent(cx));
@@ -204,11 +210,11 @@ TEST_CASE("Check CX Rx dependency", "qc_gate")
 			}
 		}
 		WHEN("Rx acts on the target of CX") {
-			// 0 -@-----
-			// 1 -X--Rx-
-			qc_gate cx(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate pauli_x(gate_kinds_t::pauli_x, 1);
-			qc_gate rx(gate_kinds_t::rotation_x, 1);
+			// q0 -@-----
+			// q1 -X--Rx-
+			qc_gate cx(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate pauli_x(gate_kinds_t::pauli_x, q1);
+			qc_gate rx(gate_kinds_t::rotation_x, q1);
 			THEN("they are dependent") {
 				CHECK_FALSE(cx.is_dependent(pauli_x));
 				CHECK_FALSE(pauli_x.is_dependent(cx));
@@ -222,17 +228,19 @@ TEST_CASE("Check CX Rx dependency", "qc_gate")
 TEST_CASE("Check CX Rz dependency", "qc_gate")
 {
 	using namespace tweedledum;
+	uint32_t q0 = 0;
+	uint32_t q1 = 1;
 	GIVEN("two gates: CX and Rz") {
 		WHEN("Rz acts on the control of CX") {
 			// 0 -@--Rz-
-			// 1 -X-----
-			qc_gate cx(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate t(gate_kinds_t::t, 0);
-			qc_gate t_dagger(gate_kinds_t::t_dagger, 0);
-			qc_gate phase(gate_kinds_t::phase, 0);
-			qc_gate phase_dagger(gate_kinds_t::phase_dagger, 0);
-			qc_gate rotation_z(gate_kinds_t::rotation_z, 0);
-			qc_gate pauli_z(gate_kinds_t::pauli_z, 0);
+			// q1 -X-----
+			qc_gate cx(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate t(gate_kinds_t::t, q0);
+			qc_gate t_dagger(gate_kinds_t::t_dagger, q0);
+			qc_gate phase(gate_kinds_t::phase, q0);
+			qc_gate phase_dagger(gate_kinds_t::phase_dagger, q0);
+			qc_gate rotation_z(gate_kinds_t::rotation_z, q0);
+			qc_gate pauli_z(gate_kinds_t::pauli_z, q0);
 			THEN("they are independent") {
 				CHECK_FALSE(cx.is_dependent(t));
 				CHECK_FALSE(t.is_dependent(cx));
@@ -249,15 +257,15 @@ TEST_CASE("Check CX Rz dependency", "qc_gate")
 			}
 		}
 		WHEN("Rz acts on the target of CX") {
-			// 0 -@-----
-			// 1 -X--Rz
-			qc_gate cx(gate_kinds_t::cx, /* target */ 1, 0);
-			qc_gate t(gate_kinds_t::t, 1);
-			qc_gate t_dagger(gate_kinds_t::t_dagger, 1);
-			qc_gate phase(gate_kinds_t::phase, 1);
-			qc_gate phase_dagger(gate_kinds_t::phase_dagger, 1);
-			qc_gate rotation_z(gate_kinds_t::rotation_z, 1);
-			qc_gate pauli_z(gate_kinds_t::pauli_z, 1);
+			// q0 -@-----
+			// q1 -X--Rz
+			qc_gate cx(gate_kinds_t::cx, /* target */ q1, q0);
+			qc_gate t(gate_kinds_t::t, q1);
+			qc_gate t_dagger(gate_kinds_t::t_dagger, q1);
+			qc_gate phase(gate_kinds_t::phase, q1);
+			qc_gate phase_dagger(gate_kinds_t::phase_dagger, q1);
+			qc_gate rotation_z(gate_kinds_t::rotation_z, q1);
+			qc_gate pauli_z(gate_kinds_t::pauli_z, q1);
 			THEN("they are dependent") {
 				CHECK(cx.is_dependent(t));
 				CHECK(t.is_dependent(cx));

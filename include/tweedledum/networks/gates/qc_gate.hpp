@@ -21,13 +21,20 @@ public:
 public:
 	qc_gate() = default;
 
-	qc_gate(gate_kinds_t kind, uint32_t q0 = no_qubit,
+	qc_gate(gate_kinds_t kind, uint32_t q0,
 	        uint32_t q1 = no_qubit, uint32_t q2 = no_qubit)
 	    : kind_(static_cast<uint32_t>(kind))
 	    , target_(0)
 	    , qubit0_(q0)
 	    , qubit1_(q1)
 	    , qubit2_(q2)
+	{}
+
+	qc_gate(gate_kinds_t kind, uint32_t q0, float rotation)
+	    : kind_(static_cast<uint32_t>(kind))
+	    , target_(0)
+	    , qubit0_(q0)
+	    , rotation_(rotation)
 	{}
 
 	void kind(gate_kinds_t kind)
@@ -245,7 +252,7 @@ private:
 	};
 	union {
 		uint32_t data1_;
-		float rotation;
+		float rotation_;
 		struct {
 			uint32_t qubit1_ : 16;
 			uint32_t qubit2_ : 16;
