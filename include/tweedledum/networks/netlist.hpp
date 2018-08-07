@@ -71,6 +71,13 @@ public:
 		}
 	}
 
+	node_type& add_gate(gate_type const& g)
+	{
+		auto& n = nodes_.emplace_back();
+		n.gate = g;
+		return n;
+	}
+
 	node_type& add_toffoli(uint32_t controls, uint32_t targets)
 	{
 		auto& n = nodes_.emplace_back();
