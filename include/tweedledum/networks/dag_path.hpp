@@ -9,6 +9,8 @@
 #include "detail/storage.hpp"
 #include "gates/gate_kinds.hpp"
 
+#include <fmt/format.h>
+
 #include <array>
 #include <limits>
 #include <memory>
@@ -51,6 +53,11 @@ public:
 		return storage_->nodes.size() + storage_->outputs.size();
 	}
 
+	uint32_t num_gates() const
+	{
+		return storage_->nodes.size() - storage_->inputs.size();
+	}
+
 	uint32_t num_qubits() const
 	{
 		return storage_->inputs.size();
@@ -61,7 +68,8 @@ public:
 		return storage_->nodes[node_ptr.index];
 	}
 
-	std::vector<node_ptr_type> get_children(node_type const& node, uint32_t qubit_id)
+	std::vector<node_ptr_type> get_children(node_type const& node,
+	                                        uint32_t qubit_id)
 	{
 		std::vector<node_ptr_type> ret;
 		auto input_id = node.gate.get_input_id(qubit_id);
@@ -77,11 +85,18 @@ public:
 		return ret;
 	}
 
-	void add_qubit(std::string const& qubit)
+	auto allocate_qubit()
+	{
+		auto str = fmt::format("q{}", storage_->inputs.size());
+		return add_qubit(str);
+	}
+
+	auto add_qubit(std::string const& qubit)
 	{
 		auto qubit_id = create_qubit();
 		label_to_id_.emplace(qubit, qubit_id);
 		id_to_label_.emplace_back(qubit);
+		return qubit_id;
 	}
 
 	void mark_as_input(std::string const& qubit)

@@ -28,6 +28,11 @@ struct mct_gate {
 		return __builtin_popcount(controls);
 	}
 
+	auto num_targets() const
+	{
+		return __builtin_popcount(targets);
+	}
+
 	template<typename Fn>
 	void foreach_control(Fn&& fn) const
 	{
@@ -46,6 +51,11 @@ struct mct_gate {
 				fn(j);
 			}
 		}
+	}
+
+	bool is(gate_kinds_t kind) const
+	{
+		return kind == gate_kinds_t::mcx;
 	}
 
 	gate_kinds_t kind() const
