@@ -105,6 +105,18 @@ public:
 		gate_type single_target_gate(kind, target_id);
 		do_add_gate(single_target_gate);
 	}
+	
+	void add_x_rotation(uint32_t target_id, float angle)
+	{
+		gate_type rotation_gate(gate_kinds_t::rotation_x, target_id, angle);
+		do_add_gate(rotation_gate);
+	}
+
+	void add_z_rotation(uint32_t target_id, float angle)
+	{
+		gate_type rotation_gate(gate_kinds_t::rotation_z, target_id, angle);
+		do_add_gate(rotation_gate);
+	}
 
 	void add_controlled_gate(gate_kinds_t kind, std::string const& control,
 	                         std::string const& target)
