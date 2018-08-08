@@ -9,7 +9,8 @@
 #include "../networks/gates/gate_kinds.hpp"
 #include "../networks/netlist.hpp"
 
-#pragma once
+#include <tweedledee/quil/ast/visitor.hpp>
+#include <tweedledee/quil/quil.hpp>
 
 #include <cstdint>
 #include <fmt/format.h>
@@ -18,6 +19,56 @@
 #include <string>
 
 namespace tweedledum {
+
+template<typename Network>
+void read_quil_file(Network& circ, std::string const& path)
+{
+	using namespace tweedledee::quil;
+
+	auto program = quil_read_file(path);
+	for (auto &qubit_label : program->qubits) {
+		circ.add_qubit(qubit_label);
+	}
+	for (auto& child : *program) {
+		auto& g = static_cast<const stmt_gate &>(child);
+		if (g.identifier == "RX") {
+			auto angle = static_cast<const expr_real &>(*g.begin()).evaluate();
+			auto label = static_cast<const qubit &>(*g.back()).label;
+			circ.add_x_rotation(label, angle);
+		} else if (g.identifier == "RZ") {
+			auto angle = static_cast<const expr_real &>(*g.begin()).evaluate();
+			auto label = static_cast<const qubit &>(*g.back()).label;
+			circ.add_z_rotation(label, angle);
+		} else {
+			auto label0 = static_cast<const qubit &>(*g.begin()).label;
+			auto label1 = static_cast<const qubit &>(*g.back()).label;
+			circ.add_controlled_gate(gate_kinds_t::cz, label0, label1);
+		}
+	}
+	// visit(*program, [&](const ast_node& node, visitor_info info) {
+	// 	switch (node.kind()) {
+	// 		case ast_node_kinds::program:
+	// 			return true:
+	// 		default:
+	// 			return true;
+	// 	}
+	// 	if (node.kind() == ast_node_kinds::program) {
+	// 		return true;
+	// 	}
+	// 	else if (info == visitor_info::container_end) {
+	// 		prefix.pop_back();
+	// 		prefix.pop_back();
+	// 	} else {
+	// 		std::cout << prefix;
+	// 		if (info == visitor_info::container_begin)
+	// 			prefix += "| ";
+	// 		std::cout << "|-";
+	// 		node.print(std::cout);
+	// 		std::cout << '\n';
+	// 	}
+	// 	return true;
+	// });
+}
 
 template<typename Network>
 void write_quil(Network const& circ, std::ostream& out)
