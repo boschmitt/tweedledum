@@ -1,0 +1,26 @@
+/*------------------------------------------------------------------------------
+| This file is distributed under the MIT License.
+| See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
+*-----------------------------------------------------------------------------*/
+#ifndef ASTNODE
+#define ASTNODE(X)
+#endif
+
+// Nodes
+ASTNODE(program)
+
+// Classical Addresses and Qubits
+ASTNODE(qubit)
+
+// Statements
+ASTNODE(stmt_gate)
+
+// Expressions
+ASTNODE(expr_binary_op)
+ASTNODE(expr_unary_op)
+ASTNODE(expr_sign)
+ASTNODE(expr_real)
+ASTNODE(expr_integer)
+
+#undef ASTNODE
