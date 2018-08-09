@@ -66,6 +66,14 @@ static void write_qpic(Circuit& circuit, std::string filename = "test.qpic",
 			fprintf(file, "q%d G $T^{\\dagger}$", node.gate.target());
 			break;
 
+		case gate_kinds_t::rotation_x:
+			fprintf(file, "q%d G $R_{x}$", node.gate.target());
+			break;
+
+		case gate_kinds_t::rotation_z:
+			fprintf(file, "q%d G $R_{z}$", node.gate.target());
+			break;
+
 		default:
 			break;
 		}

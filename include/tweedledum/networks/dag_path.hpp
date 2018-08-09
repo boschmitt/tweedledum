@@ -121,6 +121,18 @@ public:
 		do_add_gate(single_target_gate);
 	}
 	
+	void add_x_rotation(std::string const& label, float angle)
+	{
+		auto qubit_id = label_to_id_[label];
+		add_x_rotation(qubit_id, angle);
+	}
+
+	void add_z_rotation(std::string const& label, float angle)
+	{
+		auto qubit_id = label_to_id_[label];
+		add_z_rotation(qubit_id, angle);
+	}
+
 	void add_x_rotation(uint32_t target_id, float angle)
 	{
 		gate_type rotation_gate(gate_kinds_t::rotation_x, target_id, angle);

@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt < bruno [at] oschmitt [dot] com >
+| Author(s): Bruno Schmitt
 *-----------------------------------------------------------------------------*/
 #pragma once
 
@@ -105,8 +105,7 @@ public:
 		(void) qubit_label;
 	}
 
-	virtual void on_two_qubit_gate(GateKind kind,
-	                               std::string qubit0_label,
+	virtual void on_two_qubit_gate(GateKind kind, std::string qubit0_label,
 	                               std::string qubit1_label)
 	{
 		(void) kind;
@@ -114,8 +113,9 @@ public:
 		(void) qubit1_label;
 	}
 
-	virtual void on_multiple_qubit_gate(
-	    GateKind kind, std::vector<std::string> const& qubit_labels)
+	virtual void
+	on_multiple_qubit_gate(GateKind kind,
+	                       std::vector<std::string> const& qubit_labels)
 	{
 		(void) kind;
 		(void) qubit_labels;
