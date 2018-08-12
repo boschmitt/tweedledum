@@ -253,7 +253,7 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
 	}
 
 	// applying Phase gates
-
+	//....
 	// for (const auto [c, t] : gates) {
 	// 	net.add_controlled_gate(gate_kinds_t::cx, c, t);
 	// }
