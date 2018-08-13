@@ -9,14 +9,13 @@
 #include "../networks/gates/gate_kinds.hpp"
 #include "../networks/netlist.hpp"
 
-#include <tweedledee/quil/ast/visitor.hpp>
-#include <tweedledee/quil/quil.hpp>
-
 #include <cstdint>
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <tweedledee/quil/ast/visitor.hpp>
+#include <tweedledee/quil/quil.hpp>
 
 namespace tweedledum {
 
@@ -26,23 +25,26 @@ void read_quil_file(Network& circ, std::string const& path)
 	using namespace tweedledee::quil;
 
 	auto program = quil_read_file(path);
-	for (auto &qubit_label : program->qubits) {
+	for (auto& qubit_label : program->qubits) {
 		circ.add_qubit(qubit_label);
 	}
 	for (auto& child : *program) {
-		auto& g = static_cast<const stmt_gate &>(child);
+		auto& g = static_cast<const stmt_gate&>(child);
 		if (g.identifier == "RX") {
-			auto angle = static_cast<const expr_real &>(*g.begin()).evaluate();
-			auto label = static_cast<const qubit &>(*g.back()).label;
+			auto angle
+			    = static_cast<const expr_real&>(*g.begin()).evaluate();
+			auto label = static_cast<const qubit&>(*g.back()).label;
 			circ.add_x_rotation(label, angle);
 		} else if (g.identifier == "RZ") {
-			auto angle = static_cast<const expr_real &>(*g.begin()).evaluate();
-			auto label = static_cast<const qubit &>(*g.back()).label;
+			auto angle
+			    = static_cast<const expr_real&>(*g.begin()).evaluate();
+			auto label = static_cast<const qubit&>(*g.back()).label;
 			circ.add_z_rotation(label, angle);
 		} else {
-			auto label0 = static_cast<const qubit &>(*g.begin()).label;
-			auto label1 = static_cast<const qubit &>(*g.back()).label;
-			circ.add_controlled_gate(gate_kinds_t::cz, label0, label1);
+			auto label0 = static_cast<const qubit&>(*g.begin()).label;
+			auto label1 = static_cast<const qubit&>(*g.back()).label;
+			circ.add_controlled_gate(gate_kinds_t::cz, label0,
+			                         label1);
 		}
 	}
 	// visit(*program, [&](const ast_node& node, visitor_info info) {
@@ -103,6 +105,12 @@ void write_quil(Network const& circ, std::ostream& out)
 		case gate_kinds_t::t_dagger: {
 			g.foreach_target([&](auto q) {
 				out << fmt::format("RZ(-pi/4) {}\n", q);
+			});
+		} break;
+
+		case gate_kinds_t::rotation_z: {
+			g.foreach_target([&](auto qt) {
+				out << fmt::format("RZ({}) {}\n", g.angle(), qt);
 			});
 		} break;
 

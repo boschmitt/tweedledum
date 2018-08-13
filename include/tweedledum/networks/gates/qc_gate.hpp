@@ -59,6 +59,11 @@ public:
 		qubit1_ = id;
 	}
 
+	float angle() const
+	{
+		return rotation_;
+	}
+
 	gate_kinds_t kind() const
 	{
 		return static_cast<gate_kinds_t>(kind_);
