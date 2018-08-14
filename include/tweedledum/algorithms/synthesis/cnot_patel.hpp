@@ -24,10 +24,8 @@ inline uint32_t sub_pattern(uint32_t num, uint32_t s, uint32_t e)
 
 inline void transpose(std::vector<uint32_t>& matrix)
 {
-	uint32_t bit_count = matrix.size();
-
 	// for 0 <= i < j < bit_count ...
-	for (auto j = 1u; j < bit_count; ++j) {
+	for (auto j = 1u; j < matrix.size(); ++j) {
 		for (auto i = 0u; i < j; ++i) {
 			auto mij = (matrix[i] >> j) & 1;
 			auto mji = (matrix[j] >> i) & 1;
@@ -41,7 +39,7 @@ inline void transpose(std::vector<uint32_t>& matrix)
 	}
 }
 
-std::vector<std::pair<uint16_t, uint16_t>>
+inline std::vector<std::pair<uint16_t, uint16_t>>
 lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 {
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
@@ -58,10 +56,10 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 				patt[sub_row_patt] = row;
 			else {
 				matrix[row] ^= matrix[patt[sub_row_patt]];
-				gates.push_back({patt[sub_row_patt], row});
+				gates.emplace_back(patt[sub_row_patt], row);
 			}
 		}
-		// use gaussian elimination for remaining entries in column section
+		// use Gaussian elimination for remaining entries in column section
 		for (auto col = sec * m; col < (sec + 1) * m; col++) {
 			// check for 1 on diagonal
 			bool diag_one = (matrix[col] >> col) & 1;
@@ -72,12 +70,12 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 					continue;
 				if (!diag_one) {
 					matrix[col] ^= matrix[row];
-					gates.push_back({row, col});
+					gates.emplace_back(row, col);
 					diag_one = true;
 				}
 
 				matrix[row] ^= matrix[col];
-				gates.push_back({col, row});
+				gates.emplace_back(col, row);
 			}
 		}
 	}
