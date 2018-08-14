@@ -1,11 +1,9 @@
 /*------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
+| Author(s): Mathias Soeken, Fereshte Mozafari
 *-----------------------------------------------------------------------------*/
 #include <catch.hpp>
-#include <iomanip>
-#include <iostream>
 #include <tweedledum/algorithms/synthesis/cnot_patel.hpp>
 #include <tweedledum/networks/dag_path.hpp>
 #include <tweedledum/networks/gates/qc_gate.hpp>
