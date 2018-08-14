@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 #include <array>
+#include <iostream>
 #include <limits>
 #include <memory>
 #include <unordered_map>
@@ -108,6 +109,11 @@ public:
 	void mark_as_output(std::string const& qubit)
 	{
 		std::cout << "Mark as output: " << qubit << '\n';
+	}
+
+	void add_gate(gate_type g)
+	{
+		do_add_gate(g);
 	}
 
 	void add_gate(gate_kinds_t kind, std::string const& target)
