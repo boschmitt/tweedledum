@@ -10,6 +10,7 @@
 
 #include <cmath>
 #include <cstdint>
+#include <numeric>
 #include <vector>
 
 namespace tweedledum {
@@ -122,11 +123,10 @@ inline std::vector<uint32_t> extract_one_bit_nums(uint32_t value)
    \endverbatim
  */
 template<class Network>
-void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
-                std::vector<float> Ts)
+void gray_synth(Network& net, std::vector<uint32_t> parities,
+                std::vector<float> Ts, std::vector<uint8_t> const& qubits_map)
 {
-	for (auto i = 0u; i < nqubits; ++i)
-		net.allocate_qubit();
+	const auto nqubits = qubits_map.size();
 
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
 	std::vector<uint32_t> in_lines;
@@ -218,23 +218,30 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
 	// TODO: If Z-rotations are applied they should not be applied again
 	uint32_t idx = 0;
 	for (const auto [c, t] : gates) {
-		net.add_controlled_gate(gate_kinds_t::cx, c, t);
+		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c],
+		                        qubits_map[t]);
 		matrix[t] ^= matrix[c];
 		for (auto i = 0u; i < Ts.size(); i++)
 			if (parity_gates[idx] == parities[i])
-				net.add_z_rotation(t, Ts[i]);
+				net.add_z_rotation(qubits_map[t], Ts[i]);
 
 		idx++;
 	}
 
 	/* add remainder network */
-	Network tmp;
-	cnot_patel(tmp, matrix, 4u); // TODO: what is a good parameter here?
-	tmp.foreach_node([&](auto const& n) {
-		if (n.gate.is(gate_kinds_t::cx)) {
-			net.add_gate(n.gate);
-		}
-	});
-} /* end function */
+	cnot_patel(net, matrix, 4u, qubits_map); // TODO: what is a good parameter here?
+}
+
+template<class Network>
+void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
+                std::vector<float> Ts)
+{
+	for (auto i = 0u; i < nqubits; ++i)
+		net.allocate_qubit();
+
+	std::vector<uint8_t> qubits_map(nqubits);
+	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
+	gray_synth(net, parities, Ts, qubits_map);
+}
 
 } /* namespace tweedledum */

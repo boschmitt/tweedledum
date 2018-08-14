@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
+#include <numeric>
 #include <vector>
 
 namespace tweedledum {
@@ -85,6 +86,33 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 
 } /* namespace detail */
 
+template<class Network>
+void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
+                uint32_t partition_size, std::vector<uint8_t> const& qubits_map)
+{
+	/* number of qubits can be taken from matrix, since it is n x n matrix. */
+	const auto nqubits = matrix.size();
+	std::vector<std::pair<uint16_t, uint16_t>> gates_u;
+	std::vector<std::pair<uint16_t, uint16_t>> gates_l;
+
+	gates_l = detail::lwr_cnot_synthesis(matrix, nqubits, partition_size);
+
+	detail::transpose(matrix);
+	gates_u = detail::lwr_cnot_synthesis(matrix, nqubits, partition_size);
+
+	// if we were to explicitly swap, but we just swap in the for loop
+	// std::for_each(gates_u.begin(), gates_u.end(), [](auto& g) {
+	// std::swap(g.first, g.second);});
+
+	std::reverse(gates_l.begin(), gates_l.end());
+	for (const auto [c, t] : gates_u) {
+		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[t], qubits_map[c]);
+	}
+	for (const auto [c, t] : gates_l) {
+		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
+	}
+}
+
 /*! \brief Linear circuit synthesis
  *
  * This algorithm is based on the work in [K.N. Patel, I.L. Markov, J.P. Hayes:
@@ -115,25 +143,9 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 	for (auto i = 0u; i < nqubits; ++i) {
 		net.allocate_qubit();
 	}
-	std::vector<std::pair<uint16_t, uint16_t>> gates_u;
-	std::vector<std::pair<uint16_t, uint16_t>> gates_l;
-
-	gates_l = detail::lwr_cnot_synthesis(matrix, nqubits, partition_size);
-
-	detail::transpose(matrix);
-	gates_u = detail::lwr_cnot_synthesis(matrix, nqubits, partition_size);
-
-	// if we were to explicitly swap, but we just swap in the for loop
-	// std::for_each(gates_u.begin(), gates_u.end(), [](auto& g) {
-	// std::swap(g.first, g.second);});
-
-	std::reverse(gates_l.begin(), gates_l.end());
-	for (const auto [c, t] : gates_u) {
-		net.add_controlled_gate(gate_kinds_t::cx, t, c);
-	}
-	for (const auto [c, t] : gates_l) {
-		net.add_controlled_gate(gate_kinds_t::cx, c, t);
-	}
+	std::vector<uint8_t> qubits_map(nqubits);
+	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
+	cnot_patel(net, matrix, partition_size, qubits_map);
 }
 
 } // namespace tweedledum
