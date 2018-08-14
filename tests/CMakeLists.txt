@@ -15,6 +15,7 @@ add_custom_target(tests COMMENT "Build all tests.")
 
 set(tweedledum_tests_files
   "${CMAKE_SOURCE_DIR}/tests/algorithms/synthesis/cnot_patel.cpp"
+  "${CMAKE_SOURCE_DIR}/tests/algorithms/synthesis/decomposition_based.cpp"
   "${CMAKE_SOURCE_DIR}/tests/algorithms/synthesis/gray_synth.cpp"
   "${CMAKE_SOURCE_DIR}/tests/networks/gates/qc_gate.cpp")
 
