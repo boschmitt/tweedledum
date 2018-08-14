@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../networks/gates/gate_kinds.hpp"
+#include "cnot_patel.hpp"
 
 #include <cmath>
 #include <cstdint>
@@ -14,12 +15,12 @@
 namespace tweedledum {
 
 namespace detail {
-void parities_matrix_update(
+inline void parities_matrix_update(
     std::vector<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>, uint32_t>>& q,
     std::vector<uint32_t>& s, uint32_t adding_row, uint32_t added_row)
 {
 	uint32_t t1, t2;
-	for (auto i = 0; i < q.size(); i++) {
+	for (auto i = 0u; i < q.size(); i++) {
 
 		for (auto j = 0u; j < (std::get<0>(q[i]).size()); j++) {
 			t1 = (std::get<0>(q[i])[j] >> adding_row) & 1;
@@ -29,7 +30,7 @@ void parities_matrix_update(
 			}
 		}
 	}
-	for (auto i = 0; i < s.size(); i++) {
+	for (auto i = 0u; i < s.size(); i++) {
 		t1 = (s[i] >> adding_row) & 1;
 		t2 = (s[i] >> added_row) & 1;
 		if (t1) {
@@ -38,7 +39,7 @@ void parities_matrix_update(
 	}
 }
 
-uint32_t extract_one_bits(uint32_t number)
+inline uint32_t extract_one_bits(uint32_t number)
 {
 	uint32_t temp;
 	uint32_t one_bits = 0;
@@ -52,20 +53,21 @@ uint32_t extract_one_bits(uint32_t number)
 	return one_bits;
 }
 
-uint32_t extract_row_of_vector(std::vector<uint32_t> p, uint32_t row)
+inline uint32_t extract_row_of_vector(std::vector<uint32_t> p, uint32_t row)
 {
 	uint32_t col_count = p.size();
 	uint32_t row_val = 0;
 	uint32_t temp;
 	for (auto i = 0u; i < col_count; i++) {
-		temp = (p[i] >> row) & 1;
+		temp = (p[i] >> row) & 1;
 		row_val ^= (temp << (col_count - 1 - i));
 	}
 	return row_val;
 }
 
-std::vector<uint32_t> extract_special_parities(std::vector<uint32_t> p,
-                                               uint32_t idx, uint32_t value)
+inline std::vector<uint32_t> extract_special_parities(std::vector<uint32_t> p,
+                                                      uint32_t idx,
+                                                      uint32_t value)
 {
 	std::vector<uint32_t> out;
 	uint32_t temp;
@@ -77,7 +79,7 @@ std::vector<uint32_t> extract_special_parities(std::vector<uint32_t> p,
 	return out;
 }
 
-std::vector<uint32_t> extract_one_bit_nums(uint32_t value)
+inline std::vector<uint32_t> extract_one_bit_nums(uint32_t value)
 {
 	std::vector<uint32_t> out;
 	uint32_t idx = 0, temp;
@@ -90,7 +92,6 @@ std::vector<uint32_t> extract_one_bit_nums(uint32_t value)
 	}
 	return out;
 }
-
 
 } // namespace detail
 
@@ -126,13 +127,12 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
 {
 	for (auto i = 0u; i < nqubits; ++i)
 		net.allocate_qubit();
-	
 
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
 	std::vector<uint32_t> in_lines;
-	for (auto i = 0u; i < nqubits; i++) 
+	for (auto i = 0u; i < nqubits; i++)
 		in_lines.push_back(i);
-	
+
 	std::vector<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>, uint32_t>> Q;
 	Q.push_back({parities, in_lines,
 	             nqubits}); /* -1 is first initialize of epsilon
@@ -142,8 +142,7 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
 	std::vector<uint32_t> parity_gates;
 	std::vector<uint32_t> line_parity_val;
 	for (auto i = 0u; i < nqubits; i++)
-		line_parity_val.push_back(1<<i);
-	
+		line_parity_val.push_back(1 << i);
 
 	while (!Q.empty()) {
 
@@ -164,7 +163,8 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
 					gates.push_back({j, ID});
 
 					line_parity_val[ID] ^= line_parity_val[j];
-					parity_gates.push_back(line_parity_val[ID]);
+					parity_gates.push_back(
+					    line_parity_val[ID]);
 					detail::parities_matrix_update(Q, S, ID,
 					                               j);
 				}
@@ -207,19 +207,34 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
 
 	} /* end while */
 
+	/* prepare identity network for computing remaining matrix */
+	std::vector<uint32_t> matrix(nqubits);
+	for (auto row = 0u; row < nqubits; ++row) {
+		matrix[row] = 1 << row;
+	}
+
 	/* making network */
+	// TODO: Z-rotations before any CNOT are not considered here.
+	// TODO: If Z-rotations are applied they should not be applied again
 	uint32_t idx = 0;
 	for (const auto [c, t] : gates) {
 		net.add_controlled_gate(gate_kinds_t::cx, c, t);
-		for(auto i=0;i<Ts.size();i++)
-			if (parity_gates[idx]==parities[i])
+		matrix[t] ^= matrix[c];
+		for (auto i = 0u; i < Ts.size(); i++)
+			if (parity_gates[idx] == parities[i])
 				net.add_z_rotation(t, Ts[i]);
-		
+
 		idx++;
 	}
 
-
-
+	/* add remainder network */
+	Network tmp;
+	cnot_patel(tmp, matrix, 4u); // TODO: what is a good parameter here?
+	tmp.foreach_node([&](auto const& n) {
+		if (n.gate.is(gate_kinds_t::cx)) {
+			net.add_gate(n.gate);
+		}
+	});
 } /* end function */
 
 } /* namespace tweedledum */
