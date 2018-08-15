@@ -200,8 +200,6 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	}
 
 	/* making network */
-	// TODO: Z-rotations before any CNOT are not considered here.
-	// TODO: If Z-rotations are applied they should not be applied again
 	/* applying phase gate in the first of line when parity consist of just one variable */
 	for(auto i=0u;i<parities.size();i++){
 		if (detail::extract_one_bits(parities[i])==1){
@@ -227,7 +225,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 
 	/* add remainder network */
 	uint32_t partition_size = ceil(log2(nqubits)/2);
-	cnot_patel(net, matrix, partition_size, qubits_map); // TODO: what is a good parameter here?
+	cnot_patel(net, matrix, partition_size, qubits_map);
 }
 
 template<class Network>

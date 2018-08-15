@@ -25,7 +25,7 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 
 	if (c == 2) {
 		net.add_multiple_controlled_gate(
-		    gate_kinds_t::cx, {target, controls[0], controls[1]});
+		    gate_kinds_t::mcx, {target, controls[0], controls[1]});
 		return;
 	}
 
@@ -47,16 +47,16 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 		for (auto offset = 0u; offset <= 1u; ++offset) {
 			for (auto i = offset; i < c - 2u; ++i) {
 				net.add_multiple_controlled_gate(
-				    gate_kinds_t::cx,
+				    gate_kinds_t::mcx,
 				    {empty[e - i], controls[c - 1 - i],
 				     empty[e - 1 - i]});
 			}
 			net.add_multiple_controlled_gate(
-			    gate_kinds_t::cx,
+			    gate_kinds_t::mcx,
 			    {empty[e - (c - 2)], controls[0], controls[1]});
 			for (auto i = offset; i < c - 2u; ++i) {
 				net.add_multiple_controlled_gate(
-				    gate_kinds_t::cx,
+				    gate_kinds_t::mcx,
 				    {empty[e - i], controls[c - 1 - i],
 				     empty[e - 1 - i]});
 			}
