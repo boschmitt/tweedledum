@@ -180,8 +180,8 @@ public:
 	void add_multiple_controlled_gate(gate_kinds_t kind,
 	                                  std::vector<uint32_t> const& qubits)
 	{
-		gate_type multiple_controlled_gate(kind, qubits[2], qubits[0],
-		                                   qubits[1]);
+		gate_type multiple_controlled_gate(kind, qubits[0], qubits[1],
+		                                   qubits[2]);
 		do_add_gate(multiple_controlled_gate);
 	}
 

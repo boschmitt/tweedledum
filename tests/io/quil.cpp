@@ -18,7 +18,7 @@ TEST_CASE("Write MCT into QUIL", "quil")
 	network.allocate_qubit();
 	network.allocate_qubit();
 	network.allocate_qubit();
-  network.add_multiple_controlled_gate(gate_kinds_t::cx, {2, 0, 1});
+  network.add_multiple_controlled_gate(gate_kinds_t::mcx, {2, 0, 1});
 
   std::ostringstream os;
   write_quil(network, os);
