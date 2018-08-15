@@ -25,7 +25,7 @@ static const char * const ast_node_names[] = {
 
 // Determines the name of a ast node as used within the front end.
 // The name of a ast node will be an internal name.
-const char *ast_node_name(ast_node_kinds k)
+inline const char *ast_node_name(ast_node_kinds k)
 {
 	auto k_idx = static_cast<int>(k);
 	return ast_node_names[k_idx];

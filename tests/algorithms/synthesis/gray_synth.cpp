@@ -5,7 +5,6 @@
 *-----------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
-#include <tweedledum/io/quil.hpp>
 #include <tweedledum/networks/dag_path.hpp>
 #include <tweedledum/networks/gates/qc_gate.hpp>
 
@@ -23,5 +22,5 @@ TEST_CASE("Check example from Amy paper", "gray_synth")
 
 	gray_synth(network, 4, p1, Ts);
 
-	write_quil(network, std::cout);
+	//write_quil(network, std::cout);
 }

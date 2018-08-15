@@ -13,8 +13,10 @@
 #include <cstdint>
 #include <fmt/format.h>
 #include <iostream>
+#include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/esop.hpp>
+#include <kitty/operations.hpp>
 #include <list>
 #include <vector>
 
@@ -67,7 +69,7 @@ decompose(std::vector<uint16_t>& perm, uint8_t var)
 	return {left, right};
 }
 
-kitty::dynamic_truth_table
+std::pair<kitty::dynamic_truth_table, std::vector<uint8_t>>
 control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 {
 	kitty::dynamic_truth_table tt(num_vars);
@@ -76,39 +78,47 @@ control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 			kitty::set_bit(tt, row);
 		}
 	}
-	return tt;
+
+	const auto base = kitty::min_base_inplace(tt);
+	return {kitty::shrink_to(tt, base.size()), base};
 }
 
 } // namespace detail
 
-template<typename Network>
-void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm)
+template<class Network, class STGSynthesisFn>
+void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
+                                   STGSynthesisFn&& stg_synth)
 {
 	const uint32_t num_qubits = std::log2(perm.size());
-	// netlist circ(num_qubits);
 	for (auto i = 0u; i < num_qubits; ++i) {
 		circ.allocate_qubit();
 	}
-	std::list<std::pair<uint16_t, uint16_t>> gates;
+
+	std::list<std::pair<kitty::dynamic_truth_table, std::vector<uint8_t>>> gates;
 	auto pos = gates.begin();
 	for (uint8_t i = 0u; i < num_qubits; ++i) {
 		const auto [left, right] = detail::decompose(perm, i);
 
-		for (const auto& cube : esop_from_pprm(
-		         detail::control_function_abs(num_qubits, left))) {
-			assert(((cube._bits >> i) & 1) == 0);
-			pos = gates.emplace(pos, cube._bits, 1 << i);
+		auto [tt_l, vars_l]
+		    = detail::control_function_abs(num_qubits, left);
+		vars_l.push_back(i);
+
+		auto [tt_r, vars_r]
+		    = detail::control_function_abs(num_qubits, right);
+		vars_r.push_back(i);
+
+		// TODO merge middle gates
+		if (!kitty::is_const0(tt_l)) {
+			pos = gates.emplace(pos, tt_l, vars_l);
 			pos++;
 		}
-
-		for (const auto& cube : esop_from_pprm(
-		         detail::control_function_abs(num_qubits, right))) {
-			assert(((cube._bits >> i) & 1) == 0);
-			pos = gates.emplace(pos, cube._bits, 1 << i);
+		if (!kitty::is_const0(tt_r)) {
+			pos = gates.emplace(pos, tt_r, vars_r);
 		}
 	}
-	for (const auto [c, t] : gates) {
-		circ.add_toffoli(c, t);
+
+	for (auto const& [tt, vars] : gates) {
+		stg_synth(circ, tt, vars);
 	}
 }
 

@@ -21,7 +21,7 @@ enum class visitor_info: unsigned short {
 namespace detail {
 
 using visitor_callback_t = bool (*)(void* mem, const ast_node&, visitor_info info);
-bool visit(const ast_node& node, visitor_callback_t cb, void* functor);
+inline bool visit(const ast_node& node, visitor_callback_t cb, void* functor);
 
 template <typename Func>
 bool visitor_callback(void* mem, const ast_node& node, visitor_info info)
