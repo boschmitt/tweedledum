@@ -192,18 +192,18 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 		const auto it = std::find(parities.begin(), parities.end(), 1 << i);
 		if (it == parities.end()) continue;
 		const auto idx = std::distance(parities.begin(), it);
-		net.add_z_rotation(i, Ts[idx]);
+		net.add_z_rotation(qubits_map[i], Ts[idx]);
 		Ts[idx] = -1;
 	}
 
 	uint32_t idx = 0;
 	for (const auto [c, t] : gates) {
-		net.add_controlled_gate(gate_kinds_t::cx, c, t);
+		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
 		matrix[t] ^= matrix[c];
 		for (auto i = 0u; i < Ts.size(); i++){
 			if (parity_gates[idx] == parities[i]){
 				if (Ts[i] != -1){
-				net.add_z_rotation(t, Ts[i]);
+				net.add_z_rotation(qubits_map[t], Ts[i]);
 				Ts[i] = -1; /* avoiding the insertion of one phase gate in two places */
 				}
 			}	
@@ -212,6 +212,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	}
 
 	/* add remainder network */
+	detail::transpose(matrix);
 	uint32_t partition_size = ceil(log2(nqubits)/2);
 	cnot_patel(net, matrix, partition_size, qubits_map);
 }
