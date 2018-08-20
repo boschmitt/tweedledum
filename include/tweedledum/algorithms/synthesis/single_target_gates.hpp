@@ -44,6 +44,11 @@ struct stg_from_pprm {
 };
 
 struct stg_from_spectrum {
+	inline constexpr double pi()
+	{
+		return std::atan(1) * 4;
+	}
+
 	template<class Network>
 	void operator()(Network& net, kitty::dynamic_truth_table const& function,
 	                std::vector<uint8_t> const& qubit_map)
@@ -59,15 +64,15 @@ struct stg_from_spectrum {
 		std::vector<uint32_t> parities;
 		std::vector<float> angles;
 
-		float nom = 3.14; /* TODO: replace by better PI */
-		nom *= (1 << g.num_vars());
+		float nom = pi();
+		nom /= (1 << g.num_vars());
 
 		const auto spectrum = kitty::rademacher_walsh_spectrum(g);
 		for (auto i = 1u; i < spectrum.size(); ++i) {
 			if (spectrum[i] == 0)
 				continue;
 			parities.push_back(i);
-			angles.push_back(nom / spectrum[i]);
+			angles.push_back(nom * spectrum[i]);
 		}
 
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
