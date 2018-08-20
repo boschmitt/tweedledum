@@ -78,6 +78,38 @@ public:
 		return n;
 	}
 
+	void add_gate(gate_kinds_t kind, uint32_t target)
+	{
+		assert(kind == gate_kinds_t::pauli_x);
+		auto& n = nodes_.emplace_back();
+		auto& gate = n.gate;
+		gate.targets |= 1 << target;
+	}
+
+	void add_controlled_gate(gate_kinds_t kind, uint32_t control,
+	                         uint32_t target)
+	{
+		assert(kind == gate_kinds_t::cx);
+		assert(control != target);
+		auto& n = nodes_.emplace_back();
+		auto& gate = n.gate;
+		gate.controls |= 1 << control;
+		gate.targets |= 1 << target;
+	}
+
+	// first item in qubits is target
+	void add_multiple_controlled_gate(gate_kinds_t kind,
+	                                  std::vector<uint32_t> const& qubits)
+	{
+		assert(kind == gate_kinds_t::mcx);
+		assert(!qubits.empty());
+		auto& n = nodes_.emplace_back();
+		auto& gate = n.gate;
+		std::for_each(qubits.begin() + 1, qubits.end(),
+		              [&](auto q) { gate.controls |= 1 << q; });
+		gate.targets |= 1 << qubits.front();
+	}
+
 	node_type& add_toffoli(uint32_t controls, uint32_t targets)
 	{
 		auto& n = nodes_.emplace_back();
