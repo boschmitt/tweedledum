@@ -40,14 +40,15 @@ inline void parities_matrix_update(
 	}
 }
 
-inline uint32_t extract_row_of_vector(std::vector<uint32_t> p, uint32_t row)
+inline uint32_t extract_row_of_vector(std::vector<uint32_t> const& p, uint32_t row)
 {
 	uint32_t col_count = p.size();
 	uint32_t row_val = 0;
 	uint32_t temp;
 	for (auto i = 0u; i < col_count; i++) {
 		temp = (p[i] >> row) & 1;
-		row_val ^= (temp << (col_count - 1 - i));
+		//row_val ^= (temp << (col_count - 1 - i));
+		row_val ^= temp << i;
 	}
 	return row_val;
 }
@@ -179,12 +180,6 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 
 	} /* end while */
 
-	/* prepare identity network for computing remaining matrix */
-	std::vector<uint32_t> matrix(nqubits);
-	for (auto row = 0u; row < nqubits; ++row) {
-		matrix[row] = 1 << row;
-	}
-
 	/* making network */
 	/* applying phase gate in the first of line when parity consist of just one variable */
 	for (auto i = 0u; i < nqubits; ++i)
@@ -199,7 +194,6 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	uint32_t idx = 0;
 	for (const auto [c, t] : gates) {
 		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
-		matrix[t] ^= matrix[c];
 		for (auto i = 0u; i < Ts.size(); i++){
 			if (parity_gates[idx] == parities[i]){
 				if (Ts[i] != -1){
@@ -211,9 +205,19 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 		idx++;
 	}
 
+	/* computing remaining matrix */
+	std::vector<uint32_t> matrix(nqubits, 0);
+	for (auto row = 0u; row < nqubits; ++row) {
+		matrix[row] = 1 << row;
+	}
+	for (auto it = gates.rbegin(); it != gates.rend(); ++it)
+	{
+		const auto [c, t] = *it;
+		matrix[t] ^= matrix[c];
+	}
+
 	/* add remainder network */
-	detail::transpose(matrix);
-	uint32_t partition_size = ceil(log2(nqubits)/2);
+	uint32_t partition_size = nqubits;
 	cnot_patel(net, matrix, partition_size, qubits_map);
 }
 
