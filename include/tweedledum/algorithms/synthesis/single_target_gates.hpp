@@ -44,9 +44,10 @@ struct stg_from_pprm {
 };
 
 struct stg_from_spectrum {
-	inline constexpr double pi()
+	inline double pi()
 	{
-		return std::atan(1) * 4;
+		static double _pi = std::atan(1) * 4;
+		return _pi;
 	}
 
 	template<class Network>
