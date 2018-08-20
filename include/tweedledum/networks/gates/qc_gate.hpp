@@ -218,6 +218,20 @@ public:
 		}
 	}
 
+	uint32_t num_controls() const
+	{
+		if (kind_ < static_cast<uint32_t>(gate_kinds_t::cx)) {
+			return 0;
+		}
+
+		uint32_t cnt{1};
+		if (target_ == 2 || this->is_one_of(gate_kinds_t::mcx, gate_kinds_t::mcz))
+		{
+			cnt++;
+		}
+		return cnt;
+	}
+
 	template<typename Fn>
 	void foreach_control(Fn&& fn) const
 	{

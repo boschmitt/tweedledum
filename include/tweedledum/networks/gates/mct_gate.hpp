@@ -32,6 +32,11 @@ struct mct_gate {
 	{
 		return __builtin_popcount(targets);
 	}
+	
+	auto angle() const
+	{
+		return 0;
+	}
 
 	template<typename Fn>
 	void foreach_control(Fn&& fn) const

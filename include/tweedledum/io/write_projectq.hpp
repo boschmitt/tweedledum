@@ -16,7 +16,7 @@
 
 namespace tweedledum {
 
-auto make_qubit_list(std::string& s)
+inline auto make_qubit_list(std::string& s)
 {
 	return [&](auto c) {
 		if (!s.empty()) {
@@ -40,21 +40,36 @@ void write_projectq(Network const& circ, std::ostream& out)
 		char u;
 		switch (g.kind()) {
 		default:
+			std::cout << "[w] unknown gate kind "
+			          << static_cast<uint32_t>(g.kind()) << "\n";
 			assert(false);
 			break;
+		case gate_kinds_t::input:
+		case gate_kinds_t::output:
+			/* ignore */
+			break;
+		case gate_kinds_t::hadamard:
+			out << fmt::format("H | {}\n", targets);
+			break;
+		case gate_kinds_t::rotation_z:
+			out << fmt::format("Rz({}) | {}\n", g.angle(), targets);
+			break;
+		case gate_kinds_t::cx:
+			out << fmt::format("CNOT | ({}, {})\n", controls, targets);
+			break;
 		case gate_kinds_t::mcx:
-			u = 'X';
+			out << fmt::format("C(All(X), {}) | ([{}], [{}])\n",
+			                   g.num_controls(), controls, targets);
 			break;
 		case gate_kinds_t::mcy:
-			u = 'Y';
+			out << fmt::format("C(All(Y), {}) | ([{}], [{}])\n",
+			                   g.num_controls(), controls, targets);
 			break;
 		case gate_kinds_t::mcz:
-			u = 'Z';
+			out << fmt::format("C(All(Z), {}) | ([{}], [{}])\n",
+			                   g.num_controls(), controls, targets);
 			break;
 		}
-
-		out << fmt::format("C(All({}), {}) | ([{}], [{}])\n", u,
-		                   g.num_controls(), controls, targets);
 	});
 }
 

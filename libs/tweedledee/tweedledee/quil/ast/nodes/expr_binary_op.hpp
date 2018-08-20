@@ -10,7 +10,7 @@
 
 #include <memory>
 #include <ostream>
-#include <rang.hpp>
+#include <rang/rang.hpp>
 
 namespace tweedledee {
 namespace quil {

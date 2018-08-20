@@ -71,7 +71,7 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 		if (i != target
 		    && std::find(controls.begin(), controls.end(), i)
 		           == controls.end()) {
-			e = -1;
+			e = i;
 			break;
 		}
 	}
