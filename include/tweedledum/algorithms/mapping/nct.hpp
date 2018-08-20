@@ -44,8 +44,8 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 		const auto e = empty.size();
 		empty.push_back(target);
 
-		for (auto offset = 0u; offset <= 1u; ++offset) {
-			for (auto i = offset; i < c - 2u; ++i) {
+		for (int offset = 0; offset <= 1; ++offset) {
+			for (int i = offset; i < c - 2; ++i) {
 				net.add_multiple_controlled_gate(
 				    gate_kinds_t::mcx,
 				    {empty[e - i], controls[c - 1 - i],
@@ -54,7 +54,7 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 			net.add_multiple_controlled_gate(
 			    gate_kinds_t::mcx,
 			    {empty[e - (c - 2)], controls[0], controls[1]});
-			for (auto i = offset; i < c - 2u; ++i) {
+			for (int i = c - 2 - 1; i >= offset; --i) {
 				net.add_multiple_controlled_gate(
 				    gate_kinds_t::mcx,
 				    {empty[e - i], controls[c - 1 - i],
@@ -89,7 +89,7 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 	for (auto i = m; i < c; ++i) {
 		c2.push_back(controls[i]);
 	}
-	c2.push_back(controls[e]);
+	c2.push_back(e);
 	nct_insert_toffoli(net, c1, e);
 	nct_insert_toffoli(net, c2, target);
 	nct_insert_toffoli(net, c1, e);
