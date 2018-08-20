@@ -206,9 +206,9 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 				net.add_z_rotation(t, Ts[i]);
 				Ts[i] = -1; /* avoiding the insertion of one phase gate in two places */
 				}
-			}
-			idx++;
+			}	
 		}
+		idx++;
 	}
 
 	/* add remainder network */

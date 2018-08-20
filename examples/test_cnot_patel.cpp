@@ -16,7 +16,7 @@ int main()
 	std::vector<uint32_t> matrix{0b110000, 0b100110, 0b010010,
 	                             0b111111, 0b110111, 0b001110};
 	// cnot_patel(network, matrix, 2);
-	float T = 0.393;
+	
 	// std::vector<std::pair<uint32_t, float>> parities{
 	// 													{0b0110,
 	// T},
@@ -27,17 +27,15 @@ int main()
 	// {0b0011, T}}
 	//   												};
 
-	std::vector<uint32_t> p1 {0b0110, 0b0001, 0b1001,
-	                               0b0111, 0b1011, 0b0011};
 
-	std::vector<uint32_t> my_parities{0b011111, 0b100111, 0b100100, 0b001010};
 
-	std::vector<uint32_t> p2{0b0101, 0b1110, 0b1100,
-	                         0b0111};
+	std::vector<uint32_t> p1{0b0110, 0b0001, 0b1001,
+	                         0b0111, 0b1011, 0b0011};
 
-	std::vector<float> Ts{T, T, T, T};
+	float T = 0.393;
+	std::vector<float> Ts{T, T, T, T, T, T};
 
-	gray_synth(network, 4, p2, Ts);
+	gray_synth(network, 4, p1, Ts);
 
 	write_quil(network, std::cout);
 }
