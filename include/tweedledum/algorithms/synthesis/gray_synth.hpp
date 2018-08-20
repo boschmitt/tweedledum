@@ -40,20 +40,6 @@ inline void parities_matrix_update(
 	}
 }
 
-inline uint32_t extract_one_bits(uint32_t number)
-{
-	uint32_t temp;
-	uint32_t one_bits = 0;
-	while (number != 0) {
-		temp = number & 1; /* first bit of number */
-		number >>= 1;
-		if (temp)
-			one_bits += 1;
-	}
-
-	return one_bits;
-}
-
 inline uint32_t extract_row_of_vector(std::vector<uint32_t> p, uint32_t row)
 {
 	uint32_t col_count = p.size();
@@ -66,7 +52,7 @@ inline uint32_t extract_row_of_vector(std::vector<uint32_t> p, uint32_t row)
 	return row_val;
 }
 
-inline std::vector<uint32_t> extract_special_parities(std::vector<uint32_t> p,
+inline std::vector<uint32_t> extract_special_parities(std::vector<uint32_t> const& p,
                                                       uint32_t idx,
                                                       uint32_t value)
 {
@@ -164,7 +150,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 			for (auto i = 0u; i < I.size(); i++) {
 				num = detail::extract_row_of_vector(S, I[i]);
 
-				one_bits = detail::extract_one_bits(num);
+				one_bits = __builtin_popcount(num);
 				zero_bits = S.size() - one_bits;
 
 				temp = (one_bits > zero_bits) ? one_bits :
@@ -201,11 +187,13 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 
 	/* making network */
 	/* applying phase gate in the first of line when parity consist of just one variable */
-	for(auto i=0u;i<parities.size();i++){
-		if (detail::extract_one_bits(parities[i])==1){
-			net.add_z_rotation(log2( parities[i]<<1 )-1,Ts[i]);
-			Ts[i] = -1;
-		}
+	for (auto i = 0u; i < nqubits; ++i)
+	{
+		const auto it = std::find(parities.begin(), parities.end(), 1 << i);
+		if (it == parities.end()) continue;
+		const auto idx = std::distance(parities.begin(), it);
+		net.add_z_rotation(i, Ts[idx]);
+		Ts[idx] = -1;
 	}
 
 	uint32_t idx = 0;
