@@ -29,15 +29,15 @@ int main()
 	//std::vector<uint32_t> matrix{0b011011,0b011101,0b101000,0b111010,0b111110,0b011000 };
 	
 	//std::vector<uint32_t> matrix{0b1010, 0b0100, 0b0110, 0b0101};
-	std::vector<uint32_t> matrix{0b1010,0b0010,0b1110,0b1101};
+	std::vector<uint32_t> matrix{0b1111,0b0110,0b0100,0b1000};
 
-	std::vector<uint32_t> p1{0b1111,0b0110,0b0100,0b1000};
+	//std::vector<uint32_t> p1{0b1111,0b0110,0b0100,0b1000};
 
 	float T = 0.393;
 	std::vector<float> Ts{T, T, T, T, T, T};
 
 	//gray_synth(network, 4, p1, Ts);
-	cnot_patel(network,matrix,4);
+	cnot_patel(network,matrix,2);
 
 	write_quil(network, std::cout);
 }

@@ -43,17 +43,21 @@ inline void transpose(std::vector<uint32_t>& matrix)
 inline std::vector<std::pair<uint16_t, uint16_t>>
 lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 {
+
+
+
+
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
 	uint32_t sec_count = std::ceil(static_cast<float>(n) / m);
 	for (auto sec = 0u; sec < sec_count; ++sec) {
 		// remove duplicate sub-rows in section sec
-		std::vector<uint32_t> patt(1 << m, n+1 );
+		std::vector<uint32_t> patt(1 << m, (1<<n) );
 		for (auto row = sec * m; row < n; ++row) {
 			uint32_t start = sec * m;
 			uint32_t end = start + m - 1;
 			uint32_t sub_row_patt = sub_pattern(matrix[row], start, end);
 			// if this is the first copy of pattern save it otherwise remove
-			if (patt[sub_row_patt] == (n+1))
+			if (patt[sub_row_patt] == (1<<n))
 				patt[sub_row_patt] = row;
 			else {
 				matrix[row] ^= matrix[patt[sub_row_patt]];
@@ -146,6 +150,7 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 	}
 	std::vector<uint8_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
+
 	cnot_patel(net, matrix, partition_size, qubits_map);
 }
 
