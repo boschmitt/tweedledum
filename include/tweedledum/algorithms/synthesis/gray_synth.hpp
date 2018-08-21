@@ -16,54 +16,34 @@
 namespace tweedledum {
 
 namespace detail {
+// invert row `adding_row` if `added_row` is 1 in all lists S (both in q and current s)
 inline void parities_matrix_update(
     std::vector<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>, uint32_t>>& q,
     std::vector<uint32_t>& s, uint32_t adding_row, uint32_t added_row)
 {
-	uint32_t t1, t2;
-	for (auto i = 0u; i < q.size(); i++) {
+	for (auto& stack_elem : q)
+		for (auto& S_elem : std::get<0>(stack_elem))
+			S_elem ^= ((S_elem >> adding_row) & 1) << added_row;
 
-		for (auto j = 0u; j < (std::get<0>(q[i]).size()); j++) {
-			t1 = (std::get<0>(q[i])[j] >> adding_row) & 1;
-			t2 = (std::get<0>(q[i])[j] >> added_row) & 1;
-			if (t1) {
-				std::get<0>(q[i])[j] ^= (1 << added_row);
-			}
-		}
-	}
-	for (auto i = 0u; i < s.size(); i++) {
-		t1 = (s[i] >> adding_row) & 1;
-		t2 = (s[i] >> added_row) & 1;
-		if (t1) {
-			s[i] ^= (1 << added_row);
-		}
-	}
+	for (auto& elem : s)
+		elem ^= ((elem >> adding_row) & 1) << added_row;
 }
 
 inline uint32_t extract_row_of_vector(std::vector<uint32_t> const& p, uint32_t row)
 {
-	uint32_t col_count = p.size();
-	uint32_t row_val = 0;
-	uint32_t temp;
-	for (auto i = 0u; i < col_count; i++) {
-		temp = (p[i] >> row) & 1;
-		//row_val ^= (temp << (col_count - 1 - i));
-		row_val ^= temp << i;
-	}
+	uint32_t row_val{0};
+	for (auto i = 0u; i < p.size(); i++)
+		row_val ^= ((p[i] >> row) & 1) << i;
 	return row_val;
 }
 
-inline std::vector<uint32_t> extract_special_parities(std::vector<uint32_t> const& p,
-                                                      uint32_t idx,
-                                                      uint32_t value)
+inline std::vector<uint32_t> extract_special_parities(
+    std::vector<uint32_t> const& p, uint32_t idx, uint32_t value)
 {
 	std::vector<uint32_t> out;
-	uint32_t temp;
-	for (auto i = 0u; i < p.size(); i++) {
-		temp = (p[i] >> idx) & 1;
-		if (temp == value)
-			out.push_back(p[i]);
-	}
+	for (const auto i : p)
+		if (((i >> idx) & 1) == value)
+			out.push_back(i);
 	return out;
 }
 
@@ -102,90 +82,76 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	const auto nqubits = qubits_map.size();
 
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
-	std::vector<uint32_t> in_lines;
-	for (auto i = 0u; i < nqubits; i++)
-		in_lines.push_back(i);
+	std::vector<uint32_t> in_lines(nqubits);
+	std::iota(in_lines.begin(), in_lines.end(), 0u);
 
 	std::vector<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>, uint32_t>> Q;
-	Q.push_back({parities, in_lines,
-	             nqubits}); /* -1 is first initialize of epsilon
-	                         that update after first iteration */
+	/* -1 is first initialize of epsilon that update after first iteration */
+	Q.emplace_back(parities, in_lines, nqubits);
 
 	/* managing phase gates */
 	std::vector<uint32_t> parity_gates;
-	std::vector<uint32_t> line_parity_val;
+	std::vector<uint32_t> line_parity_val(nqubits);
 	for (auto i = 0u; i < nqubits; i++)
-		line_parity_val.push_back(1 << i);
+		line_parity_val[i] = 1 << i;
 
 	while (!Q.empty()) {
-
-		std::vector<uint32_t> S = std::get<0>(Q.back());
-		std::vector<uint32_t> I = std::get<1>(Q.back());
-		uint32_t ID = std::get<2>(Q.back());
-		Q.pop_back();  /* remove top of stack */
-		if (S.empty()) // | I.empty())
+		auto [S, I, ID] = Q.back();
+		Q.pop_back(); /* remove top of stack */
+		if (S.empty())
 			continue;
 
-		else if (ID != nqubits) {
+		if (ID != nqubits)
 			for (auto j = 0u; j < nqubits; j++) {
 				if (j == ID)
 					continue;
+				/* xj must exist in all parities of S matrix */
 				if (detail::extract_row_of_vector(S, j)
-				    == ((1 << S.size())
-				        - 1)) { /* xj input exist in all parities of S matrix */
-					gates.push_back({j, ID});
+				    != ((1 << S.size()) - 1))
+					continue;
 
-					line_parity_val[ID] ^= line_parity_val[j];
-					parity_gates.push_back(
-					    line_parity_val[ID]);
-					detail::parities_matrix_update(Q, S, ID,
-					                               j);
-				}
+				/* insert gate and update parity matrix */
+				gates.emplace_back(j, ID);
+				line_parity_val[ID] ^= line_parity_val[j];
+				parity_gates.push_back(line_parity_val[ID]);
+				detail::parities_matrix_update(Q, S, ID, j);
+			}
+
+		if (I.empty())
+			continue;
+
+		uint32_t max{0u};
+		decltype(I)::iterator max_it = I.end();
+
+		for (auto it = I.begin(); it != I.end(); ++it) {
+			const uint32_t num = detail::extract_row_of_vector(S, *it);
+			const uint32_t one_bits = __builtin_popcount(num);
+			const uint32_t zero_bits = S.size() - one_bits;
+
+			const auto temp
+			    = (one_bits > zero_bits) ? one_bits : zero_bits;
+			if (temp > max) {
+				max = temp;
+				max_it = it;
 			}
 		}
-		if (!I.empty()) {
-			uint32_t max = 0;
-			uint32_t max_idx = nqubits;
-			uint32_t one_bits, zero_bits, num, temp;
 
-			for (auto i = 0u; i < I.size(); i++) {
-				num = detail::extract_row_of_vector(S, I[i]);
+		const auto S0 = detail::extract_special_parities(S, *max_it, 0);
+		const auto S1 = detail::extract_special_parities(S, *max_it, 1);
+		const auto max_idx = *max_it;
+		I.erase(max_it);
 
-				one_bits = __builtin_popcount(num);
-				zero_bits = S.size() - one_bits;
-
-				temp = (one_bits > zero_bits) ? one_bits :
-				                                zero_bits;
-				if (temp > max) {
-					max = temp;
-					max_idx = I[i];
-				}
-			}
-
-			std::vector<uint32_t> S0;
-			std::vector<uint32_t> S1;
-
-			S0 = detail::extract_special_parities(S, max_idx, 0);
-			S1 = detail::extract_special_parities(S, max_idx, 1);
-			I.erase(std::remove(I.begin(), I.end(), max_idx),
-			        I.end());
-
-			if (ID == nqubits)
-				Q.push_back({S1, I, max_idx});
-			else
-				Q.push_back({S1, I, ID});
-			Q.push_back({S0, I, ID});
-
-		} /* end if I.empty() */
-
+		Q.emplace_back(S1, I, ID == nqubits ? max_idx : ID);
+		Q.emplace_back(S0, I, ID);
 	} /* end while */
 
 	/* making network */
 	/* applying phase gate in the first of line when parity consist of just one variable */
-	for (auto i = 0u; i < nqubits; ++i)
-	{
-		const auto it = std::find(parities.begin(), parities.end(), 1 << i);
-		if (it == parities.end()) continue;
+	for (auto i = 0u; i < nqubits; ++i) {
+		const auto it
+		    = std::find(parities.begin(), parities.end(), 1 << i);
+		if (it == parities.end())
+			continue;
 		const auto idx = std::distance(parities.begin(), it);
 		net.add_z_rotation(qubits_map[i], Ts[idx]);
 		Ts[idx] = -1;
@@ -193,14 +159,16 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 
 	uint32_t idx = 0;
 	for (const auto [c, t] : gates) {
-		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
-		for (auto i = 0u; i < Ts.size(); i++){
-			if (parity_gates[idx] == parities[i]){
-				if (Ts[i] != -1){
-				net.add_z_rotation(qubits_map[t], Ts[i]);
-				Ts[i] = -1; /* avoiding the insertion of one phase gate in two places */
+		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c],
+		                        qubits_map[t]);
+		for (auto i = 0u; i < Ts.size(); i++) {
+			if (parity_gates[idx] == parities[i]) {
+				if (Ts[i] != -1) {
+					net.add_z_rotation(qubits_map[t], Ts[i]);
+					Ts[i] = -1; /* avoiding the insertion of
+					               one phase gate in two places */
 				}
-			}	
+			}
 		}
 		idx++;
 	}
@@ -210,8 +178,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	for (auto row = 0u; row < nqubits; ++row) {
 		matrix[row] = 1 << row;
 	}
-	for (auto it = gates.rbegin(); it != gates.rend(); ++it)
-	{
+	for (auto it = gates.rbegin(); it != gates.rend(); ++it) {
 		const auto [c, t] = *it;
 		matrix[t] ^= matrix[c];
 	}
