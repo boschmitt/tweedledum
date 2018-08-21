@@ -43,6 +43,37 @@ struct stg_from_pprm {
 	}
 };
 
+struct stg_from_pkrm {
+	template<class Network>
+	void operator()(Network& net, kitty::dynamic_truth_table const& function,
+	                std::vector<uint8_t> const& qubit_map)
+	{
+		const auto num_controls = function.num_vars();
+		assert(qubit_map.size()
+		       == static_cast<std::size_t>(num_controls) + 1u);
+
+		for (auto const& cube : esop_from_optimum_pkrm(function)) {
+			std::vector<uint32_t> controls, negations;
+			auto bits = cube._bits;
+			auto mask = cube._mask;
+			for (auto v = 0; v < num_controls; ++v) {
+				if (mask & 1) {
+					controls.push_back(qubit_map[v]);
+					if (!(bits & 1))
+						negations.push_back(qubit_map[v]);
+				}
+				bits >>= 1;
+				mask >>= 1;
+			}
+			for (auto n : negations)
+				net.add_gate(gate_kinds_t::cx, n);
+			net.add_toffoli(controls, {qubit_map.back()});
+			for (auto n : negations)
+				net.add_gate(gate_kinds_t::cx, n);
+		}
+	}
+};
+
 struct stg_from_spectrum {
 	inline double pi()
 	{
