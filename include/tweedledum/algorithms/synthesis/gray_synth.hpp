@@ -121,7 +121,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 			continue;
 
 		uint32_t max{0u};
-		decltype(I)::iterator max_it = I.end();
+		std::vector<uint32_t>::iterator max_it = I.end();
 
 		for (auto it = I.begin(); it != I.end(); ++it) {
 			const uint32_t num = detail::extract_row_of_vector(S, *it);
