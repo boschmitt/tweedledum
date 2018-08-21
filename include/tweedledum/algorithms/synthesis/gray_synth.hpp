@@ -184,7 +184,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	}
 
 	/* add remainder network */
-	uint32_t partition_size = nqubits;
+	uint32_t partition_size = 2;
 	cnot_patel(net, matrix, partition_size, qubits_map);
 }
 

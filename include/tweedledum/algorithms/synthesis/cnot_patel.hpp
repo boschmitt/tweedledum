@@ -47,13 +47,13 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 	uint32_t sec_count = std::ceil(static_cast<float>(n) / m);
 	for (auto sec = 0u; sec < sec_count; ++sec) {
 		// remove duplicate sub-rows in section sec
-		std::vector<int32_t> patt(1 << m, -1);
+		std::vector<uint32_t> patt(1 << m, n+1 );
 		for (auto row = sec * m; row < n; ++row) {
 			uint32_t start = sec * m;
 			uint32_t end = start + m - 1;
 			uint32_t sub_row_patt = sub_pattern(matrix[row], start, end);
 			// if this is the first copy of pattern save it otherwise remove
-			if (patt[sub_row_patt] == -1)
+			if (patt[sub_row_patt] == (n+1))
 				patt[sub_row_patt] = row;
 			else {
 				matrix[row] ^= matrix[patt[sub_row_patt]];
@@ -61,7 +61,8 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 			}
 		}
 		// use Gaussian elimination for remaining entries in column section
-		for (auto col = sec * m; col < (sec + 1) * m; col++) {
+		uint32_t temp = (sec==(sec_count-1)) ? n : ((sec + 1) * m);
+		for (auto col = sec * m; col < temp ; col++) {
 			// check for 1 on diagonal
 			bool diag_one = (matrix[col] >> col) & 1;
 
