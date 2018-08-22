@@ -51,11 +51,17 @@ void write_projectq(Network const& circ, std::ostream& out)
 		case gate_kinds_t::hadamard:
 			out << fmt::format("H | {}\n", targets);
 			break;
+		case gate_kinds_t::rotation_x:
+			out << fmt::format("Rx({}) | {}\n", g.angle(), targets);
+			break;
 		case gate_kinds_t::rotation_z:
 			out << fmt::format("Rz({}) | {}\n", g.angle(), targets);
 			break;
 		case gate_kinds_t::cx:
 			out << fmt::format("CNOT | ({}, {})\n", controls, targets);
+			break;
+		case gate_kinds_t::cz:
+			out << fmt::format("CZ | ({}, {})\n", controls, targets);
 			break;
 		case gate_kinds_t::mcx:
 			out << fmt::format("C(All(X), {}) | ([{}], [{}])\n",

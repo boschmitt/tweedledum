@@ -40,11 +40,27 @@ void read_quil_file(Network& circ, std::string const& path)
 			    = static_cast<const expr_real&>(*g.begin()).evaluate();
 			auto label = static_cast<const qubit&>(*g.back()).label;
 			circ.add_z_rotation(label, angle);
-		} else {
+		} else if (g.identifier == "CZ") {
 			auto label0 = static_cast<const qubit&>(*g.begin()).label;
 			auto label1 = static_cast<const qubit&>(*g.back()).label;
 			circ.add_controlled_gate(gate_kinds_t::cz, label0,
 			                         label1);
+		} else if (g.identifier == "CX") {
+			auto label0 = static_cast<const qubit&>(*g.begin()).label;
+			auto label1 = static_cast<const qubit&>(*g.back()).label;
+			circ.add_controlled_gate(gate_kinds_t::cx, label0,
+			                         label1);
+		} else if (g.identifier == "SWAP") {
+			auto label0 = static_cast<const qubit&>(*g.begin()).label;
+			auto label1 = static_cast<const qubit&>(*g.back()).label;
+			circ.add_controlled_gate(gate_kinds_t::cx, label0,
+			                         label1);
+			circ.add_controlled_gate(gate_kinds_t::cx, label1,
+			                         label0);
+			circ.add_controlled_gate(gate_kinds_t::cx, label0,
+			                         label1);
+		} else {
+			std::cout << "[w] cannot process gate " << g.identifier << "\n";
 		}
 	}
 	// visit(*program, [&](const ast_node& node, visitor_info info) {
