@@ -7,14 +7,11 @@
 
 #include "../gate_kinds.hpp"
 
-#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-
-namespace fs = std::experimental::filesystem;
 
 namespace tweedledee {
 
@@ -129,16 +126,10 @@ template<typename GateKind, class Fn = detail::identify_gate_kind>
 inline void dotqc_read(std::string const& path, dotqc_reader<GateKind>& reader,
                        Fn&& fn = {})
 {
-	fs::path fpath(path);
-	if (fpath.extension() != ".qc") {
-		std::cerr << "[e] Unreconized file type: " << fpath.extension()
-		          << '\n';
-	}
 	// Load the whole file into a buffer
-	std::ifstream input_file(fpath);
+	std::ifstream input_file(path);
 	if (!input_file.is_open()) {
-		std::cerr << "[e] Couldn't open file: " << fpath.filename()
-		          << '\n';
+		std::cerr << "[e] Couldn't open file: " << path << '\n';
 		return;
 	}
 	std::stringstream buffer;

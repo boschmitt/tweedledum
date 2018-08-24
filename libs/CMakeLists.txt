@@ -18,5 +18,5 @@ if (NOT TARGET rang)
 endif()
 
 add_library(tweedledee INTERFACE)
-target_link_libraries(tweedledee INTERFACE c++experimental rang)
+target_link_libraries(tweedledee INTERFACE rang)
 target_include_directories(tweedledee INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/tweedledee)
