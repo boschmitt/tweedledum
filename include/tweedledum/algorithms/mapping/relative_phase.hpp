@@ -51,19 +51,34 @@ void relative_phase_mapping(NetworkDest& dest, NetworkSrc const& src)
 				const auto c = targets[0];
 
 				dest.add_gate(gate_kinds_t::hadamard, c);
-				dest.add_controlled_gate(gate_kinds_t::cx, c, b);
-				dest.add_gate(gate_kinds_t::t_dagger, b);
-				dest.add_controlled_gate(gate_kinds_t::cx, a, b);
-				dest.add_gate(gate_kinds_t::t, b);
-				dest.add_controlled_gate(gate_kinds_t::cx, c, a);
-				dest.add_gate(gate_kinds_t::t_dagger, b);
-				dest.add_controlled_gate(gate_kinds_t::cx, a, b);
-				dest.add_gate(gate_kinds_t::t, b);
-				dest.add_controlled_gate(gate_kinds_t::cx, a, c);
+				//dest.add_controlled_gate(gate_kinds_t::cx, c, b); // b <- b ^ c
+				//dest.add_gate(gate_kinds_t::t_dagger, b);         // b ^ c -> T+
+				//dest.add_controlled_gate(gate_kinds_t::cx, a, b); // b <- a ^ b ^ c
+				//dest.add_gate(gate_kinds_t::t, b);                // a ^ b ^ c -> T
+				//dest.add_controlled_gate(gate_kinds_t::cx, c, b); // b <- a ^ b
+				//dest.add_gate(gate_kinds_t::t_dagger, b);         // a ^ b -> T+
+				//dest.add_controlled_gate(gate_kinds_t::cx, a, b); // b <- b
+				//dest.add_gate(gate_kinds_t::t, b);                // b -> T
+				//dest.add_controlled_gate(gate_kinds_t::cx, a, c); // c <- a ^ c
+				//dest.add_gate(gate_kinds_t::t_dagger, c);         // a ^ c -> T+
+				//dest.add_controlled_gate(gate_kinds_t::cx, a, c); // c <- c
+				//dest.add_gate(gate_kinds_t::t, a);                // a -> T
+				//dest.add_gate(gate_kinds_t::t, c);                // c -> T
+
+				dest.add_controlled_gate(gate_kinds_t::cx, b, c);
 				dest.add_gate(gate_kinds_t::t_dagger, c);
 				dest.add_controlled_gate(gate_kinds_t::cx, a, c);
-				dest.add_gate(gate_kinds_t::t, a);
 				dest.add_gate(gate_kinds_t::t, c);
+				dest.add_controlled_gate(gate_kinds_t::cx, b, c);
+				dest.add_gate(gate_kinds_t::t_dagger, c);
+				dest.add_controlled_gate(gate_kinds_t::cx, a, c);
+				dest.add_gate(gate_kinds_t::t, c);
+				dest.add_controlled_gate(gate_kinds_t::cx, a, b);
+				dest.add_gate(gate_kinds_t::t_dagger, b);
+				dest.add_controlled_gate(gate_kinds_t::cx, a, b);
+				dest.add_gate(gate_kinds_t::t, b);
+				dest.add_gate(gate_kinds_t::t, a);
+
 				dest.add_gate(gate_kinds_t::hadamard, c);
 
 				for (auto i = 1u; i < targets.size(); ++i) {
