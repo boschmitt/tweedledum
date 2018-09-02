@@ -14,18 +14,24 @@
 
 namespace tweedledum {
 
+struct nct_mapping_params {
+	uint32_t controls_threshold{2u};
+};
+
 namespace detail {
 
 template<class Network>
 void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
-                        uint32_t target)
+                        uint32_t target, nct_mapping_params const& ps)
 {
 	const auto c = controls.size();
 	assert(c >= 2);
 
-	if (c == 2) {
-		net.add_multiple_controlled_gate(
-		    gate_kinds_t::mcx, {target, controls[0], controls[1]});
+	if (c <= ps.controls_threshold) {
+		std::vector<uint32_t> qubits(c + 1u);
+		qubits.front() = target;
+		std::copy(controls.begin(), controls.end(), qubits.begin() + 1);
+		net.add_multiple_controlled_gate(gate_kinds_t::mcx, qubits);
 		return;
 	}
 
@@ -45,7 +51,7 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 		empty.push_back(target);
 
 		for (int offset = 0; offset <= 1; ++offset) {
-			for (int i = offset; i < c - 2; ++i) {
+			for (int i = offset; i < static_cast<int>(c) - 2; ++i) {
 				net.add_multiple_controlled_gate(
 				    gate_kinds_t::mcx,
 				    {empty[e - i], controls[c - 1 - i],
@@ -90,20 +96,21 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 		c2.push_back(controls[i]);
 	}
 	c2.push_back(e);
-	nct_insert_toffoli(net, c1, e);
-	nct_insert_toffoli(net, c2, target);
-	nct_insert_toffoli(net, c1, e);
-	nct_insert_toffoli(net, c2, target);
+	nct_insert_toffoli(net, c1, e, ps);
+	nct_insert_toffoli(net, c2, target, ps);
+	nct_insert_toffoli(net, c1, e, ps);
+	nct_insert_toffoli(net, c2, target, ps);
 }
 
 } /* namespace detail */
 
 template<class NetworkDest, class NetworkSrc>
-void nct_mapping(NetworkDest& dest, NetworkSrc const& src)
+void nct_mapping(NetworkDest& dest, NetworkSrc const& src,
+                 nct_mapping_params const& ps = {})
 {
 	rewrite_network(
 	    dest, src,
-	    [](auto& dest, auto const& g) {
+	    [&](auto& dest, auto const& g) {
 		    if (g.is(gate_kinds_t::mcx)) {
 			    switch (g.num_controls()) {
 			    case 0:
@@ -131,7 +138,7 @@ void nct_mapping(NetworkDest& dest, NetworkSrc const& src)
 					        gate_kinds_t::cx, targets[0],
 					        targets[i]);
 				    detail::nct_insert_toffoli(dest, controls,
-				                               targets[0]);
+				                               targets[0], ps);
 				    for (auto i = 1u; i < targets.size(); ++i)
 					    dest.add_controlled_gate(
 					        gate_kinds_t::cx, targets[0],
