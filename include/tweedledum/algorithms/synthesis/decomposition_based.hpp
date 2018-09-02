@@ -21,6 +21,11 @@
 #include <vector>
 
 namespace tweedledum {
+
+struct decomposition_based_synthesis_params {
+	bool verbose{false};
+};
+
 namespace detail {
 
 std::pair<std::vector<uint16_t>, std::vector<uint16_t>>
@@ -87,7 +92,9 @@ control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 
 template<class Network, class STGSynthesisFn>
 void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
-                                   STGSynthesisFn&& stg_synth)
+                                   STGSynthesisFn&& stg_synth,
+                                   decomposition_based_synthesis_params const& ps
+                                   = {})
 {
 	const uint32_t num_qubits = std::log2(perm.size());
 	for (auto i = 0u; i < num_qubits; ++i) {
@@ -118,6 +125,16 @@ void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
 	}
 
 	for (auto const& [tt, vars] : gates) {
+		if (ps.verbose)
+			std::cout
+			    << "[i] synthesize " << kitty::to_hex(tt) << " onto "
+			    << std::accumulate(
+			           vars.begin() + 1, vars.end(),
+			           std::to_string(vars.front()),
+			           [](auto const& a, auto v) {
+				           return a + ", " + std::to_string(v);
+			           })
+			    << "\n";
 		stg_synth(circ, tt, vars);
 	}
 }
