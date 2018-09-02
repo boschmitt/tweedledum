@@ -49,6 +49,24 @@ void write_qasm(Network const& circ, std::ostream& out)
 			});
 		} break;
 
+		case gate_kinds_t::pauli_z: {
+			g.foreach_target([&](auto q) {
+				out << fmt::format("z q[{}];\n", q);
+			});
+		} break;
+
+		case gate_kinds_t::phase: {
+			g.foreach_target([&](auto q) {
+				out << fmt::format("s q[{}];\n", q);
+			});
+		} break;
+
+		case gate_kinds_t::phase_dagger: {
+			g.foreach_target([&](auto q) {
+				out << fmt::format("sdg q[{}];\n", q);
+			});
+		} break;
+
 		case gate_kinds_t::t: {
 			g.foreach_target([&](auto q) {
 				out << fmt::format("t q[{}];\n", q);
@@ -57,7 +75,7 @@ void write_qasm(Network const& circ, std::ostream& out)
 
 		case gate_kinds_t::t_dagger: {
 			g.foreach_target([&](auto q) {
-				out << fmt::format("tgd q[{}];\n", q);
+				out << fmt::format("tdg q[{}];\n", q);
 			});
 		} break;
 

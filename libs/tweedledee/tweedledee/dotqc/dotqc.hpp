@@ -110,9 +110,8 @@ public:
 		(void) qubit1_label;
 	}
 
-	virtual void
-	on_multiple_qubit_gate(GateKind kind,
-	                       std::vector<std::string> const& qubit_labels)
+	virtual void on_multiple_qubit_gate(
+	    GateKind kind, std::vector<std::string> const& qubit_labels)
 	{
 		(void) kind;
 		(void) qubit_labels;
@@ -123,20 +122,10 @@ public:
 };
 
 template<typename GateKind, class Fn = detail::identify_gate_kind>
-inline void dotqc_read(std::string const& path, dotqc_reader<GateKind>& reader,
-                       Fn&& fn = {})
+inline void dotqc_read(std::istream& buffer,
+                       dotqc_reader<GateKind>& reader, Fn&& fn = {})
 {
-	// Load the whole file into a buffer
-	std::ifstream input_file(path);
-	if (!input_file.is_open()) {
-		std::cerr << "[e] Couldn't open file: " << path << '\n';
-		return;
-	}
-	std::stringstream buffer;
 	std::string line;
-	buffer << input_file.rdbuf();
-	input_file.close();
-
 	while (buffer.peek() == '.' || buffer.peek() == '#') {
 		if (buffer.peek() == '#') {
 			std::getline(buffer, line);
@@ -193,6 +182,20 @@ inline void dotqc_read(std::string const& path, dotqc_reader<GateKind>& reader,
 			break;
 		}
 	}
+}
+
+template<typename GateKind, class Fn = detail::identify_gate_kind>
+inline void dotqc_read(std::string const& path, dotqc_reader<GateKind>& reader,
+                       Fn&& fn = {})
+{
+	// Load the whole file into a buffer
+	std::ifstream input_file(path);
+	if (!input_file.is_open()) {
+		std::cerr << "[e] Couldn't open file: " << path << '\n';
+		return;
+	}
+	dotqc_read(input_file, reader, fn);
+	input_file.close();
 }
 
 } // namespace tweedledee

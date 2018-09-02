@@ -37,7 +37,6 @@ void write_projectq(Network const& circ, std::ostream& out)
 		g.foreach_control(make_qubit_list(controls));
 		g.foreach_target(make_qubit_list(targets));
 
-		char u;
 		switch (g.kind()) {
 		default:
 			std::cout << "[w] unknown gate kind "
@@ -51,6 +50,27 @@ void write_projectq(Network const& circ, std::ostream& out)
 		case gate_kinds_t::hadamard:
 			out << fmt::format("H | {}\n", targets);
 			break;
+		case gate_kinds_t::pauli_x:
+			out << fmt::format("X | {}\n", targets);
+			break;
+		case gate_kinds_t::pauli_y:
+			out << fmt::format("Y | {}\n", targets);
+			break;
+		case gate_kinds_t::pauli_z:
+			out << fmt::format("Z | {}\n", targets);
+			break;
+		case gate_kinds_t::phase:
+			out << fmt::format("S | {}\n", targets);
+			break;
+		case gate_kinds_t::phase_dagger:
+			out << fmt::format("Sdag | {}\n", targets);
+			break;
+		case gate_kinds_t::t:
+			out << fmt::format("T | {}\n", targets);
+			break;
+		case gate_kinds_t::t_dagger:
+			out << fmt::format("Tdag | {}\n", targets);
+			break;
 		case gate_kinds_t::rotation_x:
 			out << fmt::format("Rx({}) | {}\n", g.angle(), targets);
 			break;
@@ -58,7 +78,8 @@ void write_projectq(Network const& circ, std::ostream& out)
 			out << fmt::format("Rz({}) | {}\n", g.angle(), targets);
 			break;
 		case gate_kinds_t::cx:
-			out << fmt::format("CNOT | ({}, {})\n", controls, targets);
+			out << fmt::format("CNOT | ({}, {})\n", controls,
+			                   targets);
 			break;
 		case gate_kinds_t::cz:
 			out << fmt::format("CZ | ({}, {})\n", controls, targets);
