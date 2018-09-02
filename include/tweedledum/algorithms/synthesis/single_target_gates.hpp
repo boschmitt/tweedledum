@@ -86,7 +86,7 @@ struct stg_from_spectrum {
 	                std::vector<uint8_t> const& qubit_map)
 	{
 		const auto num_controls = function.num_vars();
-		assert(qubit_map.size() == num_controls + 1);
+		assert(qubit_map.size() == num_controls + 1u);
 
 		auto g = kitty::extend_to(function, num_controls + 1);
 		auto xt = g.construct();
