@@ -103,12 +103,14 @@ public:
 
 	void mark_as_input(std::string const& qubit)
 	{
-		std::cout << "Mark as input: " << qubit << '\n';
+		(void)qubit;
+		//std::cout << "Mark as input: " << qubit << '\n';
 	}
 
 	void mark_as_output(std::string const& qubit)
 	{
-		std::cout << "Mark as output: " << qubit << '\n';
+		(void)qubit;
+		//std::cout << "Mark as output: " << qubit << '\n';
 	}
 
 	void add_gate(gate_type g)
