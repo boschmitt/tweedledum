@@ -6,6 +6,7 @@
 #pragma once
 
 #include "gray_synth.hpp"
+#include "lin_comb_synth.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -108,7 +109,10 @@ struct stg_from_spectrum {
 		}
 
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
-		gray_synth(net, parities, angles, qubit_map);
+		if (parities.size() == spectrum.size() - 1)
+			lin_comb_synth(net, parities, angles, qubit_map);
+		else
+			gray_synth(net, parities, angles, qubit_map);
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
 	}
 };
