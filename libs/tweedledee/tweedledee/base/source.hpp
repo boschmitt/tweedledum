@@ -33,6 +33,7 @@ private:
 public:
 	source(const source&) = delete;
 	source& operator=(const source&) = delete;
+	virtual ~source() = default;
 
 	static std::unique_ptr<source> build(std::string_view content,
 	                                     uint32_t offset)
