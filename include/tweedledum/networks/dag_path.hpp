@@ -9,9 +9,8 @@
 #include "detail/storage.hpp"
 #include "gates/gate_kinds.hpp"
 
-#include <fmt/format.h>
-
 #include <array>
+#include <fmt/format.h>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -103,88 +102,91 @@ public:
 
 	void mark_as_input(std::string const& qubit)
 	{
-		(void)qubit;
-		//std::cout << "Mark as input: " << qubit << '\n';
+		(void) qubit;
+		// std::cout << "Mark as input: " << qubit << '\n';
 	}
 
 	void mark_as_output(std::string const& qubit)
 	{
-		(void)qubit;
-		//std::cout << "Mark as output: " << qubit << '\n';
+		(void) qubit;
+		// std::cout << "Mark as output: " << qubit << '\n';
 	}
 
-	void add_gate(gate_type g)
+	node_type& add_gate(gate_type g)
 	{
-		do_add_gate(g);
+		return do_add_gate(g);
 	}
 
-	void add_gate(gate_kinds_t kind, std::string const& target)
+	node_type& add_gate(gate_kinds_t kind, std::string const& target)
 	{
 		auto qubit_id = label_to_id_[target];
-		add_gate(kind, qubit_id);
+		return add_gate(kind, qubit_id);
 	}
 
-	void add_gate(gate_kinds_t kind, uint32_t target_id)
+	node_type& add_gate(gate_kinds_t kind, uint32_t target_id)
 	{
 		gate_type single_target_gate(kind, target_id);
-		do_add_gate(single_target_gate);
+		return do_add_gate(single_target_gate);
 	}
-	
-	void add_x_rotation(std::string const& label, float angle)
+
+	node_type& add_x_rotation(std::string const& label, float angle)
 	{
 		auto qubit_id = label_to_id_[label];
-		add_x_rotation(qubit_id, angle);
+		return add_x_rotation(qubit_id, angle);
 	}
 
-	void add_z_rotation(std::string const& label, float angle)
+	node_type& add_z_rotation(std::string const& label, float angle)
 	{
 		auto qubit_id = label_to_id_[label];
-		add_z_rotation(qubit_id, angle);
+		return add_z_rotation(qubit_id, angle);
 	}
 
-	void add_x_rotation(uint32_t target_id, float angle)
+	node_type& add_x_rotation(uint32_t target_id, float angle)
 	{
-		gate_type rotation_gate(gate_kinds_t::rotation_x, target_id, angle);
-		do_add_gate(rotation_gate);
+		gate_type rotation_gate(gate_kinds_t::rotation_x, target_id,
+		                        angle);
+		return do_add_gate(rotation_gate);
 	}
 
-	void add_z_rotation(uint32_t target_id, float angle)
+	node_type& add_z_rotation(uint32_t target_id, float angle)
 	{
-		gate_type rotation_gate(gate_kinds_t::rotation_z, target_id, angle);
-		do_add_gate(rotation_gate);
+		gate_type rotation_gate(gate_kinds_t::rotation_z, target_id,
+		                        angle);
+		return do_add_gate(rotation_gate);
 	}
 
-	void add_controlled_gate(gate_kinds_t kind, std::string const& control,
-	                         std::string const& target)
+	node_type& add_controlled_gate(gate_kinds_t kind,
+	                               std::string const& control,
+	                               std::string const& target)
 	{
 		auto target_id = label_to_id_[target];
 		auto control_id = label_to_id_[control];
-		add_controlled_gate(kind, control_id, target_id);
+		return add_controlled_gate(kind, control_id, target_id);
 	}
 
-	void add_controlled_gate(gate_kinds_t kind, uint32_t control_id,
-	                         uint32_t target_id)
+	node_type& add_controlled_gate(gate_kinds_t kind, uint32_t control_id,
+	                               uint32_t target_id)
 	{
 		gate_type controlled_gate(kind, target_id, control_id);
-		do_add_gate(controlled_gate);
+		return do_add_gate(controlled_gate);
 	}
 
-	void add_multiple_controlled_gate(gate_kinds_t kind,
-	                                  std::vector<std::string> const& labels)
+	node_type& add_multiple_controlled_gate(
+	    gate_kinds_t kind, std::vector<std::string> const& labels)
 	{
 		std::vector<uint32_t> qubits;
 		for (auto& label : labels) {
 			qubits.push_back(label_to_id_[label]);
 		}
-		add_multiple_controlled_gate(kind, qubits);
+		return add_multiple_controlled_gate(kind, qubits);
 	}
 
-	void add_multiple_controlled_gate(gate_kinds_t kind,
-	                                  std::vector<uint32_t> const& qubits)
+	node_type& add_multiple_controlled_gate(gate_kinds_t kind,
+	                                        std::vector<uint32_t> const& qubits)
 	{
 		gate_type multiple_controlled_gate(kind, qubits[0], qubits[1],
 		                                   qubits[2]);
-		do_add_gate(multiple_controlled_gate);
+		return do_add_gate(multiple_controlled_gate);
 	}
 
 	template<typename Fn>
@@ -330,9 +332,16 @@ public:
 		n.data[0].b0 = value;
 	}
 
+	void default_mark(std::uint8_t value)
+	{
+		default_mark_ = value;
+	}
+
 	void remove_marked_nodes()
 	{
 		auto old_storage = storage_;
+		auto old_mark = default_mark_;
+		default_mark_ = 0;
 		storage_
 		    = std::make_shared<storage_type>(old_storage->nodes.size());
 		for (auto i = 0u; i < old_storage->inputs.size(); ++i) {
@@ -344,6 +353,7 @@ public:
 			}
 			do_add_gate(node.gate);
 		}
+		default_mark_ = old_mark;
 	}
 
 private:
@@ -369,16 +379,18 @@ private:
 		return qubit_id;
 	}
 
-	void do_add_gate(gate_type gate)
+	node_type& do_add_gate(gate_type gate)
 	{
 		auto node_index = storage_->nodes.size();
 		auto& node = storage_->nodes.emplace_back();
+		mark(node, default_mark_);
 
 		node.gate = gate;
 		node.gate.foreach_control(
 		    [&](auto qubit_id) { connect_node(qubit_id, node_index); });
 		node.gate.foreach_target(
 		    [&](auto qubit_id) { connect_node(qubit_id, node_index); });
+		return node;
 	}
 
 	void connect_node(uint32_t qubit_id, uint32_t node_index)
@@ -403,6 +415,7 @@ private:
 	std::unordered_map<std::string, uint32_t> label_to_id_;
 	std::vector<std::string> id_to_label_;
 	std::shared_ptr<storage_type> storage_;
+	uint8_t default_mark_{0};
 };
 
 } // namespace tweedledum
