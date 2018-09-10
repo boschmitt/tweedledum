@@ -15,6 +15,10 @@
 
 namespace tweedledum {
 
+struct gray_synth_params {
+	bool allow_rewiring{false};
+};
+
 namespace detail {
 // invert row `adding_row` if `added_row` is 1 in all lists S (both in q and current s)
 inline void parities_matrix_update(
@@ -47,6 +51,57 @@ inline std::vector<uint32_t> extract_special_parities(
 	return out;
 }
 
+template<typename Container, typename Iterator>
+Container permute(Container const& container, Iterator begin, Iterator end)
+{
+	Container copy{container};
+	std::transform(begin, end, copy.begin(),
+	               [&](auto i) { return container[i]; });
+	return copy;
+}
+
+template<class Network>
+void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
+                           std::vector<uint8_t> const& qubits_map,
+                           bool find_best_perm)
+{
+	auto const old_size = net.num_gates();
+	uint32_t best_gates = std::numeric_limits<uint32_t>::max();
+	std::vector<uint32_t> best_permutation(qubits_map.size());
+	std::iota(best_permutation.begin(), best_permutation.end(), 0u);
+	uint32_t best_partition_size{1};
+
+	/* we mark all nodes added by cnot_patel so that we can remove them
+	 * after we computed the improvement. */
+	net.default_mark(1);
+
+	auto perm = best_permutation;
+	do {
+		for (auto p = 1u; p <= qubits_map.size(); ++p) {
+			/* copy matrix since cnot_patel modifies it */
+			auto matrix_copy
+			    = permute(matrix, perm.begin(), perm.end());
+			cnot_patel(net, matrix_copy, p, qubits_map);
+
+			/* compute improvement */
+			if (const auto req_gates = net.num_gates() - old_size;
+			    req_gates < best_gates) {
+				best_gates = req_gates;
+				best_partition_size = p;
+				best_permutation = perm;
+			}
+			net.remove_marked_nodes();
+			assert(net.num_gates() == old_size);
+		}
+	} while (find_best_perm
+	         && std::next_permutation(perm.begin(), perm.end()));
+	net.default_mark(0);
+	matrix
+	    = permute(matrix, best_permutation.begin(), best_permutation.end());
+	cnot_patel(net, matrix, best_partition_size, qubits_map);
+	//std::cout << "required gates: " << (net.num_gates() - old_size) << "\n";
+}
+
 } // namespace detail
 
 /*! \brief Gray synthesis for CNOT-PHASE networks.
@@ -77,7 +132,8 @@ inline std::vector<uint32_t> extract_special_parities(
  */
 template<class Network>
 void gray_synth(Network& net, std::vector<uint32_t> parities,
-                std::vector<float> Ts, std::vector<uint8_t> const& qubits_map)
+                std::vector<float> Ts, std::vector<uint8_t> const& qubits_map,
+                gray_synth_params const& ps = {})
 {
 	const auto nqubits = qubits_map.size();
 
@@ -124,7 +180,8 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 		std::vector<uint32_t>::iterator max_it = I.end();
 
 		for (auto it = I.begin(); it != I.end(); ++it) {
-			const uint32_t num = detail::extract_row_of_vector(S, *it);
+			const uint32_t num
+			    = detail::extract_row_of_vector(S, *it);
 			const uint32_t one_bits = __builtin_popcount(num);
 			const uint32_t zero_bits = S.size() - one_bits;
 
@@ -184,20 +241,20 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	}
 
 	/* add remainder network */
-	uint32_t partition_size = 2;
-	cnot_patel(net, matrix, partition_size, qubits_map);
+	detail::add_remainder_network<Network>(net, matrix, qubits_map,
+	                                       ps.allow_rewiring);
 }
 
 template<class Network>
 void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
-                std::vector<float> Ts)
+                std::vector<float> Ts, gray_synth_params const& ps = {})
 {
 	for (auto i = 0u; i < nqubits; ++i)
 		net.allocate_qubit();
 
 	std::vector<uint8_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
-	gray_synth(net, parities, Ts, qubits_map);
+	gray_synth(net, parities, Ts, qubits_map, ps);
 }
 
 } /* namespace tweedledum */

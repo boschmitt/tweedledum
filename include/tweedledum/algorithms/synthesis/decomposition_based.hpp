@@ -17,6 +17,7 @@
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/esop.hpp>
 #include <kitty/operations.hpp>
+#include <kitty/print.hpp>
 #include <list>
 #include <vector>
 

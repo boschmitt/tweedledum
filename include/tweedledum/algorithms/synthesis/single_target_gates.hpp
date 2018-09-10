@@ -75,7 +75,24 @@ struct stg_from_pkrm {
 	}
 };
 
+struct stg_from_spectrum_params {
+	enum lin_comb_synth_behavior_t {
+		always = 0,
+		never = 1,
+		complete_spectra = 2
+	} lin_comb_synth_behavior{complete_spectra};
+	enum lin_comb_synth_strategy_t {
+		gray = 0,
+		binary = 1
+	} lin_comb_synth_strategy{gray};
+	gray_synth_params gray_synth_ps{};
+};
+
 struct stg_from_spectrum {
+	explicit stg_from_spectrum(stg_from_spectrum_params const& ps = {})
+	    : ps_(ps)
+	{}
+
 	inline double pi()
 	{
 		static double _pi = std::atan(1) * 4;
@@ -109,12 +126,25 @@ struct stg_from_spectrum {
 		}
 
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
-		if (parities.size() == spectrum.size() - 1)
-			lin_comb_synth(net, parities, angles, qubit_map);
-		else
-			gray_synth(net, parities, angles, qubit_map);
+		if ((ps_.lin_comb_synth_behavior
+		     == stg_from_spectrum_params::always)
+		    || ((ps_.lin_comb_synth_behavior
+		         == stg_from_spectrum_params::complete_spectra)
+		        && (parities.size() == spectrum.size() - 1))) {
+			if (ps_.lin_comb_synth_strategy
+			    == stg_from_spectrum_params::gray)
+				lin_comb_synth_gray(net, parities, angles,
+				                    qubit_map);
+			else
+				lin_comb_synth_binary(net, parities, angles,
+				                      qubit_map);
+		} else
+			gray_synth(net, parities, angles, qubit_map,
+			           ps_.gray_synth_ps);
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
 	}
+
+	stg_from_spectrum_params ps_{};
 };
 
 } /* namespace tweedledum */
