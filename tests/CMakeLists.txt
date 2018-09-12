@@ -20,6 +20,7 @@ set(tweedledum_tests_files
   "${CMAKE_SOURCE_DIR}/tests/algorithms/synthesis/gray_synth.cpp"
   "${CMAKE_SOURCE_DIR}/tests/io/quil.cpp"
   "${CMAKE_SOURCE_DIR}/tests/networks/dag_path.cpp"
+  "${CMAKE_SOURCE_DIR}/tests/networks/gdg.cpp"
   "${CMAKE_SOURCE_DIR}/tests/networks/gates/qc_gate.cpp")
 
 add_executable(run_tests EXCLUDE_FROM_ALL "${tweedledum_tests_files}")
