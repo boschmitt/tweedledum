@@ -374,12 +374,33 @@ public:
 #pragma endregion
 
 #pragma region Visited flags
+	void clear_marks()
+	{
+		std::for_each(storage_->nodes.begin(), storage_->nodes.end(),
+		              [](auto& n) { n.data[0].b0 = 0; });
+	}
+
+	auto mark(node_type& n)
+	{
+		return n.data[0].b0;
+	}
+
+	void mark(node_type& n, uint8_t value)
+	{
+		n.data[0].b0 = value;
+	}
+
+	void default_mark(std::uint8_t value)
+	{
+		default_mark_ = value;
+	}
 #pragma endregion
 
 private:
 	std::unordered_map<std::string, uint32_t> label_to_id_;
 	std::vector<std::string> id_to_label_;
 	std::shared_ptr<storage_type> storage_;
+	uint32_t default_mark_ = 0u;
 };
 
 } // namespace tweedledum
