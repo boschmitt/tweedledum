@@ -102,7 +102,119 @@ public:
 	}
 #pragma endregion
 
-#pragma region Add single-qubit gates
+#pragma region Add gates
+private:
+	void connect_node(std::uint32_t qubit_id, std::uint32_t node_index)
+	{
+		auto& node = storage_->nodes.at(node_index);
+		auto& output = storage_->outputs.at(qubit_id);
+		auto previous_node_arc = output.qubit[0].back();
+		auto& previous_node = storage_->nodes.at(previous_node_arc.index);
+		auto connector = node.gate.get_input_id(qubit_id);
+		if (node.gate.is_dependent(previous_node.gate)) {
+			foreach_child(output, [&node, connector](auto arc) {
+				node.qubit[connector].emplace_back(arc);
+			});
+			output.qubit[0].clear();
+			output.qubit[0].emplace_back(node_index, true);
+			return;
+		}
+		output.qubit[0].emplace_back(node_index, true);
+		foreach_child(previous_node, qubit_id, [&node, connector](auto arc) {
+			node.qubit[connector].emplace_back(arc);
+		});
+	}
+
+	node_type& do_add_gate(gate_type gate)
+	{
+		auto node_index = storage_->nodes.size();
+		auto& node = storage_->nodes.emplace_back();
+		// mark(node, default_mark_);
+
+		node.gate = gate;
+		node.gate.foreach_control(
+		    [&](auto qubit_id) { connect_node(qubit_id, node_index); });
+		node.gate.foreach_target(
+		    [&](auto qubit_id) { connect_node(qubit_id, node_index); });
+		return node;
+	}
+
+public:
+	auto& add_gate(gate_type g)
+	{
+		return do_add_gate(g);
+	}
+
+	auto& add_gate(gate_kinds_t kind, std::string const& target)
+	{
+		auto qubit_id = label_to_id_[target];
+		return add_gate(kind, qubit_id);
+	}
+
+	auto& add_gate(gate_kinds_t kind, uint32_t target_id)
+	{
+		gate_type single_target_gate(kind, target_id);
+		return do_add_gate(single_target_gate);
+	}
+
+	auto& add_x_rotation(std::string const& label, float angle)
+	{
+		auto qubit_id = label_to_id_[label];
+		return add_x_rotation(qubit_id, angle);
+	}
+
+	auto& add_z_rotation(std::string const& label, float angle)
+	{
+		auto qubit_id = label_to_id_[label];
+		return add_z_rotation(qubit_id, angle);
+	}
+
+	auto& add_x_rotation(uint32_t target_id, float angle)
+	{
+		gate_type rotation_gate(gate_kinds_t::rotation_x, target_id,
+		                        angle);
+		return do_add_gate(rotation_gate);
+	}
+
+	auto& add_z_rotation(uint32_t target_id, float angle)
+	{
+		gate_type rotation_gate(gate_kinds_t::rotation_z, target_id,
+		                        angle);
+		return do_add_gate(rotation_gate);
+	}
+
+	auto& add_controlled_gate(gate_kinds_t kind, std::string const& control,
+	                          std::string const& target)
+	{
+		auto target_id = label_to_id_[target];
+		auto control_id = label_to_id_[control];
+		return add_controlled_gate(kind, control_id, target_id);
+	}
+
+	auto& add_controlled_gate(gate_kinds_t kind, uint32_t control_id,
+	                          uint32_t target_id)
+	{
+		gate_type controlled_gate(kind, target_id, control_id);
+		return do_add_gate(controlled_gate);
+	}
+
+	auto& add_multiple_controlled_gate(gate_kinds_t kind,
+	                                   std::vector<std::string> const& labels)
+	{
+		std::vector<uint32_t> qubits;
+		for (auto& label : labels) {
+			qubits.push_back(label_to_id_[label]);
+		}
+		return add_multiple_controlled_gate(kind, qubits);
+	}
+
+	auto& add_multiple_controlled_gate(gate_kinds_t kind,
+	                                   std::vector<uint32_t> const& qubits)
+	{
+		gate_type multiple_controlled_gate(kind, qubits[0], qubits[1],
+		                                   qubits[2]);
+		return do_add_gate(multiple_controlled_gate);
+	}
 #pragma endregion
 
 #pragma region Const node iterators
