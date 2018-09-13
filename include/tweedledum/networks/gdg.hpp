@@ -105,10 +105,160 @@ public:
 #pragma region Add single-qubit gates
 #pragma endregion
 
-#pragma region Add multi-qubit gates
+#pragma region Const node iterators
+	template<typename Fn>
+	void foreach_qubit(Fn&& fn) const
+	{
+		auto index = 0u;
+		for (auto& label : id_to_label_) {
+			fn(index++, label);
+		}
+	}
+
+	template<typename Fn>
+	void foreach_input(Fn&& fn) const
+	{
+		for (auto arc : storage_->inputs) {
+			fn(storage_->nodes[arc.index], arc.index);
+		}
+	}
+
+	template<typename Fn>
+	void foreach_output(Fn&& fn) const
+	{
+		uint32_t index = storage_->nodes.size();
+		detail::foreach_element(storage_->outputs.cbegin(),
+		                        storage_->outputs.cend(), fn, index);
+	}
+
+	template<typename Fn>
+	void foreach_node(Fn&& fn) const
+	{
+		detail::foreach_element(storage_->nodes.cbegin(),
+		                        storage_->nodes.cend(), fn);
+		detail::foreach_element(storage_->outputs.cbegin(),
+		                        storage_->outputs.cend(), fn,
+		                        storage_->nodes.size());
+	}
+
+	template<typename Fn>
+	void foreach_gate(Fn&& fn) const
+	{
+		uint32_t index = storage_->inputs.size();
+		auto begin = storage_->nodes.cbegin() + index;
+		auto end = storage_->nodes.cend();
+		detail::foreach_element(begin, end, fn, index);
+	}
+	
+	template<typename Fn>
+	void foreach_child(node_type& n, Fn&& fn) const
+	{
+		static_assert(
+		    detail::is_callable_without_index_v<
+		        Fn, node_ptr_type,
+		        void> || detail::is_callable_with_index_v<Fn, node_ptr_type, void>);
+
+		for (auto qubit_id = 0u; qubit_id < n.qubit.size(); ++qubit_id) {
+			auto begin = n.qubit[qubit_id].begin();
+			auto end = n.qubit[qubit_id].end();
+			while (begin != end) {
+				if constexpr (detail::is_callable_without_index_v<
+						Fn, node_ptr_type, void>) {
+					fn(*begin++);
+				} else if constexpr (detail::is_callable_with_index_v<
+							Fn, node_ptr_type, void>) {
+					fn(*begin++, qubit_id);
+				}
+			}
+		}
+	}
+
+	template<typename Fn>
+	void foreach_child(node_type& n, uint32_t qubit_id, Fn&& fn) const
+	{
+		auto index = n.gate.get_input_id(qubit_id);
+		for (auto arc : n.qubit[index]) {
+			fn(arc);
+		}
+	}
 #pragma endregion
 
 #pragma region Node iterators
+	template<typename Fn>
+	void foreach_qubit(Fn&& fn)
+	{
+		auto index = 0u;
+		for (auto& label : id_to_label_) {
+			fn(index++, label);
+		}
+	}
+
+	template<typename Fn>
+	void foreach_input(Fn&& fn)
+	{
+		for (auto arc : storage_->inputs) {
+			fn(storage_->nodes[arc.index], arc.index);
+		}
+	}
+
+	template<typename Fn>
+	void foreach_output(Fn&& fn)
+	{
+		uint32_t index = storage_->nodes.size();
+		detail::foreach_element(storage_->outputs.cbegin(),
+		                        storage_->outputs.cend(), fn, index);
+	}
+
+	template<typename Fn>
+	void foreach_node(Fn&& fn)
+	{
+		detail::foreach_element(storage_->nodes.cbegin(),
+		                        storage_->nodes.cend(), fn);
+		detail::foreach_element(storage_->outputs.cbegin(),
+		                        storage_->outputs.cend(), fn,
+		                        storage_->nodes.size());
+	}
+
+	template<typename Fn>
+	void foreach_gate(Fn&& fn)
+	{
+		uint32_t index = storage_->inputs.size();
+		auto begin = storage_->nodes.cbegin() + index;
+		auto end = storage_->nodes.cend();
+		detail::foreach_element(begin, end, fn, index);
+	}
+	
+	template<typename Fn>
+	void foreach_child(node_type& n, Fn&& fn)
+	{
+		static_assert(
+		    detail::is_callable_without_index_v<
+		        Fn, node_ptr_type,
+		        void> || detail::is_callable_with_index_v<Fn, node_ptr_type, void>);
+
+		for (auto qubit_id = 0u; qubit_id < n.qubit.size(); ++qubit_id) {
+			auto begin = n.qubit[qubit_id].begin();
+			auto end = n.qubit[qubit_id].end();
+			while (begin != end) {
+				if constexpr (detail::is_callable_without_index_v<
+						Fn, node_ptr_type, void>) {
+					fn(*begin++);
+				} else if constexpr (detail::is_callable_with_index_v<
+							Fn, node_ptr_type, void>) {
+					fn(*begin++, qubit_id);
+				}
+			}
+		}
+	}
+
+	template<typename Fn>
+	void foreach_child(node_type& n, uint32_t qubit_id, Fn&& fn)
+	{
+		auto index = n.gate.get_input_id(qubit_id);
+		for (auto arc : n.qubit[index]) {
+			fn(arc);
+		}
+	}
 #pragma endregion
 
 #pragma region Visited flags
