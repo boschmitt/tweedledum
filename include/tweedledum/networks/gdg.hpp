@@ -317,17 +317,17 @@ public:
 	void foreach_output(Fn&& fn)
 	{
 		uint32_t index = storage_->nodes.size();
-		detail::foreach_element(storage_->outputs.cbegin(),
-		                        storage_->outputs.cend(), fn, index);
+		detail::foreach_element(storage_->outputs.begin(),
+		                        storage_->outputs.end(), fn, index);
 	}
 
 	template<typename Fn>
 	void foreach_node(Fn&& fn)
 	{
-		detail::foreach_element(storage_->nodes.cbegin(),
-		                        storage_->nodes.cend(), fn);
-		detail::foreach_element(storage_->outputs.cbegin(),
-		                        storage_->outputs.cend(), fn,
+		detail::foreach_element(storage_->nodes.begin(),
+		                        storage_->nodes.end(), fn);
+		detail::foreach_element(storage_->outputs.begin(),
+		                        storage_->outputs.end(), fn,
 		                        storage_->nodes.size());
 	}
 
@@ -335,8 +335,8 @@ public:
 	void foreach_gate(Fn&& fn)
 	{
 		uint32_t index = storage_->inputs.size();
-		auto begin = storage_->nodes.cbegin() + index;
-		auto end = storage_->nodes.cend();
+		auto begin = storage_->nodes.begin() + index;
+		auto end = storage_->nodes.end();
 		detail::foreach_element(begin, end, fn, index);
 	}
 	
