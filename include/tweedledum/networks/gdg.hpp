@@ -56,12 +56,14 @@ private:
 		input_node.gate.kind(gate_kinds_t::input);
 		input_node.gate.target_qubit(qubit_id);
 		storage_->inputs.emplace_back(index, false);
+		mark(input_node, default_mark_);
 
 		// Create ouput node
 		auto& output_node = storage_->outputs.emplace_back();
 		output_node.gate.kind(gate_kinds_t::output);
 		output_node.gate.target_qubit(qubit_id);
-		output_node.qubit[0].emplace_back(index, true);
+		output_node.qubit[qubit_id].emplace_back(index, true);
+		mark(output_node, default_mark_);
 
 		// std::cout << "[done]\n";
 		return qubit_id;
@@ -130,11 +132,11 @@ private:
 			foreach_child(output, [&node, connector](auto arc) {
 				node.qubit[connector].emplace_back(arc);
 			});
-			output.qubit[0].clear();
-			output.qubit[0].emplace_back(node_index, true);
+			output.qubit[connector].clear();
+			output.qubit[connector].emplace_back(node_index, true);
 			return;
 		}
-		output.qubit[0].emplace_back(node_index, true);
+		output.qubit[connector].emplace_back(node_index, true);
 		foreach_child(previous_node, qubit_id, [&node, connector](auto arc) {
 			node.qubit[connector].emplace_back(arc);
 		});
@@ -144,7 +146,7 @@ private:
 	{
 		auto node_index = storage_->nodes.size();
 		auto& node = storage_->nodes.emplace_back();
-		// mark(node, default_mark_);
+		mark(node, default_mark_);
 
 		node.gate = gate;
 		node.gate.foreach_control(
