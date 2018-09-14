@@ -20,7 +20,6 @@ template<typename Network>
 void esop_phase_synthesis(Network& circ, kitty::dynamic_truth_table const& tt)
 {
 	const uint32_t num_qubits = tt.num_vars();
-	// circ.gate_kind(Network::axis_t::Z);
 	for (auto i = 0u; i < num_qubits; ++i) {
 		circ.allocate_qubit();
 	}
@@ -39,7 +38,7 @@ void esop_phase_synthesis(Network& circ, kitty::dynamic_truth_table const& tt)
 			}
 		}
 		if (!targets.empty()) {
-			circ.add_toffoli(controls, targets);
+			circ.add_multiple_controlled_target_gate(gate_kinds_t::mcz, controls, targets);
 		}
 	}
 }

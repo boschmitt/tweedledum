@@ -73,7 +73,7 @@ void transformation_based_synthesis(Network& circ, std::vector<uint16_t>& perm)
 	}
 	std::reverse(gates.begin(), gates.end());
 	for (const auto [c, t] : gates) {
-		circ.add_toffoli(c, t);
+		circ.add_multiple_controlled_target_gate(gate_kinds_t::mcx, c, t);
 	}
 }
 
@@ -128,7 +128,7 @@ void transformation_based_synthesis_bidirectional(Network& circ,
 		++x;
 	}
 	for (const auto [c, t] : gates) {
-		circ.add_toffoli(c, t);
+		circ.add_multiple_controlled_target_gate(gate_kinds_t::mcx, c, t);
 	}
 }
 
@@ -197,7 +197,7 @@ void transformation_based_synthesis_multidirectional(
 		++x;
 	}
 	for (const auto [c, t] : gates) {
-		circ.add_toffoli(c, t);
+		circ.add_multiple_controlled_target_gate(gate_kinds_t::mcx, c, t);
 	}
 }
 

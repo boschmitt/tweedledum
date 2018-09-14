@@ -22,7 +22,7 @@ void esop_based_synthesis(Network& circ, kitty::dynamic_truth_table const& tt)
 	}
 	uint32_t target = 1 << tt.num_vars();
 	for (const auto& cube : kitty::esop_from_pprm(tt)) {
-		circ.add_toffoli(cube._bits, target);
+		circ.add_multiple_controlled_target_gate(gate_kinds_t::mcx, cube._bits, target);
 	}
 }
 
