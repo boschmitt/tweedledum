@@ -102,6 +102,21 @@ public:
 	}
 #pragma endregion
 
+#pragma region Nodes
+	auto& get_node(node_ptr_type node_ptr)
+	{
+		return storage_->nodes[node_ptr.index];
+	}
+
+	// auto get_predecessor_choices(node_type const& node, uint32_t qubit_id)
+	auto get_children(node_type const& node, uint32_t qubit_id)
+	{
+		auto input_id = node.gate.get_input_id(qubit_id);
+		auto choices = node.qubit[input_id];
+		return choices;
+	}
+#pragma endregion
+
 #pragma region Add gates
 private:
 	void connect_node(std::uint32_t qubit_id, std::uint32_t node_index)
