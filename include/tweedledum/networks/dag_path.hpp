@@ -14,7 +14,6 @@
 #include <iostream>
 #include <limits>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 namespace tweedledum {
@@ -95,8 +94,8 @@ public:
 	auto add_qubit(std::string const& qubit)
 	{
 		auto qubit_id = create_qubit();
-		label_to_id_.emplace(qubit, qubit_id);
-		id_to_label_.emplace_back(qubit);
+		storage_->label_to_id.emplace(qubit, qubit_id);
+		storage_->id_to_label.emplace_back(qubit);
 		return qubit_id;
 	}
 
@@ -119,7 +118,7 @@ public:
 
 	node_type& add_gate(gate_kinds_t kind, std::string const& target)
 	{
-		auto qubit_id = label_to_id_[target];
+		auto qubit_id = storage_->label_to_id[target];
 		return add_gate(kind, qubit_id);
 	}
 
@@ -131,13 +130,13 @@ public:
 
 	node_type& add_x_rotation(std::string const& label, float angle)
 	{
-		auto qubit_id = label_to_id_[label];
+		auto qubit_id = storage_->label_to_id[label];
 		return add_x_rotation(qubit_id, angle);
 	}
 
 	node_type& add_z_rotation(std::string const& label, float angle)
 	{
-		auto qubit_id = label_to_id_[label];
+		auto qubit_id = storage_->label_to_id[label];
 		return add_z_rotation(qubit_id, angle);
 	}
 
@@ -159,8 +158,8 @@ public:
 	                               std::string const& control,
 	                               std::string const& target)
 	{
-		auto target_id = label_to_id_[target];
-		auto control_id = label_to_id_[control];
+		auto target_id = storage_->label_to_id[target];
+		auto control_id = storage_->label_to_id[control];
 		return add_controlled_gate(kind, control_id, target_id);
 	}
 
@@ -176,7 +175,7 @@ public:
 	{
 		std::vector<uint32_t> qubits;
 		for (auto& label : labels) {
-			qubits.push_back(label_to_id_[label]);
+			qubits.push_back(storage_->label_to_id[label]);
 		}
 		return add_multiple_controlled_gate(kind, qubits);
 	}
@@ -193,7 +192,7 @@ public:
 	void foreach_qubit(Fn&& fn) const
 	{
 		auto index = 0u;
-		for (auto& label : id_to_label_) {
+		for (auto& label : storage_->id_to_label) {
 			fn(index++, label);
 		}
 	}
@@ -412,8 +411,6 @@ private:
 	}
 
 private:
-	std::unordered_map<std::string, uint32_t> label_to_id_;
-	std::vector<std::string> id_to_label_;
 	std::shared_ptr<storage_type> storage_;
 	uint8_t default_mark_{0};
 };

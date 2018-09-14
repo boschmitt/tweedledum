@@ -6,8 +6,10 @@
 #pragma once
 
 #include <array>
-#include <limits>
 #include <cstdint>
+#include <limits>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace tweedledum {
@@ -65,7 +67,8 @@ struct regular_node {
 	std::array<std::vector<pointer_type>, GateType::max_num_qubits> qubit;
 	std::array<cauint32_t, DataSize> data;
 
-	bool operator==(regular_node<GateType, PointerFieldSize, DataSize> const& other) const
+	bool operator==(
+	    regular_node<GateType, PointerFieldSize, DataSize> const& other) const
 	{
 		return gate == other.gate;
 	}
@@ -79,7 +82,8 @@ struct uniform_node {
 	std::array<std::array<pointer_type, 2>, GateType::max_num_qubits> qubit;
 	std::array<cauint32_t, DataSize> data;
 
-	bool operator==(uniform_node<GateType, PointerFieldSize, DataSize> const& other) const
+	bool operator==(
+	    uniform_node<GateType, PointerFieldSize, DataSize> const& other) const
 	{
 		return gate == other.gate;
 	}
@@ -100,6 +104,9 @@ struct storage {
 	std::vector<typename NodeType::pointer_type> inputs;
 	std::vector<NodeType> nodes;
 	std::vector<NodeType> outputs;
+	// Qubit names
+	std::unordered_map<std::string, uint32_t> label_to_id;
+	std::vector<std::string> id_to_label;
 };
 
 } // namespace tweedledum
