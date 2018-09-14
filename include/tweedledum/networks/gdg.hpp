@@ -413,6 +413,25 @@ public:
 	}
 #pragma endregion
 
+	void remove_marked_nodes()
+	{
+		auto old_storage = storage_;
+		auto old_mark = default_mark_;
+		default_mark_ = 0;
+		storage_
+		    = std::make_shared<storage_type>(old_storage->nodes.size());
+		for (auto i = 0u; i < old_storage->inputs.size(); ++i) {
+			create_qubit();
+		}
+		for (auto& node : old_storage->nodes) {
+			if (node.gate.is(gate_kinds_t::input) || mark(node)) {
+				continue;
+			}
+			do_add_gate(node.gate);
+		}
+		default_mark_ = old_mark;
+	}
+
 private:
 	std::unordered_map<std::string, uint32_t> label_to_id_;
 	std::vector<std::string> id_to_label_;
