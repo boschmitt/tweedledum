@@ -5,6 +5,9 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "../base/source_manager.hpp"
 #include "ast/ast.hpp"
 #include "preprocessor.hpp"
@@ -12,7 +15,6 @@
 #include "token.hpp"
 #include "token_kinds.hpp"
 
-#include <cmath>
 #include <cstdint>
 #include <memory>
 
