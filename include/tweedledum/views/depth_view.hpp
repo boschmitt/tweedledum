@@ -42,11 +42,13 @@ public:
 		update();
 	}
 
+	/*! \brief Returns the length of the critical path. */
 	uint32_t depth() const
 	{
 		return depth_;
 	}
 
+	/*! \brief Returns the level of a node. */
 	uint32_t level(node_type const& node) const
 	{
 		return levels_[node];
