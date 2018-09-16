@@ -15,13 +15,16 @@ add_custom_target(tests COMMENT "Build all tests.")
 
 set(tweedledum_tests_files
   "${CMAKE_SOURCE_DIR}/tests/algorithms/mapping/nct.cpp"
+  "${CMAKE_SOURCE_DIR}/tests/algorithms/optimization/single_qubit_gate_cancellation.cpp"
   "${CMAKE_SOURCE_DIR}/tests/algorithms/synthesis/cnot_patel.cpp"
   "${CMAKE_SOURCE_DIR}/tests/algorithms/synthesis/decomposition_based.cpp"
   "${CMAKE_SOURCE_DIR}/tests/algorithms/synthesis/gray_synth.cpp"
+  "${CMAKE_SOURCE_DIR}/tests/algorithms/remove_marked.cpp"
   "${CMAKE_SOURCE_DIR}/tests/io/quil.cpp"
   "${CMAKE_SOURCE_DIR}/tests/networks/dag_path.cpp"
   "${CMAKE_SOURCE_DIR}/tests/networks/gdg.cpp"
-  "${CMAKE_SOURCE_DIR}/tests/networks/gates/qc_gate.cpp")
+  "${CMAKE_SOURCE_DIR}/tests/networks/gates/qc_gate.cpp"
+  "${CMAKE_SOURCE_DIR}/tests/views/slice_view.cpp")
 
 add_executable(run_tests EXCLUDE_FROM_ALL "${tweedledum_tests_files}")
 target_link_libraries(run_tests tweedledum)
