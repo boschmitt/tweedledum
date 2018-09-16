@@ -39,7 +39,7 @@ struct stg_from_pprm {
 				}
 				bits >>= 1;
 			}
-			net.add_toffoli(controls, {qubit_map.back()});
+			net.add_multiple_controlled_target_gate(gate_kinds_t::mcx, controls, {qubit_map.back()});
 		}
 	}
 };
@@ -68,7 +68,7 @@ struct stg_from_pkrm {
 			}
 			for (auto n : negations)
 				net.add_gate(gate_kinds_t::cx, n);
-			net.add_toffoli(controls, {qubit_map.back()});
+			net.add_multiple_controlled_target_gate(gate_kinds_t::mcx, controls, {qubit_map.back()});
 			for (auto n : negations)
 				net.add_gate(gate_kinds_t::cx, n);
 		}

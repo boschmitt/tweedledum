@@ -17,11 +17,12 @@
 
 namespace tweedledum {
 
-struct mct_gate {
+struct pmct_gate {
 	static constexpr uint32_t max_num_qubits = 32;
 
 	uint32_t controls{};
 	uint32_t targets{};
+	uint32_t kind_ = static_cast<uint32_t>(gate_kinds_t::mcx);
 
 	auto num_controls() const
 	{
@@ -32,7 +33,7 @@ struct mct_gate {
 	{
 		return __builtin_popcount(targets);
 	}
-	
+
 	auto angle() const
 	{
 		return 0;
@@ -60,18 +61,17 @@ struct mct_gate {
 
 	bool is(gate_kinds_t kind) const
 	{
-		return kind == gate_kinds_t::mcx;
+		return static_cast<uint32_t>(kind) == kind_;
 	}
 
 	void kind(gate_kinds_t kind)
 	{
-		(void)kind;
-		assert(kind == gate_kinds_t::mcx);
+		kind_ = static_cast<uint32_t>(kind);
 	}
 
 	gate_kinds_t kind() const
 	{
-		return gate_kinds_t::mcx;
+		return static_cast<gate_kinds_t>(kind_);
 	}
 };
 

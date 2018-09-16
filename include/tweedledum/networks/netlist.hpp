@@ -80,19 +80,21 @@ public:
 
 	void add_gate(gate_kinds_t kind, uint32_t target)
 	{
-		assert(kind == gate_kinds_t::pauli_x);
+		assert(kind == gate_kinds_t::pauli_x || kind == gate_kinds_t::pauli_z);
 		auto& n = nodes_.emplace_back();
 		auto& gate = n.gate;
+		gate.kind(kind == gate_kinds_t::pauli_x ? gate_kinds_t::mcx : gate_kinds_t::mcz);
 		gate.targets |= 1 << target;
 	}
 
 	void add_controlled_gate(gate_kinds_t kind, uint32_t control,
 	                         uint32_t target)
 	{
-		assert(kind == gate_kinds_t::cx);
+		assert(kind == gate_kinds_t::cx || kind == gate_kinds_t::cz);
 		assert(control != target);
 		auto& n = nodes_.emplace_back();
 		auto& gate = n.gate;
+		gate.kind(kind == gate_kinds_t::cx ? gate_kinds_t::mcx : gate_kinds_t::mcz);
 		gate.controls |= 1 << control;
 		gate.targets |= 1 << target;
 	}
@@ -101,27 +103,34 @@ public:
 	void add_multiple_controlled_gate(gate_kinds_t kind,
 	                                  std::vector<uint32_t> const& qubits)
 	{
-		assert(kind == gate_kinds_t::mcx);
 		assert(!qubits.empty());
 		auto& n = nodes_.emplace_back();
 		auto& gate = n.gate;
+		gate.kind(kind);
 		std::for_each(qubits.begin() + 1, qubits.end(),
 		              [&](auto q) { gate.controls |= 1 << q; });
 		gate.targets |= 1 << qubits.front();
 	}
 
-	node_type& add_toffoli(uint32_t controls, uint32_t targets)
-	{
-		auto& n = nodes_.emplace_back();
-		n.gate = {controls, targets};
-		return n;
-	}
-
-	node_type& add_toffoli(std::vector<qubit> const& controls,
-	                       std::vector<qubit> const& targets)
+	node_type& add_multiple_controlled_target_gate(gate_kinds_t kind,
+	                                               uint32_t controls,
+	                                               uint32_t targets)
 	{
 		auto& n = nodes_.emplace_back();
 		auto& gate = n.gate;
+		gate.controls = controls;
+		gate.targets = targets;
+		gate.kind(kind);
+		return n;
+	}
+
+	node_type& add_multiple_controlled_target_gate(
+	    gate_kinds_t kind, std::vector<qubit> const& controls,
+	    std::vector<qubit> const& targets)
+	{
+		auto& n = nodes_.emplace_back();
+		auto& gate = n.gate;
+		gate.kind(kind);
 		std::for_each(controls.begin(), controls.end(),
 		              [&](auto q) { gate.controls |= 1 << q; });
 		std::for_each(targets.begin(), targets.end(),
