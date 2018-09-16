@@ -65,7 +65,7 @@ struct regular_node {
 
 	GateType gate;
 	std::array<std::vector<pointer_type>, GateType::max_num_qubits> qubit;
-	std::array<cauint32_t, DataSize> data;
+	mutable std::array<cauint32_t, DataSize> data;
 
 	bool operator==(
 	    regular_node<GateType, PointerFieldSize, DataSize> const& other) const
@@ -80,7 +80,7 @@ struct uniform_node {
 
 	GateType gate;
 	std::array<std::array<pointer_type, 2>, GateType::max_num_qubits> qubit;
-	std::array<cauint32_t, DataSize> data;
+	mutable std::array<cauint32_t, DataSize> data;
 
 	bool operator==(
 	    uniform_node<GateType, PointerFieldSize, DataSize> const& other) const
