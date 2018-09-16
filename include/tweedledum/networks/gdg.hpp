@@ -104,16 +104,38 @@ public:
 #pragma endregion
 
 #pragma region Nodes
-	auto& get_node(node_ptr_type node_ptr)
+	auto& get_node(node_ptr_type node_ptr) const
 	{
+		// if (node_ptr.index >= storage_->nodes.size()) {
+		// 	return storage_->outputs[node_ptr.index - storage_->nodes.size()];
+		// }
 		return storage_->nodes[node_ptr.index];
 	}
 
-	// auto get_predecessor_choices(node_type const& node, uint32_t qubit_id)
+	auto node_to_index(node_type const& node) const
+	{
+		if (node.gate.is(gate_kinds_t::output)) {
+			auto index = &node - storage_->outputs.data();
+			return static_cast<uint32_t>(index + storage_->nodes.size());
+		}
+		return static_cast<uint32_t>(&node - storage_->nodes.data());
+	}
+
 	auto get_children(node_type const& node, uint32_t qubit_id)
 	{
 		auto input_id = node.gate.get_input_id(qubit_id);
 		auto choices = node.qubit[input_id];
+		return choices;
+	}
+
+	auto get_predecessor_choices(node_type const& node)
+	{
+		std::vector<node_ptr_type> choices;
+		for (auto qubit_id = 0u; qubit_id < node.qubit.size(); ++qubit_id) {
+			choices.insert(choices.end(),
+			               node.qubit[qubit_id].begin(),
+			               node.qubit[qubit_id].end());
+		}
 		return choices;
 	}
 #pragma endregion
@@ -394,14 +416,16 @@ public:
 	{
 		std::for_each(storage_->nodes.begin(), storage_->nodes.end(),
 		              [](auto& n) { n.data[0].b0 = 0; });
+		std::for_each(storage_->outputs.begin(), storage_->outputs.end(),
+		              [](auto& n) { n.data[0].b0 = 0; });
 	}
 
-	auto mark(node_type& n)
+	auto mark(node_type const& n) const
 	{
 		return n.data[0].b0;
 	}
 
-	void mark(node_type& n, uint8_t value)
+	void mark(node_type const& n, uint8_t value)
 	{
 		n.data[0].b0 = value;
 	}
@@ -411,25 +435,6 @@ public:
 		default_mark_ = value;
 	}
 #pragma endregion
-
-	void remove_marked_nodes()
-	{
-		auto old_storage = storage_;
-		auto old_mark = default_mark_;
-		default_mark_ = 0;
-		storage_
-		    = std::make_shared<storage_type>(old_storage->nodes.size());
-		for (auto i = 0u; i < old_storage->inputs.size(); ++i) {
-			create_qubit();
-		}
-		for (auto& node : old_storage->nodes) {
-			if (node.gate.is(gate_kinds_t::input) || mark(node)) {
-				continue;
-			}
-			do_add_gate(node.gate);
-		}
-		default_mark_ = old_mark;
-	}
 
 private:
 	std::shared_ptr<storage_type> storage_;
