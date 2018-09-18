@@ -62,12 +62,12 @@ public:
 
 	void on_input(std::string qubit_label)
 	{
-		representation_.mark_as_input(qubit_label);
+		//representation_.mark_as_input(qubit_label);
 	}
 
 	void on_output(std::string qubit_label)
 	{
-		representation_.mark_as_output(qubit_label);
+		//representation_.mark_as_output(qubit_label);
 	}
 
 	void on_gate(gate_kinds_t kind, std::string qubit_label)
