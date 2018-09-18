@@ -17,7 +17,7 @@
 
 namespace tweedledum {
 
-using namespace mockturtle;
+namespace mt = mockturtle;
 
 enum class mapping_strategy_action { compute, uncompute };
 
@@ -26,12 +26,12 @@ class bennett_mapping_strategy {
 public:
 	bennett_mapping_strategy(LogicNetwork const& ntk)
 	{
-		std::unordered_set<node<LogicNetwork>> drivers;
+		std::unordered_set<mt::node<LogicNetwork>> drivers;
 		ntk.foreach_po(
 		    [&](auto const& f) { drivers.insert(ntk.get_node(f)); });
 
 		auto it = steps.begin();
-		topo_view view{ntk};
+		mt::topo_view view{ntk};
 		view.foreach_node([&](auto n) {
 			if (ntk.is_constant(n) || ntk.is_pi(n))
 				return true;
@@ -57,7 +57,7 @@ public:
 	}
 
 private:
-	std::vector<std::pair<node<LogicNetwork>, mapping_strategy_action>> steps;
+	std::vector<std::pair<mt::node<LogicNetwork>, mapping_strategy_action>> steps;
 };
 
 struct logic_network_synthesis_params {
@@ -154,7 +154,7 @@ private:
 
 	template<int Fanin>
 	std::array<uint32_t, Fanin>
-	get_fanin_as_literals(node<LogicNetwork> const& n)
+	get_fanin_as_literals(mt::node<LogicNetwork> const& n)
 	{
 		std::array<uint32_t, Fanin> controls;
 		ntk.foreach_fanin(n, [&](auto const& f, auto i) {
@@ -164,7 +164,7 @@ private:
 		return controls;
 	}
 
-	void compute_node(node<LogicNetwork> const& node, uint32_t t)
+	void compute_node(mt::node<LogicNetwork> const& node, uint32_t t)
 	{
 		if (ntk.is_and(node)) {
 			auto controls = get_fanin_as_literals<2>(node);
@@ -255,7 +255,7 @@ private:
 	QuantumNetwork& qnet;
 	LogicNetwork const& ntk;
 	logic_network_synthesis_params const& ps;
-	node_map<uint32_t, LogicNetwork> node_to_qubit;
+	mt::node_map<uint32_t, LogicNetwork> node_to_qubit;
 	std::stack<uint32_t> free_ancillae;
 }; // namespace detail
 
@@ -276,7 +276,7 @@ template<class QuantumNetwork, class LogicNetwork,
 void logic_network_synthesis(QuantumNetwork& qnet, LogicNetwork const& ntk,
                              logic_network_synthesis_params const& ps = {})
 {
-	static_assert(is_network_type_v<LogicNetwork>,
+	static_assert(mt::is_network_type_v<LogicNetwork>,
 	              "LogicNetwork is not a network type");
 
 	detail::logic_network_synthesis_impl<QuantumNetwork, LogicNetwork, MappingStrategy>
