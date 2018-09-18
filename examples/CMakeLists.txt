@@ -21,3 +21,10 @@ set(dumdee_source_files "dumdee.cpp")
 add_executable(dumdee "${dumdee_source_files}")
 target_link_libraries(dumdee tweedledum)
 add_dependencies(examples dumdee)
+
+# Dagstuhl
+# =============================================================================
+set(dagstuhl_source_files "dagstuhl.cpp")
+add_executable(dagstuhl "${dagstuhl_source_files}")
+target_link_libraries(dagstuhl tweedledum)
+add_dependencies(examples dagstuhl)

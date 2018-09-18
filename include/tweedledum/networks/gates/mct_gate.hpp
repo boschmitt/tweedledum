@@ -73,6 +73,16 @@ struct mct_gate {
 	{
 		return gate_kinds_t::mcx;
 	}
+
+	uint32_t target() const
+	{
+		return 0;
+	}
+
+	uint32_t control() const
+	{
+		return 0;
+	}
 };
 
 }; // namespace tweedledum

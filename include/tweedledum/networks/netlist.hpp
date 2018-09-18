@@ -6,8 +6,10 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "detail/foreach.hpp"
 #include "gates/gate_kinds.hpp"
 
+#include <fmt/format.h>
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -138,9 +140,33 @@ public:
 		return n;
 	}
 
+	template<typename Fn>
+	void foreach_qubit(Fn&& fn) const
+	{
+		for (auto index = 0u; index < current_qubits_; ++index) {
+			std::string label = fmt::format("q{}", index);
+			fn(index, label);
+		}
+	}
+
+	template<typename Fn>
+	void foreach_gate(Fn&& fn) const
+	{
+		auto index = 0u;
+		auto begin = nodes_.begin();
+		auto end = nodes_.end();
+		detail::foreach_element(begin, end, fn, index);
+	}
+
+	auto mark(node_type const& n) const
+	{
+		(void) n;
+		return 0;
+	}
+
 private:
-	uint32_t current_qubits_{0};
-	uint32_t num_qubits_{0};
+	uint32_t current_qubits_ = 0u;
+	uint32_t num_qubits_ = 0u;
 	std::stack<uint32_t> free_qubits_;
 	std::vector<node_type> nodes_;
 };
