@@ -82,10 +82,14 @@ public:
 
 	void add_gate(gate_kinds_t kind, uint32_t target)
 	{
-		assert(kind == gate_kinds_t::pauli_x || kind == gate_kinds_t::pauli_z);
 		auto& n = nodes_.emplace_back();
 		auto& gate = n.gate;
-		gate.kind(kind == gate_kinds_t::pauli_x ? gate_kinds_t::mcx : gate_kinds_t::mcz);
+		if (kind == gate_kinds_t::pauli_x || kind == gate_kinds_t::cx || kind == gate_kinds_t::mcx)
+			gate.kind(gate_kinds_t::mcx);
+		else if (kind == gate_kinds_t::pauli_z || kind == gate_kinds_t::cz || kind == gate_kinds_t::mcz)
+			gate.kind(gate_kinds_t::mcz);
+		else
+			gate.kind(kind);
 		gate.targets |= 1 << target;
 	}
 
@@ -96,7 +100,12 @@ public:
 		assert(control != target);
 		auto& n = nodes_.emplace_back();
 		auto& gate = n.gate;
-		gate.kind(kind == gate_kinds_t::cx ? gate_kinds_t::mcx : gate_kinds_t::mcz);
+		if (kind == gate_kinds_t::pauli_x || kind == gate_kinds_t::cx || kind == gate_kinds_t::mcx)
+			gate.kind(gate_kinds_t::mcx);
+		else if (kind == gate_kinds_t::pauli_z || kind == gate_kinds_t::cz || kind == gate_kinds_t::mcz)
+			gate.kind(gate_kinds_t::mcz);
+		else
+			gate.kind(kind);
 		gate.controls |= 1 << control;
 		gate.targets |= 1 << target;
 	}
