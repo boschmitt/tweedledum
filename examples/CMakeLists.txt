@@ -1,5 +1,5 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt < bruno [at] oschmitt [dot] com >
+# Author(s): Bruno Schmitt
 add_compile_options(
   -fno-rtti
   -W
@@ -7,13 +7,6 @@ add_compile_options(
   -pedantic)
 
 add_custom_target(examples COMMENT "Build all examples.")
-
-add_executable(hello_world "hello_world.cpp")
-add_dependencies(examples hello_world)
-
-add_executable(test_cnot_patel test_cnot_patel.cpp)
-target_link_libraries(test_cnot_patel tweedledum)
-add_dependencies(examples test_cnot_patel)
 
 # Dumdee
 # =============================================================================
