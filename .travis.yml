@@ -41,14 +41,14 @@ matrix:
         packages:
           - clang-6.0
           - g++-7
-    env: COMPILER=clang++-6.0
+    env: COMPILER=clang++-7.0.0
   - os: osx
     osx_image: xcode9.3
     compiler: clang
     before_install:
       - brew update
       - brew install llvm
-    env: COMPILER=/usr/local/Cellar/llvm/6.0.1/bin/clang++
+    env: COMPILER=/usr/local/Cellar/llvm/7.0.0/bin/clang++
   - os: osx
     osx_image: xcode8.3
     compiler: gcc
