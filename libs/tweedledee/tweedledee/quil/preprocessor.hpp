@@ -35,7 +35,7 @@ public:
 
 	// FIXME: For now this is like this because the function to
 	// open files does not accept 'string_view' as parameter
-	void add_target_file(const std::string& file_path)
+	void add_target_file(std::string const& file_path)
 	{
 		auto source = source_manager_.add_target_file(file_path);
 		if (current_lexer_ != nullptr) {
@@ -51,7 +51,6 @@ public:
 		if (current_lexer_ != nullptr) {
 			lexer_stack_.push_back(std::move(current_lexer_));
 		}
-		lexer_stack_.push_back(std::move(current_lexer_));
 		current_lexer_ = std::make_unique<lexer>(source->offset(),
 		                                         source->content());
 	}
