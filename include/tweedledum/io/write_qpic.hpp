@@ -1,18 +1,18 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/gates/gate_kinds.hpp"
+#include "../gates/gate_kinds.hpp"
 
 #include <cstdio>
 
 namespace tweedledum {
 
-template<typename Circuit>
-static void write_qpic(Circuit& circuit, std::string filename = "test.qpic",
+template<typename Network>
+static void write_qpic(Network const& network, std::string filename = "test.qpic",
                        bool color_marked_gates = false)
 {
 	auto file = fopen(filename.c_str(), "w");
@@ -20,66 +20,69 @@ static void write_qpic(Circuit& circuit, std::string filename = "test.qpic",
 	if (color_marked_gates) {
 		fprintf(file, "DEFINE mark color=red:style=thick\n");
 	}
-	circuit.foreach_qubit([&file](auto id, auto& name) {
+	network.foreach_qubit([&file](auto id, auto& name) {
 		fprintf(file, "q%d W %s %s\n", id, name.c_str(), name.c_str());
 	});
 
 	fprintf(file, "\n");
-	circuit.foreach_gate([&](auto& node) {
+	network.foreach_gate([&](auto& node) {
+		// This is anoying :(
+		if (node.gate.is(gate_kinds_t::mcx)) {
+			node.gate.foreach_target([&](auto qubit) { fprintf(file, "+q%d ", qubit); });
+		} else {
+			node.gate.foreach_target([&](auto qubit) { fprintf(file, "q%d ", qubit); });
+		}
 		switch (node.gate.kind()) {
 		case gate_kinds_t::pauli_x:
+			fprintf(file, "N");
+			break;
+
 		case gate_kinds_t::cx:
+			fprintf(file, "C");
+			break;
+
 		case gate_kinds_t::mcx:
-			node.gate.foreach_control(
-			    [&](auto qubit) { fprintf(file, "q%d ", qubit); });
-			node.gate.foreach_target(
-			    [&](auto qubit) { fprintf(file, "+q%d ", qubit); });
 			break;
 
 		case gate_kinds_t::pauli_z:
 		case gate_kinds_t::cz:
 		case gate_kinds_t::mcz:
-			node.gate.foreach_target(
-			    [&](auto qubit) { fprintf(file, "q%d ", qubit); });
-			fprintf(file, "Z ");
-			node.gate.foreach_control(
-			    [&](auto qubit) { fprintf(file, " q%d", qubit); });
+			fprintf(file, "Z");
 			break;
 
 		case gate_kinds_t::hadamard:
-			fprintf(file, "q%d H", node.gate.target());
+			fprintf(file, "H");
 			break;
 
 		case gate_kinds_t::phase:
-			fprintf(file, "q%d G $P$", node.gate.target());
+			fprintf(file, "G $P$");
 			break;
 
 		case gate_kinds_t::phase_dagger:
-			fprintf(file, "q%d G $P^{\\dagger}$", node.gate.target());
+			fprintf(file, "G $P^{\\dagger}$");
 			break;
 
 		case gate_kinds_t::t:
-			fprintf(file, "q%d G $T$", node.gate.target());
+			fprintf(file, "G $T$");
 			break;
 
 		case gate_kinds_t::t_dagger:
-			fprintf(file, "q%d G $T^{\\dagger}$", node.gate.target());
+			fprintf(file, "G $T^{\\dagger}$");
 			break;
 
 		case gate_kinds_t::rotation_x:
-			fprintf(file, "q%d G $R_{x}$", node.gate.target());
+			fprintf(file, "G $R_{x}$");
 			break;
 
 		case gate_kinds_t::rotation_z:
-			fprintf(file, "q%d G $R_{z}$", node.gate.target());
+			fprintf(file, "G $R_{z}$");
 			break;
 
 		default:
 			break;
 		}
-		fprintf(file, "%s",
-		        color_marked_gates && circuit.mark(node) ? " mark\n" :
-		                                                   "\n");
+		node.gate.foreach_control([&](auto qubit) { fprintf(file, " q%d", qubit); });
+		fprintf(file, "%s", color_marked_gates && network.mark(node) ? " mark\n" : "\n");
 	});
 	fclose(file);
 }

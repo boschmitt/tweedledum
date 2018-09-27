@@ -5,7 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/gates/gate_kinds.hpp"
+#include "../../gates/gate_kinds.hpp"
 #include "../../views/immutable_view.hpp"
 
 #include <algorithm>
@@ -27,6 +27,7 @@ template<typename NetworkSrc, typename NetworkDest>
 void single_qubit_gate_cancellation(NetworkSrc& src, NetworkDest& dest)
 {
 	immutable_view immutable_net(src);
+	(void) dest;
 	std::cout << "Teste " << immutable_net.size() << "\n"; 
 }
 

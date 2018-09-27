@@ -5,7 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/gates/gate_kinds.hpp"
+#include "../../gates/gate_kinds.hpp"
 #include "cnot_patel.hpp"
 
 #include <cmath>
@@ -41,8 +41,8 @@ inline uint32_t extract_row_of_vector(std::vector<uint32_t> const& p, uint32_t r
 	return row_val;
 }
 
-inline std::vector<uint32_t> extract_special_parities(
-    std::vector<uint32_t> const& p, uint32_t idx, uint32_t value)
+inline std::vector<uint32_t> extract_special_parities(std::vector<uint32_t> const& p, uint32_t idx,
+                                                      uint32_t value)
 {
 	std::vector<uint32_t> out;
 	for (const auto i : p)
@@ -55,15 +55,13 @@ template<typename Container, typename Iterator>
 Container permute(Container const& container, Iterator begin, Iterator end)
 {
 	Container copy{container};
-	std::transform(begin, end, copy.begin(),
-	               [&](auto i) { return container[i]; });
+	std::transform(begin, end, copy.begin(), [&](auto i) { return container[i]; });
 	return copy;
 }
 
 template<class Network>
 void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
-                           std::vector<uint8_t> const& qubits_map,
-                           bool find_best_perm)
+                           std::vector<uint8_t> const& qubits_map, bool find_best_perm)
 {
 	auto const old_size = net.num_gates();
 	uint32_t best_gates = std::numeric_limits<uint32_t>::max();
@@ -79,8 +77,7 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
 	do {
 		for (auto p = 1u; p <= qubits_map.size(); ++p) {
 			/* copy matrix since cnot_patel modifies it */
-			auto matrix_copy
-			    = permute(matrix, perm.begin(), perm.end());
+			auto matrix_copy = permute(matrix, perm.begin(), perm.end());
 			cnot_patel(net, matrix_copy, p, qubits_map);
 
 			/* compute improvement */
@@ -90,16 +87,15 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
 				best_partition_size = p;
 				best_permutation = perm;
 			}
-			net.remove_marked_nodes();
-			assert(net.num_gates() == old_size);
+			// Dont understand this:
+			// net.remove_marked_nodes();
+			// assert(net.num_gates() == old_size);
 		}
-	} while (find_best_perm
-	         && std::next_permutation(perm.begin(), perm.end()));
+	} while (find_best_perm && std::next_permutation(perm.begin(), perm.end()));
 	net.default_mark(0);
-	matrix
-	    = permute(matrix, best_permutation.begin(), best_permutation.end());
+	matrix = permute(matrix, best_permutation.begin(), best_permutation.end());
 	cnot_patel(net, matrix, best_partition_size, qubits_map);
-	//std::cout << "required gates: " << (net.num_gates() - old_size) << "\n";
+	// std::cout << "required gates: " << (net.num_gates() - old_size) << "\n";
 }
 
 } // namespace detail
@@ -131,9 +127,8 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
    \endverbatim
  */
 template<class Network>
-void gray_synth(Network& net, std::vector<uint32_t> parities,
-                std::vector<float> Ts, std::vector<uint8_t> const& qubits_map,
-                gray_synth_params const& ps = {})
+void gray_synth(Network& net, std::vector<uint32_t> parities, std::vector<float> Ts,
+                std::vector<uint8_t> const& qubits_map, gray_synth_params const& ps = {})
 {
 	const auto nqubits = qubits_map.size();
 
@@ -162,8 +157,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 				if (j == ID)
 					continue;
 				/* xj must exist in all parities of S matrix */
-				if (detail::extract_row_of_vector(S, j)
-				    != ((1 << S.size()) - 1))
+				if (detail::extract_row_of_vector(S, j) != ((1 << S.size()) - 1))
 					continue;
 
 				/* insert gate and update parity matrix */
@@ -180,13 +174,11 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 		std::vector<uint32_t>::iterator max_it = I.end();
 
 		for (auto it = I.begin(); it != I.end(); ++it) {
-			const uint32_t num
-			    = detail::extract_row_of_vector(S, *it);
+			const uint32_t num = detail::extract_row_of_vector(S, *it);
 			const uint32_t one_bits = __builtin_popcount(num);
 			const uint32_t zero_bits = S.size() - one_bits;
 
-			const auto temp
-			    = (one_bits > zero_bits) ? one_bits : zero_bits;
+			const auto temp = (one_bits > zero_bits) ? one_bits : zero_bits;
 			if (temp > max) {
 				max = temp;
 				max_it = it;
@@ -205,23 +197,21 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	/* making network */
 	/* applying phase gate in the first of line when parity consist of just one variable */
 	for (auto i = 0u; i < nqubits; ++i) {
-		const auto it
-		    = std::find(parities.begin(), parities.end(), 1 << i);
+		const auto it = std::find(parities.begin(), parities.end(), 1 << i);
 		if (it == parities.end())
 			continue;
 		const auto idx = std::distance(parities.begin(), it);
-		net.add_z_rotation(qubits_map[i], Ts[idx]);
+		net.add_gate(gate_kinds_t::rotation_z, qubits_map[i], Ts[idx]);
 		Ts[idx] = -1;
 	}
 
 	uint32_t idx = 0;
 	for (const auto [c, t] : gates) {
-		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c],
-		                        qubits_map[t]);
+		net.add_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
 		for (auto i = 0u; i < Ts.size(); i++) {
 			if (parity_gates[idx] == parities[i]) {
 				if (Ts[i] != -1) {
-					net.add_z_rotation(qubits_map[t], Ts[i]);
+					net.add_gate(gate_kinds_t::rotation_z, qubits_map[t], Ts[i]);
 					Ts[i] = -1; /* avoiding the insertion of
 					               one phase gate in two places */
 				}
@@ -241,8 +231,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities,
 	}
 
 	/* add remainder network */
-	detail::add_remainder_network<Network>(net, matrix, qubits_map,
-	                                       ps.allow_rewiring);
+	detail::add_remainder_network<Network>(net, matrix, qubits_map, ps.allow_rewiring);
 }
 
 template<class Network>
@@ -250,7 +239,7 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
                 std::vector<float> Ts, gray_synth_params const& ps = {})
 {
 	for (auto i = 0u; i < nqubits; ++i)
-		net.allocate_qubit();
+		net.add_qubit();
 
 	std::vector<uint8_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);

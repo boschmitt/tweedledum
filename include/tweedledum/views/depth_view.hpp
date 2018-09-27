@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../traits.hpp"
@@ -62,7 +62,7 @@ public:
 	}
 
 private:
-	uint32_t compute_levels(node_type& node)
+	auto compute_levels(node_type const& node)
 	{
 		if (this->mark(node)) {
 			return levels_[node];
@@ -84,7 +84,7 @@ private:
 	void compute_levels()
 	{
 		depth_ = 0;
-		this->foreach_output([&](auto& node) {
+		this->foreach_output([&](auto const& node) {
 			depth_ = std::max(depth_, compute_levels(node));
 		});
 	}

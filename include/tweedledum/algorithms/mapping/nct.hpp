@@ -5,7 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/gates/gate_kinds.hpp"
+#include "../../gates/gate_kinds.hpp"
 #include "../generic/rewrite.hpp"
 
 #include <cstdint>
@@ -28,10 +28,7 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 	assert(c >= 2);
 
 	if (c <= ps.controls_threshold) {
-		std::vector<uint32_t> qubits(c + 1u);
-		qubits.front() = target;
-		std::copy(controls.begin(), controls.end(), qubits.begin() + 1);
-		net.add_multiple_controlled_gate(gate_kinds_t::mcx, qubits);
+		net.add_gate(gate_kinds_t::mcx, {target}, controls);
 		return;
 	}
 
@@ -52,22 +49,19 @@ void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
 
 		for (int offset = 0; offset <= 1; ++offset) {
 			for (int i = offset; i < static_cast<int>(c) - 2; ++i) {
-				net.add_multiple_controlled_gate(
-				    gate_kinds_t::mcx,
-				    {empty[e - i], controls[c - 1 - i],
-				     empty[e - 1 - i]});
+				net.add_gate(gate_kinds_t::mcx,
+				    std::vector<uint32_t>({controls[c - 1 - i], empty[e - 1 - i]}),
+				    std::vector<uint32_t>({empty[e - i]}));
 			}
-			net.add_multiple_controlled_gate(
-			    gate_kinds_t::mcx,
-			    {empty[e - (c - 2)], controls[0], controls[1]});
+			net.add_gate(gate_kinds_t::mcx,
+			             std::vector<uint32_t>( {controls[0], controls[1]}),
+			             std::vector<uint32_t>({empty[e - (c - 2)]}));
 			for (int i = c - 2 - 1; i >= offset; --i) {
-				net.add_multiple_controlled_gate(
-				    gate_kinds_t::mcx,
-				    {empty[e - i], controls[c - 1 - i],
-				     empty[e - 1 - i]});
+				net.add_gate(gate_kinds_t::mcx,
+				    std::vector<uint32_t>({controls[c - 1 - i], empty[e - 1 - i]}),
+				    std::vector<uint32_t>({empty[e - i]}));
 			}
 		}
-
 		return;
 	}
 
@@ -108,22 +102,18 @@ template<class NetworkDest, class NetworkSrc>
 void nct_mapping(NetworkDest& dest, NetworkSrc const& src,
                  nct_mapping_params const& ps = {})
 {
-	rewrite_network(
-	    dest, src,
-	    [&](auto& dest, auto const& g) {
+	rewrite_network(dest, src, [&](auto& dest, auto const& g) {
 		    if (g.is(gate_kinds_t::mcx)) {
 			    switch (g.num_controls()) {
 			    case 0:
 				    g.foreach_target([&](auto t) {
-					    dest.add_gate(gate_kinds_t::pauli_x,
-					                  t);
+					    dest.add_gate(gate_kinds_t::pauli_x, t);
 				    });
 				    break;
 			    case 1:
 				    g.foreach_control([&](auto c) {
 					    g.foreach_target([&](auto t) {
-						    dest.add_controlled_gate(
-						        gate_kinds_t::cx, c, t);
+						    dest.add_gate(gate_kinds_t::cx, std::vector({c}), std::vector({t}));
 					    });
 				    });
 				    break;
@@ -134,15 +124,11 @@ void nct_mapping(NetworkDest& dest, NetworkSrc const& src,
 				    g.foreach_target(
 				        [&](auto t) { targets.push_back(t); });
 				    for (auto i = 1u; i < targets.size(); ++i)
-					    dest.add_controlled_gate(
-					        gate_kinds_t::cx, targets[0],
-					        targets[i]);
+					    dest.add_gate(gate_kinds_t::cx, std::vector({targets[0]}), std::vector({targets[i]}));
 				    detail::nct_insert_toffoli(dest, controls,
 				                               targets[0], ps);
 				    for (auto i = 1u; i < targets.size(); ++i)
-					    dest.add_controlled_gate(
-					        gate_kinds_t::cx, targets[0],
-					        targets[i]);
+					    dest.add_gate(gate_kinds_t::cx, std::vector({targets[0]}), std::vector({targets[i]}));
 			    } break;
 			    }
 

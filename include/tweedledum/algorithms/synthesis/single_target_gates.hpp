@@ -39,7 +39,7 @@ struct stg_from_pprm {
 				}
 				bits >>= 1;
 			}
-			net.add_multiple_controlled_target_gate(gate_kinds_t::mcx, controls, {qubit_map.back()});
+			net.add_gate(gate_kinds_t::mcx, controls, {qubit_map.back()});
 		}
 	}
 };

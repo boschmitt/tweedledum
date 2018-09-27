@@ -7,7 +7,7 @@
 #pragma once
 
 #include "../../networks/netlist.hpp"
-#include "../../networks/gates/mct_gate.hpp"
+#include "../../gates/mcmt_gate.hpp"
 
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/esop.hpp>

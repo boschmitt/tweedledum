@@ -20,10 +20,11 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/decomposition_based.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/gray_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/remove_marked.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/io/dotqc.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/networks/dag_path.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/networks/gdg.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/networks/gates/qc_gate.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/gates/mcst_gate.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/networks/gg_network.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/networks/gdg_network.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/views/slice_view.cpp")
 
 add_executable(tweedledum_run_tests EXCLUDE_FROM_ALL "${tweedledum_tests_files}")

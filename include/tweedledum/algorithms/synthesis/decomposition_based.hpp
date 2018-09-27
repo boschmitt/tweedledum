@@ -99,7 +99,7 @@ void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
 {
 	const uint32_t num_qubits = std::log2(perm.size());
 	for (auto i = 0u; i < num_qubits; ++i) {
-		circ.allocate_qubit();
+		circ.add_qubit();
 	}
 
 	std::list<std::pair<kitty::dynamic_truth_table, std::vector<uint8_t>>> gates;

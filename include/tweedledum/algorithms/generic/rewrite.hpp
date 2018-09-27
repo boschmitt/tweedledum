@@ -11,7 +11,7 @@ template<class NetworkDest, class NetworkSrc, class RewriteFn>
 void rewrite_network(NetworkDest& dest, NetworkSrc const& src, RewriteFn&& fn, uint32_t ancillae = 0)
 {
 	for (auto i = 0u; i < src.num_qubits() + ancillae; ++i) {
-		dest.allocate_qubit();
+		dest.add_qubit();
 	}
 
 	src.foreach_node([&](auto const& n) {

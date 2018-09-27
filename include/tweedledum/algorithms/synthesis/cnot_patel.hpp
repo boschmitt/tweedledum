@@ -5,7 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/gates/gate_kinds.hpp"
+#include "../../gates/gate_kinds.hpp"
 
 #include <cmath>
 #include <cstdint>
@@ -111,10 +111,10 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 
 	std::reverse(gates_l.begin(), gates_l.end());
 	for (const auto [c, t] : gates_u) {
-		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[t], qubits_map[c]);
+		net.add_gate(gate_kinds_t::cx, qubits_map[t], qubits_map[c]);
 	}
 	for (const auto [c, t] : gates_l) {
-		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
+		net.add_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
 	}
 }
 
@@ -129,7 +129,7 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
  *
    \verbatim embed:rst
    .. code-block:: c++
-      dag_path<qc_gate> network = ...;
+      gg_network<qc_gate> network = ...;
       std::vector<uint32_t> matrix{{0b000011,
                                     0b011001,
                                     0b010010,

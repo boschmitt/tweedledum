@@ -9,29 +9,35 @@
 #include "detail/foreach.hpp"
 #include "detail/storage.hpp"
 
-#include <algorithm>
-#include <cassert>
-#include <cstdint>
 #include <fmt/format.h>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace tweedledum {
 
+/*! Gate dependecy graph
+ *
+ * Represent a quantum circuit as a directed acyclic graph. The nodes in the
+ * graph are either input/output nodes or operation nodes. All nodes store
+ * a gate object, which is defined as a class template parameter, which allows
+ * great flexibility in the types supported as gates.
+ *
+ */
 template<typename GateType>
-class netlist {
+class gdg_network {
 public:
 #pragma region Types and constructors
 	using gate_type = GateType;
-	using node_type = wrapper_node<gate_type, 1>;
+	using node_type = regular_node<gate_type, 1, 1>;
 	using node_ptr_type = typename node_type::pointer_type;
 	using storage_type = storage<node_type>;
 
-	netlist()
+	gdg_network()
 	    : storage_(std::make_shared<storage_type>())
 	{}
 
-	netlist(std::shared_ptr<storage_type> storage)
+	gdg_network(std::shared_ptr<storage_type> storage)
 	    : storage_(storage)
 	{}
 #pragma endregion
@@ -46,11 +52,12 @@ private:
 
 		// Create input node
 		auto& input_node = storage_->nodes.emplace_back(gate_kinds_t::input, qubit_id);
-		storage_->inputs.emplace_back(index);
+		storage_->inputs.emplace_back(index, false);
 		mark(input_node, default_mark_);
 
 		// Create ouput node
 		auto& output_node = storage_->outputs.emplace_back(gate_kinds_t::output, qubit_id);
+		output_node.qubit[qubit_id].emplace_back(index, true);
 		mark(output_node, default_mark_);
 
 		// std::cout << "[done]\n";
@@ -107,13 +114,64 @@ public:
 		}
 		return static_cast<uint32_t>(&node - storage_->nodes.data());
 	}
+
+	auto get_children(node_type const& node, uint32_t qubit_id)
+	{
+		auto input_id = node.gate.qubit_index(qubit_id);
+		auto choices = node.qubit[input_id];
+		return choices;
+	}
+
+	auto get_predecessor_choices(node_type const& node)
+	{
+		std::vector<node_ptr_type> choices;
+		for (auto qubit_id = 0u; qubit_id < node.qubit.size(); ++qubit_id) {
+			choices.insert(choices.end(), node.qubit[qubit_id].begin(),
+			               node.qubit[qubit_id].end());
+		}
+		return choices;
+	}
 #pragma endregion
 
 #pragma region Add gates
+private:
+	void connect_node(std::uint32_t qubit_id, std::uint32_t node_index)
+	{
+		auto& node = storage_->nodes.at(node_index);
+		auto& output = storage_->outputs.at(qubit_id);
+		auto previous_node_arc = output.qubit[qubit_id].back();
+		auto& previous_node = storage_->nodes.at(previous_node_arc.index);
+		auto connector = node.gate.qubit_index(qubit_id);
+
+		if (node.gate.is_dependent(previous_node.gate)) {
+			foreach_child(output, [&node, connector](auto arc) {
+				node.qubit[connector].emplace_back(arc);
+			});
+			output.qubit[connector].clear();
+			output.qubit[connector].emplace_back(node_index, true);
+			return;
+		}
+		output.qubit[connector].emplace_back(node_index, true);
+		foreach_child(previous_node, qubit_id, [&node, connector](auto arc) {
+			node.qubit[connector].emplace_back(arc);
+		});
+	}
+
+	auto& do_add_gate(gate_type const& gate)
+	{
+		auto node_index = storage_->nodes.size();
+		auto& node = storage_->nodes.emplace_back(gate);
+		mark(node, default_mark_);
+
+		node.gate.foreach_control([&](auto qubit_id) { connect_node(qubit_id, node_index); });
+		node.gate.foreach_target([&](auto qubit_id) { connect_node(qubit_id, node_index); });
+		return node;
+	}
+
+public:
 	auto& add_gate(gate_type g)
 	{
-		auto& node = storage_->nodes.emplace_back(g);
-		return node;
+		return do_add_gate(g);
 	}
 
 	auto& add_gate(gate_kinds_t kind, uint32_t target, float rotation_angle = 0.0)
@@ -201,6 +259,36 @@ public:
 		auto end = storage_->nodes.cend();
 		detail::foreach_element(begin, end, fn, index);
 	}
+
+	template<typename Fn>
+	void foreach_child(node_type const& n, Fn&& fn) const
+	{
+		static_assert(detail::is_callable_without_index_v<
+		                  Fn, node_ptr_type,
+		                  void> || detail::is_callable_with_index_v<Fn, node_ptr_type, void>);
+
+		for (auto qubit_id = 0u; qubit_id < n.qubit.size(); ++qubit_id) {
+			auto begin = n.qubit[qubit_id].cbegin();
+			auto end = n.qubit[qubit_id].cend();
+			while (begin != end) {
+				if constexpr (detail::is_callable_without_index_v<Fn, node_ptr_type, void>) {
+					fn(*begin++);
+				} else if constexpr (detail::is_callable_with_index_v<Fn, node_ptr_type,
+				                                                      void>) {
+					fn(*begin++, qubit_id);
+				}
+			}
+		}
+	}
+
+	template<typename Fn>
+	void foreach_child(node_type const& n, uint32_t qubit_id, Fn&& fn) const
+	{
+		auto index = n.gate.qubit_index(qubit_id);
+		for (auto arc : n.qubit[index]) {
+			fn(arc);
+		}
+	}
 #pragma endregion
 
 #pragma region Visited flags
@@ -233,4 +321,4 @@ private:
 	uint32_t default_mark_ = 0u;
 };
 
-}; // namespace tweedledum
+} // namespace tweedledum
