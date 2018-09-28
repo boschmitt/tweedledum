@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,22 @@ auto map_and_join(Iterator begin, Iterator end, MapFn&& map_fn, JoinFn&& join_fn
 	                       [&](auto const& a, auto const& v) { return join_fn(a, map_fn(v)); });
 }
 
+/*! \brief Writes network in Quirk format into output stream
+ *
+ * An overloaded variant exists that writes the network into a file.
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `foreach_control`
+ * - `foreach_target`
+ *
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ *
+ * \param network Network
+ * \param os Output stream
+ */
 template<class Network>
 void write_quirk_encoded_json(Network const& network, std::ostream& os)
 {
@@ -66,39 +83,39 @@ void write_quirk_encoded_json(Network const& network, std::ostream& os)
 			/* ignore */
 			return true;
 
-		case gate_kinds_t::hadamard: {
+		case gate_kinds_t::hadamard:
 			g.foreach_target([&](auto q) { add_gate(q, "H"); });
-		} break;
+			break;
 
-		case gate_kinds_t::pauli_x: {
+		case gate_kinds_t::pauli_x:
 			g.foreach_target([&](auto q) { add_gate(q, "X"); });
-		} break;
+			break;
 
-		case gate_kinds_t::pauli_z: {
+		case gate_kinds_t::pauli_z:
 			g.foreach_target([&](auto q) { add_gate(q, "Z"); });
-		} break;
+			break;
 
-		case gate_kinds_t::phase: {
+		case gate_kinds_t::phase:
 			g.foreach_target([&](auto q) { add_gate(q, "Z^%C2%BD"); });
-		} break;
+			break;
 
-		case gate_kinds_t::phase_dagger: {
+		case gate_kinds_t::phase_dagger:
 			g.foreach_target([&](auto q) { add_gate(q, "Z^-%C2%BD"); });
-		} break;
+			break;
 
-		case gate_kinds_t::t: {
+		case gate_kinds_t::t:
 			g.foreach_target([&](auto q) { add_gate(q, "Z^%C2%BC"); });
-		} break;
+			break;
 
-		case gate_kinds_t::t_dagger: {
+		case gate_kinds_t::t_dagger:
 			g.foreach_target([&](auto q) { add_gate(q, "Z^-%C2%BC"); });
-		} break;
+			break;
 
-		case gate_kinds_t::cx: {
+		case gate_kinds_t::cx:
 			g.foreach_control([&](auto qc) {
 				g.foreach_target([&](auto qt) { add_controlled_gate(qc, qt, "X"); });
 			});
-		} break;
+			break;
 
 		case gate_kinds_t::mcx: {
 			std::vector<uint32_t> controls, targets;
@@ -148,6 +165,21 @@ void write_quirk_encoded_json(Network const& network, std::ostream& os)
 	   << "]\n";
 }
 
+/*! \brief Writes network in Quirk format into a file
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `num_controls`
+ * - `foreach_control`
+ * - `foreach_target`
+ *
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ *
+ * \param network Network
+ * \param filename Filename
+ */
 template<class Network>
 void write_quirk_encoded_json(Network const& network, std::string const& filename)
 {
