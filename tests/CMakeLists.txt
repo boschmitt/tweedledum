@@ -23,6 +23,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/io/dotqc.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_cirq.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/io/write_dot.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_projectq.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_qasm.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_qpic.cpp"
