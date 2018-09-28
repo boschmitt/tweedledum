@@ -30,22 +30,22 @@ public:
 
 #pragma region Constructors
 	mcmt_gate(gate_kinds_t kind, uint32_t target, float rotation_angle = 0.0)
-	    : controls_(0)
+	    : kind_(static_cast<uint32_t>(kind))
+	    , controls_(0)
 	    , targets_(0)
+	    , rotation_angle_(rotation_angle)
 	{
-		(void) kind;
-		(void) rotation_angle;
 		assert(target <= 32);
 		targets_ |= (1 << target);
 	}
 
 	mcmt_gate(gate_kinds_t kind, std::vector<uint32_t> controls, std::vector<uint32_t> targets,
 	          float rotation_angle = 0.0)
-	    : controls_(0)
+	    : kind_(static_cast<uint32_t>(kind))
+	    , controls_(0)
 	    , targets_(0)
+	    , rotation_angle_(rotation_angle)
 	{
-		(void) kind;
-		(void) rotation_angle;
 		assert(controls.size() >= 0 && controls.size() <= 32);
 		assert(targets.size() >= 0 && targets.size() <= 32);
 		for (auto control : controls) {
@@ -73,12 +73,12 @@ public:
 
 	auto kind() const
 	{
-		return gate_kinds_t::mcx;
+		return static_cast<gate_kinds_t>(kind_);
 	}
 
 	bool is(gate_kinds_t kind) const
 	{
-		return kind == gate_kinds_t::mcx;
+		return kind_ == static_cast<uint32_t>(kind);
 	}
 
 	bool is_dependent(mcmt_gate const& other) const
@@ -88,7 +88,7 @@ public:
 
 	auto rotation_angle() const
 	{
-		return 0;
+		return rotation_angle_;
 	}
 
 	auto qubit_index(uint32_t qubit_id) const
@@ -120,8 +120,10 @@ public:
 #pragma endregion
 
 private:
+	uint32_t kind_;
 	uint32_t controls_;
 	uint32_t targets_;
+	float rotation_angle_;
 };
 
 }; // namespace tweedledum
