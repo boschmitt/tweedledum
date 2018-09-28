@@ -19,6 +19,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/decomposition_based.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/gray_synth.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/single_target_gates.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/remove_marked.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/dotqc.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"

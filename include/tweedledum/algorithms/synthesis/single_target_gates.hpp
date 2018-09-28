@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Mathias Soeken
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "gray_synth.hpp"
@@ -20,15 +20,27 @@
 
 namespace tweedledum {
 
+/*! \brief Synthesize a quantum network from a function by computing PPRM representation
+ *
+ * PPRM: The positive polarity Reed-Muller form is an ESOP, where each variable has
+ * positive polarity (not complemented form). PPRM is a canonical expression, so further
+ * minimization is not possible.
+ */
 struct stg_from_pprm {
+	/*! \brief Synthesize into a _existing_ quantum network from a function by computing PPRM representation
+	 *
+	 * \param network Network
+	 * \param function A function represented as a truth table
+	 * \param qubit_map
+	 */
 	template<class Network>
-	void operator()(Network& net, kitty::dynamic_truth_table const& function,
+	void operator()(Network& network, kitty::dynamic_truth_table const& function,
 	                std::vector<uint8_t> const& qubit_map)
 	{
 		const auto num_controls = function.num_vars();
-		assert(qubit_map.size()
-		       == static_cast<std::size_t>(num_controls) + 1u);
+		assert(qubit_map.size() == static_cast<std::size_t>(num_controls) + 1u);
 
+		std::vector<uint32_t> target = {qubit_map.back()};
 		for (auto const& cube : esop_from_pprm(function)) {
 			assert(cube._bits == cube._mask); /* PPRM property */
 			std::vector<uint32_t> controls;
@@ -39,20 +51,46 @@ struct stg_from_pprm {
 				}
 				bits >>= 1;
 			}
-			net.add_gate(gate_kinds_t::mcx, controls, {qubit_map.back()});
+			network.add_gate(gate_kinds_t::mcx, controls, target);
 		}
 	}
 };
 
+/*! \brief Synthesize into a _new_ quantum network from a function by computing PPRM representation
+ *
+ * \param function A function represented as a truth table
+ */
+template<class Network>
+Network stg_from_pprm2(kitty::dynamic_truth_table const& function)
+{
+	Network network;
+	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
+		network.add_qubit();
+	}
+	std::vector<uint8_t> qubit_map(network.num_qubits());
+	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
+	stg_from_pprm()(network, function, qubit_map);
+	return network;
+}
+
+/*! \brief Synthesize a quantum network from a function by computing PKRM representation
+ *
+ */
 struct stg_from_pkrm {
+	/*! \brief Synthesize into a _existing_ quantum network from a function by computing PPRM representation
+	 *
+	 * \param network Network
+	 * \param function A function represented as a truth table
+	 * \param qubit_map
+	 */
 	template<class Network>
 	void operator()(Network& net, kitty::dynamic_truth_table const& function,
 	                std::vector<uint8_t> const& qubit_map)
 	{
 		const auto num_controls = function.num_vars();
-		assert(qubit_map.size()
-		       == static_cast<std::size_t>(num_controls) + 1u);
+		assert(qubit_map.size() == static_cast<std::size_t>(num_controls) + 1u);
 
+		std::vector<uint32_t> target = {qubit_map.back()};
 		for (auto const& cube : esop_from_optimum_pkrm(function)) {
 			std::vector<uint32_t> controls, negations;
 			auto bits = cube._bits;
@@ -60,31 +98,50 @@ struct stg_from_pkrm {
 			for (auto v = 0; v < num_controls; ++v) {
 				if (mask & 1) {
 					controls.push_back(qubit_map[v]);
-					if (!(bits & 1))
+					if (!(bits & 1)) {
 						negations.push_back(qubit_map[v]);
+					}
 				}
 				bits >>= 1;
 				mask >>= 1;
 			}
-			for (auto n : negations)
+			for (auto n : negations) {
 				net.add_gate(gate_kinds_t::cx, n);
-			net.add_multiple_controlled_target_gate(gate_kinds_t::mcx, controls, {qubit_map.back()});
-			for (auto n : negations)
+			}
+			net.add_gate(gate_kinds_t::mcx, controls, target);
+			for (auto n : negations) {
 				net.add_gate(gate_kinds_t::cx, n);
+			}
 		}
 	}
 };
 
+/*! \brief Synthesize into a _new_ quantum network from a function by computing PKRM representation
+ *
+ * \param function A function represented as a truth table
+ */
+template<class Network>
+Network stg_from_pkrm2(kitty::dynamic_truth_table const& function)
+{
+	Network network;
+	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
+		network.add_qubit();
+	}
+	std::vector<uint8_t> qubit_map(network.num_qubits());
+	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
+	stg_from_pkrm()(network, function, qubit_map);
+	return network;
+}
+
+/*! \brief Synthesize a quantum network from a function by computing Rademacher-Walsh spectrum
+ */
 struct stg_from_spectrum_params {
 	enum lin_comb_synth_behavior_t {
 		always = 0,
 		never = 1,
 		complete_spectra = 2
 	} lin_comb_synth_behavior{complete_spectra};
-	enum lin_comb_synth_strategy_t {
-		gray = 0,
-		binary = 1
-	} lin_comb_synth_strategy{gray};
+	enum lin_comb_synth_strategy_t { gray = 0, binary = 1 } lin_comb_synth_strategy{gray};
 	gray_synth_params gray_synth_ps{};
 };
 
@@ -99,6 +156,12 @@ struct stg_from_spectrum {
 		return _pi;
 	}
 
+	/*! \brief Synthesize into a _existing_ quantum network from a function by computing PPRM representation
+	 *
+	 * \param network Network
+	 * \param function A function represented as a truth table
+	 * \param qubit_map
+	 */
 	template<class Network>
 	void operator()(Network& net, kitty::dynamic_truth_table const& function,
 	                std::vector<uint8_t> const& qubit_map)
@@ -119,32 +182,47 @@ struct stg_from_spectrum {
 
 		const auto spectrum = kitty::rademacher_walsh_spectrum(g);
 		for (auto i = 1u; i < spectrum.size(); ++i) {
-			if (spectrum[i] == 0)
+			if (spectrum[i] == 0) {
 				continue;
+			}
 			parities.push_back(i);
 			angles.push_back(nom * spectrum[i]);
 		}
 
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
-		if ((ps_.lin_comb_synth_behavior
-		     == stg_from_spectrum_params::always)
-		    || ((ps_.lin_comb_synth_behavior
-		         == stg_from_spectrum_params::complete_spectra)
+		if ((ps_.lin_comb_synth_behavior == stg_from_spectrum_params::always)
+		    || ((ps_.lin_comb_synth_behavior == stg_from_spectrum_params::complete_spectra)
 		        && (parities.size() == spectrum.size() - 1))) {
-			if (ps_.lin_comb_synth_strategy
-			    == stg_from_spectrum_params::gray)
-				lin_comb_synth_gray(net, parities, angles,
-				                    qubit_map);
-			else
-				lin_comb_synth_binary(net, parities, angles,
-				                      qubit_map);
-		} else
-			gray_synth(net, parities, angles, qubit_map,
-			           ps_.gray_synth_ps);
+			if (ps_.lin_comb_synth_strategy == stg_from_spectrum_params::gray) {
+				lin_comb_synth_gray(net, parities, angles, qubit_map);
+			} else {
+				lin_comb_synth_binary(net, parities, angles, qubit_map);
+			}
+		} else {
+			gray_synth(net, parities, angles, qubit_map, ps_.gray_synth_ps);
+		}
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
 	}
 
 	stg_from_spectrum_params ps_{};
 };
+
+/*! \brief Synthesize into a _new_ quantum network from a function by computing Rademacher-Walsh spectrum
+ *
+ * \param function A function represented as a truth table
+ */
+template<class Network>
+Network stg_from_spectrum2(kitty::dynamic_truth_table const& function, stg_from_spectrum_params const& ps = {})
+{
+	Network network;
+	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
+		network.add_qubit();
+	}
+	std::vector<uint8_t> qubit_map(network.num_qubits());
+	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
+	stg_from_spectrum weird(ps);
+	weird(network, function, qubit_map);
+	return network;
+}
 
 } /* namespace tweedledum */
