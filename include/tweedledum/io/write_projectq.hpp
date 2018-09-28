@@ -6,7 +6,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/netlist.hpp"
+#include "../gates/gate_kinds.hpp"
 
 #include <fmt/format.h>
 #include <fstream>
@@ -26,8 +26,25 @@ inline auto make_qubit_list(std::string& s)
 	};
 }
 
+/*! \brief Writes network in ProjecQ format into output stream
+ *
+ * An overloaded variant exists that writes the network into a file.
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `num_controls`
+ * - `foreach_control`
+ * - `foreach_target`
+ * 
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ *
+ * \param network Network
+ * \param os Output stream
+ */
 template<typename Network>
-void write_projectq(Network const& network, std::ostream& out)
+void write_projectq(Network const& network, std::ostream& os)
 {
 	network.foreach_node([&](auto const& n) {
 		auto const& g = n.gate;
@@ -48,62 +65,77 @@ void write_projectq(Network const& network, std::ostream& out)
 			/* ignore */
 			break;
 		case gate_kinds_t::hadamard:
-			out << fmt::format("H | {}\n", targets);
+			os << fmt::format("H | {}\n", targets);
 			break;
 		case gate_kinds_t::pauli_x:
-			out << fmt::format("X | {}\n", targets);
+			os << fmt::format("X | {}\n", targets);
 			break;
 		case gate_kinds_t::pauli_y:
-			out << fmt::format("Y | {}\n", targets);
+			os << fmt::format("Y | {}\n", targets);
 			break;
 		case gate_kinds_t::pauli_z:
-			out << fmt::format("Z | {}\n", targets);
+			os << fmt::format("Z | {}\n", targets);
 			break;
 		case gate_kinds_t::phase:
-			out << fmt::format("S | {}\n", targets);
+			os << fmt::format("S | {}\n", targets);
 			break;
 		case gate_kinds_t::phase_dagger:
-			out << fmt::format("Sdag | {}\n", targets);
+			os << fmt::format("Sdag | {}\n", targets);
 			break;
 		case gate_kinds_t::t:
-			out << fmt::format("T | {}\n", targets);
+			os << fmt::format("T | {}\n", targets);
 			break;
 		case gate_kinds_t::t_dagger:
-			out << fmt::format("Tdag | {}\n", targets);
+			os << fmt::format("Tdag | {}\n", targets);
 			break;
 		case gate_kinds_t::rotation_x:
-			out << fmt::format("Rx({}) | {}\n", g.angle(), targets);
+			os << fmt::format("Rx({}) | {}\n", g.rotation_angle(), targets);
 			break;
 		case gate_kinds_t::rotation_z:
-			out << fmt::format("Rz({}) | {}\n", g.angle(), targets);
+			os << fmt::format("Rz({}) | {}\n", g.rotation_angle(), targets);
 			break;
 		case gate_kinds_t::cx:
-			out << fmt::format("CNOT | ({}, {})\n", controls, targets);
+			os << fmt::format("CNOT | ({}, {})\n", controls, targets);
 			break;
 		case gate_kinds_t::cz:
-			out << fmt::format("CZ | ({}, {})\n", controls, targets);
+			os << fmt::format("CZ | ({}, {})\n", controls, targets);
 			break;
 		case gate_kinds_t::mcx:
-			out << fmt::format("C(All(X), {}) | ([{}], [{}])\n", g.num_controls(),
+			os << fmt::format("C(All(X), {}) | ([{}], [{}])\n", g.num_controls(),
 			                   controls, targets);
 			break;
 		case gate_kinds_t::mcy:
-			out << fmt::format("C(All(Y), {}) | ([{}], [{}])\n", g.num_controls(),
+			os << fmt::format("C(All(Y), {}) | ([{}], [{}])\n", g.num_controls(),
 			                   controls, targets);
 			break;
 		case gate_kinds_t::mcz:
-			out << fmt::format("C(All(Z), {}) | ([{}], [{}])\n", g.num_controls(),
+			os << fmt::format("C(All(Z), {}) | ([{}], [{}])\n", g.num_controls(),
 			                   controls, targets);
 			break;
 		}
 	});
 }
 
+/*! \brief Writes network in ProjecQ format into a file
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `num_controls`
+ * - `foreach_control`
+ * - `foreach_target`
+ * 
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ *
+ * \param network Network
+ * \param filename Filename
+ */
 template<typename Network>
-void write_projectq(Network const& network, const std::string& filename)
+void write_projectq(Network const& network, std::string const& filename)
 {
-	std::ofstream out(filename.c_str(), std::ofstream::out);
-	write_projectq(network, out);
+	std::ofstream os(filename.c_str(), std::ofstream::out);
+	write_projectq(network, os);
 }
 
 }; // namespace tweedledum
