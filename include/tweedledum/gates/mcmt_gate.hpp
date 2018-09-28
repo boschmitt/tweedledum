@@ -86,6 +86,11 @@ public:
 		return ((controls_ & other.targets_) != 0);
 	}
 
+	auto is_control(uint32_t qubit_id) const
+	{
+		return (controls_ & (1u << qubit_id));
+	}
+
 	auto rotation_angle() const
 	{
 		return rotation_angle_;

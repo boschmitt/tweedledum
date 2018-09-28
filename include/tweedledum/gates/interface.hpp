@@ -56,8 +56,11 @@ public:
 	 */
 	bool is_dependent(gate const& other) const;
 
+	/*! \brief Checks weather a qubit is a control for the gate */
+	auto is_control(uint32_t qubit_id) const;
+
 	/*! \brief Returns the angle in case of rotation gate. */
-	auto angle() const;
+	auto rotation_angle() const;
 
 	/*! \brief Returns the index of a qubit in the gate.
 	 *
