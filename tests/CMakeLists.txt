@@ -22,6 +22,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/remove_marked.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/dotqc.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/io/write_qasm.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/gates/mcst_gate.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/gg_network.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/gdg_network.cpp"
