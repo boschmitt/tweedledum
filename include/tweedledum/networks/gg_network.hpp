@@ -246,8 +246,8 @@ public:
 		return add_gate(gate);
 	}
 
-	auto& add_gate(gate_kinds_t kind, std::vector<uint32_t>& controls,
-	               std::vector<uint32_t>& targets, float rotation_angle = 0.0)
+	auto& add_gate(gate_kinds_t kind, std::vector<uint32_t> const& controls,
+	               std::vector<uint32_t> const& targets, float rotation_angle = 0.0)
 	{
 		gate_type gate(kind, controls, targets, rotation_angle);
 		return add_gate(gate);
