@@ -43,9 +43,9 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 	});
 
 	network.foreach_gate([&](auto& node) {
-		auto prefix = '\0';
+		auto prefix = "";
 		if (node.gate.is(gate_kinds_t::mcx)) {
-			prefix = '+';
+			prefix = "+";
 		}
 		node.gate.foreach_target(
 		    [&](auto qubit) { os << fmt::format("{}q{} ", prefix, qubit); });
