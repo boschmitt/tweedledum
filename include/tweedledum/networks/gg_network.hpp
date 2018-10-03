@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../gates/gate_kinds.hpp"
-#include "detail/foreach.hpp"
+#include "../utils/detail/foreach.hpp"
 #include "detail/storage.hpp"
 
 #include <array>
