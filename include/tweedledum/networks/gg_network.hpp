@@ -63,7 +63,7 @@ private:
 
 		// Create ouput node
 		auto& output_node = storage_->outputs.emplace_back(gate_kinds_t::output, qubit_id);
-		output_node.qubit[qubit_id][0] = {index, true};
+		output_node.qubit[0][0] = {index, true};
 
 		// std::cout << "[done]\n";
 		return qubit_id;
