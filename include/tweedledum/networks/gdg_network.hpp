@@ -57,7 +57,7 @@ private:
 
 		// Create ouput node
 		auto& output_node = storage_->outputs.emplace_back(gate_kinds_t::output, qubit_id);
-		output_node.qubit[qubit_id].emplace_back(index, true);
+		output_node.qubit[0].emplace_back(index, true);
 		mark(output_node, default_mark_);
 
 		// std::cout << "[done]\n";
@@ -139,9 +139,9 @@ private:
 	{
 		auto& node = storage_->nodes.at(node_index);
 		auto& output = storage_->outputs.at(qubit_id);
-		auto previous_node_arc = output.qubit[qubit_id].back();
-		auto& previous_node = storage_->nodes.at(previous_node_arc.index);
 		auto connector = node.gate.qubit_index(qubit_id);
+		auto previous_node_arc = output.qubit[connector].back();
+		auto& previous_node = storage_->nodes.at(previous_node_arc.index);
 
 		if (node.gate.is_dependent(previous_node.gate)) {
 			foreach_child(output, [&node, connector](auto arc) {
