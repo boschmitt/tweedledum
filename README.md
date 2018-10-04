@@ -8,7 +8,7 @@ tweedledum is a C++-17 header-only library for writing, manipulating, and optimi
 
 The library is written to be scalable up to problem sizes in which quantum circuits outperform classical
 ones. Also, it is meant to be used both independently and alongside established tools for example
-compilers or more general and high level frameworks, e.g., IBM's QISKit, Rigetti's Florest, ProjectQ.
+compilers or more general and high level frameworks, e.g., IBM's QISKit, Rigetti's Forest, ProjectQ.
 
 tweedledum powers [RevKit v3](https://github.com/msoeken/cirkit/).
 ## Installation requirements
