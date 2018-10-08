@@ -6,6 +6,8 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include <cassert>
+
 namespace tweedledum {
 
 template<class NetworkDest, class NetworkSrc, class RewriteFn>
