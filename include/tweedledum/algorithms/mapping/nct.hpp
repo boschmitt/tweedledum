@@ -1,8 +1,9 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Mathias Soeken
-*-----------------------------------------------------------------------------*/
+|            Bruno Schmitt
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../../gates/gate_kinds.hpp"
@@ -15,129 +16,141 @@
 namespace tweedledum {
 
 struct nct_mapping_params {
-	uint32_t controls_threshold{2u};
+	uint32_t controls_threshold = 2u;
 };
 
 namespace detail {
 
+// Barenco, A., Bennett, C.H., Cleve, R., DiVincenzo, D.P., Margolus, N., Shor, P., Sleator, T., Smolin,
+// J.A. and Weinfurter, H., 1995. Elementary gates for quantum computation. Physical review A, 52(5), p.3457.
 template<class Network>
-void nct_insert_toffoli(Network& net, std::vector<uint32_t> const& controls,
-                        uint32_t target, nct_mapping_params const& ps)
+void tofolli_barrenco_decomposition(Network& network, std::vector<uint32_t> const& controls,
+                                    uint32_t target, nct_mapping_params const& params)
 {
-	const auto c = controls.size();
-	assert(c >= 2);
+	const auto num_controls = controls.size();
+	assert(num_controls >= 2);
 
-	if (c <= ps.controls_threshold) {
-		net.add_gate(gate_kinds_t::mcx, {target}, controls);
+	if (num_controls <= params.controls_threshold) {
+		network.add_gate(gate_kinds_t::mcx, {target}, controls);
 		return;
 	}
 
-	/* enough empty lines? */
-	if (net.num_qubits() + 1 >= (c << 1)) {
-		/* empty lines */
-		std::vector<uint32_t> empty;
-		for (auto i = 0u; i < net.num_qubits(); ++i) {
-			if (i != target
-			    && std::find(controls.begin(), controls.end(), i)
-			           == controls.end()) {
-				empty.push_back(i);
-			}
+	std::vector<uint32_t> workspace;
+	for (auto i = 0ull; i < network.num_qubits(); ++i) {
+		if (i != target && std::find(controls.begin(), controls.end(), i) == controls.end()) {
+			workspace.push_back(i);
 		}
+	}
+	const auto workspace_size = workspace.size();
+	if (workspace_size == 0) {
+		std::cout << "[e] no sufficient helper line found for mapping, break\n";
+		return;
+	}
 
-		const auto e = empty.size();
-		empty.push_back(target);
+	// Check if there are enough empty lines lines
+	// Lemma 7.2: If n ≥ 5 and m ∈ {3, ..., ⌈n/2⌉} then a gate can be simulated by a network
+	// consisting of 4(m − 2) gates.
+	// n is the number of qubits
+	// m is the number of controls
+	if (network.num_qubits() + 1 >= (num_controls << 1)) {
+		workspace.push_back(target);
 
+		// When offset is equal to 0 this is computing the toffoli
+		// When offset is 1 this is cleaning up the workspace, that is, restoring the state
+		// to their initial state
 		for (int offset = 0; offset <= 1; ++offset) {
-			for (int i = offset; i < static_cast<int>(c) - 2; ++i) {
-				net.add_gate(gate_kinds_t::mcx,
-				    std::vector<uint32_t>({controls[c - 1 - i], empty[e - 1 - i]}),
-				    std::vector<uint32_t>({empty[e - i]}));
+			for (int i = offset; i < static_cast<int>(num_controls) - 2; ++i) {
+				network.add_gate(gate_kinds_t::mcx,
+				                 std::vector({controls[num_controls - 1 - i],
+				                              workspace[workspace_size - 1 - i]}),
+				                 std::vector({workspace[workspace_size - i]}));
 			}
-			net.add_gate(gate_kinds_t::mcx,
-			             std::vector<uint32_t>( {controls[0], controls[1]}),
-			             std::vector<uint32_t>({empty[e - (c - 2)]}));
-			for (int i = c - 2 - 1; i >= offset; --i) {
-				net.add_gate(gate_kinds_t::mcx,
-				    std::vector<uint32_t>({controls[c - 1 - i], empty[e - 1 - i]}),
-				    std::vector<uint32_t>({empty[e - i]}));
+
+			network.add_gate(gate_kinds_t::mcx, std::vector({controls[0], controls[1]}),
+			                 std::vector(
+			                     {workspace[workspace_size - (num_controls - 2)]}));
+
+			for (int i = num_controls - 2 - 1; i >= offset; --i) {
+				network.add_gate(
+				    gate_kinds_t::mcx,
+				    std::vector<uint32_t>({controls[num_controls - 1 - i],
+				                           workspace[workspace_size - 1 - i]}),
+				    std::vector<uint32_t>({workspace[workspace_size - i]}));
 			}
 		}
 		return;
 	}
 
-	/* not enough empty lines, extra decomposition step */
-	int32_t e{-1};
-	for (auto i = 0u; i < net.num_qubits(); ++i) {
-		if (i != target
-		    && std::find(controls.begin(), controls.end(), i)
-		           == controls.end()) {
-			e = i;
-			break;
-		}
+	// Not enough qubits in the workspace, extra decomposition step
+	// Lemma 7.3: For any n ≥ 5, and m ∈ {2, ... , n − 3} a (n−2)-toffoli gate can be simulated
+	// by a network consisting of two m-toffoli gates and two (n−m−1)-toffoli gates
+	std::vector<uint32_t> controls0;
+	std::vector<uint32_t> controls1;
+	for (auto i = 0u; i < (num_controls >> 1); ++i) {
+		controls0.push_back(controls[i]);
 	}
-	if (e == -1) {
-		std::cout << "[e] no sufficient helper line found for mapping, "
-		             "break\n";
-		return;
+	for (auto i = (num_controls >> 1); i < num_controls; ++i) {
+		controls1.push_back(controls[i]);
 	}
-
-	std::vector<uint32_t> c1, c2;
-	const auto m = c >> 1;
-	for (auto i = 0u; i < m; ++i) {
-		c1.push_back(controls[i]);
-	}
-	for (auto i = m; i < c; ++i) {
-		c2.push_back(controls[i]);
-	}
-	c2.push_back(e);
-	nct_insert_toffoli(net, c1, e, ps);
-	nct_insert_toffoli(net, c2, target, ps);
-	nct_insert_toffoli(net, c1, e, ps);
-	nct_insert_toffoli(net, c2, target, ps);
+	controls1.push_back(workspace_size);
+	tofolli_barrenco_decomposition(network, controls0, workspace_size, params);
+	tofolli_barrenco_decomposition(network, controls1, target, params);
+	tofolli_barrenco_decomposition(network, controls0, workspace_size, params);
+	tofolli_barrenco_decomposition(network, controls1, target, params);
 }
 
 } /* namespace detail */
 
-template<class NetworkDest, class NetworkSrc>
-void nct_mapping(NetworkDest& dest, NetworkSrc const& src,
-                 nct_mapping_params const& ps = {})
+/*! \brief Decoposes a circuit with multiple controlled toffoli gates (more than to controls) into a
+ * circuit wiht only Not, Cnot, Toffolli (NCT).
+ *
+ * **Required gate functions:**
+ *
+ * **Required network functions:**
+ */
+template<typename Network>
+Network nct_mapping(Network const& src, nct_mapping_params const& params = {})
 {
-	rewrite_network(dest, src, [&](auto& dest, auto const& g) {
-		    if (g.is(gate_kinds_t::mcx)) {
-			    switch (g.num_controls()) {
-			    case 0:
-				    g.foreach_target([&](auto t) {
-					    dest.add_gate(gate_kinds_t::pauli_x, t);
-				    });
-				    break;
-			    case 1:
-				    g.foreach_control([&](auto c) {
-					    g.foreach_target([&](auto t) {
-						    dest.add_gate(gate_kinds_t::cx, std::vector({c}), std::vector({t}));
-					    });
-				    });
-				    break;
-			    default: {
-				    std::vector<uint32_t> controls, targets;
-				    g.foreach_control(
-				        [&](auto c) { controls.push_back(c); });
-				    g.foreach_target(
-				        [&](auto t) { targets.push_back(t); });
-				    for (auto i = 1u; i < targets.size(); ++i)
-					    dest.add_gate(gate_kinds_t::cx, std::vector({targets[0]}), std::vector({targets[i]}));
-				    detail::nct_insert_toffoli(dest, controls,
-				                               targets[0], ps);
-				    for (auto i = 1u; i < targets.size(); ++i)
-					    dest.add_gate(gate_kinds_t::cx, std::vector({targets[0]}), std::vector({targets[i]}));
-			    } break;
-			    }
+	auto gate_rewriter = [&](auto& dest, auto const& gate) {
+		if (gate.is(gate_kinds_t::mcx)) {
+			switch (gate.num_controls()) {
+			case 0:
+				gate.foreach_target([&](auto target) {
+					dest.add_gate(gate_kinds_t::pauli_x, target);
+				});
+				break;
 
-			    return true;
-		    }
+			case 1:
+				gate.foreach_control([&](auto control) {
+					gate.foreach_target([&](auto target) {
+						dest.add_gate(gate_kinds_t::cx, control, target);
+					});
+				});
+				break;
 
-		    return false;
-	    },
-	    1);
+			default:
+				std::vector<uint32_t> controls;
+				std::vector<uint32_t> targets;
+				gate.foreach_control([&](auto control) { controls.push_back(control); });
+				gate.foreach_target([&](auto target) { targets.push_back(target); });
+				for (auto i = 1ull; i < targets.size(); ++i) {
+					dest.add_gate(gate_kinds_t::cx, targets[0], targets[i]);
+				}
+				detail::tofolli_barrenco_decomposition(dest, controls, targets[0], params);
+				for (auto i = 1ull; i < targets.size(); ++i) {
+					dest.add_gate(gate_kinds_t::cx, targets[0], targets[i]);
+				}
+				break;
+			}
+			return true;
+		}
+		return false;
+	};
+
+	constexpr auto num_ancillae = 1u;
+	Network dest;
+	rewrite_network(dest, src, gate_rewriter, num_ancillae);
+	return dest;
 }
 
 } // namespace tweedledum
