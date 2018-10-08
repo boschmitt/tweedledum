@@ -167,7 +167,7 @@ inline void dotqc_read(std::istream& buffer, dotqc_reader<GateKind>& reader, Fn&
 
 		default:
 			reader.on_gate(gate, std::vector({entries[0]}),
-			               std::vector(entries.begin() + 1, entries.end()));
+			               std::vector<std::string>(entries.begin() + 1, entries.end()));
 			break;
 		}
 	}
