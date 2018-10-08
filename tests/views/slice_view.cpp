@@ -20,8 +20,8 @@ TEST_CASE("GDG Slice view", "[slice_view]")
 	using namespace tweedledum;
 	gdg_network<mcst_gate> network;
 
-	auto q0 = network.add_qubit("q0");
-	auto q1 = network.add_qubit("q1");
+	network.add_qubit("q0");
+	network.add_qubit("q1");
 	network.add_gate(gate_kinds_t::hadamard, "q0");
 	network.add_gate(gate_kinds_t::hadamard, 0);
 	network.add_gate(gate_kinds_t::t, 0);
@@ -43,8 +43,8 @@ TEST_CASE("DAG PATH Slice view", "[slice_view]")
 	using namespace tweedledum;
 	gg_network<mcst_gate> network;
 
-	auto q0 = network.add_qubit("q0");
-	auto q1 = network.add_qubit("q1");
+	network.add_qubit("q0");
+	network.add_qubit("q1");
 	network.add_gate(gate_kinds_t::hadamard, "q0");
 	network.add_gate(gate_kinds_t::hadamard, 0);
 	network.add_gate(gate_kinds_t::t, 0);

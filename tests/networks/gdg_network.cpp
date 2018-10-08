@@ -17,11 +17,11 @@ TEST_CASE("Create GDG network with a few qubits", "[gdg_network]")
 
 	CHECK(network.size() == 0);
 
-	auto q0 = network.add_qubit("q0");
+	network.add_qubit("q0");
 	CHECK(network.size() == 2);
 	CHECK(network.num_qubits() == 1);
 
-	auto q1 = network.add_qubit();
+	network.add_qubit();
 	CHECK(network.size() == 4);
 	CHECK(network.num_qubits() == 2);
 }
@@ -34,7 +34,7 @@ TEST_CASE("Create GDG network with one qubit and few single-qubit gates",
 
 	CHECK(network.size() == 0);
 
-	auto q0 = network.add_qubit("q0");
+	network.add_qubit("q0");
 	CHECK(network.size() == 2);
 	CHECK(network.num_qubits() == 1);
 
@@ -55,7 +55,7 @@ TEST_CASE("Gate cancellation", "[gdg_network]")
 
 	CHECK(network.size() == 0);
 
-	auto q0 = network.add_qubit("q0");
+	network.add_qubit("q0");
 	CHECK(network.size() == 2);
 	CHECK(network.num_qubits() == 1);
 

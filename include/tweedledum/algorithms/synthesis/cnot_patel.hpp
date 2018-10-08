@@ -57,7 +57,7 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 			uint32_t end = start + m - 1;
 			uint32_t sub_row_patt = sub_pattern(matrix[row], start, end);
 			// if this is the first copy of pattern save it otherwise remove
-			if (patt[sub_row_patt] == (1<<n))
+			if (patt[sub_row_patt] == (1u << n))
 				patt[sub_row_patt] = row;
 			else {
 				matrix[row] ^= matrix[patt[sub_row_patt]];

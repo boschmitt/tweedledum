@@ -58,7 +58,7 @@ private:
 		auto index = static_cast<uint32_t>(storage_->nodes.size());
 
 		// Create input node
-		auto& input_node = storage_->nodes.emplace_back(gate_kinds_t::input, qubit_id);
+		storage_->nodes.emplace_back(gate_kinds_t::input, qubit_id);
 		storage_->inputs.emplace_back(index, false);
 
 		// Create ouput node

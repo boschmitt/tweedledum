@@ -136,4 +136,4 @@ void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
 	}
 }
 
-}; // namespace tweedledum
+} // namespace tweedledum

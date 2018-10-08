@@ -17,7 +17,7 @@ TEST_CASE("Remove marked nodes", "[remove_marked]")
 
 	CHECK(network.size() == 0);
 
-	auto q0 = network.add_qubit("q0");
+	network.add_qubit("q0");
 	network.add_gate(gate_kinds_t::hadamard, "q0");
 	network.add_gate(gate_kinds_t::hadamard, "q0");
 	gdg_network<mcst_gate>::node_ptr_type node_ptr = {1, 0};

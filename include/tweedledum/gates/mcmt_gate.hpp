@@ -58,8 +58,8 @@ public:
 	    , targets_(0)
 	    , rotation_angle_(rotation_angle)
 	{
-		assert(controls.size() >= 0 && controls.size() <= 32);
-		assert(targets.size() >= 0 && targets.size() <= 32);
+		assert(controls.size() > 0 && controls.size() <= 32);
+		assert(targets.size() > 0 && targets.size() <= 32);
 		for (auto control : controls) {
 			assert(control <= 32u);
 			controls_ |= (1u << control);
@@ -143,4 +143,4 @@ private:
 	float rotation_angle_;
 };
 
-}; // namespace tweedledum
+} // namespace tweedledum

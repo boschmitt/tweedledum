@@ -138,4 +138,4 @@ void write_projectq(Network const& network, std::string const& filename)
 	write_projectq(network, os);
 }
 
-}; // namespace tweedledum
+} // namespace tweedledum

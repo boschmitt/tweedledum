@@ -183,4 +183,4 @@ void write_quil(Network const& network, std::string const& filename)
 	write_quil(network, out);
 }
 
-}; // namespace tweedledum
+} // namespace tweedledum

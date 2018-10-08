@@ -18,7 +18,7 @@ TEST_CASE("Single-qubit gate cancellation", "[opt]")
 
 	CHECK(network.size() == 0);
 
-	auto q0 = network.add_qubit("q0");
+	network.add_qubit("q0");
 	CHECK(network.size() == 2);
 	CHECK(network.num_qubits() == 1);
 

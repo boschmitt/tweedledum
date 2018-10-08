@@ -49,4 +49,4 @@ inline std::unique_ptr<program> quil_read_from_buffer(std::string const& buffer)
 	return semantic.finish();
 }
 
-}; // namespace tweedledee::quil
+} // namespace tweedledee::quil

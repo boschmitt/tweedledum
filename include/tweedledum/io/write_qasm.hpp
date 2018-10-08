@@ -153,4 +153,4 @@ void write_qasm(Network const& network, const std::string& filename)
 	write_qasm(network, os);
 }
 
-}; // namespace tweedledum
+} // namespace tweedledum

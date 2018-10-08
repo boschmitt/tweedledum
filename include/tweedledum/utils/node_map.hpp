@@ -56,7 +56,6 @@ public:
 	/*! \brief Mutable access to value by node. */
 	reference operator[](node<Network> const& n)
 	{
-		auto kk = ntk.node_to_index(n);
 		assert(ntk.node_to_index(n) < data->size() && "index out of bounds");
 		return (*data)[ntk.node_to_index(n)];
 	}

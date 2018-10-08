@@ -30,20 +30,20 @@ void lin_comb_synth_gray(Network& net, std::vector<uint32_t> parities,
 		line_parity_val[i] = 1 << i;
 
 	std::vector<uint32_t> grayCodes;
-	for (auto i = 0u; i < (1 << nqubits); i++) {
+	for (auto i = 0u; i < (1u << nqubits); i++) {
 		grayCodes.emplace_back((i >> 1) ^ i);
 	}
 
-	for (auto i = nqubits - 1; i > 0; i--) { // i is target
-		for (auto j = (1 << (i + 1)) - 1; j > (1 << i); j--) {
-			uint32_t temp = grayCodes[j] ^ grayCodes[j - 1];
+	for (auto i = nqubits - 1u; i > 0; i--) { // i is target
+		for (auto j = (1u << (i + 1)) - 1u; j > (1u << i); j--) {
+			uint32_t temp = grayCodes[j] ^ grayCodes[j - 1u];
 
 			gates.emplace_back(log2(temp), i);
 
 			line_parity_val[i] ^= line_parity_val[log2(temp)];
 			parity_gates.push_back(line_parity_val[i]);
 		}
-		uint32_t temp = grayCodes[1 << i] ^ grayCodes[(1 << (i + 1)) - 1];
+		uint32_t temp = grayCodes[1 << i] ^ grayCodes[(1u << (i + 1)) - 1u];
 		gates.emplace_back(log2(temp), i);
 		line_parity_val[i] ^= line_parity_val[log2(temp)];
 		parity_gates.push_back(line_parity_val[i]);
@@ -89,9 +89,9 @@ void lin_comb_synth_binary(Network& net, std::vector<uint32_t> parities,
 	std::vector<uint32_t> parity_gates;
 	std::vector<uint32_t> lp_val(nqubits);
 	for (auto i = 0u; i < nqubits; i++)
-		lp_val[i] = 1 << i; // line parity value
+		lp_val[i] = 1u << i; // line parity value
 
-	for (auto i = 1u; i < (1 << nqubits); i++) {
+	for (auto i = 1u; i < (1u << nqubits); i++) {
 		if ((i ^ (1 << (i - 1))) != 0) {
 			uint32_t first_num = floor(log2(i));
 			for (auto j = 0u; j < nqubits; j++) {

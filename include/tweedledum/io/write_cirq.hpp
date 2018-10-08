@@ -161,4 +161,4 @@ void write_cirq(Network const& network, const std::string& filename)
 	std::ofstream os(filename.c_str(), std::ofstream::out);
 	write_cirq(network, os);
 }
-}; // namespace tweedledum
+} // namespace tweedledum

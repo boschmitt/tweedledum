@@ -239,4 +239,4 @@ private:
 	uint32_t default_mark_ = 0u;
 };
 
-}; // namespace tweedledum
+} // namespace tweedledum

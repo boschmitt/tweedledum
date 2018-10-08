@@ -157,7 +157,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities, std::vector<float>
 				if (j == ID)
 					continue;
 				/* xj must exist in all parities of S matrix */
-				if (detail::extract_row_of_vector(S, j) != ((1 << S.size()) - 1))
+				if (detail::extract_row_of_vector(S, j) != ((1u << S.size()) - 1u))
 					continue;
 
 				/* insert gate and update parity matrix */
