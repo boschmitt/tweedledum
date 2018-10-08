@@ -140,7 +140,7 @@ private:
 		auto& node = storage_->nodes.at(node_index);
 		auto& output = storage_->outputs.at(qubit_id);
 		auto connector = node.gate.qubit_index(qubit_id);
-		auto previous_node_arc = output.qubit[connector].back();
+		auto previous_node_arc = output.qubit[0].back();
 		auto& previous_node = storage_->nodes.at(previous_node_arc.index);
 
 		if (node.gate.is_dependent(previous_node.gate)) {
