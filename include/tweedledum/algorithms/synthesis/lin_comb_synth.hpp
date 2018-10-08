@@ -19,7 +19,7 @@ namespace tweedledum {
 template<class Network>
 void lin_comb_synth_gray(Network& net, std::vector<uint32_t> parities,
                          std::vector<float> Ts,
-                         std::vector<uint8_t> const& qubits_map)
+                         std::vector<uint32_t> const& qubits_map)
 {
 	const auto nqubits = qubits_map.size();
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
@@ -81,7 +81,7 @@ void lin_comb_synth_gray(Network& net, uint32_t nqubits,
 template<class Network>
 void lin_comb_synth_binary(Network& net, std::vector<uint32_t> parities,
                            std::vector<float> Ts,
-                           std::vector<uint8_t> const& qubits_map)
+                           std::vector<uint32_t> const& qubits_map)
 {
 	const auto nqubits = qubits_map.size();
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
@@ -150,7 +150,7 @@ void lin_comb_synth_binary(Network& net, uint32_t nqubits,
 	for (auto i = 0u; i < nqubits; ++i)
 		net.allocate_qubit();
 
-	std::vector<uint8_t> qubits_map(nqubits);
+	std::vector<uint32_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
 	lin_comb_synth_binary(net, parities, Ts, qubits_map);
 }

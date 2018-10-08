@@ -29,8 +29,8 @@ struct decomposition_based_synthesis_params {
 
 namespace detail {
 
-std::pair<std::vector<uint16_t>, std::vector<uint16_t>>
-decompose(std::vector<uint16_t>& perm, uint8_t var)
+std::pair<std::vector<uint16_t>, std::vector<uint16_t>> decompose(std::vector<uint16_t>& perm,
+                                                                  uint8_t var)
 {
 	std::vector<uint16_t> left(perm.size(), 0), right(perm.size(), 0);
 	std::vector<bool> visited(perm.size(), false);
@@ -39,8 +39,7 @@ decompose(std::vector<uint16_t>& perm, uint8_t var)
 
 	while (true) {
 		if (visited[row]) {
-			const auto it
-			    = std::find(visited.begin(), visited.end(), false);
+			const auto it = std::find(visited.begin(), visited.end(), false);
 			if (it == visited.end()) {
 				break;
 			}
@@ -63,8 +62,7 @@ decompose(std::vector<uint16_t>& perm, uint8_t var)
 		right[perm[row] & ~(1 << var)] = perm[row] ^ (1 << var);
 
 		row = std::distance(perm.begin(),
-		                    std::find(perm.begin(), perm.end(),
-		                              perm[row] ^ (1 << var)));
+		                    std::find(perm.begin(), perm.end(), perm[row] ^ (1 << var)));
 	}
 
 	std::vector<uint16_t> perm_old = perm;
@@ -75,7 +73,7 @@ decompose(std::vector<uint16_t>& perm, uint8_t var)
 	return {left, right};
 }
 
-std::pair<kitty::dynamic_truth_table, std::vector<uint8_t>>
+std::pair<kitty::dynamic_truth_table, std::vector<uint32_t>>
 control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 {
 	kitty::dynamic_truth_table tt(num_vars);
@@ -85,7 +83,10 @@ control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 		}
 	}
 
-	const auto base = kitty::min_base_inplace(tt);
+	std::vector<uint32_t> base;
+	for (auto element : kitty::min_base_inplace(tt)) {
+		base.push_back(element);
+	}
 	return {kitty::shrink_to(tt, base.size()), base};
 }
 
@@ -94,25 +95,22 @@ control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 template<class Network, class STGSynthesisFn>
 void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
                                    STGSynthesisFn&& stg_synth,
-                                   decomposition_based_synthesis_params const& ps
-                                   = {})
+                                   decomposition_based_synthesis_params const& ps = {})
 {
 	const uint32_t num_qubits = std::log2(perm.size());
 	for (auto i = 0u; i < num_qubits; ++i) {
 		circ.add_qubit();
 	}
 
-	std::list<std::pair<kitty::dynamic_truth_table, std::vector<uint8_t>>> gates;
+	std::list<std::pair<kitty::dynamic_truth_table, std::vector<uint32_t>>> gates;
 	auto pos = gates.begin();
-	for (uint8_t i = 0u; i < num_qubits; ++i) {
+	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		const auto [left, right] = detail::decompose(perm, i);
 
-		auto [tt_l, vars_l]
-		    = detail::control_function_abs(num_qubits, left);
+		auto [tt_l, vars_l] = detail::control_function_abs(num_qubits, left);
 		vars_l.push_back(i);
 
-		auto [tt_r, vars_r]
-		    = detail::control_function_abs(num_qubits, right);
+		auto [tt_r, vars_r] = detail::control_function_abs(num_qubits, right);
 		vars_r.push_back(i);
 
 		// TODO merge middle gates
@@ -127,15 +125,13 @@ void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
 
 	for (auto const& [tt, vars] : gates) {
 		if (ps.verbose)
-			std::cout
-			    << "[i] synthesize " << kitty::to_hex(tt) << " onto "
-			    << std::accumulate(
-			           vars.begin() + 1, vars.end(),
-			           std::to_string(vars.front()),
-			           [](auto const& a, auto v) {
-				           return a + ", " + std::to_string(v);
-			           })
-			    << "\n";
+			std::cout << "[i] synthesize " << kitty::to_hex(tt) << " onto "
+			          << std::accumulate(vars.begin() + 1, vars.end(),
+			                             std::to_string(vars.front()),
+			                             [](auto const& a, auto v) {
+				                             return a + ", " + std::to_string(v);
+			                             })
+			          << "\n";
 		stg_synth(circ, tt, vars);
 	}
 }

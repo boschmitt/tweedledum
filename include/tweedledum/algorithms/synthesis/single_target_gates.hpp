@@ -35,7 +35,7 @@ struct stg_from_pprm {
 	 */
 	template<class Network>
 	void operator()(Network& network, kitty::dynamic_truth_table const& function,
-	                std::vector<uint8_t> const& qubit_map)
+	                std::vector<uint32_t> const& qubit_map)
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubit_map.size() == static_cast<std::size_t>(num_controls) + 1u);
@@ -67,7 +67,7 @@ Network stg_from_pprm2(kitty::dynamic_truth_table const& function)
 	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
 		network.add_qubit();
 	}
-	std::vector<uint8_t> qubit_map(network.num_qubits());
+	std::vector<uint32_t> qubit_map(network.num_qubits());
 	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
 	stg_from_pprm()(network, function, qubit_map);
 	return network;
@@ -85,7 +85,7 @@ struct stg_from_pkrm {
 	 */
 	template<class Network>
 	void operator()(Network& net, kitty::dynamic_truth_table const& function,
-	                std::vector<uint8_t> const& qubit_map)
+	                std::vector<uint32_t> const& qubit_map)
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubit_map.size() == static_cast<std::size_t>(num_controls) + 1u);
@@ -127,7 +127,7 @@ Network stg_from_pkrm2(kitty::dynamic_truth_table const& function)
 	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
 		network.add_qubit();
 	}
-	std::vector<uint8_t> qubit_map(network.num_qubits());
+	std::vector<uint32_t> qubit_map(network.num_qubits());
 	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
 	stg_from_pkrm()(network, function, qubit_map);
 	return network;
@@ -164,7 +164,7 @@ struct stg_from_spectrum {
 	 */
 	template<class Network>
 	void operator()(Network& net, kitty::dynamic_truth_table const& function,
-	                std::vector<uint8_t> const& qubit_map)
+	                std::vector<uint32_t> const& qubit_map)
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubit_map.size() == num_controls + 1u);
@@ -218,7 +218,7 @@ Network stg_from_spectrum2(kitty::dynamic_truth_table const& function, stg_from_
 	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
 		network.add_qubit();
 	}
-	std::vector<uint8_t> qubit_map(network.num_qubits());
+	std::vector<uint32_t> qubit_map(network.num_qubits());
 	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
 	stg_from_spectrum weird(ps);
 	weird(network, function, qubit_map);

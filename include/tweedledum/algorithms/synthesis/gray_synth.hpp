@@ -61,7 +61,7 @@ Container permute(Container const& container, Iterator begin, Iterator end)
 
 template<class Network>
 void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
-                           std::vector<uint8_t> const& qubits_map, bool find_best_perm)
+                           std::vector<uint32_t> const& qubits_map, bool find_best_perm)
 {
 	auto const old_size = net.num_gates();
 	uint32_t best_gates = std::numeric_limits<uint32_t>::max();
@@ -128,7 +128,7 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
  */
 template<class Network>
 void gray_synth(Network& net, std::vector<uint32_t> parities, std::vector<float> Ts,
-                std::vector<uint8_t> const& qubits_map, gray_synth_params const& ps = {})
+                std::vector<uint32_t> const& qubits_map, gray_synth_params const& ps = {})
 {
 	const auto nqubits = qubits_map.size();
 
@@ -241,7 +241,7 @@ void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
 	for (auto i = 0u; i < nqubits; ++i)
 		net.add_qubit();
 
-	std::vector<uint8_t> qubits_map(nqubits);
+	std::vector<uint32_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
 	gray_synth(net, parities, Ts, qubits_map, ps);
 }

@@ -93,7 +93,7 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 
 template<class Network>
 void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
-                uint32_t partition_size, std::vector<uint8_t> const& qubits_map)
+                uint32_t partition_size, std::vector<uint32_t> const& qubits_map)
 {
 	/* number of qubits can be taken from matrix, since it is n x n matrix. */
 	const auto nqubits = matrix.size();
@@ -148,7 +148,7 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 	for (auto i = 0u; i < nqubits; ++i) {
 		net.allocate_qubit();
 	}
-	std::vector<uint8_t> qubits_map(nqubits);
+	std::vector<uint32_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
 
 	cnot_patel(net, matrix, partition_size, qubits_map);

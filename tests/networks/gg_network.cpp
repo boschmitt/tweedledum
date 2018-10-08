@@ -19,10 +19,10 @@ TEST_CASE("Remove marked nodes in gg_network", "gg_network")
 	gg_network<mcst_gate> network;
 	network.allocate_qubit();
 	network.allocate_qubit();
-	auto& a = network.add_gate(gate_kinds_t::hadamard, 0);
-	auto& b = network.add_gate(gate_kinds_t::cx, 0, 1);
-	auto& c = network.add_gate(gate_kinds_t::cx, 0, 1);
-	auto& d = network.add_gate(gate_kinds_t::hadamard, 1);
+	auto& a = network.add_gate(gate_kinds_t::hadamard, 0u);
+	auto& b = network.add_gate(gate_kinds_t::cx, 0u, 1u);
+	auto& c = network.add_gate(gate_kinds_t::cx, 0u, 1u);
+	auto& d = network.add_gate(gate_kinds_t::hadamard, 1u);
 
 	CHECK(2 == network.num_qubits());
 	CHECK(4 == network.num_gates());
@@ -46,12 +46,12 @@ TEST_CASE("Automark nodes in gg_network and remove them", "gg_network")
 	gg_network<mcst_gate> network;
 	network.allocate_qubit();
 	network.allocate_qubit();
-	auto& a = network.add_gate(gate_kinds_t::hadamard, 0);
+	auto& a = network.add_gate(gate_kinds_t::hadamard, 0u);
 	network.default_mark(1);
-	auto& b = network.add_gate(gate_kinds_t::cx, 0, 1);
-	auto& c = network.add_gate(gate_kinds_t::cx, 0, 1);
+	auto& b = network.add_gate(gate_kinds_t::cx, 0u, 1u);
+	auto& c = network.add_gate(gate_kinds_t::cx, 0u, 1u);
 	network.default_mark(0);
-	auto& d = network.add_gate(gate_kinds_t::hadamard, 1);
+	auto& d = network.add_gate(gate_kinds_t::hadamard, 1u);
 
 	CHECK(2 == network.num_qubits());
 	CHECK(4 == network.num_gates());
