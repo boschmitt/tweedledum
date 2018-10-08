@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -36,7 +37,7 @@ inline std::vector<std::string> split(std::string const& str)
 	          std::back_inserter(slipt_string));
 	return slipt_string;
 }
-}; // namespace utils
+} // namespace utils
 
 namespace detail {
 struct identify_gate_kind {
@@ -75,7 +76,7 @@ struct identify_gate_kind {
 		return gate_kinds::unknown;
 	}
 };
-}; // namespace detail
+} // namespace detail
 
 template<typename GateKind = gate_kinds>
 class dotqc_reader {
