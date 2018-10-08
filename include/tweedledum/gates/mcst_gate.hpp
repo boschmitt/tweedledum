@@ -37,6 +37,19 @@ public:
 	    , qubits_({target, invalid_qid, invalid_qid})
 	{}
 
+	mcst_gate(gate_kinds_t kind, uint32_t control, uint32_t target, float rotation_angle = 0.0)
+	    : kind_(static_cast<uint32_t>(kind))
+	    , target_(0)
+	    , rotation_angle_(rotation_angle)
+	    , qubits_({target, control, invalid_qid})
+	{
+		assert(control != target);
+		if (control < target) {
+			std::swap(qubits_[0], qubits_[1]);
+			target_ = 1;
+		}
+	}
+
 	mcst_gate(gate_kinds_t kind, std::vector<uint32_t> const& controls,
 	          std::vector<uint32_t> const& targets, float rotation_angle = 0.0)
 	    : kind_(static_cast<uint32_t>(kind))

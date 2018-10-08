@@ -97,6 +97,8 @@ class network final {
 
 	auto& add_gate(gate_kinds_t kind, uint32_t target, float rotation_angle = 0.0);
 
+	auto& add_gate(gate_kinds_t kind, uint32_t control, uint32_t target, float rotation_angle = 0.0);
+
 	auto& add_gate(gate_kinds_t kind, std::vector<uint32_t> const& controls,
 	               std::vector<uint32_t> const& targets, float rotation_angle = 0.0);
 

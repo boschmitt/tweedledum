@@ -25,6 +25,7 @@ public:
 
 #pragma region Constructors
 	gate(gate_kinds_t kind, uint32_t target);
+	gate(gate_kinds_t kind, uint32_t control, uint32_t target);
 	gate(gate_kinds_t kind, std::vector<uint32_t> controls, std::vector<uint32_t> targets);
 #pragma endregion
 

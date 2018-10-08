@@ -39,6 +39,18 @@ public:
 		targets_ |= (1 << target);
 	}
 
+	mcmt_gate(gate_kinds_t kind, uint32_t control, uint32_t target, float rotation_angle = 0.0)
+	    : kind_(static_cast<uint32_t>(kind))
+	    , controls_(0)
+	    , targets_(0)
+	    , rotation_angle_(rotation_angle)
+	{
+		assert(target <= 32);
+		assert(control <= 32);
+		targets_ |= (1 << target);
+		controls_ |= (1 << control);
+	}
+
 	mcmt_gate(gate_kinds_t kind, std::vector<uint32_t> controls, std::vector<uint32_t> targets,
 	          float rotation_angle = 0.0)
 	    : kind_(static_cast<uint32_t>(kind))
