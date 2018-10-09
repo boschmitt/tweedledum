@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken, Fereshte Mozafari
+| Author(s): Mathias Soeken
 *-----------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <cstdint>
@@ -22,6 +22,9 @@ TEST_CASE("Synthesize PRIME(3) with unidirectional transformation based synthesi
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);
 	}
+
+	CHECK(circ.num_gates() == 4u);
+	CHECK(circ.num_qubits() == 3u);
 }
 
 TEST_CASE("Synthesize PRIME(3) with bidirectional transformation based synthesis",
@@ -34,6 +37,9 @@ TEST_CASE("Synthesize PRIME(3) with bidirectional transformation based synthesis
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);
 	}
+
+	CHECK(circ.num_gates() == 4u);
+	CHECK(circ.num_qubits() == 3u);
 }
 
 TEST_CASE("Synthesize PRIME(3) with multi-directional transformation based synthesis",
@@ -46,4 +52,7 @@ TEST_CASE("Synthesize PRIME(3) with multi-directional transformation based synth
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);
 	}
+
+	CHECK(circ.num_gates() == 4u);
+	CHECK(circ.num_qubits() == 3u);
 }
