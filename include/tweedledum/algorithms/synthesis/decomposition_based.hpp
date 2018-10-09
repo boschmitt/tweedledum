@@ -93,10 +93,10 @@ control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 } // namespace detail
 
 template<class Network, class STGSynthesisFn>
-void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
-                                   STGSynthesisFn&& stg_synth,
-                                   decomposition_based_synthesis_params const& ps = {})
+Network decomposition_based_synthesis(std::vector<uint16_t>& perm, STGSynthesisFn&& stg_synth,
+                                      decomposition_based_synthesis_params const& ps = {})
 {
+	Network circ;
 	const uint32_t num_qubits = std::log2(perm.size());
 	for (auto i = 0u; i < num_qubits; ++i) {
 		circ.add_qubit();
@@ -134,6 +134,7 @@ void decomposition_based_synthesis(Network& circ, std::vector<uint16_t>& perm,
 			          << "\n";
 		stg_synth(circ, tt, vars);
 	}
+	return circ;
 }
 
 } // namespace tweedledum

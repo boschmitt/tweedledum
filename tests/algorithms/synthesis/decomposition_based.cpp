@@ -18,9 +18,8 @@
 TEST_CASE("Check DBS with PRIME(3) and PPRM", "[decomposition_based]")
 {
 	using namespace tweedledum;
-	netlist<mcmt_gate> circ;
 	std::vector<uint16_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-	decomposition_based_synthesis(circ, permutation, stg_from_pprm());
+	const auto circ = decomposition_based_synthesis<netlist<mcmt_gate>>(permutation, stg_from_pprm());
 
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);
@@ -33,9 +32,8 @@ TEST_CASE("Check DBS with PRIME(3) and PPRM", "[decomposition_based]")
 TEST_CASE("Check DBS with PRIME(3) and spectrum", "[decomposition_based]")
 {
 	using namespace tweedledum;
-	gg_network<mcst_gate> circ;
 	std::vector<uint16_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-	decomposition_based_synthesis(circ, permutation, stg_from_spectrum());
+	const auto circ = decomposition_based_synthesis<gg_network<mcst_gate>>(permutation, stg_from_spectrum());
 
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);

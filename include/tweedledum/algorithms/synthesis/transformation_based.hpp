@@ -58,8 +58,9 @@ void update_permutation_inv(std::vector<uint16_t>& perm, uint16_t controls, uint
 } // namespace detail
 
 template<typename Network>
-void transformation_based_synthesis(Network& circ, std::vector<uint16_t>& perm)
+Network transformation_based_synthesis(std::vector<uint16_t>& perm)
 {
+	Network circ;
 	const uint32_t num_qubits = std::log2(perm.size());
 	// netlist circ(num_qubits);
 	for (auto i = 0u; i < num_qubits; ++i) {
@@ -93,11 +94,13 @@ void transformation_based_synthesis(Network& circ, std::vector<uint16_t>& perm)
 	for (const auto [c, t] : gates) {
 		circ.add_gate(gate_kinds_t::mcx, detail::to_bit_vector(c), detail::to_bit_vector(t));
 	}
+	return circ;
 }
 
 template<typename Network>
-void transformation_based_synthesis_bidirectional(Network& circ, std::vector<uint16_t>& perm)
+Network transformation_based_synthesis_bidirectional(std::vector<uint16_t>& perm)
 {
+	Network circ;
 	const uint32_t num_qubits = std::log2(perm.size());
 	// netlist circ(num_qubits);
 	for (auto i = 0u; i < num_qubits; ++i) {
@@ -147,11 +150,13 @@ void transformation_based_synthesis_bidirectional(Network& circ, std::vector<uin
 	for (const auto [c, t] : gates) {
 		circ.add_gate(gate_kinds_t::mcx, detail::to_bit_vector(c), detail::to_bit_vector(t));
 	}
+	return circ;
 }
 
 template<typename Network>
-void transformation_based_synthesis_multidirectional(Network& circ, std::vector<uint16_t>& perm)
+Network transformation_based_synthesis_multidirectional(std::vector<uint16_t>& perm)
 {
+	Network circ;
 	const uint32_t num_qubits = std::log2(perm.size());
 	// netlist circ(num_qubits);
 	for (auto i = 0u; i < num_qubits; ++i) {
@@ -214,6 +219,7 @@ void transformation_based_synthesis_multidirectional(Network& circ, std::vector<
 	for (const auto [c, t] : gates) {
 		circ.add_gate(gate_kinds_t::mcx, detail::to_bit_vector(c), detail::to_bit_vector(t));
 	}
+	return circ;
 }
 
 }; // namespace tweedledum

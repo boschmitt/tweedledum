@@ -16,8 +16,7 @@ TEST_CASE("Synthesize PRIME(3) with unidirectional transformation based synthesi
           "[transformation_based]")
 {
 	std::vector<uint16_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-	netlist<mcmt_gate> circ;
-	transformation_based_synthesis(circ, permutation);
+	const auto circ = transformation_based_synthesis<netlist<mcmt_gate>>(permutation);
 
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);
@@ -31,8 +30,7 @@ TEST_CASE("Synthesize PRIME(3) with bidirectional transformation based synthesis
           "[transformation_based]")
 {
 	std::vector<uint16_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-	netlist<mcmt_gate> circ;
-	transformation_based_synthesis_bidirectional(circ, permutation);
+	const auto circ = transformation_based_synthesis_bidirectional<netlist<mcmt_gate>>(permutation);
 
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);
@@ -46,8 +44,7 @@ TEST_CASE("Synthesize PRIME(3) with multi-directional transformation based synth
           "[transformation_based]")
 {
 	std::vector<uint16_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-	netlist<mcmt_gate> circ;
-	transformation_based_synthesis_multidirectional(circ, permutation);
+	const auto circ = transformation_based_synthesis_multidirectional<netlist<mcmt_gate>>(permutation);
 
 	for (auto i = 0; i < 8; ++i) {
 		CHECK(i == permutation[i]);
