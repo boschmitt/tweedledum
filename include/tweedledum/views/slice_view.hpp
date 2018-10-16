@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../traits.hpp"
@@ -29,12 +29,12 @@ public:
 		update();
 	}
 
-	uint32_t depth() const
+	auto num_slices() const
 	{
-		return depth_;
+		return num_slices_;
 	}
 
-	uint32_t level(node_type const& node) const
+	auto slice(node_type const& node) const
 	{
 		return slices_[node];
 	}
@@ -47,7 +47,7 @@ public:
 	}
 
 private:
-	uint32_t compute_slices(node_type const& node)
+	auto compute_slices(node_type const& node)
 	{
 		if (this->mark(node)) {
 			return slices_[node];
@@ -57,7 +57,7 @@ private:
 			return slices_[node] = 0;
 		}
 
-		uint32_t slice = 0;
+		auto slice = 0u;
 		auto choices = this->get_predecessor_choices(node);
 		for (auto choice_index : choices) {
 			slice = std::max(slice, compute_slices(this->get_node(choice_index)));
@@ -71,15 +71,15 @@ private:
 
 	void compute_slices()
 	{
-		depth_ = 0;
+		num_slices_ = 0;
 		this->foreach_output( [&](auto const& node) {
-			depth_ = std::max(depth_, compute_slices(node));
+			num_slices_ = std::max(num_slices_, compute_slices(node));
 		});
 	}
 
 private:
 	node_map<uint32_t, Network> slices_;
-	uint32_t depth_;
+	uint32_t num_slices_;
 };
 
 } // namespace tweedledum

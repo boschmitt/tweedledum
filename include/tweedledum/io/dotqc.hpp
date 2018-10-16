@@ -1,11 +1,11 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/gates/gate_kinds.hpp"
+#include "../gates/gate_kinds.hpp"
 
 #include <tweedledee/dotqc/dotqc.hpp>
 
@@ -48,70 +48,63 @@ struct identify_gate_kind {
 	}
 };
 
-template<typename R>
+template<typename Network>
 class dotqc_reader : public tweedledee::dotqc_reader<gate_kinds_t> {
 public:
-	explicit dotqc_reader(R& representation)
-	    : representation_(representation)
+	explicit dotqc_reader(Network& network)
+	    : network_(network)
 	{}
 
 	void on_qubit(std::string qubit_label)
 	{
-		representation_.add_qubit(qubit_label);
+		network_.add_qubit(qubit_label);
 	}
 
 	void on_input(std::string qubit_label)
 	{
-		//representation_.mark_as_input(qubit_label);
+		(void) qubit_label;
+		// network_.mark_as_input(qubit_label);
 	}
 
 	void on_output(std::string qubit_label)
 	{
-		//representation_.mark_as_output(qubit_label);
+		(void) qubit_label;
+		// network_.mark_as_output(qubit_label);
 	}
 
-	void on_gate(gate_kinds_t kind, std::string qubit_label)
+	void on_gate(gate_kinds_t kind, std::string const& target)
 	{
-		representation_.add_gate(kind, qubit_label);
+		network_.add_gate(kind, target);
 	}
 
-	void on_two_qubit_gate(gate_kinds_t kind, std::string qubit0_label,
-	                       std::string qubit1_label)
+	void on_gate(gate_kinds_t kind, std::vector<std::string> const& controls,
+	             std::vector<std::string> const& targets)
 	{
 		switch (kind) {
 		case gate_kinds_t::pauli_x:
-			kind = gate_kinds_t::cx;
+			if (controls.size() == 1) {
+				kind = gate_kinds_t::cx;
+			} else if (controls.size() >= 2) {
+				kind = gate_kinds_t::mcx;
+			}
 			break;
-		case gate_kinds_t::pauli_z:
-			kind = gate_kinds_t::cz;
-			break;
-		default:
-			break;
-		}
-		representation_.add_controlled_gate(kind, qubit0_label,
-		                                    qubit1_label);
-	}
 
-	void
-	on_multiple_qubit_gate(gate_kinds_t kind,
-	                       std::vector<std::string> const& qubit_labels)
-	{
-		switch (kind) {
-		case gate_kinds_t::cx:
-			kind = gate_kinds_t::mcx;
-			break;
 		case gate_kinds_t::pauli_z:
-			kind = gate_kinds_t::mcz;
+			if (controls.size() == 1) {
+				kind = gate_kinds_t::cz;
+			} else if (controls.size() >= 2) {
+				kind = gate_kinds_t::mcz;
+			}
 			break;
+
 		default:
 			break;
 		}
-		representation_.add_multiple_controlled_gate(kind,
-		                                             qubit_labels);
+		network_.add_gate(kind, controls, targets);
 	}
 
 private:
-	R& representation_;
+	Network& network_;
 };
 
 } // namespace tweedledum

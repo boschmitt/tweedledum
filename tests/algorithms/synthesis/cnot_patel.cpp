@@ -5,13 +5,14 @@
 *-----------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/cnot_patel.hpp>
-#include <tweedledum/networks/dag_path.hpp>
-#include <tweedledum/networks/gates/qc_gate.hpp>
+#include <tweedledum/gates/gate_kinds.hpp>
+#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/networks/gg_network.hpp>
 
 TEST_CASE("Check example from paper", "cnot_patel")
 {
 	using namespace tweedledum;
-	dag_path<qc_gate> network;
+	gg_network<mcst_gate> network;
 	std::vector<uint32_t> matrix{
 	    {0b000011, 0b011001, 0b010010, 0b111111, 0b111011, 0b011100}};
 	auto matrix_orig = matrix;

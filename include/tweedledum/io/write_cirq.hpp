@@ -1,11 +1,12 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Mathias Soeken
-*-----------------------------------------------------------------------------*/
+|            Bruno Schmitt
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/gates/gate_kinds.hpp"
+#include "../gates/gate_kinds.hpp"
 #include "../networks/netlist.hpp"
 
 #include <cstdint>
@@ -16,10 +17,26 @@
 
 namespace tweedledum {
 
+/*! \brief Writes network in CirQ format into output stream
+ *
+ * An overloaded variant exists that writes the network into a file.
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `foreach_control`
+ * - `foreach_target`
+ *
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ *
+ * \param network Network
+ * \param os Output stream
+ */
 template<typename Network>
-void write_cirq(Network const& circ, std::ostream& out)
+void write_cirq(Network const& network, std::ostream& os)
 {
-	circ.foreach_node([&](auto const& n) {
+	network.foreach_node([&](auto const& n) {
 		auto const& g = n.gate;
 		switch (g.kind()) {
 		default:
@@ -31,66 +48,58 @@ void write_cirq(Network const& circ, std::ostream& out)
 			/* ignore */
 			return true;
 
-		case gate_kinds_t::hadamard: {
-			g.foreach_target([&](auto q) {
-				out << fmt::format(
-				    "qc.append(cirq.H(qs[{}]))\n", q);
-			});
-		} break;
+		case gate_kinds_t::hadamard:
+			g.foreach_target(
+			    [&](auto q) { os << fmt::format("qc.append(cirq.H(qs[{}]))\n", q); });
+			break;
 
-		case gate_kinds_t::pauli_x: {
-			g.foreach_target([&](auto q) {
-				out << fmt::format(
-				    "qc.append(cirq.X(qs[{}]))\n", q);
-			});
-		} break;
+		case gate_kinds_t::pauli_x:
+			g.foreach_target(
+			    [&](auto q) { os << fmt::format("qc.append(cirq.X(qs[{}]))\n", q); });
+			break;
 
-		case gate_kinds_t::t: {
-			g.foreach_target([&](auto q) {
-				out << fmt::format(
-				    "qc.append(cirq.T(qs[{}]))\n", q);
-			});
-		} break;
+		case gate_kinds_t::t:
+			g.foreach_target(
+			    [&](auto q) { os << fmt::format("qc.append(cirq.T(qs[{}]))\n", q); });
+			break;
 
-		case gate_kinds_t::t_dagger: {
+		case gate_kinds_t::t_dagger:
 			g.foreach_target([&](auto q) {
-				out << fmt::format(
-				    "qc.append(cirq.RotZGate(rads=5."
-				    "497787143782138)(qs[{}]))\n",
-				    q);
+				os << fmt::format("qc.append(cirq.RotZGate(rads=5."
+				                  "497787143782138)(qs[{}]))\n",
+				                  q);
 			});
-		} break;
+			break;
 
-		case gate_kinds_t::rotation_z: {
+		case gate_kinds_t::rotation_z:
 			g.foreach_target([&](auto q) {
-				out << fmt::format("qc.append(cirq.RotZGate("
-				                   "rads={})(qs[{}]))\n",
-				                   g.angle(), q);
+				os << fmt::format("qc.append(cirq.RotZGate("
+				                  "rads={})(qs[{}]))\n",
+				                  g.rotation_angle(), q);
 			});
-		} break;
+			break;
 
-		case gate_kinds_t::cx: {
+		case gate_kinds_t::cx:
 			g.foreach_control([&](auto qc) {
 				g.foreach_target([&](auto qt) {
-					out << fmt::format(
-					    "qc.append(cirq.CNOT(qs[{}], "
-					    "qs[{}]))\n",
-					    qc, qt);
+					os << fmt::format("qc.append(cirq.CNOT(qs[{}], "
+					                  "qs[{}]))\n",
+					                  qc, qt);
 				});
 			});
-		} break;
+			break;
 
-		case gate_kinds_t::cz: {
+		case gate_kinds_t::cz:
 			g.foreach_control([&](auto qc) {
 				g.foreach_target([&](auto qt) {
-					out << fmt::format("qc.append(cirq.CZ("
-					                   "qs[{}], qs[{}]))\n",
-					                   qc, qt);
+					os << fmt::format("qc.append(cirq.CZ("
+					                  "qs[{}], qs[{}]))\n",
+					                  qc, qt);
 				});
 			});
-		} break;
+			break;
 
-		case gate_kinds_t::mcx: {
+		case gate_kinds_t::mcx:
 			std::vector<uint32_t> controls, targets;
 			g.foreach_control([&](auto q) { controls.push_back(q); });
 			g.foreach_target([&](auto q) { targets.push_back(q); });
@@ -100,48 +109,56 @@ void write_cirq(Network const& circ, std::ostream& out)
 				return true;
 			case 0u:
 				for (auto q : targets) {
-					out << fmt::format(
-					    "qc.append(cirq.X(qs[{}]))\n", q);
+					os << fmt::format("qc.append(cirq.X(qs[{}]))\n", q);
 				}
 				break;
 			case 1u:
 				for (auto q : targets) {
-					out << fmt::format(
-					    "qc.append(cirq.CNOT(qs[{}], "
-					    "qs[{}]))\n",
-					    controls[0], q);
+					os << fmt::format("qc.append(cirq.CNOT(qs[{}], "
+					                  "qs[{}]))\n",
+					                  controls[0], q);
 				}
 				break;
 			case 2u:
 				for (auto i = 1u; i < targets.size(); ++i) {
-					out << fmt::format(
-					    "qc.append(cirq.CNOT(qs[{}], "
-					    "qs[{}]))\n",
-					    targets[0], targets[i]);
+					os << fmt::format("qc.append(cirq.CNOT(qs[{}], "
+					                  "qs[{}]))\n",
+					                  targets[0], targets[i]);
 				}
-				out << fmt::format("qc.append(cirq.CCX(qs[{}], "
-				                   "qs[{}], qs[{}]))\n",
-				                   controls[0], controls[1],
-				                   targets[0]);
+				os << fmt::format("qc.append(cirq.CCX(qs[{}], "
+				                  "qs[{}], qs[{}]))\n",
+				                  controls[0], controls[1], targets[0]);
 				for (auto i = 1u; i < targets.size(); ++i) {
-					out << fmt::format(
-					    "qc.append(cirq.CNOT(qs[{}], "
-					    "qs[{}]))\n",
-					    targets[0], targets[i]);
+					os << fmt::format("qc.append(cirq.CNOT(qs[{}], "
+					                  "qs[{}]))\n",
+					                  targets[0], targets[i]);
 				}
 				break;
 			}
-		} break;
+			break;
 		}
-
 		return true;
 	});
 }
 
+/*! \brief Writes network in CirQ format into a file
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `foreach_control`
+ * - `foreach_target`
+ * 
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ *
+ * \param network Network
+ * \param filename Filename
+ */
 template<typename Network>
-void write_cirq(Network const& circ, const std::string& filename)
+void write_cirq(Network const& network, const std::string& filename)
 {
-	std::ofstream out(filename.c_str(), std::ofstream::out);
-	write_cirq(circ, out);
+	std::ofstream os(filename.c_str(), std::ofstream::out);
+	write_cirq(network, os);
 }
-}; // namespace tweedledum
+} // namespace tweedledum

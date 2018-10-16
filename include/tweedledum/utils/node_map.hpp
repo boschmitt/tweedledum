@@ -1,9 +1,9 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Mathias Soeken
 |            Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 /* Taken from mockturtle (: */
@@ -42,7 +42,7 @@ public:
 	explicit node_map(Network const& ntk)
 	    : ntk(ntk)
 	    , data(std::make_shared<std::vector<T>>(ntk.size()))
-	{ }
+	{}
 
 	/*! \brief Constructor with default value.
 	 *
@@ -51,12 +51,11 @@ public:
 	node_map(Network const& ntk, T const& init_value)
 	    : ntk(ntk)
 	    , data(std::make_shared<std::vector<T>>(ntk.size(), init_value))
-	{ }
+	{}
 
 	/*! \brief Mutable access to value by node. */
 	reference operator[](node<Network> const& n)
 	{
-		auto kk = ntk.node_to_index(n);
 		assert(ntk.node_to_index(n) < data->size() && "index out of bounds");
 		return (*data)[ntk.node_to_index(n)];
 	}
@@ -73,7 +72,8 @@ public:
 	 * This method derives the node from the node_ptr.  If the node and node_ptr type
 	 * are the same in the network implementation, this method is disabled.
 	 */
-	template<typename _Ntk = Network, typename = std::enable_if_t<!std::is_same_v<node_ptr<_Ntk>, node<_Ntk>>>>
+	template<typename _Ntk = Network,
+	         typename = std::enable_if_t<!std::is_same_v<node_ptr<_Ntk>, node<_Ntk>>>>
 	reference operator[](node_ptr<Network> const& f)
 	{
 		assert(ntk.node_to_index(ntk.get_node(f)) < data->size() && "index out of bounds");
@@ -85,7 +85,8 @@ public:
 	 * This method derives the node from the node_ptr.  If the node and node_ptr type
 	 * are the same in the network implementation, this method is disabled.
 	 */
-	template<typename _Ntk = Network, typename = std::enable_if_t<!std::is_same_v<node_ptr<_Ntk>, node<_Ntk>>>>
+	template<typename _Ntk = Network,
+	         typename = std::enable_if_t<!std::is_same_v<node_ptr<_Ntk>, node<_Ntk>>>>
 	const_reference operator[](node_ptr<Network> const& f) const
 	{
 		assert(ntk.node_to_index(ntk.get_node(f)) < data->size() && "index out of bounds");

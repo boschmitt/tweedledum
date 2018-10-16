@@ -1,15 +1,17 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include <string>
 
 namespace tweedledum {
 
+/* Maybe I do not need to have different kinds for multple control gates */
 enum class gate_kinds_t {
+	unknown,
 	input,
 	output,
 	identity,
@@ -18,13 +20,13 @@ enum class gate_kinds_t {
 	pauli_x,      // Pauli-X gate (aka Not gate)
 	pauli_y,      // Pauli-Y gate
 	pauli_z,      // Pauli-Z gate
-	phase,        // Phase aka Sqrt(Z) gate
-	phase_dagger, // Conjugate transpose of S
+	phase,        // Phase gate (aka S gate or Sqrt(Z))
+	phase_dagger, // Conjugate transpose of S gate
 	t,            // T gate
 	t_dagger,     // Conjugate transpose of T gate
-	rotation_x,   // Rotation X
-	rotation_y,   // Rotation Y
-	rotation_z,   // Rotation Z
+	rotation_x,   // Arbitrary rotation X
+	rotation_y,   // Arbitrary rotation Y
+	rotation_z,   // Arbitrary rotation Z
 	// Two-qubit gates
 	cx, // Control Not gate
 	cz, // Control Pauli-Z gate
@@ -32,10 +34,10 @@ enum class gate_kinds_t {
 	mcx, // Multiple Control Not (aka Toffoli) gate
 	mcz, // Multiple Control Pauli-Z gate
 	mcy, // Multiple Control Pauli-Y gate
-	unknown,
 };
 
-static const std::string token_names[] = {
+static const std::string gates_names[] = {
+    "Unknown",
     "Input",
     "Output",
     "Identity",
@@ -48,9 +50,9 @@ static const std::string token_names[] = {
     "Conjugate transpose of Phase",
     "T",
     "Conjugate transpose of T",
-    "Rotation X",
-    "Rotation Y",
-    "Rotation Z",
+    "Arbitrary rotation X",
+    "Arbitrary rotation Y",
+    "Arbitrary rotation Z",
     // Two-qubit gates
     "Control Not",
     "Control Pauli-Z",
@@ -58,16 +60,15 @@ static const std::string token_names[] = {
     "Multiple Control Not (aka Toffoli)",
     "Multiple Control Pauli-Z",
     "Multiple Control Pauli-Y",
-    "Unknown",
 };
 
 // Determines the name of a gate as used within the front end.
-inline std::string_view gate_name(gate_kinds_t kind)
+static inline std::string_view gate_name(gate_kinds_t kind)
 {
-	return token_names[static_cast<unsigned>(kind)];
+	return gates_names[static_cast<unsigned>(kind)];
 }
 
-inline gate_kinds_t gate_adjoint(gate_kinds_t kind)
+static inline gate_kinds_t gate_adjoint(gate_kinds_t kind)
 {
 	switch (kind) {
 	case gate_kinds_t::hadamard:

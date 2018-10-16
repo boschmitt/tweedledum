@@ -52,7 +52,7 @@ BreakStringLiterals : true
 # Clang 7:
 # BreakInheritanceList : BeforeComma
 #
-ColumnLimit : 80
+ColumnLimit : 100
 # CommentPragmas:  '^ IWYU pragma:'
 CompactNamespaces : false
 # I think its true though
@@ -84,12 +84,12 @@ KeepEmptyLinesAtTheStartOfBlocks : true
 # Maybe 0:
 MaxEmptyLinesToKeep : 1
 #
-# PenaltyBreakAssignment : 100
-# PenaltyBreakBeforeFirstCallParameter (unsigned)
+PenaltyBreakAssignment : 100
+PenaltyBreakBeforeFirstCallParameter : 100
 # PenaltyBreakComment (unsigned)
 # PenaltyBreakFirstLessLess (unsigned)
 # PenaltyBreakString (unsigned)
-#PenaltyBreakTemplateDeclaration : 100
+PenaltyBreakTemplateDeclaration : 100
 PenaltyExcessCharacter : 10
 PenaltyReturnTypeOnItsOwnLine : 100
 #

@@ -1,87 +1,130 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/gates/gate_kinds.hpp"
+#include "../gates/gate_kinds.hpp"
 
-#include <cstdio>
+#include <fmt/format.h>
+#include <fstream>
+#include <iostream>
 
 namespace tweedledum {
 
-template<typename Circuit>
-static void write_qpic(Circuit& circuit, std::string filename = "test.qpic",
-                       bool color_marked_gates = false)
+/*! \brief Writes network in qpic format into output stream
+ *
+ * An overloaded variant exists that writes the network into a file.
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `is`
+ * - `foreach_control`
+ * - `foreach_target`
+ *
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ * - `foreach_qubit`
+ *
+ * \param network Network
+ * \param os Output stream
+ * \param color_marked_gates Flag to draw marked nodes in red
+ */
+template<typename Network>
+void write_qpic(Network const& network, std::ostream& os, bool color_marked_gates = false)
 {
-	auto file = fopen(filename.c_str(), "w");
-
 	if (color_marked_gates) {
-		fprintf(file, "DEFINE mark color=red:style=thick\n");
+		os << "DEFINE mark color=red:style=thick\n";
 	}
-	circuit.foreach_qubit([&file](auto id, auto& name) {
-		fprintf(file, "q%d W %s %s\n", id, name.c_str(), name.c_str());
+	network.foreach_qubit([&](auto id, auto const& name) {
+		os << fmt::format("q{} W {} {}\n", id, name, name);
 	});
 
-	fprintf(file, "\n");
-	circuit.foreach_gate([&](auto& node) {
+	network.foreach_gate([&](auto& node) {
+		auto prefix = "";
+		if (node.gate.is(gate_kinds_t::mcx)) {
+			prefix = "+";
+		}
+		node.gate.foreach_target(
+		    [&](auto qubit) { os << fmt::format("{}q{} ", prefix, qubit); });
 		switch (node.gate.kind()) {
 		case gate_kinds_t::pauli_x:
+			os << 'N';
+			break;
+
 		case gate_kinds_t::cx:
+			os << 'C';
+			break;
+
 		case gate_kinds_t::mcx:
-			node.gate.foreach_control(
-			    [&](auto qubit) { fprintf(file, "q%d ", qubit); });
-			node.gate.foreach_target(
-			    [&](auto qubit) { fprintf(file, "+q%d ", qubit); });
 			break;
 
 		case gate_kinds_t::pauli_z:
 		case gate_kinds_t::cz:
 		case gate_kinds_t::mcz:
-			node.gate.foreach_target(
-			    [&](auto qubit) { fprintf(file, "q%d ", qubit); });
-			fprintf(file, "Z ");
-			node.gate.foreach_control(
-			    [&](auto qubit) { fprintf(file, " q%d", qubit); });
+			os << 'Z';
 			break;
 
 		case gate_kinds_t::hadamard:
-			fprintf(file, "q%d H", node.gate.target());
+			os << 'H';
 			break;
 
 		case gate_kinds_t::phase:
-			fprintf(file, "q%d G $P$", node.gate.target());
+			os << "G $P$";
 			break;
 
 		case gate_kinds_t::phase_dagger:
-			fprintf(file, "q%d G $P^{\\dagger}$", node.gate.target());
+			os << "G $P^{\\dagger}$";
 			break;
 
 		case gate_kinds_t::t:
-			fprintf(file, "q%d G $T$", node.gate.target());
+			os << "G $T$";
 			break;
 
 		case gate_kinds_t::t_dagger:
-			fprintf(file, "q%d G $T^{\\dagger}$", node.gate.target());
+			os << "G $T^{\\dagger}$";
 			break;
 
 		case gate_kinds_t::rotation_x:
-			fprintf(file, "q%d G $R_{x}$", node.gate.target());
+			os << "G $R_{x}$";
 			break;
 
 		case gate_kinds_t::rotation_z:
-			fprintf(file, "q%d G $R_{z}$", node.gate.target());
+			os << "G $R_{z}$";
 			break;
 
 		default:
 			break;
 		}
-		fprintf(file, "%s",
-		        color_marked_gates && circuit.mark(node) ? " mark\n" :
-		                                                   "\n");
+		node.gate.foreach_control([&](auto qubit) { os << fmt::format(" q{}", qubit); });
+		os << fmt::format("{}", color_marked_gates && network.mark(node) ? " mark\n" : "\n");
 	});
-	fclose(file);
+}
+
+/*! \brief Writes network in qpic format into a file
+ *
+ * **Required gate functions:**
+ * - `kind`
+ * - `is`
+ * - `foreach_control`
+ * - `foreach_target`
+ *
+ * **Required network functions:**
+ * - `num_qubits`
+ * - `foreach_node`
+ * - `foreach_qubit`
+ *
+ * \param network Network
+ * \param filename Filename
+ * \param color_marked_gates Flag to draw marked nodes in red
+ */
+template<typename Network>
+void write_qpic(Network const& network, std::string const& filename, bool color_marked_gates = false)
+{
+	std::ofstream os(filename.c_str(), std::ofstream::out);
+	write_qpic(network, os, color_marked_gates);
 }
 
 } // namespace tweedledum

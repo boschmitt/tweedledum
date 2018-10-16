@@ -1,14 +1,15 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../gate_kinds.hpp"
 
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -32,12 +33,11 @@ inline std::vector<std::string> split(std::string const& str)
 {
 	std::vector<std::string> slipt_string;
 	std::istringstream iss(str);
-	std::copy(std::istream_iterator<std::string>(iss),
-	          std::istream_iterator<std::string>(),
+	std::copy(std::istream_iterator<std::string>(iss), std::istream_iterator<std::string>(),
 	          std::back_inserter(slipt_string));
 	return slipt_string;
 }
-}; // namespace utils
+} // namespace utils
 
 namespace detail {
 struct identify_gate_kind {
@@ -76,7 +76,7 @@ struct identify_gate_kind {
 		return gate_kinds::unknown;
 	}
 };
-}; // namespace detail
+} // namespace detail
 
 template<typename GateKind = gate_kinds>
 class dotqc_reader {
@@ -96,25 +96,18 @@ public:
 		(void) label;
 	}
 
-	virtual void on_gate(GateKind kind, std::string qubit_label)
+	virtual void on_gate(GateKind kind, std::string const& target)
 	{
 		(void) kind;
-		(void) qubit_label;
+		(void) target;
 	}
 
-	virtual void on_two_qubit_gate(GateKind kind, std::string qubit0_label,
-	                               std::string qubit1_label)
+	virtual void on_gate(GateKind kind, std::vector<std::string> const& controls,
+	                     std::vector<std::string> const& targets)
 	{
 		(void) kind;
-		(void) qubit0_label;
-		(void) qubit1_label;
-	}
-
-	virtual void on_multiple_qubit_gate(
-	    GateKind kind, std::vector<std::string> const& qubit_labels)
-	{
-		(void) kind;
-		(void) qubit_labels;
+		(void) controls;
+		(void) targets;
 	}
 
 	virtual void on_end()
@@ -122,8 +115,7 @@ public:
 };
 
 template<typename GateKind, class Fn = detail::identify_gate_kind>
-inline void dotqc_read(std::istream& buffer,
-                       dotqc_reader<GateKind>& reader, Fn&& fn = {})
+inline void dotqc_read(std::istream& buffer, dotqc_reader<GateKind>& reader, Fn&& fn = {})
 {
 	std::string line;
 	while (buffer.peek() == '.' || buffer.peek() == '#') {
@@ -173,20 +165,16 @@ inline void dotqc_read(std::istream& buffer,
 			reader.on_gate(gate, entries[0]);
 			break;
 
-		case 2:
-			reader.on_two_qubit_gate(gate, entries[0], entries[1]);
-			break;
-
 		default:
-			reader.on_multiple_qubit_gate(gate, entries);
+			reader.on_gate(gate, std::vector({entries[0]}),
+			               std::vector<std::string>(entries.begin() + 1, entries.end()));
 			break;
 		}
 	}
 }
 
 template<typename GateKind, class Fn = detail::identify_gate_kind>
-inline void dotqc_read(std::string const& path, dotqc_reader<GateKind>& reader,
-                       Fn&& fn = {})
+inline void dotqc_read(std::string const& path, dotqc_reader<GateKind>& reader, Fn&& fn = {})
 {
 	// Load the whole file into a buffer
 	std::ifstream input_file(path);

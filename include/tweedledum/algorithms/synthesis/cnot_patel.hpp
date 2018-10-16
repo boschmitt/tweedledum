@@ -5,7 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/gates/gate_kinds.hpp"
+#include "../../gates/gate_kinds.hpp"
 
 #include <cmath>
 #include <cstdint>
@@ -57,7 +57,7 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 			uint32_t end = start + m - 1;
 			uint32_t sub_row_patt = sub_pattern(matrix[row], start, end);
 			// if this is the first copy of pattern save it otherwise remove
-			if (patt[sub_row_patt] == (1<<n))
+			if (patt[sub_row_patt] == (1u << n))
 				patt[sub_row_patt] = row;
 			else {
 				matrix[row] ^= matrix[patt[sub_row_patt]];
@@ -93,7 +93,7 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 
 template<class Network>
 void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
-                uint32_t partition_size, std::vector<uint8_t> const& qubits_map)
+                uint32_t partition_size, std::vector<uint32_t> const& qubits_map)
 {
 	/* number of qubits can be taken from matrix, since it is n x n matrix. */
 	const auto nqubits = matrix.size();
@@ -111,10 +111,10 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 
 	std::reverse(gates_l.begin(), gates_l.end());
 	for (const auto [c, t] : gates_u) {
-		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[t], qubits_map[c]);
+		net.add_gate(gate_kinds_t::cx, qubits_map[t], qubits_map[c]);
 	}
 	for (const auto [c, t] : gates_l) {
-		net.add_controlled_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
+		net.add_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
 	}
 }
 
@@ -129,7 +129,7 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
  *
    \verbatim embed:rst
    .. code-block:: c++
-      dag_path<qc_gate> network = ...;
+      gg_network<qc_gate> network = ...;
       std::vector<uint32_t> matrix{{0b000011,
                                     0b011001,
                                     0b010010,
@@ -148,7 +148,7 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 	for (auto i = 0u; i < nqubits; ++i) {
 		net.allocate_qubit();
 	}
-	std::vector<uint8_t> qubits_map(nqubits);
+	std::vector<uint32_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
 
 	cnot_patel(net, matrix, partition_size, qubits_map);

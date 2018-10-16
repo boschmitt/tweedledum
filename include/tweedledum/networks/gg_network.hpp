@@ -1,13 +1,13 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "detail/foreach.hpp"
+#include "../gates/gate_kinds.hpp"
+#include "../utils/detail/foreach.hpp"
 #include "detail/storage.hpp"
-#include "gates/gate_kinds.hpp"
 
 #include <array>
 #include <fmt/format.h>
@@ -32,23 +32,24 @@ namespace tweedledum {
  * Some natural properties like depth can be computed directly from the graph.
  */
 template<typename GateType>
-struct dag_path {
+class gg_network {
+public:
 #pragma region Types and constructors
 	using gate_type = GateType;
 	using node_type = uniform_node<gate_type, 1, 1>;
 	using node_ptr_type = typename node_type::pointer_type;
 	using storage_type = storage<node_type>;
 
-	dag_path()
+	gg_network()
 	    : storage_(std::make_shared<storage_type>())
 	{}
 
-	dag_path(std::shared_ptr<storage_type> storage)
+	gg_network(std::shared_ptr<storage_type> storage)
 	    : storage_(storage)
 	{}
 #pragma endregion
 
-#pragma region I/O and ancillae qubits
+#pragma region I / O and ancillae qubits
 private:
 	auto create_qubit()
 	{
@@ -57,16 +58,12 @@ private:
 		auto index = static_cast<uint32_t>(storage_->nodes.size());
 
 		// Create input node
-		auto& input_node = storage_->nodes.emplace_back();
-		input_node.gate.kind(gate_kinds_t::input);
-		input_node.gate.target_qubit(qubit_id);
+		storage_->nodes.emplace_back(gate_kinds_t::input, qubit_id);
 		storage_->inputs.emplace_back(index, false);
 
 		// Create ouput node
-		auto& output_node = storage_->outputs.emplace_back();
-		output_node.gate.kind(gate_kinds_t::output);
-		output_node.gate.target_qubit(qubit_id);
-		output_node.qubit[qubit_id][0] = {index, true};
+		auto& output_node = storage_->outputs.emplace_back(gate_kinds_t::output, qubit_id);
+		output_node.qubit[0][0] = {index, true};
 
 		// std::cout << "[done]\n";
 		return qubit_id;
@@ -101,19 +98,19 @@ public:
 		return static_cast<uint32_t>(storage_->nodes.size() + storage_->outputs.size());
 	}
 
-	auto num_gates() const
-	{
-		return static_cast<uint32_t>(storage_->nodes.size() - storage_->inputs.size());
-	}
-
 	auto num_qubits() const
 	{
 		return static_cast<uint32_t>(storage_->inputs.size());
 	}
+
+	auto num_gates() const
+	{
+		return static_cast<uint32_t>(storage_->nodes.size() - storage_->inputs.size());
+	}
 #pragma endregion
 
 #pragma region Nodes
-	node_type& get_node(node_ptr_type node_ptr) const
+	auto& get_node(node_ptr_type node_ptr) const
 	{
 		return storage_->nodes[node_ptr.index];
 	}
@@ -130,12 +127,12 @@ public:
 	auto get_children(node_type const& node, uint32_t qubit_id)
 	{
 		std::vector<node_ptr_type> ret;
-		auto input_id = node.gate.get_input_id(qubit_id);
+		auto input_id = node.gate.qubit_index(qubit_id);
 		auto child = node.qubit[input_id][0];
 		auto child_node = get_node(child);
 		while (not node.gate.is_dependent(child_node.gate)) {
 			ret.emplace_back(child);
-			input_id = child_node.gate.get_input_id(qubit_id);
+			input_id = child_node.gate.qubit_index(qubit_id);
 			child = child_node.qubit[input_id][0];
 			child_node = get_node(child);
 		}
@@ -151,29 +148,29 @@ public:
 		mark(node, 1);
 		node.gate.foreach_control([&](auto qubit_id) {
 			auto child = node.qubit[qubit_id][0];
-			while(1) {
+			while (1) {
 				auto const& child_node = get_node(child);
 				if (node.gate.is_dependent(child_node.gate)) {
 					break;
 				}
 				mark(child_node, 1);
 				choices.emplace_back(child);
-				qubit_id = child_node.gate.get_input_id(qubit_id);
+				qubit_id = child_node.gate.qubit_index(qubit_id);
 				child = child_node.qubit[qubit_id][0];
 			}
 			mark(get_node(choices.back()), 0);
 		});
-		
+
 		node.gate.foreach_target([&](auto qubit_id) {
 			auto child = node.qubit[qubit_id][0];
-			while(1) {
+			while (1) {
 				auto const& child_node = get_node(child);
 				if (node.gate.is_dependent(child_node.gate)) {
 					break;
 				}
 				mark(child_node, 1);
 				choices.emplace_back(child);
-				qubit_id = child_node.gate.get_input_id(qubit_id);
+				qubit_id = child_node.gate.qubit_index(qubit_id);
 				child = child_node.qubit[qubit_id][0];
 			}
 			mark(get_node(choices.back()), 0);
@@ -191,12 +188,11 @@ public:
 		// std::cout << "Node: " << node_to_index(node) << "\n";
 		// std::cout << "Node: " << gate_name(node.gate.kind()) << "\n";
 
-		node.gate.foreach_control([&](auto qubit_id) { 
+		node.gate.foreach_control([&](auto qubit_id) {
 			auto child = node.qubit[qubit_id][0];
 			auto const& child_node = get_node(child);
 			choices.emplace_back(child);
 			get_predecessor_choices(child_node, choices);
-			
 		});
 		node.gate.foreach_target([&](auto qubit_id) {
 			auto child = node.qubit[qubit_id][0];
@@ -220,10 +216,9 @@ private:
 		//           << "] Connecting node ("
 		//           << gate_name(node.gate.kind()) << ")\n";
 
-		auto connector = node.gate.get_input_id(qubit_id);
-		foreach_child(output, [&node, connector](auto arc) {
-			node.qubit[connector][0] = arc;
-		});
+		auto connector = node.gate.qubit_index(qubit_id);
+		foreach_child(output,
+		              [&node, connector](auto arc) { node.qubit[connector][0] = arc; });
 		output.qubit[qubit_id][0] = {node_index, true};
 		return;
 	}
@@ -231,14 +226,11 @@ private:
 	auto& do_add_gate(gate_type gate)
 	{
 		auto node_index = storage_->nodes.size();
-		auto& node = storage_->nodes.emplace_back();
+		auto& node = storage_->nodes.emplace_back(gate);
 		mark(node, default_mark_);
 
-		node.gate = gate;
-		node.gate.foreach_control(
-		    [&](auto qubit_id) { connect_node(qubit_id, node_index); });
-		node.gate.foreach_target(
-		    [&](auto qubit_id) { connect_node(qubit_id, node_index); });
+		node.gate.foreach_control([&](auto qubit_id) { connect_node(qubit_id, node_index); });
+		node.gate.foreach_target([&](auto qubit_id) { connect_node(qubit_id, node_index); });
 		return node;
 	}
 
@@ -248,76 +240,52 @@ public:
 		return do_add_gate(g);
 	}
 
-	auto& add_gate(gate_kinds_t kind, std::string const& target)
+	auto& add_gate(gate_kinds_t kind, uint32_t target, float rotation_angle = 0.0)
+	{
+		gate_type gate(kind, target, rotation_angle);
+		return add_gate(gate);
+	}
+
+	auto& add_gate(gate_kinds_t kind, uint32_t control, uint32_t target, float rotation_angle = 0.0)
+	{
+		gate_type gate(kind, control, target, rotation_angle);
+		return add_gate(gate);
+	}
+
+	auto& add_gate(gate_kinds_t kind, std::vector<uint32_t> const& controls,
+	               std::vector<uint32_t> const& targets, float rotation_angle = 0.0)
+	{
+		gate_type gate(kind, controls, targets, rotation_angle);
+		return add_gate(gate);
+	}
+
+	auto& add_gate(gate_kinds_t kind, std::string const& target, float rotation_angle = 0.0)
 	{
 		auto qubit_id = storage_->label_to_id[target];
-		return add_gate(kind, qubit_id);
+		return add_gate(kind, qubit_id, rotation_angle);
 	}
 
-	auto& add_gate(gate_kinds_t kind, uint32_t target_id)
+	auto& add_gate(gate_kinds_t kind, std::vector<std::string> const& controls,
+	               std::vector<std::string> const& targets, float rotation_angle = 0.0)
 	{
-		gate_type single_target_gate(kind, target_id);
-		return do_add_gate(single_target_gate);
-	}
-
-		node_type& add_x_rotation(std::string const& label, float angle)
-	{
-		auto qubit_id = storage_->label_to_id[label];
-		return add_x_rotation(qubit_id, angle);
-	}
-
-	auto& add_z_rotation(std::string const& label, float angle)
-	{
-		auto qubit_id = storage_->label_to_id[label];
-		return add_z_rotation(qubit_id, angle);
-	}
-
-	auto& add_x_rotation(uint32_t target_id, float angle)
-	{
-		gate_type rotation_gate(gate_kinds_t::rotation_x, target_id,
-		                        angle);
-		return do_add_gate(rotation_gate);
-	}
-
-	auto& add_z_rotation(uint32_t target_id, float angle)
-	{
-		gate_type rotation_gate(gate_kinds_t::rotation_z, target_id,
-		                        angle);
-		return do_add_gate(rotation_gate);
-	}
-
-	auto& add_controlled_gate(gate_kinds_t kind,
-	                               std::string const& control,
-	                               std::string const& target)
-	{
-		auto target_id = storage_->label_to_id[target];
-		auto control_id = storage_->label_to_id[control];
-		return add_controlled_gate(kind, control_id, target_id);
-	}
-
-	auto& add_controlled_gate(gate_kinds_t kind, uint32_t control_id,
-	                               uint32_t target_id)
-	{
-		gate_type controlled_gate(kind, target_id, control_id);
-		return do_add_gate(controlled_gate);
-	}
-
-	auto& add_multiple_controlled_gate(
-	    gate_kinds_t kind, std::vector<std::string> const& labels)
-	{
-		std::vector<uint32_t> qubits;
-		for (auto& label : labels) {
-			qubits.push_back(storage_->label_to_id[label]);
+		std::vector<uint32_t> controls_id;
+		std::vector<uint32_t> targets_id;
+		for (auto& control : controls) {
+			controls_id.push_back(storage_->label_to_id[control]);
 		}
-		return add_multiple_controlled_gate(kind, qubits);
+		for (auto& target : targets) {
+			targets_id.push_back(storage_->label_to_id[target]);
+		}
+		return add_gate(kind, controls_id, targets_id, rotation_angle);
 	}
 
-	auto& add_multiple_controlled_gate(gate_kinds_t kind,
-	                                        std::vector<uint32_t> const& qubits)
+	// Maybe remove it
+	auto& add_gate(gate_kinds_t kind, std::string const& control, std::string const& target,
+	               float rotation_angle = 0.0)
 	{
-		gate_type multiple_controlled_gate(kind, qubits[0], qubits[1],
-		                                   qubits[2]);
-		return do_add_gate(multiple_controlled_gate);
+		std::vector<uint32_t> control_id = {storage_->label_to_id[control]};
+		std::vector<uint32_t> target_id = {storage_->label_to_id[target]};
+		return add_gate(kind, control_id, target_id, rotation_angle);
 	}
 #pragma endregion
 
@@ -343,17 +311,15 @@ public:
 	void foreach_output(Fn&& fn) const
 	{
 		uint32_t index = storage_->nodes.size();
-		detail::foreach_element(storage_->outputs.cbegin(),
-		                        storage_->outputs.cend(), fn, index);
+		detail::foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn,
+		                        index);
 	}
 
 	template<typename Fn>
 	void foreach_node(Fn&& fn) const
 	{
-		detail::foreach_element(storage_->nodes.cbegin(),
-		                        storage_->nodes.cend(), fn);
-		detail::foreach_element(storage_->outputs.cbegin(),
-		                        storage_->outputs.cend(), fn,
+		detail::foreach_element(storage_->nodes.cbegin(), storage_->nodes.cend(), fn);
+		detail::foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn,
 		                        storage_->nodes.size());
 	}
 
@@ -367,98 +333,28 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_child(node_type& n, Fn&& fn) const
+	void foreach_child(node_type const& n, Fn&& fn) const
 	{
-		static_assert(
-		    detail::is_callable_without_index_v<
-		        Fn, node_ptr_type,
-		        void> || detail::is_callable_with_index_v<Fn, node_ptr_type, void>);
+		static_assert(detail::is_callable_without_index_v<
+		                  Fn, node_ptr_type,
+		                  void> || detail::is_callable_with_index_v<Fn, node_ptr_type, void>);
 
 		for (auto qubit_id = 0u; qubit_id < n.qubit.size(); ++qubit_id) {
 			if (n.qubit[qubit_id][0] == node_ptr_type::max) {
 				continue;
 			}
-			if constexpr (detail::is_callable_without_index_v<
-			                  Fn, node_ptr_type, void>) {
+			if constexpr (detail::is_callable_without_index_v<Fn, node_ptr_type, void>) {
 				fn(n.qubit[qubit_id][0]);
-			} else if constexpr (detail::is_callable_with_index_v<
-			                         Fn, node_ptr_type, void>) {
+			} else if constexpr (detail::is_callable_with_index_v<Fn, node_ptr_type, void>) {
 				fn(n.qubit[qubit_id][0], qubit_id);
 			}
 		}
 	}
 
 	template<typename Fn>
-	void foreach_child(node_type& n, uint32_t qubit_id, Fn&& fn) const
+	void foreach_child(node_type const& n, uint32_t qubit_id, Fn&& fn) const
 	{
-		auto index = n.gate.get_input_id(qubit_id);
-		if (n.qubit[index][0] == node_ptr_type::max) {
-			return;
-		}
-		fn(n.qubit[index][0]);
-	}
-#pragma endregion
-
-#pragma region Node iterators
-	// template<typename Fn>
-	// void foreach_qubit(Fn&& fn);
-
-	// template<typename Fn>
-	// void foreach_input(Fn&& fn);
-
-	template<typename Fn>
-	void foreach_output(Fn&& fn)
-	{
-		uint32_t index = storage_->nodes.size();
-		detail::foreach_element(storage_->outputs.begin(),
-		                        storage_->outputs.end(), fn, index);
-	}
-
-	template<typename Fn>
-	void foreach_node(Fn&& fn)
-	{
-		detail::foreach_element(storage_->nodes.begin(),
-		                        storage_->nodes.end(), fn);
-		detail::foreach_element(storage_->outputs.begin(),
-		                        storage_->outputs.end(), fn,
-		                        storage_->nodes.size());
-	}
-
-	template<typename Fn>
-	void foreach_gate(Fn&& fn)
-	{
-		uint32_t index = storage_->inputs.size();
-		auto begin = storage_->nodes.begin() + index;
-		auto end = storage_->nodes.end();
-		detail::foreach_element(begin, end, fn, index);
-	}
-
-	template<typename Fn>
-	void foreach_child(node_type& n, Fn&& fn)
-	{
-		static_assert(
-		    detail::is_callable_without_index_v<
-		        Fn, node_ptr_type,
-		        void> || detail::is_callable_with_index_v<Fn, node_ptr_type, void>);
-
-		for (auto qubit_id = 0u; qubit_id < n.qubit.size(); ++qubit_id) {
-			if (n.qubit[qubit_id][0] == node_ptr_type::max) {
-				continue;
-			}
-			if constexpr (detail::is_callable_without_index_v<
-			                  Fn, node_ptr_type, void>) {
-				fn(n.qubit[qubit_id][0]);
-			} else if constexpr (detail::is_callable_with_index_v<
-			                         Fn, node_ptr_type, void>) {
-				fn(n.qubit[qubit_id][0], qubit_id);
-			}
-		}
-	}
-
-	template<typename Fn>
-	void foreach_child(node_type& n, uint32_t qubit_id, Fn&& fn)
-	{
-		auto index = n.gate.get_input_id(qubit_id);
+		auto index = n.gate.qubit_index(qubit_id);
 		if (n.qubit[index][0] == node_ptr_type::max) {
 			return;
 		}
@@ -490,25 +386,6 @@ public:
 		default_mark_ = value;
 	}
 #pragma endregion
-
-	void remove_marked_nodes()
-	{
-		auto old_storage = storage_;
-		auto old_mark = default_mark_;
-		default_mark_ = 0;
-		storage_
-		    = std::make_shared<storage_type>(old_storage->nodes.size());
-		for (auto i = 0u; i < old_storage->inputs.size(); ++i) {
-			create_qubit();
-		}
-		for (auto& node : old_storage->nodes) {
-			if (node.gate.is(gate_kinds_t::input) || mark(node)) {
-				continue;
-			}
-			do_add_gate(node.gate);
-		}
-		default_mark_ = old_mark;
-	}
 
 private:
 	std::shared_ptr<storage_type> storage_;

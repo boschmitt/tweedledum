@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../traits.hpp"
@@ -15,11 +15,13 @@ namespace tweedledum {
 
 /*! \brief Implements `depth` and `get_level` methods for networks.
  *
- * This view computes the level of each node and also the depth of
- * the network.  It implements the network interface methods
- * `get_level` and `depth`.  The levels are computed at construction
- * and can be recomputed by calling the `update` method.
+ * This view computes the level of each node and also the depth of the network. It implements the
+ * network interface methods `get_level` and `depth`. The levels are computed at construction and
+ * can be recomputed by calling the `update` method.
  *
+ * **Required gate functions:**
+ * - `is`
+ * 
  * **Required network functions:**
  * - `get_node`
  * - `clear_marks`
@@ -62,7 +64,7 @@ public:
 	}
 
 private:
-	uint32_t compute_levels(node_type& node)
+	auto compute_levels(node_type const& node)
 	{
 		if (this->mark(node)) {
 			return levels_[node];
@@ -84,9 +86,8 @@ private:
 	void compute_levels()
 	{
 		depth_ = 0;
-		this->foreach_output([&](auto& node) {
-			depth_ = std::max(depth_, compute_levels(node));
-		});
+		this->foreach_output(
+		    [&](auto const& node) { depth_ = std::max(depth_, compute_levels(node)); });
 	}
 
 private:
