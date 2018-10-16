@@ -17,6 +17,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/nct.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/single_qubit_gate_cancellation.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/control_function.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/decomposition_based.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/gray_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/single_target_gates.cpp"
