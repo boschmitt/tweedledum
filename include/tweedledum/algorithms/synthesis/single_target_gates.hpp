@@ -56,23 +56,6 @@ struct stg_from_pprm {
 	}
 };
 
-/*! \brief Synthesize into a _new_ quantum network from a function by computing PPRM representation
- *
- * \param function A function represented as a truth table
- */
-template<class Network>
-Network stg_from_pprm2(kitty::dynamic_truth_table const& function)
-{
-	Network network;
-	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
-		network.add_qubit();
-	}
-	std::vector<uint32_t> qubit_map(network.num_qubits());
-	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
-	stg_from_pprm()(network, function, qubit_map);
-	return network;
-}
-
 /*! \brief Synthesize a quantum network from a function by computing PKRM representation
  *
  */
@@ -116,23 +99,6 @@ struct stg_from_pkrm {
 	}
 };
 
-/*! \brief Synthesize into a _new_ quantum network from a function by computing PKRM representation
- *
- * \param function A function represented as a truth table
- */
-template<class Network>
-Network stg_from_pkrm2(kitty::dynamic_truth_table const& function)
-{
-	Network network;
-	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
-		network.add_qubit();
-	}
-	std::vector<uint32_t> qubit_map(network.num_qubits());
-	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
-	stg_from_pkrm()(network, function, qubit_map);
-	return network;
-}
-
 /*! \brief Synthesize a quantum network from a function by computing Rademacher-Walsh spectrum
  */
 struct stg_from_spectrum_params {
@@ -146,7 +112,7 @@ struct stg_from_spectrum_params {
 };
 
 struct stg_from_spectrum {
-	explicit stg_from_spectrum(stg_from_spectrum_params const& ps = {})
+	stg_from_spectrum(stg_from_spectrum_params const& ps = {})
 	    : ps_(ps)
 	{}
 
@@ -206,23 +172,5 @@ struct stg_from_spectrum {
 
 	stg_from_spectrum_params ps_{};
 };
-
-/*! \brief Synthesize into a _new_ quantum network from a function by computing Rademacher-Walsh spectrum
- *
- * \param function A function represented as a truth table
- */
-template<class Network>
-Network stg_from_spectrum2(kitty::dynamic_truth_table const& function, stg_from_spectrum_params const& ps = {})
-{
-	Network network;
-	for (auto i = 0u; i < (function.num_vars() + 1u); ++i) {
-		network.add_qubit();
-	}
-	std::vector<uint32_t> qubit_map(network.num_qubits());
-	std::iota(qubit_map.begin(), qubit_map.end(), 0u);
-	stg_from_spectrum weird(ps);
-	weird(network, function, qubit_map);
-	return network;
-}
 
 } /* namespace tweedledum */
