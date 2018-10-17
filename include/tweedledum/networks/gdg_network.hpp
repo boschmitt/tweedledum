@@ -147,11 +147,11 @@ private:
 			foreach_child(output, [&node, connector](auto arc) {
 				node.qubit[connector].emplace_back(arc);
 			});
-			output.qubit[connector].clear();
-			output.qubit[connector].emplace_back(node_index, true);
+			output.qubit[0].clear();
+			output.qubit[0].emplace_back(node_index, true);
 			return;
 		}
-		output.qubit[connector].emplace_back(node_index, true);
+		output.qubit[0].emplace_back(node_index, true);
 		foreach_child(previous_node, qubit_id, [&node, connector](auto arc) {
 			node.qubit[connector].emplace_back(arc);
 		});
