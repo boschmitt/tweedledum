@@ -1,3 +1,4 @@
+[![Documentation Status](https://readthedocs.org/projects/tweedledum/badge/?version=latest)](https://tweedledum.readthedocs.io/en/latest/?badge=latest)
 [![Build Status](https://travis-ci.org/boschmitt/tweedledum.svg?branch=master)](https://travis-ci.org/boschmitt/tweedledum)
 [![License](https://img.shields.io/badge/license-MIT-000000.svg)](https://opensource.org/licenses/MIT)
 
@@ -11,6 +12,8 @@ ones. Also, it is meant to be used both independently and alongside established 
 compilers or more general and high level frameworks, e.g., IBM's QISKit, Rigetti's Forest, ProjectQ.
 
 tweedledum powers [RevKit v3](https://github.com/msoeken/cirkit/).
+
+[Read the full documentation.](http://tweedledum.readthedocs.io/en/latest/?badge=latest)
 ## Installation requirements
 
 A modern compiler is required to build *tweedledum*. We are continuously
