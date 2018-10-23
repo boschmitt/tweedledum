@@ -40,18 +40,15 @@ inline void transpose(std::vector<uint32_t>& matrix)
 	}
 }
 
-inline std::vector<std::pair<uint16_t, uint16_t>>
-lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
+inline std::vector<std::pair<uint16_t, uint16_t>> lwr_cnot_synthesis(std::vector<uint32_t>& matrix,
+                                                                     uint32_t n, uint32_t m)
 {
-
-
-
 
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
 	uint32_t sec_count = std::ceil(static_cast<float>(n) / m);
 	for (auto sec = 0u; sec < sec_count; ++sec) {
 		// remove duplicate sub-rows in section sec
-		std::vector<uint32_t> patt(1 << m, (1<<n) );
+		std::vector<uint32_t> patt(1 << m, (1 << n));
 		for (auto row = sec * m; row < n; ++row) {
 			uint32_t start = sec * m;
 			uint32_t end = start + m - 1;
@@ -65,8 +62,8 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 			}
 		}
 		// use Gaussian elimination for remaining entries in column section
-		uint32_t temp = (sec==(sec_count-1)) ? n : ((sec + 1) * m);
-		for (auto col = sec * m; col < temp ; col++) {
+		uint32_t temp = (sec == (sec_count - 1)) ? n : ((sec + 1) * m);
+		for (auto col = sec * m; col < temp; col++) {
 			// check for 1 on diagonal
 			bool diag_one = (matrix[col] >> col) & 1;
 
@@ -91,9 +88,14 @@ lwr_cnot_synthesis(std::vector<uint32_t>& matrix, uint32_t n, uint32_t m)
 
 } /* namespace detail */
 
+/*! \brief Linear circuit synthesis
+ *
+ * A specialzed variant of `cnot_patel` which accepts a preinitialized network
+ * (possibly with existing gates) and a qubits map.
+ */
 template<class Network>
-void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
-                uint32_t partition_size, std::vector<uint32_t> const& qubits_map)
+void cnot_patel(Network& net, std::vector<uint32_t>& matrix, uint32_t partition_size,
+                std::vector<uint32_t> const& qubits_map)
 {
 	/* number of qubits can be taken from matrix, since it is n x n matrix. */
 	const auto nqubits = matrix.size();
@@ -104,10 +106,6 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 
 	detail::transpose(matrix);
 	gates_u = detail::lwr_cnot_synthesis(matrix, nqubits, partition_size);
-
-	// if we were to explicitly swap, but we just swap in the for loop
-	// std::for_each(gates_u.begin(), gates_u.end(), [](auto& g) {
-	// std::swap(g.first, g.second);});
 
 	std::reverse(gates_l.begin(), gates_l.end());
 	for (const auto [c, t] : gates_u) {
@@ -120,30 +118,36 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 
 /*! \brief Linear circuit synthesis
  *
- * This algorithm is based on the work in [K.N. Patel, I.L. Markov, J.P. Hayes:
- * Optimal synthesis of linear reversible circuits, in QIC 8, 3&4, 282-294,
- * 2008.]
- *
- * The following code shows how to apply the algorithm to the example in the
- * original paper.
- *
    \verbatim embed:rst
+   This algorithm is based on the work in :cite:`PMH08`.
+
+   The following code shows how to apply the algorithm to the example in the
+   original paper.
+
    .. code-block:: c++
-      gg_network<qc_gate> network = ...;
+
       std::vector<uint32_t> matrix{{0b000011,
                                     0b011001,
                                     0b010010,
                                     0b111111,
                                     0b111011,
                                     0b011100}};
-      cnot_patel(network, matrix, 2);
+
+      auto circ = cnot_patel<gg_network<mcst_gate>>(matrix, 2);
    \endverbatim
+
+ * \param matrix A linear matrix
+ * \param partition_size The partition size for the columns (must be at least 0
+ *                       and at most `matrix.size()`)
+ * \algtype synthesis
+ * \algexpects Linear matrix
+ * \algreturns CNOT circuit
  */
 template<class Network>
-void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
-                uint32_t partition_size)
+Network cnot_patel(std::vector<uint32_t>& matrix, uint32_t partition_size)
 {
 	/* number of qubits can be taken from matrix, since it is n x n matrix. */
+	Network net;
 	const auto nqubits = matrix.size();
 	for (auto i = 0u; i < nqubits; ++i) {
 		net.allocate_qubit();
@@ -152,6 +156,7 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix,
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
 
 	cnot_patel(net, matrix, partition_size, qubits_map);
+	return net;
 }
 
 } // namespace tweedledum
