@@ -172,6 +172,7 @@ breathe_default_project = "tweedledum"
 
 # -- Custom directives -------------------------------------------------------
 
+import os
 from docutils import nodes
 from docutils.parsers.rst import Directive
 import xml.etree.ElementTree as ET
@@ -212,8 +213,9 @@ class DocSynthesisTableDirective(Directive):
                 elif key == "algreturns":
                     returns = value
 
+            filename = os.path.basename(member.find('location').attrib['file'])[:-4]
             ref = nodes.reference('', text, internal = True)
-            ref['refuri'] = 'synthesis/{}.html#{}'.format(text, member.attrib["id"])
+            ref['refuri'] = 'synthesis/{}.html#{}'.format(filename, member.attrib["id"])
             reft = nodes.paragraph()
             reft.extend([ref])
             function = nodes.entry('', reft)

@@ -135,7 +135,7 @@ void cnot_patel(Network& net, std::vector<uint32_t>& matrix, uint32_t partition_
 
       auto circ = cnot_patel<gg_network<mcst_gate>>(matrix, 2);
    \endverbatim
-
+ *
  * \param matrix A linear matrix
  * \param partition_size The partition size for the columns (must be at least 0
  *                       and at most `matrix.size()`)

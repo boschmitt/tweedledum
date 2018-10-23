@@ -11,5 +11,6 @@ currently provided in *tweedledum*.
    :hidden:
 
    synthesis/cnot_patel
+   synthesis/control_function
 
 .. doc_synthesis_table::
