@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../ast_node.hpp"
@@ -65,8 +65,8 @@ private:
 	void do_print(std::ostream& out) const override
 	{
 		using namespace rang;
-		out << style::bold << fgB::magenta << "expr_binary_op "
-		    << style::reset << fg::reset << '\'' << operator_ << '\'';
+		out << style::bold << fgB::magenta << "expr_binary_op " << style::reset << fg::reset
+		    << '\'' << operator_ << '\'';
 	}
 
 private:

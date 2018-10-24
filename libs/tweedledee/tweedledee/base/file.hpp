@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
-| See LICENSE for details.
+| See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "source.hpp"
@@ -49,8 +49,7 @@ public:
 	file(const file&) = delete;
 	file& operator=(const file&) = delete;
 
-	static std::unique_ptr<file> open(const std::string& file_path,
-	                                  uint32_t offset)
+	static std::unique_ptr<file> open(const std::string& file_path, uint32_t offset)
 	{
 		auto name = detail::extract_name_from_path(file_path);
 		auto content = detail::load_content(file_path);
@@ -66,8 +65,7 @@ public:
 	}
 
 private:
-	file(std::string_view name, std::string_view content,
-	     uint32_t offset)
+	file(std::string_view name, std::string_view content, uint32_t offset)
 	    : source(content, offset)
 	    , name_(name)
 	{}

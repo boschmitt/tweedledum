@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "ast.hpp"
@@ -12,7 +12,7 @@ namespace quil {
 
 class ast_node;
 
-enum class visitor_info: unsigned short {
+enum class visitor_info : unsigned short {
 	container_begin,
 	container_end,
 	leaf,
@@ -23,14 +23,14 @@ namespace detail {
 using visitor_callback_t = bool (*)(void* mem, const ast_node&, visitor_info info);
 inline bool visit(const ast_node& node, visitor_callback_t cb, void* functor);
 
-template <typename Func>
+template<typename Func>
 bool visitor_callback(void* mem, const ast_node& node, visitor_info info)
 {
 	auto& func = *static_cast<Func*>(mem);
 	return func(node, info);
 }
 
-template <typename T>
+template<typename T>
 bool handle_container(const ast_node& node, detail::visitor_callback_t cb, void* functor)
 {
 	auto& container = static_cast<const T&>(node);
@@ -71,9 +71,11 @@ bool visit(const ast_node& node, visitor_callback_t cb, void* functor)
 
 } // namespace detail
 
-template <typename Func>
+template<typename Func>
 void visit(const ast_node& node, Func f)
-{ detail::visit(node, &detail::visitor_callback<Func>, &f); }
+{
+	detail::visit(node, &detail::visitor_callback<Func>, &f);
+}
 
 } // namespace quil
 } // namespace tweedledee

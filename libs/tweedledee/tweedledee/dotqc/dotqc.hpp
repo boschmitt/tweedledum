@@ -118,6 +118,7 @@ template<typename GateKind, class Fn = detail::identify_gate_kind>
 inline void dotqc_read(std::istream& buffer, dotqc_reader<GateKind>& reader, Fn&& fn = {})
 {
 	std::string line;
+
 	while (buffer.peek() == '.' || buffer.peek() == '#') {
 		if (buffer.peek() == '#') {
 			std::getline(buffer, line);
@@ -166,8 +167,9 @@ inline void dotqc_read(std::istream& buffer, dotqc_reader<GateKind>& reader, Fn&
 			break;
 
 		default:
-			reader.on_gate(gate, std::vector({entries[0]}),
-			               std::vector<std::string>(entries.begin() + 1, entries.end()));
+			reader.on_gate(gate,
+			               std::vector<std::string>(entries.begin(), entries.end() - 1),
+			               std::vector({entries.back()}));
 			break;
 		}
 	}
