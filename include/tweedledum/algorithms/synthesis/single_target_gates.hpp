@@ -140,8 +140,7 @@ struct stg_from_spectrum {
 		kitty::create_nth_var(xt, num_controls);
 		g &= xt;
 
-		std::vector<uint32_t> parities;
-		std::vector<float> angles;
+		std::vector<std::pair<uint32_t, float>> parities;
 
 		float nom = pi();
 		nom /= (1 << g.num_vars());
@@ -151,8 +150,7 @@ struct stg_from_spectrum {
 			if (spectrum[i] == 0) {
 				continue;
 			}
-			parities.push_back(i);
-			angles.push_back(nom * spectrum[i]);
+			parities.emplace_back(i, nom * spectrum[i]);
 		}
 
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
@@ -160,12 +158,12 @@ struct stg_from_spectrum {
 		    || ((ps_.lin_comb_synth_behavior == stg_from_spectrum_params::complete_spectra)
 		        && (parities.size() == spectrum.size() - 1))) {
 			if (ps_.lin_comb_synth_strategy == stg_from_spectrum_params::gray) {
-				lin_comb_synth_gray(net, parities, angles, qubit_map);
+				lin_comb_synth_gray(net, parities, qubit_map);
 			} else {
-				lin_comb_synth_binary(net, parities, angles, qubit_map);
+				lin_comb_synth_binary(net, parities, qubit_map);
 			}
 		} else {
-			gray_synth(net, parities, angles, qubit_map, ps_.gray_synth_ps);
+			gray_synth(net, parities, qubit_map, ps_.gray_synth_ps);
 		}
 		net.add_gate(gate_kinds_t::hadamard, qubit_map.back());
 	}

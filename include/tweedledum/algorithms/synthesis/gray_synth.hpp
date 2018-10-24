@@ -15,7 +15,9 @@
 
 namespace tweedledum {
 
+/*! \brief Parameters for `gray_synth`. */
 struct gray_synth_params {
+	/*! \brief Allow rewiring. */
 	bool allow_rewiring{false};
 };
 
@@ -100,37 +102,24 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
 
 } // namespace detail
 
-/*! \brief Gray synthesis for CNOT-PHASE networks.
+/*! \brief Gray synthesis for {CNOT, Rz} networks.
  *
- * This algorithm is based on the work in [M. Amy, P. Azimzadeh, M. Mosca: On
- * the complexity of CNOT-PHASE circuits, in: arXiv:1712.01859, 2017.]
- *
- * The following code shows how to apply the algorithm to the example in the
- * original paper.
- *
-   \verbatim embed:rst
-
-   .. code-block:: c++
-
-      dag_path<qc_gate> network = ...;
-
-      float T{0.39269908169872414}; // PI/8
-      std::vector<std::pair<uint32_t, float>> parities{
-          {{0b0110, T},
-           {0b0001, T},
-           {0b1001, T},
-           {0b0111, T},
-           {0b1011, T},
-           {0b0011, T}}
-      };
-      gray_synth(network, 4, parities);
-   \endverbatim
+ * A specialzed variant of `gray_synth` which accepts a preinitialized network
+ * (possibly with existing gates) and a qubits map.
  */
 template<class Network>
-void gray_synth(Network& net, std::vector<uint32_t> parities, std::vector<float> Ts,
+void gray_synth(Network& net, std::vector<std::pair<uint32_t, float>> const& parities,
                 std::vector<uint32_t> const& qubits_map, gray_synth_params const& ps = {})
 {
 	const auto nqubits = qubits_map.size();
+
+	std::vector<uint32_t> _parities;
+	std::vector<float> rotation_angles;
+
+	for (auto const& [p, a] : parities) {
+		_parities.emplace_back(p);
+		rotation_angles.emplace_back(a);
+	}
 
 	std::vector<std::pair<uint16_t, uint16_t>> gates;
 	std::vector<uint32_t> in_lines(nqubits);
@@ -138,7 +127,7 @@ void gray_synth(Network& net, std::vector<uint32_t> parities, std::vector<float>
 
 	std::vector<std::tuple<std::vector<uint32_t>, std::vector<uint32_t>, uint32_t>> Q;
 	/* -1 is first initialize of epsilon that update after first iteration */
-	Q.emplace_back(parities, in_lines, nqubits);
+	Q.emplace_back(_parities, in_lines, nqubits);
 
 	/* managing phase gates */
 	std::vector<uint32_t> parity_gates;
@@ -197,23 +186,23 @@ void gray_synth(Network& net, std::vector<uint32_t> parities, std::vector<float>
 	/* making network */
 	/* applying phase gate in the first of line when parity consist of just one variable */
 	for (auto i = 0u; i < nqubits; ++i) {
-		const auto it = std::find(parities.begin(), parities.end(), 1 << i);
-		if (it == parities.end())
+		const auto it = std::find(_parities.begin(), _parities.end(), 1 << i);
+		if (it == _parities.end())
 			continue;
-		const auto idx = std::distance(parities.begin(), it);
-		net.add_gate(gate_kinds_t::rotation_z, qubits_map[i], Ts[idx]);
-		Ts[idx] = -1;
+		const auto idx = std::distance(_parities.begin(), it);
+		net.add_gate(gate_kinds_t::rotation_z, qubits_map[i], rotation_angles[idx]);
+		rotation_angles[idx] = -1;
 	}
 
 	uint32_t idx = 0;
 	for (const auto [c, t] : gates) {
 		net.add_gate(gate_kinds_t::cx, qubits_map[c], qubits_map[t]);
-		for (auto i = 0u; i < Ts.size(); i++) {
-			if (parity_gates[idx] == parities[i]) {
-				if (Ts[i] != -1) {
-					net.add_gate(gate_kinds_t::rotation_z, qubits_map[t], Ts[i]);
-					Ts[i] = -1; /* avoiding the insertion of
-					               one phase gate in two places */
+		for (auto i = 0u; i < rotation_angles.size(); i++) {
+			if (parity_gates[idx] == _parities[i]) {
+				if (rotation_angles[i] != -1) {
+					net.add_gate(gate_kinds_t::rotation_z, qubits_map[t], rotation_angles[i]);
+					rotation_angles[i] = -1; /* avoiding the insertion of
+					                            one phase gate in two places */
 				}
 			}
 		}
@@ -234,16 +223,49 @@ void gray_synth(Network& net, std::vector<uint32_t> parities, std::vector<float>
 	detail::add_remainder_network<Network>(net, matrix, qubits_map, ps.allow_rewiring);
 }
 
+/*! \brief Gray synthesis for {CNOT, Rz} networks.
+ *
+   \verbatim embed:rst
+
+   This algorithm is based on the work in :cite:`AAM17`.
+
+   The following code shows how to apply the algorithm to the example in the
+   original paper.
+
+   .. code-block:: c++
+
+      float T{0.39269908169872414}; // PI/8
+      std::vector<std::pair<uint32_t, float>> parities{
+          {{0b0110, T},
+           {0b0001, T},
+           {0b1001, T},
+           {0b0111, T},
+           {0b1011, T},
+           {0b0011, T}}
+      };
+      auto network = gray_synth<gg_network<mcst_gate>>(4, parities);
+   \endverbatim
+ *
+ * \param nqubits Number of qubits
+ * \param parities List of parities and rotation angles to synthesize
+ * \param ps Parameters
+ *
+ * \algtype synthesis
+ * \algexpects Parities with rotation angles
+ * \algreturns {CNOT, Rz} network
+ */
 template<class Network>
-void gray_synth(Network& net, uint32_t nqubits, std::vector<uint32_t> parities,
-                std::vector<float> Ts, gray_synth_params const& ps = {})
+Network gray_synth(uint32_t nqubits, std::vector<std::pair<uint32_t, float>> parities,
+                   gray_synth_params const& ps = {})
 {
+	Network net;
 	for (auto i = 0u; i < nqubits; ++i)
 		net.add_qubit();
 
 	std::vector<uint32_t> qubits_map(nqubits);
 	std::iota(qubits_map.begin(), qubits_map.end(), 0u);
-	gray_synth(net, parities, Ts, qubits_map, ps);
+	gray_synth(net, parities, qubits_map, ps);
+	return net;
 }
 
 } /* namespace tweedledum */

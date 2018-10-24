@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
-| See LICENSE for details.
+| See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include <cstdint>
@@ -33,10 +33,8 @@ private:
 public:
 	source(const source&) = delete;
 	source& operator=(const source&) = delete;
-	virtual ~source() = default;
 
-	static std::unique_ptr<source> build(std::string_view content,
-	                                     uint32_t offset)
+	static std::unique_ptr<source> build(std::string_view content, uint32_t offset)
 	{
 		return std::unique_ptr<source>(new source(content, offset));
 	}

@@ -1,13 +1,13 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../../../gate_kinds.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
-#include "../../../gate_kinds.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -25,8 +25,7 @@ class stmt_gate
 public:
 	class builder {
 	public:
-		explicit builder(uint32_t location,
-		                 std::string_view identifier)
+		explicit builder(uint32_t location, std::string_view identifier)
 		    : statement_(new stmt_gate(location, identifier))
 		{}
 
@@ -65,8 +64,8 @@ private:
 	void do_print(std::ostream& out) const override
 	{
 		using namespace rang;
-		out << style::bold << fgB::magenta << "stmt_gate " << style::reset
-		    << fgB::cyan << identifier << fg::reset;
+		out << style::bold << fgB::magenta << "stmt_gate " << style::reset << fgB::cyan
+		    << identifier << fg::reset;
 	}
 };
 

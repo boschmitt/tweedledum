@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include <iterator>
@@ -91,14 +91,12 @@ public:
 		return tmp;
 	}
 
-	friend bool operator==(const intrusive_list_iterator& rhs,
-	                       const intrusive_list_iterator& lhs)
+	friend bool operator==(const intrusive_list_iterator& rhs, const intrusive_list_iterator& lhs)
 	{
 		return rhs.current_ == lhs.current_;
 	}
 
-	friend bool operator!=(const intrusive_list_iterator& rhs,
-	                       const intrusive_list_iterator& lhs)
+	friend bool operator!=(const intrusive_list_iterator& rhs, const intrusive_list_iterator& lhs)
 	{
 		return !(rhs == lhs);
 	}
@@ -120,15 +118,13 @@ public:
 	intrusive_list() = default;
 
 	template<typename Dummy = T,
-	         typename = typename std::enable_if<
-	             std::is_same<Dummy, program>::value>::type>
+	         typename = typename std::enable_if<std::is_same<Dummy, program>::value>::type>
 	void push_back(std::unique_ptr<T> obj)
 	{
 		push_back_impl(std::move(obj));
 	}
 
-	template<typename U, typename = typename std::enable_if<
-	                         !std::is_same<T, program>::value, U>::type>
+	template<typename U, typename = typename std::enable_if<!std::is_same<T, program>::value, U>::type>
 	void push_back(const U* parent, std::unique_ptr<T> obj)
 	{
 		push_back_impl(std::move(obj));
@@ -177,8 +173,7 @@ private:
 	void push_back_impl(std::unique_ptr<T> obj)
 	{
 		if (last_ != nullptr) {
-			auto ptr = intrusive_list_access<T>::next(
-			    *last_, std::move(obj));
+			auto ptr = intrusive_list_access<T>::next(*last_, std::move(obj));
 			last_ = ptr;
 		} else {
 			first_ = std::move(obj);

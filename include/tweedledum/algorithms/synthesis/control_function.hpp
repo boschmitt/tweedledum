@@ -17,12 +17,32 @@
 
 namespace tweedledum {
 
-/*! Control function synthesis algorithm.
+/*! \brief Control function synthesis algorithm.
  *
  * This function synthesizes a circuit from an _n_-variable Boolean function.
  * The resulting circuit has _n+1_ qubits, where the first _n_ qubits hold the
  * input to the Boolean function (and remain unchanged) and the last qubit
  * computes the output of the function by XOR-ing it to its current value.
+ *
+   \verbatim embed:rst
+
+   The following code shows how to apply the algorithm to the majority-of-five
+   function.
+
+   .. code-block:: c++
+
+      kitty::dynamic_truth_table tt(5);
+      kitty::create_majority(tt);
+      auto circ = control_function_synthesis<gg_network<mcmt_gate>>(tt);
+   \endverbatim
+ *
+ * \param tt A truth table (see <a href="http://github.com/msoeken/kitty">
+ *           kitty</a>)
+ * \param stg_fn A synthesis function for single-target gates
+ *
+ * \algtype synthesis
+ * \algexpects Truth table
+ * \algreturns Quantum or reversible circuit
  */
 template<typename Network, typename SingleTargetGateSynthesisFn = stg_from_pprm>
 Network control_function_synthesis(kitty::dynamic_truth_table const& tt,

@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
-| See LICENSE for details.
+| See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "file.hpp"
@@ -63,14 +63,9 @@ public:
 	std::string location_str(const uint32_t location) const
 	{
 		std::stringstream ss;
-		ss << "<" << location_map_.lower_bound(location)->second->name()
-		   << ":"
-		   << location_map_.lower_bound(location)->second->line(
-		          location)
-		   << ":"
-		   << location_map_.lower_bound(location)->second->column(
-		          location)
-		   << ">";
+		ss << "<" << location_map_.lower_bound(location)->second->name() << ":"
+		   << location_map_.lower_bound(location)->second->line(location) << ":"
+		   << location_map_.lower_bound(location)->second->column(location) << ">";
 		return ss.str();
 	}
 };

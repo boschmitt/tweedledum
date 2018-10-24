@@ -1,12 +1,9 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
-
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include "../base/source_manager.hpp"
 #include "ast/ast.hpp"
@@ -15,6 +12,7 @@
 #include "token.hpp"
 #include "token_kinds.hpp"
 
+#include <cmath>
 #include <cstdint>
 #include <memory>
 
@@ -60,9 +58,8 @@ private:
 			return current_token_;
 		}
 		if (current_token_.is_not(expected)) {
-			std::cerr << "Error: expected " << token_name(expected)
-			          << " but got " << current_token_.name()
-			          << '\n';
+			std::cerr << "Error: expected " << token_name(expected) << " but got "
+			          << current_token_.name() << '\n';
 			error_ = true;
 			return current_token_;
 		}
@@ -84,8 +81,7 @@ private:
 	}
 
 public:
-	parser(preprocessor& pp_lexer, semantic& semantic,
-	       source_manager& source_manager)
+	parser(preprocessor& pp_lexer, semantic& semantic, source_manager& source_manager)
 	    : pp_lexer_(pp_lexer)
 	    , semantic_(semantic)
 	    , source_manager_(source_manager)
@@ -107,8 +103,7 @@ public:
 				break;
 
 			case token_kinds::identifier:
-				semantic_.on_gate_statement(
-				    parse_gate_statement());
+				semantic_.on_gate_statement(parse_gate_statement());
 				break;
 
 			default:
@@ -130,10 +125,8 @@ private:
 	std::unique_ptr<stmt_gate> parse_gate_statement()
 	{
 		// If we get here, then an identifier was matched
-		auto identifier
-		    = expect_and_consume_token(token_kinds::identifier);
-		auto stmt_builder
-		    = stmt_gate::builder(identifier.location, identifier);
+		auto identifier = expect_and_consume_token(token_kinds::identifier);
+		auto stmt_builder = stmt_gate::builder(identifier.location, identifier);
 
 		if (try_and_consume_token(token_kinds::l_paren)) {
 			if (not try_and_consume_token(token_kinds::r_paren)) {
@@ -169,8 +162,7 @@ private:
 		}
 		// sign : PLUS | MINUS ;
 		if (try_and_consume_token(token_kinds::minus)) {
-			auto sign
-			    = expr_sign::builder(current_token_.location, '-');
+			auto sign = expr_sign::builder(current_token_.location, '-');
 			auto atom = parse_expression();
 			sign.add_child(std::move(atom));
 			return sign.finish();
@@ -180,13 +172,11 @@ private:
 		switch (current_token_.kind) {
 			// Hack
 		case token_kinds::integer:
-			atom = expr_real::build(current_token_.location,
-			                           current_token_);
+			atom = expr_real::build(current_token_.location, current_token_);
 			break;
 
 		case token_kinds::real:
-			atom = expr_real::build(current_token_.location,
-			                        current_token_);
+			atom = expr_real::build(current_token_.location, current_token_);
 			break;
 
 		case token_kinds::kw_pi:
@@ -246,8 +236,7 @@ private:
 
 			consume_token();
 			auto atom_rhs = parse_expression(next_min_precedence);
-			auto binary_op = expr_binary_op::builder(
-			    current_token_.location, op);
+			auto binary_op = expr_binary_op::builder(current_token_.location, op);
 			binary_op.add_child(std::move(atom_lhs));
 			binary_op.add_child(std::move(atom_rhs));
 			atom_lhs = binary_op.finish();
@@ -263,8 +252,8 @@ private:
 	{
 		do {
 			auto expr = parse_expression();
-			// This is a hack to add the evaluated expression, so instead of '2+2' it adds '4'
-			// to the AST
+			// This is a hack to add the evaluated expression, so instead of '2+2' it
+			// adds '4' to the AST
 			auto evaluated_expr = expr_real::build(expr->location(), evaluate(*expr));
 			builder.add_child(std::move(evaluated_expr));
 			if (not try_and_consume_token(token_kinds::comma)) {
@@ -278,26 +267,30 @@ private:
 	{
 		switch (node.kind()) {
 		case ast_node_kinds::expr_binary_op:
-			switch (static_cast<const expr_binary_op &>(node).op()) {
+			switch (static_cast<const expr_binary_op&>(node).op()) {
 			case '+':
-				return evaluate(*static_cast<const expr_binary_op &>(node).begin()) + evaluate(*static_cast<const expr_binary_op &>(node).back());
+				return evaluate(*static_cast<const expr_binary_op&>(node).begin())
+				       + evaluate(*static_cast<const expr_binary_op&>(node).back());
 			case '-':
-				return evaluate(*static_cast<const expr_binary_op &>(node).begin()) - evaluate(*static_cast<const expr_binary_op &>(node).back());
+				return evaluate(*static_cast<const expr_binary_op&>(node).begin())
+				       - evaluate(*static_cast<const expr_binary_op&>(node).back());
 			case '*':
-				return evaluate(*static_cast<const expr_binary_op &>(node).begin()) * evaluate(*static_cast<const expr_binary_op &>(node).back());
+				return evaluate(*static_cast<const expr_binary_op&>(node).begin())
+				       * evaluate(*static_cast<const expr_binary_op&>(node).back());
 			case '/':
-				return evaluate(*static_cast<const expr_binary_op &>(node).begin()) / evaluate(*static_cast<const expr_binary_op &>(node).back());
+				return evaluate(*static_cast<const expr_binary_op&>(node).begin())
+				       / evaluate(*static_cast<const expr_binary_op&>(node).back());
 			default:
 				return 0.0;
 			}
 			// return handle_container<expr_binary_op>(node, cb, functor);
 
 		case ast_node_kinds::expr_sign:
-			return -(evaluate(*static_cast<const expr_sign &>(node).begin()));
+			return -(evaluate(*static_cast<const expr_sign&>(node).begin()));
 
 		case ast_node_kinds::expr_integer:
 		case ast_node_kinds::expr_real:
-			return static_cast<const expr_real &>(node).evaluate();
+			return static_cast<const expr_real&>(node).evaluate();
 
 		default:
 			break;

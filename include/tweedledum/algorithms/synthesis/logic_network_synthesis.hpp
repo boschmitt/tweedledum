@@ -5,7 +5,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/gates/gate_kinds.hpp"
+#include "../../gates/gate_kinds.hpp"
 
 #include <array>
 #include <cstdint>
@@ -117,7 +117,7 @@ private:
 		/* prepare primary inputs of logic network */
 		ntk.foreach_pi([&](auto n) {
 			node_to_qubit[n] = qnet.num_qubits();
-			qnet.allocate_qubit();
+			qnet.add_qubit();
 		});
 	}
 
@@ -129,7 +129,7 @@ private:
 			return;
 		const auto v = ntk.constant_value(n) ^ ntk.is_complemented(f);
 		node_to_qubit[n] = qnet.num_qubits();
-		qnet.allocate_qubit();
+		qnet.add_qubit();
 		if (v)
 			qnet.add_gate(gate_kinds_t::pauli_x, node_to_qubit[n]);
 	}
@@ -138,7 +138,7 @@ private:
 	{
 		if (free_ancillae.empty()) {
 			const auto r = qnet.num_qubits();
-			qnet.allocate_qubit();
+			qnet.add_qubit();
 			return r;
 		} else {
 			const auto r = free_ancillae.top();
@@ -203,7 +203,7 @@ private:
 			qnet.add_gate(gate_kinds_t::pauli_x, c1);
 		if (p2)
 			qnet.add_gate(gate_kinds_t::pauli_x, c2);
-		qnet.add_multiple_controlled_gate(gate_kinds_t::mcx, {t, c1, c2});
+		qnet.add_gate(gate_kinds_t::mcx, std::vector<uint32_t>{{c1, c2}}, std::vector<uint32_t>{{t}});
 		if (p2)
 			qnet.add_gate(gate_kinds_t::pauli_x, c2);
 		if (p1)
@@ -212,8 +212,8 @@ private:
 
 	void compute_xor(uint32_t c1, uint32_t c2, bool inv, uint32_t t)
 	{
-		qnet.add_controlled_gate(gate_kinds_t::cx, c1, t);
-		qnet.add_controlled_gate(gate_kinds_t::cx, c2, t);
+		qnet.add_gate(gate_kinds_t::cx, c1, t);
+		qnet.add_gate(gate_kinds_t::cx, c2, t);
 		if (inv)
 			qnet.add_gate(gate_kinds_t::pauli_x, t);
 	}
@@ -221,9 +221,9 @@ private:
 	void compute_xor3(uint32_t c1, uint32_t c2, uint32_t c3, bool inv,
 	                  uint32_t t)
 	{
-		qnet.add_controlled_gate(gate_kinds_t::cx, c1, t);
-		qnet.add_controlled_gate(gate_kinds_t::cx, c2, t);
-		qnet.add_controlled_gate(gate_kinds_t::cx, c3, t);
+		qnet.add_gate(gate_kinds_t::cx, c1, t);
+		qnet.add_gate(gate_kinds_t::cx, c2, t);
+		qnet.add_gate(gate_kinds_t::cx, c3, t);
 		if (inv)
 			qnet.add_gate(gate_kinds_t::pauli_x, t);
 	}
@@ -237,12 +237,12 @@ private:
 			qnet.add_gate(gate_kinds_t::pauli_x, c2);
 		if (p3)
 			qnet.add_gate(gate_kinds_t::pauli_x, c3);
-		qnet.add_controlled_gate(gate_kinds_t::cx, c1, c2);
-		qnet.add_controlled_gate(gate_kinds_t::cx, c3, c1);
-		qnet.add_controlled_gate(gate_kinds_t::cx, c3, t);
-		qnet.add_multiple_controlled_gate(gate_kinds_t::mcx, {t, c1, c2});
-		qnet.add_controlled_gate(gate_kinds_t::cx, c3, c1);
-		qnet.add_controlled_gate(gate_kinds_t::cx, c1, c2);
+		qnet.add_gate(gate_kinds_t::cx, c1, c2);
+		qnet.add_gate(gate_kinds_t::cx, c3, c1);
+		qnet.add_gate(gate_kinds_t::cx, c3, t);
+		qnet.add_gate(gate_kinds_t::mcx, std::vector<uint32_t>{{c1, c2}}, std::vector<uint32_t>{{t}});
+		qnet.add_gate(gate_kinds_t::cx, c3, c1);
+		qnet.add_gate(gate_kinds_t::cx, c1, c2);
 		if (p3)
 			qnet.add_gate(gate_kinds_t::pauli_x, c3);
 		if (!p2)

@@ -16,6 +16,7 @@ add_custom_target(tweedledum_tests COMMENT "Build all tests.")
 set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/nct.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/single_qubit_gate_cancellation.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/simulation/classical_simulation.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/control_function.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/decomposition_based.cpp"
