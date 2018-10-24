@@ -35,7 +35,7 @@ inline std::vector<uint32_t> to_bit_vector(IntType bits)
 	return ret;
 }
 
-void update_permutation(std::vector<uint16_t>& perm, uint16_t controls, uint16_t targets)
+inline void update_permutation(std::vector<uint16_t>& perm, uint16_t controls, uint16_t targets)
 {
 	std::for_each(perm.begin(), perm.end(), [&](auto& z) {
 		if ((z & controls) == controls) {
@@ -44,7 +44,7 @@ void update_permutation(std::vector<uint16_t>& perm, uint16_t controls, uint16_t
 	});
 }
 
-void update_permutation_inv(std::vector<uint16_t>& perm, uint16_t controls, uint16_t targets)
+inline void update_permutation_inv(std::vector<uint16_t>& perm, uint16_t controls, uint16_t targets)
 {
 	for (auto i = 0u; i < perm.size(); ++i) {
 		if ((i & controls) != controls)
