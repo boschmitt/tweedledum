@@ -1,19 +1,19 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
+
+#include "../ast_node.hpp"
+#include "../ast_node_kinds.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <ostream>
 
-#include "../ast_node.hpp"
-#include "../ast_node_kinds.hpp"
-
 namespace tweedledee {
-namespace quil { 
+namespace quil {
 
 /*! \brief Qubit AST node
 
@@ -23,11 +23,9 @@ namespace quil {
 */
 class qubit final : public ast_node {
 public:
-	static std::unique_ptr<qubit> build(uint32_t location,
-	                                    std::string_view label)
+	static std::unique_ptr<qubit> build(uint32_t location, std::string_view label)
 	{
-		auto result = std::unique_ptr<qubit>(
-			new qubit(location, label));
+		auto result = std::unique_ptr<qubit>(new qubit(location, label));
 		return result;
 	}
 
@@ -35,12 +33,14 @@ public:
 
 private:
 	qubit(uint32_t location, std::string_view label)
-		: ast_node(location)
-		, label(label)
-	{ }
+	    : ast_node(location)
+	    , label(label)
+	{}
 
 	ast_node_kinds do_get_kind() const override
-	{ return ast_node_kinds::qubit; }
+	{
+		return ast_node_kinds::qubit;
+	}
 
 	void do_print(std::ostream& out) const override
 	{

@@ -1,18 +1,18 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
-
-#include <cstdint>
-#include <cctype>
-#include <iostream>
-#include <string>
-#include <vector>
 
 #include "token.hpp"
 #include "token_kinds.hpp"
+
+#include <cctype>
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace tweedledee {
 namespace quil {
@@ -27,31 +27,35 @@ class lexer {
 	uint32_t start_location_;
 	std::string_view buffer_;
 	// Current pointer into the buffer. (Next character to be lexed)
-	const char *buffer_ptr_;
+	const char* buffer_ptr_;
 	bool line_beginning_;
 
 public:
-	lexer(const lexer &) = delete;
-	lexer &operator=(const lexer &) = delete;
+	lexer(const lexer&) = delete;
+	lexer& operator=(const lexer&) = delete;
 
 	// Create a new lexer object for the specified buffer. This lexer
 	// assumes that the associated file buffer will outlive it, so it
 	// doesn't take ownership of it-hence 'string_view'.
 	lexer(uint32_t start_location, std::string_view content)
-		: start_location_(start_location)
-		, buffer_(content)
-		, buffer_ptr_(&buffer_[0])
-		, line_beginning_(true)
-	{ }
+	    : start_location_(start_location)
+	    , buffer_(content)
+	    , buffer_ptr_(buffer_.begin())
+	    , line_beginning_(true)
+	{}
 
 	// Lex a token and consume it.
 	token next_token()
-	{ return lex(); }
+	{
+		return lex();
+	}
 
 private:
 	// Return current token location.
 	uint32_t current_location() const
-	{ return start_location_ + (buffer_ptr_ - &buffer_[0]); }
+	{
+		return start_location_ + (buffer_ptr_ - buffer_.begin());
+	}
 
 	// Skip over a series of whitespace characters. Update buffer_ptr_ to
 	// point to the next non-whitespace character and return.
@@ -94,7 +98,7 @@ private:
 	}
 
 	// Match [_A-Za-z0-9]*, we have already matched [0-9$]
-	token lex_numeric_constant(const char *cur_ptr)
+	token lex_numeric_constant(const char* cur_ptr)
 	{
 		while (std::isdigit(*cur_ptr)) {
 			++cur_ptr;
@@ -174,6 +178,7 @@ private:
 			tok.kind = token_kinds::slash;
 			break;
 
+		// clang-format off
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
 			return lex_numeric_constant(cur_ptr);
@@ -187,6 +192,7 @@ private:
 		case 'o': case 'p': case 'q': case 'r': case 's': case 't': case 'u':
 		case 'v': case 'w': case 'x': case 'y': case 'z':
 			return lex_identifier(cur_ptr);
+		// clang-format on
 
 		case '[':
 			tok.kind = token_kinds::l_square;
@@ -254,7 +260,6 @@ private:
 		// std::cout << "Lexed token: " << tok.name() << '\n';
 		return tok;
 	}
-
 };
 
 } // namespace quil
