@@ -20,8 +20,8 @@ namespace tweedledum {
  *
  * **Required network functions:**
  */
-template<typename Network>
-Network relative_phase_mapping(Network const& src)
+template<typename NetworkDest, typename NetworkSrc>
+NetworkDest relative_phase_mapping(NetworkSrc const& src)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
 		if (gate.is(gate_kinds_t::mcx)) {
@@ -278,7 +278,7 @@ Network relative_phase_mapping(Network const& src)
 	};
 
 	constexpr auto num_ancillae = 1u;
-	Network dest;
+	NetworkDest dest;
 	rewrite_network(dest, src, gate_rewriter, num_ancillae);
 	return dest;
 }
