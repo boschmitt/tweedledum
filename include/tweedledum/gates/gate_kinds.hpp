@@ -80,7 +80,7 @@ static const std::string gates_names[] = {
 // Determines the name of a gate as used within the front end.
 static inline std::string_view gate_name(gate_kinds_t kind)
 {
-	return gates_names[static_cast<unsigned>(kind)];
+	return gates_names[static_cast<uint32_t>(kind)];
 }
 
 static inline gate_kinds_t gate_adjoint(gate_kinds_t kind)
@@ -88,6 +88,9 @@ static inline gate_kinds_t gate_adjoint(gate_kinds_t kind)
 	switch (kind) {
 	case gate_kinds_t::hadamard:
 		return gate_kinds_t::hadamard;
+
+	case gate_kinds_t::pauli_x:
+		return gate_kinds_t::pauli_x;
 
 	case gate_kinds_t::phase:
 		return gate_kinds_t::phase_dagger;
