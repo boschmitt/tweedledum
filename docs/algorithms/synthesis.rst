@@ -12,5 +12,7 @@ currently provided in *tweedledum*.
 
    synthesis/cnot_patel
    synthesis/control_function
+   synthesis/decomposition_based
+   synthesis/gray_synth
 
 .. doc_synthesis_table::
