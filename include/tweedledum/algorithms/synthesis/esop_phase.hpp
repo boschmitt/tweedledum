@@ -21,11 +21,11 @@ void esop_phase_synthesis(Network& circ, kitty::dynamic_truth_table const& tt)
 {
 	const uint32_t num_qubits = tt.num_vars();
 	for (auto i = 0u; i < num_qubits; ++i) {
-		circ.allocate_qubit();
+		circ.add_qubit();
 	}
 	for (const auto& cube : esop_from_pprm(tt)) {
-		std::vector<typename Network::qubit> controls;
-		std::vector<typename Network::qubit> targets;
+		std::vector<uint32_t> controls;
+		std::vector<uint32_t> targets;
 		for (auto i = 0; i < tt.num_vars(); ++i) {
 			if (!cube.get_mask(i)) {
 				continue;
@@ -38,7 +38,7 @@ void esop_phase_synthesis(Network& circ, kitty::dynamic_truth_table const& tt)
 			}
 		}
 		if (!targets.empty()) {
-			circ.add_multiple_controlled_target_gate(gate_kinds_t::mcz, controls, targets);
+			circ.add_gate(gate_kinds_t::mcz, controls, targets);
 		}
 	}
 }

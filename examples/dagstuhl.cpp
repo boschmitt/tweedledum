@@ -7,7 +7,7 @@
 #include <iostream>
 #include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
-#include <tweedledum/algorithms/synthesis/esop_based.hpp>
+#include <tweedledum/algorithms/synthesis/control_function.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/io/write_qpic.hpp>
 #include <tweedledum/networks/netlist.hpp>
@@ -19,6 +19,11 @@ public:
 	void add_qubit()
 	{
 		q++;
+	}
+
+	uint32_t num_qubits()
+	{
+		return q;
 	}
 
 	void add_gate(gate_kinds_t, std::vector<uint32_t>, std::vector<uint32_t>)
@@ -38,14 +43,12 @@ private:
 
 int main(int argc, char** argv)
 {
-	netlist<mcmt_gate> ntk;
 	kitty::dynamic_truth_table tt(5);
 	kitty::create_from_hex_string(tt, "DA657041");
-	esop_based_synthesis(ntk, tt);
+	auto ntk = control_function_synthesis<netlist<mcmt_gate>>(tt);
 	write_qpic(ntk, "dagstuhl.qpic");
 
-	resource_counter counter;
-	esop_based_synthesis(counter, tt);
+	auto counter = control_function_synthesis<resource_counter>(tt);
 	counter.print();
 	return EXIT_SUCCESS;
 }

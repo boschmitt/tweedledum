@@ -1,18 +1,18 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
-
-#include <memory>
-#include <vector>
 
 #include "../base/source.hpp"
 #include "../base/source_manager.hpp"
 #include "lexer.hpp"
 #include "token.hpp"
 #include "token_kinds.hpp"
+
+#include <memory>
+#include <vector>
 
 namespace tweedledee {
 namespace quil {
@@ -30,19 +30,18 @@ class preprocessor {
 
 public:
 	preprocessor(source_manager& source_manager)
-		: source_manager_(source_manager)
-	{ }
+	    : source_manager_(source_manager)
+	{}
 
 	// FIXME: For now this is like this because the function to
 	// open files does not accept 'string_view' as parameter
-	void add_target_file(std::string const& file_path)
+	void add_target_file(const std::string& file_path)
 	{
 		auto source = source_manager_.add_target_file(file_path);
 		if (current_lexer_ != nullptr) {
 			lexer_stack_.push_back(std::move(current_lexer_));
 		}
-		current_lexer_ = std::make_unique<lexer>(source->offset(),
-		                                         source->content());
+		current_lexer_ = std::make_unique<lexer>(source->offset(), source->content());
 	}
 
 	void add_target_buffer(const std::string_view buffer)
@@ -51,8 +50,8 @@ public:
 		if (current_lexer_ != nullptr) {
 			lexer_stack_.push_back(std::move(current_lexer_));
 		}
-		current_lexer_ = std::make_unique<lexer>(source->offset(),
-		                                         source->content());
+		lexer_stack_.push_back(std::move(current_lexer_));
+		current_lexer_ = std::make_unique<lexer>(source->offset(), source->content());
 	}
 
 	token next_token()

@@ -40,6 +40,10 @@ public:
 	    : storage_(num_rows)
 	{}
 
+	bit_matrix_cm(size_type num_rows, size_type num_columns)
+	    : storage_(num_rows, num_columns)
+	{}
+
 	template<typename ValueType>
 	bit_matrix_cm(size_type num_rows, std::vector<ValueType> const& columns)
 	    : storage_(num_rows, columns)

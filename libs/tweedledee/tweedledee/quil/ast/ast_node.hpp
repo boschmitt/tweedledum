@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "ast_node_kinds.hpp"
@@ -91,8 +91,7 @@ public:
 protected:
 	void add_child(std::unique_ptr<T> ptr)
 	{
-		children_.push_back(static_cast<Derived*>(this),
-		                    std::move(ptr));
+		children_.push_back(static_cast<Derived*>(this), std::move(ptr));
 	}
 
 	~ast_node_container() = default;

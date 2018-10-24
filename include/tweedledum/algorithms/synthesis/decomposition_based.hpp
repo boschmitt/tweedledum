@@ -23,7 +23,9 @@
 
 namespace tweedledum {
 
+/*! \brief Parameters for `decomposition_based_synthesis`. */
 struct decomposition_based_synthesis_params {
+	/*! \brief Be verbose. */
 	bool verbose{false};
 };
 
@@ -92,6 +94,27 @@ control_function_abs(uint32_t num_vars, std::vector<uint16_t> const& perm)
 
 } // namespace detail
 
+/*! \brief Reversible synthesis based on functional decomposition.
+ *
+   \verbatim embed:rst
+   This algorithm implements the decomposition-based synthesis algorithm
+   proposed in :cite:`VR08`.  A permutation is specified as a vector of
+   :math:`2^n` different integers ranging from :math:`0` to :math:`2^n-1`.
+
+   .. code-block:: c++
+
+      std::vector<uint16_t> perm{{0, 2, 3, 5, 7, 1, 4, 6}};
+      auto circ = decomposition_based_synthesis<gg_network<mcst_gate>>(perm, stg_from_spectrum());
+   \endverbatim
+ *
+ * \param perm Input permutation
+ * \param stg_synth Synthesis function for single-target gates
+ * \param ps Parameters
+ * 
+ * \algtype synthesis
+ * \algexpects Permutation
+ * \algreturns Quantum or reversible circuit
+ */
 template<class Network, class STGSynthesisFn>
 Network decomposition_based_synthesis(std::vector<uint16_t>& perm, STGSynthesisFn&& stg_synth,
                                       decomposition_based_synthesis_params const& ps = {})

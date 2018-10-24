@@ -33,6 +33,11 @@ struct bit_matrix {
 	    , lines_()
 	{}
 
+	bit_matrix(size_type num_bits_per_line, size_type num_lines)
+	    : num_bits_per_line_(num_bits_per_line)
+	    , lines_(num_lines, line_type(num_bits_per_line, false))
+	{}
+
 	template<typename ValueType>
 	bit_matrix(size_type num_bits_per_line, std::vector<ValueType> const& words)
 	    : num_bits_per_line_(0)

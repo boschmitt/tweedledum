@@ -1,8 +1,8 @@
-/*------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*-----------------------------------------------------------------------------*/
+*------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../ast_node.hpp"
@@ -19,11 +19,9 @@ namespace quil {
  */
 class expr_real final : public ast_node {
 public:
-	static std::unique_ptr<expr_real> build(uint32_t location,
-	                                        float value)
+	static std::unique_ptr<expr_real> build(uint32_t location, float value)
 	{
-		auto result = std::unique_ptr<expr_real>(
-		    new expr_real(location, value));
+		auto result = std::unique_ptr<expr_real>(new expr_real(location, value));
 		return result;
 	}
 
@@ -46,8 +44,8 @@ private:
 	void do_print(std::ostream& out) const override
 	{
 		using namespace rang;
-		out << style::bold << fgB::magenta << "expr_real "
-		    << style::reset << fg::cyan << value_ << fg::reset;
+		out << style::bold << fgB::magenta << "expr_real " << style::reset << fg::cyan
+		    << value_ << fg::reset;
 	}
 
 private:
