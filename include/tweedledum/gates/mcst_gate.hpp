@@ -196,6 +196,7 @@ public:
 			}
 		}
 		assert(0);
+		return static_cast<uint32_t>(qubits_.size());
 	}
 #pragma endregion
 
