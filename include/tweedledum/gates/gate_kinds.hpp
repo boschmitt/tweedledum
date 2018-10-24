@@ -109,4 +109,36 @@ static inline gate_kinds_t gate_adjoint(gate_kinds_t kind)
 	}
 }
 
+static inline gate_kinds_t gate_merge_z_rotations(gate_kinds_t kind0, gate_kinds_t kind1)
+{
+	if (kind0 == gate_kinds_t::rotation_z || kind1 == gate_kinds_t::rotation_z) {
+		return gate_kinds_t::rotation_z;
+	}
+	constexpr auto id = static_cast<uint32_t>(gate_kinds_t::identity);
+	auto k0 = static_cast<uint32_t>(kind0) - id;
+	auto k1 = static_cast<uint32_t>(kind1) - id;
+	return static_cast<gate_kinds_t>(((k0 + k1) % 8) + id);
+}
+
+static inline bool gate_is_z_rotation(gate_kinds_t kind)
+{
+	switch (kind) {
+	case gate_kinds_t::t:
+	case gate_kinds_t::phase:
+	case gate_kinds_t::t3:
+	case gate_kinds_t::pauli_z:
+	case gate_kinds_t::t5:
+	case gate_kinds_t::phase_dagger:
+	case gate_kinds_t::t_dagger:
+	case gate_kinds_t::rotation_z:
+	case gate_kinds_t::cz:
+	case gate_kinds_t::mcz:
+		return true;
+
+	default:
+		break;
+	}
+	return false;
+}
+
 } // namespace tweedledum
