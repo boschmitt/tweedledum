@@ -32,9 +32,9 @@
 
 #pragma once
 
-#include <lorina/common.hpp>
-#include <lorina/diagnostics.hpp>
-#include <lorina/detail/utils.hpp>
+#include "common.hpp"
+#include "diagnostics.hpp"
+#include "detail/utils.hpp"
 #include <cassert>
 #include <fstream>
 #include <iostream>
