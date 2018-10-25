@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../gates/gate_kinds.hpp"
+#include "../remove_marked.hpp"
 #include "cnot_patel.hpp"
 
 #include <cmath>
@@ -89,9 +90,8 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
 				best_partition_size = p;
 				best_permutation = perm;
 			}
-			// Dont understand this:
-			// net.remove_marked_nodes();
-			// assert(net.num_gates() == old_size);
+			net = remove_marked(net);
+			assert(net.num_gates() == old_size);
 		}
 	} while (find_best_perm && std::next_permutation(perm.begin(), perm.end()));
 	net.default_mark(0);
