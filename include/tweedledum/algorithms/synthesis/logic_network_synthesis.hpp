@@ -86,9 +86,9 @@ private:
 };
 
 template<class LogicNetwork>
-class bennett_mapping_inplace_strategy {
+class bennett_inplace_mapping_strategy {
 public:
-	bennett_mapping_inplace_strategy(LogicNetwork const& ntk)
+	bennett_inplace_mapping_strategy(LogicNetwork const& ntk)
 	{
 		// clang-format off
 		static_assert(mt::is_network_type_v<LogicNetwork>, "LogicNetwork is not a network type");
@@ -111,8 +111,8 @@ public:
 		ntk.foreach_node([&](const auto& n) { ntk.set_value(n, ntk.fanout_size(n)); });
 
 		auto it = steps.begin();
-		mt::topo_view view{ntk};
-		view.foreach_node([&](auto n) {
+		//mt::topo_view view{ntk};
+		ntk.foreach_node([&](auto n) {
 			if (ntk.is_constant(n) || ntk.is_pi(n))
 				return true;
 
@@ -120,7 +120,7 @@ public:
 			int target{-1};
 			ntk.foreach_fanin(n, [&](auto f) {
 				if (ntk.decr_value(ntk.get_node(f)) == 0) {
-					if (target != -1) {
+					if (target == -1) {
 						target = ntk.node_to_index(ntk.get_node(f));
 					}
 				}
@@ -131,20 +131,24 @@ public:
 				if constexpr (mt::has_is_xor_v<LogicNetwork>) {
 					if (ntk.is_xor(n)) {
 						it = steps.insert(it, {n, compute_inplace_action{
-						                              target}});
+						                              static_cast<uint32_t>(
+						                                  target)}});
 						++it;
 						it = steps.insert(it, {n, uncompute_inplace_action{
-						                              target}});
+						                              static_cast<uint32_t>(
+						                                  target)}});
 						return true;
 					}
 				}
 				if constexpr (mt::has_is_xor3_v<LogicNetwork>) {
 					if (ntk.is_xor3(n)) {
 						it = steps.insert(it, {n, compute_inplace_action{
-						                              target}});
+						                              static_cast<uint32_t>(
+						                                  target)}});
 						++it;
 						it = steps.insert(it, {n, uncompute_inplace_action{
-						                              target}});
+						                              static_cast<uint32_t>(
+						                                  target)}});
 						return true;
 					}
 				}
@@ -198,26 +202,44 @@ public:
 
 		MappingStrategy strategy{ntk};
 		strategy.foreach_step([&](auto node, auto action) {
-			std::visit(overloaded{[](auto arg) {},
-			                      [&](compute_action const&) {
-				                      if (ps.verbose)
-					                      std::cout << "[i] compute "
-					                                << ntk.node_to_index(node)
-					                                << "\n";
-				                      const auto t = node_to_qubit[node]
-				                          = request_ancilla();
-				                      compute_node(node, t);
-			                      },
-			                      [&](uncompute_action const&) {
-				                      if (ps.verbose)
-					                      std::cout << "[i] uncompute "
-					                                << ntk.node_to_index(node)
-					                                << "\n";
-				                      const auto t = node_to_qubit[node];
-				                      compute_node(node, t);
-				                      release_ancilla(t);
-			                      }},
-			           action);
+			std::visit(
+			    overloaded{
+			        [](auto arg) {},
+			        [&](compute_action const&) {
+				        if (ps.verbose)
+					        std::cout << "[i] compute "
+					                  << ntk.node_to_index(node) << "\n";
+				        const auto t = node_to_qubit[node] = request_ancilla();
+				        compute_node(node, t);
+			        },
+			        [&](uncompute_action const&) {
+				        if (ps.verbose)
+					        std::cout << "[i] uncompute "
+					                  << ntk.node_to_index(node) << "\n";
+				        const auto t = node_to_qubit[node];
+				        compute_node(node, t);
+				        release_ancilla(t);
+			        },
+			        [&](compute_inplace_action const& action) {
+				        if (ps.verbose)
+					        std::cout << "[i] compute "
+					                  << ntk.node_to_index(node)
+					                  << " inplace onto " << action.target_index
+					                  << "\n";
+				        const auto t = node_to_qubit[node]
+				            = node_to_qubit[ntk.index_to_node(action.target_index)];
+				        compute_node_inplace(node, t);
+			        },
+			        [&](uncompute_inplace_action const& action) {
+				        if (ps.verbose)
+					        std::cout << "[i] uncompute "
+					                  << ntk.node_to_index(node)
+					                  << " inplace onto " << action.target_index
+					                  << "\n";
+				        const auto t = node_to_qubit[node];
+				        compute_node_inplace(node, t);
+			        }},
+			    action);
 		});
 	}
 
@@ -370,6 +392,43 @@ private:
 		}
 	}
 
+	void compute_node_inplace(mt::node<LogicNetwork> const& node, uint32_t t)
+	{
+		if constexpr (mt::has_is_xor_v<LogicNetwork>) {
+			if (ntk.is_xor(node)) {
+				auto controls = get_fanin_as_literals<2>(node);
+				compute_xor_inplace(node_to_qubit[ntk.index_to_node(controls[0] >> 1)],
+				                    node_to_qubit[ntk.index_to_node(controls[0] >> 1)],
+				                    (controls[0] & 1) != (controls[1] & 1), t);
+				return;
+			}
+		}
+		if constexpr (mt::has_is_xor3_v<LogicNetwork>) {
+			if (ntk.is_xor3(node)) {
+				auto controls = get_fanin_as_literals<3>(node);
+
+				/* Is XOR3 in fact an XOR2? */
+				if (ntk.is_constant(ntk.index_to_node(controls[0] >> 1))) {
+					compute_xor_inplace(
+					    node_to_qubit[ntk.index_to_node(controls[1] >> 1)],
+					    node_to_qubit[ntk.index_to_node(controls[2] >> 1)],
+					    ((controls[0] & 1) != (controls[1] & 1))
+					        != (controls[2] & 1),
+					    t);
+				} else {
+					compute_xor3_inplace(
+					    node_to_qubit[ntk.index_to_node(controls[0] >> 1)],
+					    node_to_qubit[ntk.index_to_node(controls[1] >> 1)],
+					    node_to_qubit[ntk.index_to_node(controls[2] >> 1)],
+					    ((controls[0] & 1) != (controls[1] & 1))
+					        != (controls[2] & 1),
+					    t);
+				}
+				return;
+			}
+		}
+	}
+
 	void compute_and(uint32_t c1, uint32_t c2, bool p1, bool p2, uint32_t t)
 	{
 		if (p1)
@@ -447,6 +506,37 @@ private:
 		stg_from_pprm()(qnet, function, qubit_map);
 	}
 
+	void compute_xor_inplace(uint32_t c1, uint32_t c2, bool inv, uint32_t t)
+	{
+		if (c1 == t) {
+			qnet.add_gate(gate_kinds_t::cx, c2, c1);
+		} else if (c2 == t) {
+			qnet.add_gate(gate_kinds_t::cx, c1, c2);
+		} else {
+			std::cerr << "[e] target does not match any control in in-place\n";
+		}
+		if (inv)
+			qnet.add_gate(gate_kinds_t::pauli_x, t);
+	}
+
+	void compute_xor3_inplace(uint32_t c1, uint32_t c2, uint32_t c3, bool inv, uint32_t t)
+	{
+		if (c1 == t) {
+			qnet.add_gate(gate_kinds_t::cx, c2, c1);
+			qnet.add_gate(gate_kinds_t::cx, c3, c1);
+		} else if (c2 == t) {
+			qnet.add_gate(gate_kinds_t::cx, c1, c2);
+			qnet.add_gate(gate_kinds_t::cx, c3, c2);
+		} else if (c3 == t) {
+			qnet.add_gate(gate_kinds_t::cx, c1, c3);
+			qnet.add_gate(gate_kinds_t::cx, c2, c3);
+		} else {
+			std::cerr << "[e] target does not match any control in in-place\n";
+		}
+		if (inv)
+			qnet.add_gate(gate_kinds_t::pauli_x, t);
+	}
+
 private:
 	QuantumNetwork& qnet;
 	LogicNetwork const& ntk;
@@ -468,7 +558,7 @@ private:
  * function.
  */
 template<class QuantumNetwork, class LogicNetwork,
-         class MappingStrategy = bennett_mapping_strategy<LogicNetwork>>
+         class MappingStrategy = bennett_inplace_mapping_strategy<LogicNetwork>>
 void logic_network_synthesis(QuantumNetwork& qnet, LogicNetwork const& ntk,
                              logic_network_synthesis_params const& ps = {})
 {
