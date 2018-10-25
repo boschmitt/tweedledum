@@ -18,6 +18,12 @@ Welcome to tweedledum's documentation!
 
 .. toctree::
    :maxdepth: 2
+   :caption: I/O
+
+   io/print
+
+.. toctree::
+   :maxdepth: 2
 
    references
 
