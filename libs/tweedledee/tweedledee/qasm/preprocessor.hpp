@@ -15,18 +15,18 @@
 #include <vector>
 
 namespace tweedledee {
-namespace quil {
+namespace qasm {
 
 // This is the class able to handle include's. You see, lexers know only about
 // tokens within a single source file.
 class preprocessor {
-	using lexer_pointer = std::unique_ptr<lexer>;
+	using LexerPtr = std::unique_ptr<lexer>;
 
 	source_manager& source_manager_;
 
-	std::vector<lexer_pointer> lexer_stack_;
+	std::vector<LexerPtr> lexer_stack_;
 	// The current top of the stack that we're lexing from.
-	lexer_pointer current_lexer_ = nullptr;
+	LexerPtr current_lexer_ = nullptr;
 
 public:
 	preprocessor(source_manager& source_manager)
@@ -86,12 +86,12 @@ private:
 		}
 		std::string_view target = token;
 		token = current_lexer_->next_token();
-		if (token.kind != token_kinds::new_line) {
-			std::cerr << "Missing a new_line\n";
+		if (token.kind != token_kinds::semicolon) {
+			std::cerr << "Missing a ';'\n";
 		}
 		add_target_file(std::string(target.substr(1, target.length() - 2)));
 	}
 };
 
-} // namespace quil
+} // namespace qasm
 } // namespace tweedledee
