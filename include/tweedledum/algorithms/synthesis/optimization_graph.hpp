@@ -37,7 +37,7 @@ public:
 	    , pairing(pairing)
 	{}
 
-	uint get_num_pairs = pairing.size();
+	uint64_t get_num_pairs = pairing.size();
 	void print()
 	{
 		std::cout << "Ordered cubes for optimized esop:" << std::endl;
@@ -57,11 +57,11 @@ class optimization_graph {
 	struct edge {
 		int from;
 		int to;
-		uint weight = 0;
+		uint64_t weight = 0;
 		bool matched = false;
 		int type;
 
-		edge(int from, int to, uint weight, int type)
+		edge(int from, int to, uint64_t weight, int type)
 		    : from(from)
 		    , to(to)
 		    , weight(weight)
@@ -171,7 +171,7 @@ public:
 			}
 		}
 
-		for (uint i = 0; i < esop.size(); i++) {
+		for (uint64_t i = 0; i < esop.size(); i++) {
 			if (std::find(m_nodes.begin(), m_nodes.end(), i) == m_nodes.end())
 				cubes.push_back(esop[i]);
 		}
