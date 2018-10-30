@@ -131,12 +131,14 @@ Network nct_mapping(Network const& src, nct_mapping_params const& params = {})
 			default:
 				std::vector<uint32_t> controls;
 				std::vector<uint32_t> targets;
-				gate.foreach_control([&](auto control) { controls.push_back(control); });
+				gate.foreach_control(
+				    [&](auto control) { controls.push_back(control); });
 				gate.foreach_target([&](auto target) { targets.push_back(target); });
 				for (auto i = 1ull; i < targets.size(); ++i) {
 					dest.add_gate(gate_kinds_t::cx, targets[0], targets[i]);
 				}
-				detail::tofolli_barrenco_decomposition(dest, controls, targets[0], params);
+				detail::tofolli_barrenco_decomposition(dest, controls, targets[0],
+				                                       params);
 				for (auto i = 1ull; i < targets.size(); ++i) {
 					dest.add_gate(gate_kinds_t::cx, targets[0], targets[i]);
 				}
@@ -147,7 +149,16 @@ Network nct_mapping(Network const& src, nct_mapping_params const& params = {})
 		return false;
 	};
 
-	constexpr auto num_ancillae = 1u;
+	auto num_ancillae = 0u;
+	src.foreach_node([&](auto const& n) {
+		if (n.gate.is(gate_kinds_t::mcx) && n.gate.num_controls() > 2
+		    && n.gate.num_controls() + 1 == src.num_qubits()) {
+			num_ancillae = 1u;
+			return false;
+		}
+		return true;
+	});
+
 	Network dest;
 	rewrite_network(dest, src, gate_rewriter, num_ancillae);
 	return dest;
