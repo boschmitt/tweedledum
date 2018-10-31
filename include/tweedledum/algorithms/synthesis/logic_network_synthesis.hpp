@@ -329,7 +329,7 @@ private:
 			if (ntk.is_xor(node)) {
 				auto controls = get_fanin_as_literals<2>(node);
 				compute_xor(node_to_qubit[ntk.index_to_node(controls[0] >> 1)],
-				            node_to_qubit[ntk.index_to_node(controls[0] >> 1)],
+				            node_to_qubit[ntk.index_to_node(controls[1] >> 1)],
 				            (controls[0] & 1) != (controls[1] & 1), t);
 				return;
 			}
@@ -398,7 +398,7 @@ private:
 			if (ntk.is_xor(node)) {
 				auto controls = get_fanin_as_literals<2>(node);
 				compute_xor_inplace(node_to_qubit[ntk.index_to_node(controls[0] >> 1)],
-				                    node_to_qubit[ntk.index_to_node(controls[0] >> 1)],
+				                    node_to_qubit[ntk.index_to_node(controls[1] >> 1)],
 				                    (controls[0] & 1) != (controls[1] & 1), t);
 				return;
 			}
