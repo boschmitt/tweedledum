@@ -37,6 +37,6 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/gdg_network.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/views/slice_view.cpp")
 
-add_executable(tweedledum_run_tests EXCLUDE_FROM_ALL "${tweedledum_tests_files}")
+add_executable(tweedledum_run_tests "${tweedledum_tests_files}")
 target_link_libraries(tweedledum_run_tests tweedledum)
 add_dependencies(tweedledum_tests tweedledum_run_tests)
