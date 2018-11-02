@@ -13,6 +13,7 @@
 #include <list>
 #include <stack>
 #include <vector>
+#include <kitty/detail/mscfix.hpp>
 
 namespace tweedledum {
 

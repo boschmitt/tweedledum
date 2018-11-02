@@ -40,7 +40,7 @@ public:
 	lexer(uint32_t start_location, std::string_view content)
 	    : start_location_(start_location)
 	    , buffer_(content)
-	    , buffer_ptr_(buffer_.begin())
+	    , buffer_ptr_(buffer_.data())
 	    , line_beginning_(true)
 	{}
 
@@ -54,7 +54,7 @@ private:
 	// Return current token location.
 	uint32_t current_location() const
 	{
-		return start_location_ + (buffer_ptr_ - buffer_.begin());
+		return start_location_ + (buffer_ptr_ - buffer_.data());
 	}
 
 	// Skip over a series of whitespace characters. Update buffer_ptr_ to
