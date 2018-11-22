@@ -35,7 +35,7 @@ struct stg_from_pprm {
 	 */
 	template<class Network>
 	void operator()(Network& network, kitty::dynamic_truth_table const& function,
-	                std::vector<uint32_t> const& qubit_map)
+	                std::vector<uint32_t> const& qubit_map) const
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubit_map.size() == static_cast<std::size_t>(num_controls) + 1u);
@@ -68,7 +68,7 @@ struct stg_from_pkrm {
 	 */
 	template<class Network>
 	void operator()(Network& net, kitty::dynamic_truth_table const& function,
-	                std::vector<uint32_t> const& qubit_map)
+	                std::vector<uint32_t> const& qubit_map) const
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubit_map.size() == static_cast<std::size_t>(num_controls) + 1u);
@@ -116,7 +116,7 @@ struct stg_from_spectrum {
 	    : ps_(ps)
 	{}
 
-	inline double pi()
+	inline double pi() const
 	{
 		static double _pi = std::atan(1) * 4;
 		return _pi;
@@ -130,7 +130,7 @@ struct stg_from_spectrum {
 	 */
 	template<class Network>
 	void operator()(Network& net, kitty::dynamic_truth_table const& function,
-	                std::vector<uint32_t> const& qubit_map)
+	                std::vector<uint32_t> const& qubit_map) const
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubit_map.size() == num_controls + 1u);
