@@ -72,6 +72,7 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
 	std::iota(best_permutation.begin(), best_permutation.end(), 0u);
 	uint32_t best_partition_size{1};
 
+#if 0
 	/* we mark all nodes added by cnot_patel so that we can remove them
 	 * after we computed the improvement. */
 	net.default_mark(1);
@@ -96,6 +97,7 @@ void add_remainder_network(Network& net, std::vector<uint32_t>& matrix,
 	} while (find_best_perm && std::next_permutation(perm.begin(), perm.end()));
 	net.default_mark(0);
 	matrix = permute(matrix, best_permutation.begin(), best_permutation.end());
+#endif
 	cnot_patel(net, matrix, best_partition_size, qubits_map);
 	// std::cout << "required gates: " << (net.num_gates() - old_size) << "\n";
 }
