@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 # Options
 # =============================================================================
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
+option(TWEEDLEDUM_TESTS "Build tests" OFF)
 
 # Libs
 # =============================================================================
@@ -24,5 +25,8 @@ target_link_libraries(tweedledum INTERFACE fmt)
 # Examples
 # =============================================================================
 if(TWEEDLEDUM_EXAMPLES)
-  add_subdirectory(examples EXCLUDE_FROM_ALL)
+# Tests
+# =============================================================================
+if(TWEEDLEDUM_TESTS)
+  add_subdirectory(tests)
 endif()
