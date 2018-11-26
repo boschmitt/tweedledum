@@ -1,0 +1,41 @@
+/*-------------------------------------------------------------------------------------------------
+| This file is distributed under the MIT License.
+| See accompanying file /LICENSE for details.
+| Author(s): Bruno Schmitt
+*------------------------------------------------------------------------------------------------*/
+#ifndef GATE
+#define GATE(X, Y, Z, W)
+#endif
+
+/* Meta gates */
+GATE(undefined, undefined, '-', "Undefined")
+GATE(unknown,   undefined, '-', "Unknown")
+GATE(input,     undefined, '-', "Input")
+GATE(output,    undefined, '-', "Output")
+
+/* Single-qubit gates */
+GATE(identity, identity, '-', "Identity")
+GATE(hadamard, hadamard, '-', "Hadamard")
+// Arbitrary rotations
+GATE(rotation_x, rotation_x, 'x', "Arbitrary rotation X")
+GATE(rotation_y, rotation_y, 'y', "Arbitrary rotation Y")
+GATE(rotation_z, rotation_z, 'y', "Arbitrary rotation Z")
+// Other rotations
+GATE(pauli_x, pauli_x, 'x', "Pauli-X (aka NOT gate)")
+GATE(pauli_y, pauli_x, 'y', "Pauli-Y")
+// Phase shift
+GATE(t,            t_dagger,     'z', "T")
+GATE(phase,        phase_dagger, 'z', "Phase (P) (aka Sqrt(Z))")
+GATE(pauli_z,      pauli_z,      'z', "Pauli-Z (Z)")
+GATE(phase_dagger, phase,        'z', "Conjugate transpose of Phase")
+GATE(t_dagger,     t,            'z', "Conjugate transpose of T")
+
+/* Two-qubit gates */
+GATE(cx, cx, 'x', "Control Not")
+GATE(cz, cz, 'z', "Control Pauli-Z")
+
+/* Multiple-qubit gates */
+GATE(mcx, mcx, 'x', "Multiple Control Not (aka Toffoli)")
+GATE(mcz, mcz, 'z', "Multiple Control Pauli-Z")
+
+#undef GATE
