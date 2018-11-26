@@ -14,6 +14,13 @@ option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 # Libs
 # =============================================================================
 add_subdirectory(libs)
+
+# Library
+# =============================================================================
+add_library(tweedledum INTERFACE)
+target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(tweedledum INTERFACE fmt)
+
 # Examples
 # =============================================================================
 if(TWEEDLEDUM_EXAMPLES)
