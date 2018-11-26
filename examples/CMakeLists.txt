@@ -1,5 +1,5 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt < bruno [at] oschmitt [dot] com >
+# Author(s): Bruno Schmitt
 add_compile_options(
   -fno-rtti
   -W
@@ -8,5 +8,11 @@ add_compile_options(
 
 add_custom_target(examples COMMENT "Build all examples.")
 
-add_executable(hello_world "hello_world.cpp")
-add_dependencies(examples hello_world)
+file(GLOB FILENAMES *.cpp)
+
+foreach(filename ${FILENAMES})
+  get_filename_component(basename ${filename} NAME_WE)
+  add_executable(${basename} ${filename})
+  target_link_libraries(${basename} PUBLIC tweedledum)
+  add_dependencies(examples ${basename})
+endforeach()
