@@ -3,9 +3,6 @@
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
-#ifndef CATCH_CONFIG_MAIN
-#define CATCH_CONFIG_MAIN
-#endif
 #include <algorithm>
 #include <catch.hpp>
 #include <random>
