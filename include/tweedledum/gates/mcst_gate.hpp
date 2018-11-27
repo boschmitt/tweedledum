@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cstdint>
 #include <type_traits>
+#include <vector>
 
 namespace tweedledum {
 
@@ -235,8 +236,8 @@ private:
 		}
 	}
 
-	// 24 bytes of memory, still have 2 bytes available
 private:
+	// 24 bytes of memory, still have 2 bytes available
 	operation operation_;
 	uint8_t target_;
 	angle rotation_angle_;

@@ -12,7 +12,7 @@
 #include <tweedledum/gates/operation.hpp>
 #include <vector>
 
-TEST_CASE("Constructor", "[mcst_gate]")
+TEST_CASE("MCST gate constructor", "[mcst_gate]")
 {
 	using namespace tweedledum;
 	// Generate random qubit ids
@@ -62,7 +62,7 @@ TEST_CASE("Constructor", "[mcst_gate]")
 	}
 }
 
-TEST_CASE("Iterators", "[mcst_gate]")
+TEST_CASE("MCST gate iterators", "[mcst_gate]")
 {
 	using namespace tweedledum;
 	// Generate random qubit ids
