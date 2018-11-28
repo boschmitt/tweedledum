@@ -1,8 +1,8 @@
-/*-------------------------------------------------------------------------------------------------
+/*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 | Author(s): Bruno Schmitt
-*------------------------------------------------------------------------------------------------*/
+*-------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../networks/qubit.hpp"
@@ -145,7 +145,7 @@ public:
 	}
 #pragma endregion
 
-#pragma region Iterators
+#pragma region Const iterators
 	/*! \brief Calls ``fn`` on every target qubit of the gate.
 	 *
 	 * The paramater ``fn`` is any callable that must have one of the following two signatures.
