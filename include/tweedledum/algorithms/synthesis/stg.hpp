@@ -24,6 +24,48 @@
 
 namespace tweedledum {
 
+/*! \brief Synthesize a quantum network from a function by computing PKRM representation */
+struct stg_from_pkrm {
+	/*! \brief Synthesize into a _existing_ quantum network
+	 *
+	 * \param network  A quantum network
+	 * \param qubits   The subset of qubits the gate acts upon.
+	 * \param function 
+	 */
+	template<class Network>
+	void operator()(Network& network, std::vector<uint32_t> const& qubits,
+	                kitty::dynamic_truth_table const& function)
+	{
+		const auto num_controls = function.num_vars();
+		assert(qubits.size() == static_cast<std::size_t>(num_controls) + 1u);
+
+		std::vector<uint32_t> target = {qubits.back()};
+		for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
+			std::vector<uint32_t> controls;
+			std::vector<uint32_t> negations;
+			auto bits = cube._bits;
+			auto mask = cube._mask;
+			for (auto v = 0; v < num_controls; ++v) {
+				if (mask & 1) {
+					controls.push_back(qubits[v]);
+					if (!(bits & 1)) {
+						negations.push_back(qubits[v]);
+					}
+				}
+				bits >>= 1;
+				mask >>= 1;
+			}
+			for (auto n : negations) {
+				network.add_gate(gate_set::pauli_x, n);
+			}
+			network.add_gate(gate_set::mcx, controls, target);
+			for (auto n : negations) {
+				network.add_gate(gate_set::pauli_x, n);
+			}
+		}
+	}
+};
+
 /*! \brief Synthesize a quantum network from a function by computing PPRM representation
  *
  * PPRM: The positive polarity Reed-Muller form is an ESOP, where each variable has
