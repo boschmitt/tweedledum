@@ -93,7 +93,7 @@ public:
 	    , targets_(0)
 	    , rotation_angle_(rotation_angle)
 	{
-		assert(qids_control.size() >= 0 && qids_control.size() <= max_num_qubits);
+		assert(qids_control.size() <= max_num_qubits);
 		assert(qid_target.size() > 0 && qid_target.size() <= max_num_qubits);
 		for (auto control : qids_control) {
 			assert(control <= network_max_num_qubits);
