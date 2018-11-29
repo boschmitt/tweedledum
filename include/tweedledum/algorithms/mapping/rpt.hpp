@@ -285,7 +285,15 @@ Network rpt(Network const& src)
 		return false;
 	};
 
-	constexpr auto num_ancillae = 1u;
+	auto num_ancillae = 0u;
+	src.foreach_cgate([&](auto const& node) {
+		if (node.gate.op().is(gate_set::mcx) && node.gate.num_controls() > 2
+		    && node.gate.num_controls() + 1 == src.num_qubits()) {
+			num_ancillae = 1u;
+			return false;
+		}
+		return true;
+	});
 	Network dest;
 	rewrite_network(dest, src, gate_rewriter, num_ancillae);
 	return dest;
