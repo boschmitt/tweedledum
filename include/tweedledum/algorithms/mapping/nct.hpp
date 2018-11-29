@@ -25,7 +25,7 @@ void tofolli_barrenco_decomposition(Network& network, std::vector<uint32_t> cons
 	assert(num_controls >= 2);
 
 	if (num_controls <= controls_threshold) {
-		network.add_gate(gate_set::mcx, {target}, controls);
+		network.add_gate(gate_set::mcx, controls, {target});
 		return;
 	}
 
@@ -84,10 +84,11 @@ void tofolli_barrenco_decomposition(Network& network, std::vector<uint32_t> cons
 	for (auto i = (num_controls >> 1); i < num_controls; ++i) {
 		controls1.push_back(controls[i]);
 	}
-	controls1.push_back(workspace_size);
-	tofolli_barrenco_decomposition(network, controls0, workspace_size, controls_threshold);
+	auto free_qubit = workspace.front();
+	controls1.push_back(free_qubit);
+	tofolli_barrenco_decomposition(network, controls0, free_qubit, controls_threshold);
 	tofolli_barrenco_decomposition(network, controls1, target, controls_threshold);
-	tofolli_barrenco_decomposition(network, controls0, workspace_size, controls_threshold);
+	tofolli_barrenco_decomposition(network, controls0, free_qubit, controls_threshold);
 	tofolli_barrenco_decomposition(network, controls1, target, controls_threshold);
 }
 
