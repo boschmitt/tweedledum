@@ -175,25 +175,31 @@ public:
 #pragma region Const iterators
 	/*! \brief Calls ``fn`` on every qubit in the network.
 	 *
-	 * The paramater ``fn`` is any callable that must have one of the following two signatures.
+	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
 	 * - ``void(uint32_t qid)``
+	 * - ``void(string const& qlabel)``
 	 * - ``void(uint32_t qid, string const& qlabel)``
 	 */
 	template<typename Fn>
 	void foreach_cqubit(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, uint32_t, std::string const&> ||
-		              std::is_invocable_r_v<void, Fn, uint32_t>);
+		static_assert(std::is_invocable_r_v<void, Fn, uint32_t> ||
+		              std::is_invocable_r_v<void, Fn, std::string const&> || 
+			      std::is_invocable_r_v<void, Fn, uint32_t, std::string const&>);
 		// clang-format on
-		if constexpr (std::is_invocable_r_v<void, Fn, uint32_t, std::string const&>) {
+		if constexpr (std::is_invocable_r_v<void, Fn, uint32_t>) {
+			for (auto qid = 0u; qid < num_qubits(); ++qid) {
+				fn(qid);
+			}
+		} else if constexpr (std::is_invocable_r_v<void, Fn, std::string const&>) {
+			for (auto const& qlabel : *qlabels_) {
+				fn(qlabel);
+			}
+		} else {
 			auto qid = 0u;
 			for (auto const& qlabel : *qlabels_) {
 				fn(qid++, qlabel);
-			}
-		} else {
-			for (auto qid = 0u; qid < num_qubits(); ++qid) {
-				fn(qid);
 			}
 		}
 	}
