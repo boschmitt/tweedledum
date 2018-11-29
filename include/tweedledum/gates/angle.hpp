@@ -70,6 +70,16 @@ public:
 		return numeric_value() == angle;
 	}
 
+	bool operator!=(symbolic_angles angle) const
+	{
+		return symbolic_ != angle;
+	}
+
+	bool operator!=(float angle) const
+	{
+		return numeric_value() != angle;
+	}
+
 	/* When one of the rotation angles is defined numerically, the resulting rotation angle
 	 * will be numerically defined.
 	 *
