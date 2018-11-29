@@ -37,7 +37,7 @@ struct operation {
 
 	constexpr auto is_single_qubit() const
 	{
-		return (value >= gate_set::identity && value <= gate_set::t_dagger);
+		return (value >= gate_set::input && value <= gate_set::t_dagger);
 	}
 
 	constexpr auto is_double_qubit() const
