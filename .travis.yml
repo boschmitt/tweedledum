@@ -4,7 +4,7 @@ script:
   - mkdir build
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DTWEEDLEDUM_TESTS=ON ..
-  - make tweedledum_run_tests
+  - make run_tests
 
 matrix:
   include:
