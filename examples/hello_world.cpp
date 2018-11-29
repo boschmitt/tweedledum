@@ -6,6 +6,7 @@
 #include <iostream>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
 
 int main(int argc, char** argv)
@@ -20,4 +21,6 @@ int main(int argc, char** argv)
 	network.add_gate(gate_set::hadamard, "q0");
 	network.add_gate(gate_set::cx, "q0", "q1");
 	std::cout << "Hello world!\n";
+	write_unicode(network);
+
 }
