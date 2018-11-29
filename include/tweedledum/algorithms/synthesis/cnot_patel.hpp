@@ -244,8 +244,7 @@ Network cnot_patel(Matrix const& matrix, cnot_patel_params params = {})
 	assert(params.best_partition_size || (params.partition_size >= 1 && params.partition_size <= 32));
 
 	Network network;
-	const auto [num_rows, num_columns] = matrix.size();
-	const auto num_qubits = num_rows;
+	const auto num_qubits = matrix.num_rows();
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}

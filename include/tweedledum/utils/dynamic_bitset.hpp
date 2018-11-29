@@ -194,7 +194,6 @@ public:
 		init_from_value(num_bits, value);
 	}
 
-	template<>
 	dynamic_bitset(size_type num_bits, bool value = false)
 	    : num_bits_(num_bits)
 	    , bits_(calculate_num_blocks(num_bits), value? ~block_type(0) : block_type(0))

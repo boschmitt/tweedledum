@@ -21,6 +21,15 @@
 #include <vector>
 
 namespace tweedledum {
+
+/*! \brief Parameters for `gray_synth`. */
+struct gray_synth_params {
+	cnot_patel_params cp_params = {
+		/*allow_rewiring*/ true,
+		/*best_partition_size*/ true
+	};
+};
+
 namespace detail {
 
 template<class Network>
@@ -36,14 +45,16 @@ class gray_synth_ftor {
 
 public:
 	gray_synth_ftor(Network& network, std::vector<uint32_t> const& qubits,
-	                parity_terms const& parities)
+	                parity_terms const& parities, gray_synth_params params)
 	    : network_(network)
 	    , qubits_(qubits)
 	    , parities_(parities)
 	    , parity_matrix_(num_qubits())
+	    , parameters_(params)
 	{
 		for (auto const& [term, angle] : parities) {
 			parity_matrix_.emplace_back_column(term);
+			(void) angle;
 		}
 		std::vector<uint32_t> selected_columns(parity_matrix_.num_columns());
 		std::iota(selected_columns.begin(), selected_columns.end(), 0u);
@@ -131,27 +142,16 @@ public:
 		}
 
 		// Finilize
-		// std::cout << "Outputs:\n";
-		// for (auto s : qubits_states) {
-		// 	std::cout << fmt::format("{:b}\n", s);
-		// }
-		// create id matrix
 		bit_matrix_rm transformation(num_qubits(), num_qubits());
 		transformation.foreach_row([](auto& row, const auto row_index) {
 			row[row_index] = 1; 
 		});
-		// transformation.print();
 
 		std::reverse(gates.begin(), gates.end());
 		for (const auto [control, target] : gates) {
 			transformation.row(target) ^= transformation.row(control);
 		}
-		// transformation.print();
-		cnot_patel_params parameters;
-		parameters.allow_rewiring = true;
-		parameters.best_partition_size = true;
-		cnot_patel(network_, qubits_, transformation, parameters);
-		// cnot_patel(network_, qubits_, transformation);
+		cnot_patel(network_, qubits_, transformation, parameters_.cp_params);
 	}
 
 private:
@@ -188,12 +188,10 @@ private:
 	parity_terms parities_;
 	matrix_type parity_matrix_;
 	std::vector<state_type> state_stack_;
+	gray_synth_params parameters_;
 };
 
 } // namespace detail
-
-/*! \brief Parameters for `gray_synth`. */
-using gray_synth_params = cnot_patel_params;
 
 /*! \brief Gray synthesis for {CNOT, Rz} networks.
  *
@@ -209,7 +207,7 @@ template<class Network>
 void gray_synth(Network& network, std::vector<uint32_t> const& qubits,
                 parity_terms const& parities, gray_synth_params params = {})
 {
-	detail::gray_synth_ftor synthesizer(network, qubits, parities);
+	detail::gray_synth_ftor synthesizer(network, qubits, parities, params);
 	synthesizer.synthesize();
 }
 

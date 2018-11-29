@@ -173,13 +173,13 @@ struct storage {
  */
 class qlabels_map {
 public:
-	constexpr auto map(uint32_t qid, std::string const& qlabel)
+	auto map(uint32_t qid, std::string const& qlabel)
 	{
 		qlabel_to_qid_.emplace(qlabel, qid);
 		qid_to_qlabel_.emplace_back(qlabel);
 	}
 
-	constexpr auto to_qid(std::string const& qlabel) const
+	auto to_qid(std::string const& qlabel) const
 	{
 		return qlabel_to_qid_.at(qlabel);
 	}
@@ -189,22 +189,22 @@ public:
 		return qid_to_qlabel_.at(qid);
 	}
 
-	constexpr auto cbegin() const
+	auto cbegin() const
 	{
 		return qid_to_qlabel_.cbegin();
 	}
 
-	constexpr auto cend() const
+	auto cend() const
 	{
 		return qid_to_qlabel_.cend();
 	}
 
-	constexpr auto begin()
+	auto begin()
 	{
 		return qid_to_qlabel_.begin();
 	}
 
-	constexpr auto end()
+	auto end()
 	{
 		return qid_to_qlabel_.end();
 	}
