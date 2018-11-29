@@ -113,7 +113,7 @@ auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const& perm)
  * \algreturns Quantum or reversible circuit
  */
 template<class Network, class STGSynthesisFn>
-Network dbs(std::vector<uint32_t>& perm, STGSynthesisFn&& stg_synth,
+Network dbs(std::vector<uint32_t> perm, STGSynthesisFn&& stg_synth,
             dbs_params const& ps = {})
 {
 	Network network;
