@@ -30,6 +30,11 @@ struct operation {
 		return (value < gate_set::identity || value == gate_set::num_defined_ops);
 	}
 
+	constexpr auto is_unitary_gate() const
+	{
+		return (value >= gate_set::identity && value <= gate_set::mcz);
+	}
+
 	constexpr auto is_single_qubit() const
 	{
 		return (value >= gate_set::identity && value <= gate_set::t_dagger);
