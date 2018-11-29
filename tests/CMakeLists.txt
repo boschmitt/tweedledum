@@ -15,6 +15,7 @@ add_custom_target(tweedledum_tests COMMENT "Build all tests.")
 
 set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_tests.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/gates/mcst_gate.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/netlist.cpp"
   )
