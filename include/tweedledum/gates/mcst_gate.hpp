@@ -191,6 +191,52 @@ public:
 	}
 #pragma endregion
 
+#pragma region Iterators
+	/*! \brief Calls ``fn`` on every target qubit of the gate.
+	 *
+	 * The paramater ``fn`` is any callable that must have one of the following two signatures.
+	 * - ``void(uint32_t)``
+	 * - ``bool(uint32_t)``
+	 *
+	 * ``fn`` has one parameter: a qid. If ``fn`` returns a ``bool``, then it can interrupt the
+	 * iteration by returning ``false``.
+	 */
+	template<typename Fn>
+	void foreach_control(Fn&& fn)
+	{
+		assert(!operation_.is_meta());
+		if (operation_.is_single_qubit()) {
+			return;
+		}
+		for (auto slot = 0u; slot < max_num_qubits; ++slot) {
+			if (slot == target_ || qid_slots_[slot] == qid_invalid) {
+				continue;
+			}
+			if constexpr (std::is_invocable_r<bool, Fn, uint32_t>::value) {
+				if (!fn(qid_slots_[slot])) {
+					return;
+				}
+			} else {
+				fn(qid_slots_[slot]);
+			}
+		}
+	}
+
+	/*! \brief Calls ``fn`` on every target qubit of the gate.
+	 *
+	 * The paramater ``fn`` is any callable that must have one of the following signature.
+	 * - ``void(uint32_t)``
+	 *
+	 * ``fn`` has one parameter: a qid.
+	 */
+	template<typename Fn>
+	void foreach_target(Fn&& fn)
+	{
+		assert(!operation_.is_meta());
+		fn(qid_slots_[target_]);
+	}
+#pragma endregion
+
 #pragma region Modifiers
 #pragma endregion
 
