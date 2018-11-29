@@ -139,7 +139,7 @@ template<class Network, class Matrix>
 void cnot_patel(Network& network, std::vector<uint32_t> const& qubits, Matrix const& matrix,
                 cnot_patel_params params = {})
 {
-	assert(network.num_qubits() <= qubits.size());
+	assert(network.num_qubits() >= qubits.size());
 	assert(matrix.is_square());
 	assert(qubits.size() == matrix.num_rows());
 	assert(params.best_partition_size || (params.partition_size >= 1 && params.partition_size <= 32));
