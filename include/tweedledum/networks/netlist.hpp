@@ -93,15 +93,10 @@ public:
 
 #pragma region Add gates(qids)
 	/*! \brief Add a gate to the network. */
-	auto& add_gate(gate_type& gate)
+	// This assumes the gate have been properly rewired
+	auto& add_gate(gate_type const& gate)
 	{
 		assert(!gate.op().is_meta());
-		gate.foreach_control([&](auto& qubit_id) {
-			qubit_id = storage_->rewiring_map[qubit_id];
-		});
-		gate.foreach_target([&](auto& qubit_id) { 
-			qubit_id = storage_->rewiring_map[qubit_id];
-		});
 		auto& node = storage_->nodes.emplace_back(gate);
 		return node;
 	}
@@ -109,7 +104,7 @@ public:
 	/*! \brief Add a gate to the network. */
 	auto& add_gate(operation op, uint32_t qid_target, angle rotation_angle = 0.0)
 	{
-		gate_type gate(op, qid_target, rotation_angle);
+		gate_type gate(op, storage_->rewiring_map[qid_target], rotation_angle);
 		return add_gate(gate);
 	}
 
@@ -117,7 +112,8 @@ public:
 	auto& add_gate(operation op, uint32_t qid_control, uint32_t qid_target,
 	               angle rotation_angle = 0.0)
 	{
-		gate_type gate(op, qid_control, qid_target, rotation_angle);
+		gate_type gate(op, storage_->rewiring_map[qid_control],
+		               storage_->rewiring_map[qid_target], rotation_angle);
 		return add_gate(gate);
 	}
 
@@ -125,7 +121,17 @@ public:
 	auto& add_gate(operation op, std::vector<uint32_t> const& qids_control,
 	               std::vector<uint32_t> const& qids_target, angle rotation_angle = 0.0)
 	{
-		gate_type gate(op, qids_control, qids_target, rotation_angle);
+		std::vector<uint32_t> controls;
+		std::transform(qids_control.begin(), qids_control.end(),
+		               std::back_inserter(controls), [&](uint32_t qid) -> uint32_t {
+			               return storage_->rewiring_map[qid];
+		               });
+		std::vector<uint32_t> targets;
+		std::transform(qids_target.begin(), qids_target.end(),
+		               std::back_inserter(targets), [&](uint32_t qid) -> uint32_t {
+			               return storage_->rewiring_map[qid];
+		               });
+		gate_type gate(op, controls, targets, rotation_angle);
 		return add_gate(gate);
 	}
 #pragma endregion
