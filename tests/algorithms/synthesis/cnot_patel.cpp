@@ -29,7 +29,7 @@ TEST_CASE("Check example from paper", "[cnot_patel]")
 	});
 
 	network.foreach_cnode([&](auto const& node) {
-		if (node.gate.op().is(gate_set::cx)) {
+		if (node.gate.is(gate_set::cx)) {
 			uint32_t c;
 			uint32_t t;
 			node.gate.foreach_control([&](auto _c) { c = _c; });
@@ -63,7 +63,7 @@ TEST_CASE("Find best permutation for the example from paper", "[cnot_patel]")
 
 	auto rewire_map = network.rewire_map();
 	network.foreach_cnode([&](auto const& node) {
-		if (node.gate.op().is(gate_set::cx)) {
+		if (node.gate.is(gate_set::cx)) {
 			uint32_t c;
 			uint32_t t;
 			node.gate.foreach_control([&](auto _c) { c = _c; });
