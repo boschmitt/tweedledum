@@ -17,6 +17,6 @@ TEST_CASE("Decompose 3-controlled Toffoli gate", "[nct]")
 	network.add_qubit();
 	network.add_qubit();
 	network.add_qubit();
-	network.add_gate(gate_set::mcx, std::vector({0u, 1u, 2u}), std::vector({3u}));
+	network.add_gate(gate::mcx, std::vector({0u, 1u, 2u}), std::vector({3u}));
 	auto snetwork = nct_mapping(network);
 }

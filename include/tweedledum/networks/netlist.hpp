@@ -5,8 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../gates/angle.hpp"
-#include "../gates/operation.hpp"
+#include "../gates/gate_base.hpp"
 #include "../utils/foreach.hpp"
 #include "detail/storage.hpp"
 
@@ -42,8 +41,8 @@ private:
 	{
 		uint32_t qid = storage_->inputs.size();
 		uint32_t index = storage_->nodes.size();
-		gate_type input(gate_set::input, qid);
-		gate_type output(gate_set::output, qid);
+		gate_type input(gate_base(gate_set::input), qid);
+		gate_type output(gate_base(gate_set::output), qid);
 
 		storage_->nodes.emplace_back(input);
 		storage_->inputs.emplace_back(index);
@@ -96,30 +95,29 @@ public:
 	// This assumes the gate have been properly rewired
 	auto& add_gate(gate_type const& gate)
 	{
-		assert(!gate.op().is_meta());
+		// assert(!gate.is_meta());
 		auto& node = storage_->nodes.emplace_back(gate);
 		return node;
 	}
 
 	/*! \brief Add a gate to the network. */
-	auto& add_gate(operation op, uint32_t qid_target, angle rotation_angle = 0.0)
+	auto& add_gate(gate_base op, uint32_t qid_target)
 	{
-		gate_type gate(op, storage_->rewiring_map[qid_target], rotation_angle);
+		gate_type gate(op, storage_->rewiring_map[qid_target]);
 		return add_gate(gate);
 	}
 
 	/*! \brief Add a gate to the network. */
-	auto& add_gate(operation op, uint32_t qid_control, uint32_t qid_target,
-	               angle rotation_angle = 0.0)
+	auto& add_gate(gate_base op, uint32_t qid_control, uint32_t qid_target)
 	{
 		gate_type gate(op, storage_->rewiring_map[qid_control],
-		               storage_->rewiring_map[qid_target], rotation_angle);
+		               storage_->rewiring_map[qid_target]);
 		return add_gate(gate);
 	}
 
 	/*! \brief Add a gate to the network. */
-	auto& add_gate(operation op, std::vector<uint32_t> const& qids_control,
-	               std::vector<uint32_t> const& qids_target, angle rotation_angle = 0.0)
+	auto& add_gate(gate_base op, std::vector<uint32_t> const& qids_control,
+	               std::vector<uint32_t> const& qids_target)
 	{
 		std::vector<uint32_t> controls;
 		std::transform(qids_control.begin(), qids_control.end(),
@@ -131,33 +129,33 @@ public:
 		               std::back_inserter(targets), [&](uint32_t qid) -> uint32_t {
 			               return storage_->rewiring_map[qid];
 		               });
-		gate_type gate(op, controls, targets, rotation_angle);
+		gate_type gate(op, controls, targets);
 		return add_gate(gate);
 	}
 #pragma endregion
 
 #pragma region Add gates(qlabels)
 	/*! \brief Add a gate to the network. */
-	auto& add_gate(operation op, std::string const& qlabel_target, angle rotation_angle = 0.0)
+	auto& add_gate(gate_base op, std::string const& qlabel_target)
 	{
 		auto qid_target = qlabels_->to_qid(qlabel_target);
-		gate_type gate(op, qid_target, rotation_angle);
+		gate_type gate(op, qid_target);
 		return add_gate(gate);
 	}
 
 	/*! \brief Add a gate to the network. */
-	auto& add_gate(operation op, std::string const& qlabel_control,
-	               std::string const& qlabel_target, angle rotation_angle = 0.0)
+	auto& add_gate(gate_base op, std::string const& qlabel_control,
+	               std::string const& qlabel_target)
 	{
 		auto qid_control = qlabels_->to_qid(qlabel_control);
 		auto qid_target = qlabels_->to_qid(qlabel_target);
-		gate_type gate(op, qid_control, qid_target, rotation_angle);
+		gate_type gate(op, qid_control, qid_target);
 		return add_gate(gate);
 	}
 
 	/*! \brief Add a gate to the network. */
-	auto& add_gate(operation op, std::vector<std::string> const& qlabels_control,
-	               std::vector<std::string> const& qlabels_target, angle rotation_angle = 0.0)
+	auto& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
+	               std::vector<std::string> const& qlabels_target)
 	{
 		std::vector<uint32_t> qids_control;
 		for (auto& control : qlabels_control) {
@@ -167,7 +165,7 @@ public:
 		for (auto& target : qlabels_target) {
 			qids_target.push_back(qlabels_->to_qid(target));
 		}
-		gate_type gate(op, qids_control, qids_target, rotation_angle);
+		gate_type gate(op, qids_control, qids_target);
 		return add_gate(gate);
 	}
 #pragma endregion
@@ -263,7 +261,7 @@ public:
 	void foreach_cgate(Fn&& fn) const
 	{
 		foreach_element_if(storage_->nodes.cbegin(), storage_->nodes.cend(),
-		                   [](auto const& node) { return node.gate.op().is_unitary_gate(); },
+		                   [](auto const& node) { return node.gate.is_unitary_gate(); },
 		                   fn);
 	}
 

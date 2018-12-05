@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../gates/gate_set.hpp"
+#include "../../gates/gate_base.hpp"
 #include "../../networks/qubit.hpp"
 #include "../generic/rewrite.hpp"
 
@@ -32,21 +33,21 @@ template<typename Network>
 Network rpt(Network const& src)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
-		if (gate.op().is(gate_set::mcx)) {
+		if (gate.is(gate_set::mcx)) {
 			switch (gate.num_controls()) {
 			default:
 				return false;
 
 			case 0u: {
 				gate.foreach_target([&](auto target) {
-					dest.add_gate(gate_set::pauli_x, target);
+					dest.add_gate(gate::pauli_x, target);
 				});
 			} break;
 
 			case 1u: {
 				gate.foreach_control([&](auto control) {
 					gate.foreach_target([&](auto target) {
-						dest.add_gate(gate_set::cx, control, target);
+						dest.add_gate(gate::cx, control, target);
 					});
 				});
 			} break;
@@ -59,28 +60,28 @@ Network rpt(Network const& src)
 				gate.foreach_target([&](auto target) { targets.push_back(target); });
 
 				for (auto i = 1u; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, targets[0], targets[i]);
+					dest.add_gate(gate::cx, targets[0], targets[i]);
 				}
-				dest.add_gate(gate_set::hadamard, targets[0]);
+				dest.add_gate(gate::hadamard, targets[0]);
 
-				dest.add_gate(gate_set::cx, controls[1], targets[0]);
-				dest.add_gate(gate_set::t_dagger, targets[0]);
-				dest.add_gate(gate_set::cx, controls[0], targets[0]);
-				dest.add_gate(gate_set::t, targets[0]);
-				dest.add_gate(gate_set::cx, controls[1], targets[0]);
-				dest.add_gate(gate_set::t_dagger, targets[0]);
-				dest.add_gate(gate_set::cx, controls[0], targets[0]);
-				dest.add_gate(gate_set::t, targets[0]);
-				dest.add_gate(gate_set::cx, controls[0], controls[1]);
-				dest.add_gate(gate_set::t_dagger, controls[1]);
-				dest.add_gate(gate_set::cx, controls[0], controls[1]);
-				dest.add_gate(gate_set::t, controls[1]);
-				dest.add_gate(gate_set::t, controls[0]);
+				dest.add_gate(gate::cx, controls[1], targets[0]);
+				dest.add_gate(gate::t_dagger, targets[0]);
+				dest.add_gate(gate::cx, controls[0], targets[0]);
+				dest.add_gate(gate::t, targets[0]);
+				dest.add_gate(gate::cx, controls[1], targets[0]);
+				dest.add_gate(gate::t_dagger, targets[0]);
+				dest.add_gate(gate::cx, controls[0], targets[0]);
+				dest.add_gate(gate::t, targets[0]);
+				dest.add_gate(gate::cx, controls[0], controls[1]);
+				dest.add_gate(gate::t_dagger, controls[1]);
+				dest.add_gate(gate::cx, controls[0], controls[1]);
+				dest.add_gate(gate::t, controls[1]);
+				dest.add_gate(gate::t, controls[0]);
 
-				dest.add_gate(gate_set::hadamard, targets[0]);
+				dest.add_gate(gate::hadamard, targets[0]);
 
 				for (auto i = 1u; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, targets[0], targets[i]);
+					dest.add_gate(gate::cx, targets[0], targets[i]);
 				}
 			} break;
 
@@ -112,55 +113,55 @@ Network rpt(Network const& src)
 				}
 
 				for (auto i = 1u; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, d, targets[i]);
+					dest.add_gate(gate::cx, d, targets[i]);
 				}
 
 				// R1-TOF(a, b, helper)
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, a, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::hadamard, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, a, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::hadamard, helper);
 
 				// S-R2-TOF(c3, helper, target)
-				dest.add_gate(gate_set::hadamard, d);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, c, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, c, helper);
-				dest.add_gate(gate_set::t, helper);
+				dest.add_gate(gate::hadamard, d);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, c, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, c, helper);
+				dest.add_gate(gate::t, helper);
 
 				// R1-TOF^-1(a, b, helper)
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, a, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::hadamard, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, a, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::hadamard, helper);
 
 				// S-R2-TOF^-1(c3, helper, target)
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, c, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, c, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::hadamard, d);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, c, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, c, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::hadamard, d);
 
 				for (auto i = 1u; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, d, targets[i]);
+					dest.add_gate(gate::cx, d, targets[i]);
 				}
 			} break;
 
@@ -194,71 +195,71 @@ Network rpt(Network const& src)
 				}
 
 				for (auto i = 1u; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, e, targets[i]);
+					dest.add_gate(gate::cx, e, targets[i]);
 				}
 
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, control, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::cx, a, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, a, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, control, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::hadamard, e);
-				dest.add_gate(gate_set::cx, e, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, e, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, control, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, a, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, b, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, a, helper);
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, control, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::hadamard, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, e, helper);
-				dest.add_gate(gate_set::t_dagger, helper);
-				dest.add_gate(gate_set::cx, d, helper);
-				dest.add_gate(gate_set::t, helper);
-				dest.add_gate(gate_set::cx, e, helper);
-				dest.add_gate(gate_set::hadamard, e);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, control, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::cx, a, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, a, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, control, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::hadamard, e);
+				dest.add_gate(gate::cx, e, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, e, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, control, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, a, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, b, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, a, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, control, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::hadamard, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, e, helper);
+				dest.add_gate(gate::t_dagger, helper);
+				dest.add_gate(gate::cx, d, helper);
+				dest.add_gate(gate::t, helper);
+				dest.add_gate(gate::cx, e, helper);
+				dest.add_gate(gate::hadamard, e);
 
 				for (auto i = 1u; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, e, targets[i]);
+					dest.add_gate(gate::cx, e, targets[i]);
 				}
 			} break;
 			}
 			return true;
-		} else if (gate.op().is(gate_set::mcz)) {
+		} else if (gate.is(gate_set::mcz)) {
 			if (gate.num_controls() == 2) {
 				uint32_t controls[2];
 				auto* p = controls;
@@ -266,19 +267,19 @@ Network rpt(Network const& src)
 				gate.foreach_control([&](auto control) { *p++ = control; });
 				gate.foreach_target([&](auto target) { targets.push_back(target); });
 
-				dest.add_gate(gate_set::cx, controls[1], targets[0]);
-				dest.add_gate(gate_set::t_dagger, targets[0]);
-				dest.add_gate(gate_set::cx, controls[0], targets[0]);
-				dest.add_gate(gate_set::t, targets[0]);
-				dest.add_gate(gate_set::cx, controls[1], targets[0]);
-				dest.add_gate(gate_set::t_dagger, targets[0]);
-				dest.add_gate(gate_set::cx, controls[0], targets[0]);
-				dest.add_gate(gate_set::t, targets[0]);
-				dest.add_gate(gate_set::cx, controls[0], controls[1]);
-				dest.add_gate(gate_set::t_dagger, controls[1]);
-				dest.add_gate(gate_set::cx, controls[0], controls[1]);
-				dest.add_gate(gate_set::t, controls[1]);
-				dest.add_gate(gate_set::t, controls[0]);
+				dest.add_gate(gate::cx, controls[1], targets[0]);
+				dest.add_gate(gate::t_dagger, targets[0]);
+				dest.add_gate(gate::cx, controls[0], targets[0]);
+				dest.add_gate(gate::t, targets[0]);
+				dest.add_gate(gate::cx, controls[1], targets[0]);
+				dest.add_gate(gate::t_dagger, targets[0]);
+				dest.add_gate(gate::cx, controls[0], targets[0]);
+				dest.add_gate(gate::t, targets[0]);
+				dest.add_gate(gate::cx, controls[0], controls[1]);
+				dest.add_gate(gate::t_dagger, controls[1]);
+				dest.add_gate(gate::cx, controls[0], controls[1]);
+				dest.add_gate(gate::t, controls[1]);
+				dest.add_gate(gate::t, controls[0]);
 				return true;
 			}
 		}
@@ -287,7 +288,7 @@ Network rpt(Network const& src)
 
 	auto num_ancillae = 0u;
 	src.foreach_cgate([&](auto const& node) {
-		if (node.gate.op().is(gate_set::mcx) && node.gate.num_controls() > 2
+		if (node.gate.is(gate_set::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == src.num_qubits()) {
 			num_ancillae = 1u;
 			return false;

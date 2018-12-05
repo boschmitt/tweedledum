@@ -16,6 +16,6 @@ TEST_CASE("Decompose 2-controlled Z gate", "[rpt]")
 	network.add_qubit();
 	network.add_qubit();
 	network.add_qubit();
-	network.add_gate(gate_set::mcz, std::vector({0u, 1u}), std::vector({2u}));
+	network.add_gate(gate::mcz, std::vector({0u, 1u}), std::vector(1, 2u));
 	auto snetwork = rpt(network);
 }

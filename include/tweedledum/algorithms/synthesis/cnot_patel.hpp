@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../gates/gate_set.hpp"
+#include "../../gates/gate_base.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
 
@@ -47,12 +48,12 @@ public:
 
 		for (const auto [control, target] : gates_upper) {
 			// switch control/target of CX gates in gates_upper;
-			network_.add_gate(gate_set::cx, qubits_[target], qubits_[control]);
+			network_.add_gate(gate::cx, qubits_[target], qubits_[control]);
 		}
 
 		std::reverse(gates_lower.begin(), gates_lower.end());
 		for (const auto [control, target] : gates_lower) {
-			network_.add_gate(gate_set::cx, qubits_[control], qubits_[target]);
+			network_.add_gate(gate::cx, qubits_[control], qubits_[target]);
 		}
 		return (gates_upper.size() + gates_lower.size());
 	}

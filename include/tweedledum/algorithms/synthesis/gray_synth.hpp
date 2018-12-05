@@ -127,17 +127,18 @@ public:
 			qubits_states.emplace_back((1u << i));
 			auto rotation_angle = parities_.extract_term(qubits_states[i]);
 			if (rotation_angle != 0.0) {
-				network_.add_gate(gate_set::rotation_z, qubits_[i], rotation_angle);
+				network_.add_gate(gate_base(gate_set::rotation_z, rotation_angle),
+				                  qubits_[i]);
 			}
 		}
 
 		for (const auto [control, target] : gates) {
 			qubits_states[target] ^= qubits_states[control];
-			network_.add_gate(gate_set::cx, qubits_[control], qubits_[target]);
+			network_.add_gate(gate::cx, qubits_[control], qubits_[target]);
 			auto rotation_angle = parities_.extract_term(qubits_states[target]);
 			if (rotation_angle != 0.0) {
-				network_.add_gate(gate_set::rotation_z, qubits_[target],
-				                  rotation_angle);
+				network_.add_gate(gate_base(gate_set::rotation_z, rotation_angle),
+				                  qubits_[target]);
 			}
 		}
 

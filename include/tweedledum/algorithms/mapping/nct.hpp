@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../gates/gate_set.hpp"
+#include "../../gates/gate_base.hpp"
 #include "../generic/rewrite.hpp"
 
 #include <cstdint>
@@ -25,7 +26,7 @@ void tofolli_barrenco_decomposition(Network& network, std::vector<uint32_t> cons
 	assert(num_controls >= 2);
 
 	if (num_controls <= controls_threshold) {
-		network.add_gate(gate_set::mcx, controls, {target});
+		network.add_gate(gate::mcx, controls, {target});
 		return;
 	}
 
@@ -54,17 +55,17 @@ void tofolli_barrenco_decomposition(Network& network, std::vector<uint32_t> cons
 		// to their initial state
 		for (int offset = 0; offset <= 1; ++offset) {
 			for (int i = offset; i < static_cast<int>(num_controls) - 2; ++i) {
-				network.add_gate(gate_set::mcx,
+				network.add_gate(gate::mcx,
 				                 std::vector({controls[num_controls - 1 - i],
 				                              workspace[workspace_size - 1 - i]}),
 				                 std::vector({workspace[workspace_size - i]}));
 			}
 
-			network.add_gate(gate_set::mcx, std::vector({controls[0], controls[1]}),
+			network.add_gate(gate::mcx, std::vector({controls[0], controls[1]}),
 			                 std::vector({workspace[workspace_size - (num_controls - 2)]}));
 
 			for (int i = num_controls - 2 - 1; i >= offset; --i) {
-				network.add_gate(gate_set::mcx,
+				network.add_gate(gate::mcx,
 				    std::vector<uint32_t>({controls[num_controls - 1 - i],
 				                           workspace[workspace_size - 1 - i]}),
 				    std::vector<uint32_t>({workspace[workspace_size - i]}));
@@ -121,18 +122,18 @@ template<typename Network>
 Network nct_mapping(Network const& src, nct_mapping_params const& params = {})
 {
 	auto gate_rewriter = [&](auto& dest, auto const& gate) {
-		if (gate.op().is(gate_set::mcx)) {
+		if (gate.is(gate_set::mcx)) {
 			switch (gate.num_controls()) {
 			case 0:
 				gate.foreach_target([&](auto target) {
-					dest.add_gate(gate_set::pauli_x, target);
+					dest.add_gate(gate::pauli_x, target);
 				});
 				break;
 
 			case 1:
 				gate.foreach_control([&](auto control) {
 					gate.foreach_target([&](auto target) {
-						dest.add_gate(gate_set::cx, control, target);
+						dest.add_gate(gate::cx, control, target);
 					});
 				});
 				break;
@@ -144,12 +145,12 @@ Network nct_mapping(Network const& src, nct_mapping_params const& params = {})
 				    [&](auto control) { controls.push_back(control); });
 				gate.foreach_target([&](auto target) { targets.push_back(target); });
 				for (auto i = 1ull; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, targets[0], targets[i]);
+					dest.add_gate(gate::cx, targets[0], targets[i]);
 				}
 				detail::tofolli_barrenco_decomposition(dest, controls, targets[0],
 				                                       params.controls_threshold);
 				for (auto i = 1ull; i < targets.size(); ++i) {
-					dest.add_gate(gate_set::cx, targets[0], targets[i]);
+					dest.add_gate(gate::cx, targets[0], targets[i]);
 				}
 				break;
 			}
@@ -160,7 +161,7 @@ Network nct_mapping(Network const& src, nct_mapping_params const& params = {})
 
 	auto num_ancillae = 0u;
 	src.foreach_cgate([&](auto const& node) {
-		if (node.gate.op().is(gate_set::mcx) && node.gate.num_controls() > 2
+		if (node.gate.is(gate_set::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == src.num_qubits()) {
 			num_ancillae = 1u;
 			return false;

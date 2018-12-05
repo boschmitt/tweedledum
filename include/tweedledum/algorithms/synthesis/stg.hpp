@@ -56,11 +56,11 @@ struct stg_from_pkrm {
 				mask >>= 1;
 			}
 			for (auto n : negations) {
-				network.add_gate(gate_set::pauli_x, n);
+				network.add_gate(gate::pauli_x, n);
 			}
-			network.add_gate(gate_set::mcx, controls, target);
+			network.add_gate(gate::mcx, controls, target);
 			for (auto n : negations) {
-				network.add_gate(gate_set::pauli_x, n);
+				network.add_gate(gate::pauli_x, n);
 			}
 		}
 	}
@@ -97,7 +97,7 @@ struct stg_from_pprm {
 				}
 				bits >>= 1;
 			}
-			network.add_gate(gate_set::mcx, controls, target);
+			network.add_gate(gate::mcx, controls, target);
 		}
 	}
 };
@@ -148,7 +148,7 @@ struct stg_from_spectrum {
 			parities.add_term(i, nom * spectrum[i]);
 		}
 
-		network.add_gate(gate_set::hadamard, qubits.back());
+		network.add_gate(gate::hadamard, qubits.back());
 		if (params.behavior == stg_from_spectrum_params::behavior::use_linear_synth) {
 			linear_synth(network, qubits, parities, params.ls_params);
 		} else if (parities.num_terms() == spectrum.size() - 1) {
@@ -156,7 +156,7 @@ struct stg_from_spectrum {
 		} else {
 			gray_synth(network, qubits, parities, params.gs_params);
 		}
-		network.add_gate(gate_set::hadamard, qubits.back());
+		network.add_gate(gate::hadamard, qubits.back());
 	}
 
 	stg_from_spectrum_params params;

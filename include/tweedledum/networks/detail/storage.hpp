@@ -5,9 +5,6 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/angle.hpp"
-#include "../../gates/operation.hpp"
-
 #include <array>
 #include <cstdint>
 #include <limits>

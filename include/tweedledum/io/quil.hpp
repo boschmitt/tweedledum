@@ -35,7 +35,7 @@ void write_quil(Network const& network, std::ostream& out)
 {
 	network.foreach_cgate([&](auto const& node) {
 		auto const& gate = node.gate;
-		switch (gate.op()) {
+		switch (gate.operation()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
 			return true;

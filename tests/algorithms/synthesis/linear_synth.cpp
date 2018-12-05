@@ -5,10 +5,10 @@
 *------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/linear_synth.hpp>
-#include <tweedledum/gates/angle.hpp>
 #include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/utils/angle.hpp>
 #include <tweedledum/utils/parity_terms.hpp>
 
 TEST_CASE("Synthesize a simple function into a quantum network using linear_synth",

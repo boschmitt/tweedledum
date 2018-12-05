@@ -19,7 +19,7 @@ TEST_CASE("Write simple MCMT netlist into quil", "[quil]")
 	mcmt_netlist.add_qubit();
 	auto controls = std::vector<uint32_t>({0u, 1u});
 	auto target = std::vector<uint32_t>({2u});
-	mcmt_netlist.add_gate(gate_set::mcx, controls, target);
+	mcmt_netlist.add_gate(gate::mcx, controls, target);
 	CHECK(mcmt_netlist.size() == 7);
 	CHECK(mcmt_netlist.num_qubits() == 3);
 	CHECK(mcmt_netlist.num_gates() == 1);

@@ -5,13 +5,13 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../gates/angle.hpp"
+#include "angle.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
 #include <iostream>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace tweedledum {
 
@@ -21,7 +21,7 @@ class parity_terms {
 public:
 #pragma region Types and constructors
 	parity_terms()
-	{ }
+	{}
 #pragma endregion
 
 #pragma region Properties
@@ -44,9 +44,9 @@ public:
 #pragma endregion
 
 #pragma region Modifiers
-	/*! \brief Add parity term.  
+	/*! \brief Add parity term.
 	 *
-	 * If the term already exist it increments the rotation angle 
+	 * If the term already exist it increments the rotation angle
 	 */
 	void add_term(uint32_t term, angle rotation_angle)
 	{

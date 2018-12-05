@@ -5,12 +5,11 @@
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
-#include <tweedledum/gates/angle.hpp>
 #include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/utils/angle.hpp>
 #include <tweedledum/utils/parity_terms.hpp>
-
 
 TEST_CASE("Check simple example from Amy paper", "[gray_synth]")
 {
@@ -33,7 +32,7 @@ TEST_CASE("Check simple example from Amy paper", "[gray_synth]")
 
 	auto rewire_map = network.rewire_map();
 	network.foreach_cnode([&](auto const& node) {
-		if (node.gate.op().is(gate_set::cx)) {
+		if (node.gate.is(gate_set::cx)) {
 			uint32_t c;
 			uint32_t t;
 			node.gate.foreach_control([&](auto _c) { c = _c; });

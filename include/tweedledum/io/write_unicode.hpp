@@ -36,7 +36,7 @@ std::string to_unicode_str(Network const& network)
 
 	network.foreach_cgate([&](auto const& node) {
 		auto const& gate = node.gate;
-		switch (gate.op()) {
+		switch (gate.operation()) {
 		default:
 			gate.foreach_target([&](auto qid) { lines[qid] += "?"; });
 			return;
