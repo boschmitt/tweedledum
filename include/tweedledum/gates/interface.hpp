@@ -22,23 +22,23 @@ public:
 	 * \param op the operation (must be a single qubit operation).
 	 * \param qid_target qubit identifier of the target.
 	 */
-	gate(gate_base const&, uint32_t qid_target);
+	gate(gate_base const& op, uint32_t qid_target);
 
 	/*! \brief Construct a controlled gate
 	 *
-	 * \param op the operation (must be a single qubit operation).
+	 * \param controlled_op the operation (must be a two qubit controlled operation).
 	 * \param qid_control qubit identifier of the control.
 	 * \param qid_target qubit identifier of the target.
 	 */
-	gate(gate_base const&, uint32_t qid_control, uint32_t qid_target);
+	gate(gate_base const& controlled_op, uint32_t qid_control, uint32_t qid_target);
 
 	/*! \brief Construct a gate using vectors
 	 *
-	 * \param op the operation (must be a single qubit operation.
+	 * \param unitary_op the operation (must be unitary operation).
 	 * \param qids_control qubit(s) identifier of the control(s).
 	 * \param qid_target qubit identifier of the target.
 	 */
-	gate(gate_base const&, std::vector<uint32_t> const& qids_control,
+	gate(gate_base const& unitary_op, std::vector<uint32_t> const& qids_control,
 	     std::vector<uint32_t> const& qid_target);
 #pragma endregion
 

@@ -24,7 +24,10 @@
 
 namespace tweedledum {
 
-/*! \brief Synthesize a quantum network from a function by computing PKRM representation */
+/*! \brief Synthesize a quantum network from a function by computing PKRM representation
+ *
+ * PKRM: Pseudo-Kronecker Read-Muller expression---a special case of an ESOP form.
+ */
 struct stg_from_pkrm {
 	/*! \brief Synthesize into a _existing_ quantum network
 	 *

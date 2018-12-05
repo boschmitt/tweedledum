@@ -32,7 +32,7 @@ range of platforms. CMake is freely available for download from http://www.cmake
 CMake works by generating native makefiles or project files that can be used in the compiler
 environment of your choice. The typical workflow starts with::
 
-  mkdir builds      # Create a directory to hold the build output.
+  mkdir build      # Create a directory to hold the build output.
   cd build
 
 To build the `examples` set the ``TWEEDLEDUM_EXAMPLES`` CMake variable to ``TRUE``::
