@@ -1,0 +1,4 @@
+Angle
+=====
+
+.. doxygenclass:: tweedledum::angle

@@ -21,6 +21,7 @@ endif()
 
 # Options
 # =============================================================================
+option(TWEEDLEDUM_DOCS "Build documentation" OFF)
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
 
@@ -33,6 +34,12 @@ add_subdirectory(libs)
 add_library(tweedledum INTERFACE)
 target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(tweedledum INTERFACE fmt kitty)
+
+# Documentation
+# =============================================================================
+if(TWEEDLEDUM_DOCS)
+  add_subdirectory(docs)
+endif()
 
 # Examples
 # =============================================================================
