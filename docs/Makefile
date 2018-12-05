@@ -14,7 +14,7 @@ BUILDDIR      = _build
 venv: $(VENV_NAME)/bin/activate
 $(VENV_NAME)/bin/activate:
 	test -d $(VENV_NAME) || virtualenv -p python3 $(VENV_NAME)
-	${PYTHON} -m pip install --upgrade -r requirements
+	${PYTHON} -m pip install --upgrade -r requirements.txt
 	touch $(VENV_NAME)/bin/activate
 
 doxygen:
