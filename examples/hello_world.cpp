@@ -18,8 +18,12 @@ int main(int argc, char** argv)
 	network.add_qubit("q0");
 	network.add_qubit("q1");
 
-	network.add_gate(gate_set::hadamard, "q0");
-	network.add_gate(gate_set::cx, "q0", "q1");
+	network.add_gate(gate::hadamard, "q0");
+	network.add_gate(gate::cx, "q0", "q1");
+	network.add_gate(gate::hadamard, "q0");
+	network.add_gate(gate::cx, "q0", "q1");
+	network.add_gate(gate::cx, "q1", "q0");
+
 	std::cout << "Hello world!\n";
 	write_unicode(network);
 
