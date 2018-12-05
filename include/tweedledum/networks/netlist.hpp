@@ -67,32 +67,23 @@ public:
 #pragma endregion
 
 #pragma region Structural properties
-	/*! \brief Returns the number of nodes. */
 	auto size() const
 	{
 		return static_cast<uint32_t>(storage_->nodes.size() + storage_->outputs.size());
 	}
 
-	/*! \brief Returns the number of qubits. */
 	auto num_qubits() const
 	{
 		return static_cast<uint32_t>(storage_->inputs.size());
 	}
 
-	/*! \brief Returns the number of gates, i.e., nodes that hold unitary operations */
-	// Meta gates such as input and outputs are not considered
 	auto num_gates() const
 	{
 		return static_cast<uint32_t>(storage_->nodes.size() - storage_->inputs.size());
 	}
 #pragma endregion
 
-#pragma region Nodes
-#pragma endregion
-
 #pragma region Add gates(qids)
-	/*! \brief Add a gate to the network. */
-	// This assumes the gate have been properly rewired
 	auto& add_gate(gate_type const& gate)
 	{
 		// assert(!gate.is_meta());
@@ -100,14 +91,12 @@ public:
 		return node;
 	}
 
-	/*! \brief Add a gate to the network. */
 	auto& add_gate(gate_base op, uint32_t qid_target)
 	{
 		gate_type gate(op, storage_->rewiring_map[qid_target]);
 		return add_gate(gate);
 	}
 
-	/*! \brief Add a gate to the network. */
 	auto& add_gate(gate_base op, uint32_t qid_control, uint32_t qid_target)
 	{
 		gate_type gate(op, storage_->rewiring_map[qid_control],
@@ -115,7 +104,6 @@ public:
 		return add_gate(gate);
 	}
 
-	/*! \brief Add a gate to the network. */
 	auto& add_gate(gate_base op, std::vector<uint32_t> const& qids_control,
 	               std::vector<uint32_t> const& qids_target)
 	{
@@ -135,7 +123,6 @@ public:
 #pragma endregion
 
 #pragma region Add gates(qlabels)
-	/*! \brief Add a gate to the network. */
 	auto& add_gate(gate_base op, std::string const& qlabel_target)
 	{
 		auto qid_target = qlabels_->to_qid(qlabel_target);
@@ -143,7 +130,6 @@ public:
 		return add_gate(gate);
 	}
 
-	/*! \brief Add a gate to the network. */
 	auto& add_gate(gate_base op, std::string const& qlabel_control,
 	               std::string const& qlabel_target)
 	{
@@ -153,7 +139,6 @@ public:
 		return add_gate(gate);
 	}
 
-	/*! \brief Add a gate to the network. */
 	auto& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
 	               std::vector<std::string> const& qlabels_target)
 	{
@@ -171,13 +156,6 @@ public:
 #pragma endregion
 
 #pragma region Const iterators
-	/*! \brief Calls ``fn`` on every qubit in the network.
-	 *
-	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
-	 * - ``void(uint32_t qid)``
-	 * - ``void(string const& qlabel)``
-	 * - ``void(uint32_t qid, string const& qlabel)``
-	 */
 	template<typename Fn>
 	void foreach_cqubit(Fn&& fn) const
 	{
@@ -202,12 +180,6 @@ public:
 		}
 	}
 
-	/*! \brief Calls ``fn`` on every input node in the network.
-	 *
-	 * The paramater ``fn`` is any callable that must have one of the following two signatures.
-	 * - ``void(node_type const& node)``
-	 * - ``void(node_type const& node, uint32_t node_index)``
-	 */
 	template<typename Fn>
 	void foreach_cinput(Fn&& fn) const
 	{
@@ -224,12 +196,6 @@ public:
 		}
 	}
 
-	/*! \brief Calls ``fn`` on every output node in the network.
-	 *
-	 * The paramater ``fn`` is any callable that must have one of the following two signatures.
-	 * - ``void(node_type const& node)``
-	 * - ``void(node_type const& node, uint32_t node_index)``
-	 */
 	template<typename Fn>
 	void foreach_coutput(Fn&& fn) const
 	{
@@ -247,16 +213,6 @@ public:
 		}
 	}
 
-	/*! \brief Calls ``fn`` on every unitrary gate node in the network.
-	 *
-	 * The paramater ``fn`` is any callable that must have one of the following four signatures.
-	 * - ``void(node_type const& node)``
-	 * - ``void(node_type const& node, uint32_t node_index)``
-	 * - ``bool(node_type const& node)``
-	 * - ``bool(node_type const& node, uint32_t node_index)``
-	 *
-	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
-	 */
 	template<typename Fn>
 	void foreach_cgate(Fn&& fn) const
 	{
@@ -265,16 +221,6 @@ public:
 		                   fn);
 	}
 
-	/*! \brief Calls ``fn`` on every node in the network.
-	 *
-	 * The paramater ``fn`` is any callable that must have one of the following four signatures.
-	 * - ``void(node_type const& node)``
-	 * - ``void(node_type const& node, uint32_t node_index)``
-	 * - ``bool(node_type const& node)``
-	 * - ``bool(node_type const& node, uint32_t node_index)``
-	 *
-	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
-	 */
 	template<typename Fn>
 	void foreach_cnode(Fn&& fn) const
 	{
