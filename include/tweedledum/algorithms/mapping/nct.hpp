@@ -96,7 +96,7 @@ void tofolli_barrenco_decomposition(Network& network, std::vector<uint32_t> cons
 } /* namespace detail */
 
 /*! \brief Parameters for `nct_mapping`. */
-struct nct_mapping_params {
+struct nct_params {
 	uint32_t controls_threshold = 2u;
 };
 
@@ -117,9 +117,13 @@ struct nct_mapping_params {
  * - `foreach_cgate`
  * - `rewire`
  * - `rewire_map`
+ * 
+ * \algtype mapping
+ * \algexpects A reversible network
+ * \algreturns {NOT, CNOT, Toffoli} network
  */
 template<typename Network>
-Network nct_mapping(Network const& src, nct_mapping_params const& params = {})
+Network nct_mapping(Network const& src, nct_params params = {})
 {
 	auto gate_rewriter = [&](auto& dest, auto const& gate) {
 		if (gate.is(gate_set::mcx)) {

@@ -31,7 +31,7 @@ namespace tweedledum {
  * \param os Output stream
  */
 template<typename Network>
-void write_quil(Network const& network, std::ostream& out)
+void write_quil(Network const& network, std::ostream& os)
 {
 	network.foreach_cgate([&](auto const& node) {
 		auto const& gate = node.gate;
@@ -41,31 +41,31 @@ void write_quil(Network const& network, std::ostream& out)
 			return true;
 
 		case gate_set::hadamard:
-			gate.foreach_target([&](auto q) { out << fmt::format("H {}\n", q); });
+			gate.foreach_target([&](auto q) { os << fmt::format("H {}\n", q); });
 			break;
 
 		case gate_set::pauli_x:
-			gate.foreach_target([&](auto q) { out << fmt::format("X {}\n", q); });
+			gate.foreach_target([&](auto q) { os << fmt::format("X {}\n", q); });
 			break;
 
 		case gate_set::t:
-			gate.foreach_target([&](auto q) { out << fmt::format("T {}\n", q); });
+			gate.foreach_target([&](auto q) { os << fmt::format("T {}\n", q); });
 			break;
 
 		case gate_set::t_dagger:
-			gate.foreach_target([&](auto q) { out << fmt::format("RZ(-pi/4) {}\n", q); });
+			gate.foreach_target([&](auto q) { os << fmt::format("RZ(-pi/4) {}\n", q); });
 			break;
 
 		case gate_set::rotation_z:
 			gate.foreach_target([&](auto qt) {
-				out << fmt::format("RZ({}) {}\n", gate.rotation_angle().numeric_value(), qt);
+				os << fmt::format("RZ({}) {}\n", gate.rotation_angle().numeric_value(), qt);
 			});
 			break;
 
 		case gate_set::cx:
 			gate.foreach_control([&](auto qc) {
 				gate.foreach_target([&](auto qt) {
-					out << fmt::format("CNOT {} {}\n", qc, qt); 
+					os << fmt::format("CNOT {} {}\n", qc, qt); 
 				});
 			});
 			break;
@@ -80,22 +80,22 @@ void write_quil(Network const& network, std::ostream& out)
 				return true;
 			case 0u:
 				for (auto q : targets) {
-					out << fmt::format("X {}\n", q);
+					os << fmt::format("X {}\n", q);
 				}
 				break;
 			case 1u:
 				for (auto q : targets) {
-					out << fmt::format("CNOT {} {}\n", controls[0], q);
+					os << fmt::format("CNOT {} {}\n", controls[0], q);
 				}
 				break;
 			case 2u:
 				for (auto i = 1u; i < targets.size(); ++i) {
-					out << fmt::format("CNOT {} {}\n", targets[0], targets[i]);
+					os << fmt::format("CNOT {} {}\n", targets[0], targets[i]);
 				}
-				out << fmt::format("CCNOT {} {} {}\n", controls[0], controls[1],
+				os << fmt::format("CCNOT {} {} {}\n", controls[0], controls[1],
 				                   targets[0]);
 				for (auto i = 1u; i < targets.size(); ++i) {
-					out << fmt::format("CNOT {} {}\n", targets[0], targets[i]);
+					os << fmt::format("CNOT {} {}\n", targets[0], targets[i]);
 				}
 				break;
 			}

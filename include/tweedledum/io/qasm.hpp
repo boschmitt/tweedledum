@@ -141,7 +141,7 @@ void write_qasm(Network const& network, std::ostream& os)
  * \param filename Filename
  */
 template<typename Network>
-void write_qasm(Network const& network, const std::string& filename)
+void write_qasm(Network const& network, std::string const& filename)
 {
 	std::ofstream os(filename.c_str(), std::ofstream::out);
 	write_qasm(network, os);

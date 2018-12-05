@@ -216,18 +216,20 @@ void cnot_patel(Network& network, std::vector<uint32_t> const& qubits, Matrix co
    The following code shows how to apply the algorithm to the example in the original paper.
 
    .. code-block:: c++
+
       std::vector<uint32_t> rows = {0b000011,
                                     0b011001,
-                                    0b010010,
-                                    0b111111,
-                                    0b111011,
-                                    0b011100};
+				    0b010010,
+				    0b111111,
+				    0b111011,
+				    0b011100};
       bit_matrix_rm matrix(6, rows);
       cnot_patel_params parameters;
       parameters.allow_rewiring = false;
       parameters.best_partition_size = false;
       parameters.partition_size = 2u;
       auto network = cnot_patel<netlist<mcst_gate>>(matrix, parameters);
+
    \endverbatim
  *
  * \param matrix The square matrix representing a linear reversible circuit.

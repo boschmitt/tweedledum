@@ -94,27 +94,27 @@ auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const& perm)
 /*! \brief Reversible synthesis based on functional decomposition.
  *
    \verbatim embed:rst
-   This algorithm implements the decomposition-based synthesis algorithm
-   proposed in :cite:`VR08`.  A permutation is specified as a vector of
-   :math:`2^n` different integers ranging from :math:`0` to :math:`2^n-1`.
+   This algorithm implements the decomposition-based synthesis algorithm proposed in :cite:`VR08`.
+   A permutation is specified as a vector of :math:`2^n` different integers ranging from :math:`0`
+   to :math:`2^n-1`.
 
    .. code-block:: c++
 
-      std::vector<uint16_t> perm{{0, 2, 3, 5, 7, 1, 4, 6}};
-      auto network = decomposition_based_synthesis<gg_network<mcst_gate>>(perm, stg_from_spectrum());
+      std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
+      auto network = dbs<netlist<mcst_gate>>(permutation, stg_from_spectrum());
+
    \endverbatim
  *
- * \param perm Input permutation
+ * \param perm A permutation
  * \param stg_synth Synthesis function for single-target gates
- * \param ps Parameters
+ * \param params Parameters (see ``dbs_params``)
  * 
  * \algtype synthesis
  * \algexpects Permutation
  * \algreturns Quantum or reversible circuit
  */
 template<class Network, class STGSynthesisFn>
-Network dbs(std::vector<uint32_t> perm, STGSynthesisFn&& stg_synth,
-            dbs_params const& ps = {})
+Network dbs(std::vector<uint32_t> perm, STGSynthesisFn&& stg_synth, dbs_params params = {})
 {
 	Network network;
 	const uint32_t num_qubits = std::log2(perm.size());
@@ -144,7 +144,7 @@ Network dbs(std::vector<uint32_t> perm, STGSynthesisFn&& stg_synth,
 	}
 
 	for (auto const& [tt, vars] : gates) {
-		if (ps.verbose) {
+		if (params.verbose) {
 			std::cout << "[i] synthesize " << kitty::to_hex(tt) << " onto "
 			          << std::accumulate(vars.begin() + 1, vars.end(),
 			                             std::to_string(vars.front()),

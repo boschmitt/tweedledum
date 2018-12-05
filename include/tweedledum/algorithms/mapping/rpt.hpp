@@ -28,6 +28,10 @@ namespace tweedledum {
  * - `foreach_cgate`
  * - `rewire`
  * - `rewire_map`
+ * 
+ * \algtype mapping
+ * \algexpects TODO
+ * \algreturns TODO
  */
 template<typename Network>
 Network rpt(Network const& src)
