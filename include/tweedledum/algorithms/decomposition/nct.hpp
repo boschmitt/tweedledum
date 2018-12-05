@@ -95,7 +95,7 @@ void tofolli_barrenco_decomposition(Network& network, std::vector<uint32_t> cons
 
 } /* namespace detail */
 
-/*! \brief Parameters for `nct_mapping`. */
+/*! \brief Parameters for `nct_decomposition`. */
 struct nct_params {
 	uint32_t controls_threshold = 2u;
 };
@@ -109,7 +109,6 @@ struct nct_params {
  * - `foreach_control`
  * - `foreach_target`
  * - `num_controls`
- * - `op`
  *
  * **Required network functions:**
  * - `add_gate`
@@ -123,7 +122,7 @@ struct nct_params {
  * \algreturns {NOT, CNOT, Toffoli} network
  */
 template<typename Network>
-Network nct_mapping(Network const& src, nct_params params = {})
+Network nct_decomposition(Network const& src, nct_params params = {})
 {
 	auto gate_rewriter = [&](auto& dest, auto const& gate) {
 		if (gate.is(gate_set::mcx)) {

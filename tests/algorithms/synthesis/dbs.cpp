@@ -4,7 +4,7 @@
 | Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
-#include <tweedledum/algorithms/mapping/nct.hpp>
+#include <tweedledum/algorithms/decomposition/nct.hpp>
 #include <tweedledum/algorithms/synthesis/dbs.hpp>
 #include <tweedledum/algorithms/synthesis/stg.hpp>
 #include <tweedledum/gates/gate_set.hpp>

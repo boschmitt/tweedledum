@@ -29,7 +29,7 @@ Welcome to tweedledum's documentation!
    :maxdepth: 2
    :caption: Algorithms
 
-   algorithms/mapping
+   algorithms/decomposition
    algorithms/synthesis
 
 .. toctree::

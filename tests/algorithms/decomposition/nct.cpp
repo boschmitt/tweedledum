@@ -4,18 +4,19 @@
 | Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
-#include <tweedledum/algorithms/mapping/rpt.hpp>
+#include <tweedledum/algorithms/decomposition/nct.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <vector>
 
-TEST_CASE("Decompose 2-controlled Z gate", "[rpt]")
+TEST_CASE("Decompose 3-controlled Toffoli gate", "[nct]")
 {
 	using namespace tweedledum;
 	netlist<mcmt_gate> network;
 	network.add_qubit();
 	network.add_qubit();
 	network.add_qubit();
-	network.add_gate(gate::mcz, std::vector({0u, 1u}), std::vector(1, 2u));
-	auto snetwork = rpt(network);
+	network.add_qubit();
+	network.add_gate(gate::mcx, std::vector({0u, 1u, 2u}), std::vector({3u}));
+	auto snetwork = nct_decomposition(network);
 }

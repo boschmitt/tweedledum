@@ -14,13 +14,12 @@
 
 namespace tweedledum {
 
-/*! \brief Relative Phase Toffoli mapping
+/*! \brief Relative Phase Toffoli decomposition
  *
  * **Required gate functions:**
  * - `foreach_control`
  * - `foreach_target`
  * - `num_controls`
- * - `op`
  *
  * **Required network functions:**
  * - `add_gate`
@@ -34,7 +33,7 @@ namespace tweedledum {
  * \algreturns TODO
  */
 template<typename Network>
-Network rpt(Network const& src)
+Network rpt_decomposition(Network const& src)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
 		if (gate.is(gate_set::mcx)) {
