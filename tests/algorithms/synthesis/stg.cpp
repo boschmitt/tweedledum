@@ -9,7 +9,6 @@
 #include <sstream>
 #include <tweedledum/algorithms/synthesis/stg.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
 
 using namespace tweedledum;
@@ -30,6 +29,18 @@ inline auto circuit_and_map(uint32_t qubits)
 
 } // namespace tweedledum::detail
 
+TEST_CASE("Synthesize a simple function into a quantum network using stg_from_pkrm",
+          "[stg]")
+{
+	kitty::dynamic_truth_table tt(5);
+	kitty::create_from_hex_string(tt, "DA657041");
+	auto [network, map] = detail::circuit_and_map<netlist<mcmt_gate>>(6u);
+	stg_from_pkrm()(network, map, tt);
+
+	CHECK(network.num_gates() == 38u);
+	CHECK(network.num_qubits() == 6u);
+}
+
 TEST_CASE("Synthesize a simple function into a quantum network using stg_from_pprm",
           "[stg]")
 {
@@ -47,7 +58,7 @@ TEST_CASE("Synthesize a simple function into a quantum network using stg_from_sp
 {
 	kitty::dynamic_truth_table tt(5);
 	kitty::create_from_hex_string(tt, "DA657041");
-	auto [network, map] = detail::circuit_and_map<netlist<mcst_gate>>(6u);
+	auto [network, map] = detail::circuit_and_map<netlist<mcmt_gate>>(6u);
 	stg_from_spectrum()(network, map, tt);
 
 	CHECK(network.num_gates() == 185u);
