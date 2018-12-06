@@ -1,0 +1,10 @@
+**/*~
+**/.DS_Store
+**/.dir-locals.el
+
+.vscode/
+
+build/
+docs/.venv
+docs/_build
+docs/doxyxml
