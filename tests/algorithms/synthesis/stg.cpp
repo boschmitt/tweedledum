@@ -37,7 +37,7 @@ TEST_CASE("Synthesize a simple function into a quantum network using stg_from_pk
 	auto [network, map] = detail::circuit_and_map<netlist<mcmt_gate>>(6u);
 	stg_from_pkrm()(network, map, tt);
 
-	CHECK(network.num_gates() == 38u);
+	CHECK(network.num_gates() == 40u);
 	CHECK(network.num_qubits() == 6u);
 }
 
