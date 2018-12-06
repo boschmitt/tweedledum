@@ -8,6 +8,7 @@
 #include "../gates/gate_base.hpp"
 #include "../utils/foreach.hpp"
 #include "detail/storage.hpp"
+#include "qubit.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -39,7 +40,7 @@ public:
 private:
 	auto create_qubit()
 	{
-		uint32_t qid = storage_->inputs.size();
+		qubit_id qid(storage_->inputs.size());
 		uint32_t index = storage_->nodes.size();
 		gate_type input(gate_base(gate_set::input), qid);
 		gate_type output(gate_base(gate_set::output), qid);
@@ -91,32 +92,25 @@ public:
 		return node;
 	}
 
-	auto& add_gate(gate_base op, uint32_t qid_target)
+	auto& add_gate(gate_base op, qubit_id target)
 	{
-		gate_type gate(op, storage_->rewiring_map[qid_target]);
+		gate_type gate(op, storage_->rewiring_map.at(target));
 		return add_gate(gate);
 	}
 
-	auto& add_gate(gate_base op, uint32_t qid_control, uint32_t qid_target)
+	auto& add_gate(gate_base op, qubit_id control, qubit_id target)
 	{
-		gate_type gate(op, storage_->rewiring_map[qid_control],
-		               storage_->rewiring_map[qid_target]);
+		gate_type gate(op, storage_->rewiring_map.at(control),
+		               storage_->rewiring_map.at(target));
 		return add_gate(gate);
 	}
 
-	auto& add_gate(gate_base op, std::vector<uint32_t> const& qids_control,
-	               std::vector<uint32_t> const& qids_target)
+	auto& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets)
 	{
-		std::vector<uint32_t> controls;
-		std::transform(qids_control.begin(), qids_control.end(),
-		               std::back_inserter(controls), [&](uint32_t qid) -> uint32_t {
-			               return storage_->rewiring_map[qid];
-		               });
-		std::vector<uint32_t> targets;
-		std::transform(qids_target.begin(), qids_target.end(),
-		               std::back_inserter(targets), [&](uint32_t qid) -> uint32_t {
-			               return storage_->rewiring_map[qid];
-		               });
+		std::transform(controls.begin(), controls.end(), controls.begin(),
+		               [&](qubit_id qid) -> qubit_id { return storage_->rewiring_map.at(qid); });
+		std::transform(targets.begin(), targets.end(), targets.begin(),
+		               [&](qubit_id qid) -> qubit_id { return storage_->rewiring_map.at(qid); });
 		gate_type gate(op, controls, targets);
 		return add_gate(gate);
 	}
@@ -142,15 +136,15 @@ public:
 	auto& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
 	               std::vector<std::string> const& qlabels_target)
 	{
-		std::vector<uint32_t> qids_control;
+		std::vector<qubit_id> controls;
 		for (auto& control : qlabels_control) {
-			qids_control.push_back(qlabels_->to_qid(control));
+			controls.push_back(qlabels_->to_qid(control));
 		}
-		std::vector<uint32_t> qids_target;
+		std::vector<qubit_id> targets;
 		for (auto& target : qlabels_target) {
-			qids_target.push_back(qlabels_->to_qid(target));
+			targets.push_back(qlabels_->to_qid(target));
 		}
-		gate_type gate(op, qids_control, qids_target);
+		gate_type gate(op, controls, targets);
 		return add_gate(gate);
 	}
 #pragma endregion
@@ -160,13 +154,13 @@ public:
 	void foreach_cqubit(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, uint32_t> ||
+		static_assert(std::is_invocable_r_v<void, Fn, qubit_id> ||
 		              std::is_invocable_r_v<void, Fn, std::string const&> || 
-			      std::is_invocable_r_v<void, Fn, uint32_t, std::string const&>);
+			      std::is_invocable_r_v<void, Fn, qubit_id, std::string const&>);
 		// clang-format on
-		if constexpr (std::is_invocable_r_v<void, Fn, uint32_t>) {
+		if constexpr (std::is_invocable_r_v<void, Fn, qubit_id>) {
 			for (auto qid = 0u; qid < num_qubits(); ++qid) {
-				fn(qid);
+				fn(qubit_id(qid));
 			}
 		} else if constexpr (std::is_invocable_r_v<void, Fn, std::string const&>) {
 			for (auto const& qlabel : *qlabels_) {
@@ -175,7 +169,7 @@ public:
 		} else {
 			auto qid = 0u;
 			for (auto const& qlabel : *qlabels_) {
-				fn(qid++, qlabel);
+				fn(qubit_id(qid++), qlabel);
 			}
 		}
 	}

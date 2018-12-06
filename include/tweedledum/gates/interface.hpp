@@ -20,26 +20,26 @@ public:
 	/*! \brief Construct a single qubit gate
 	 *
 	 * \param op the operation (must be a single qubit operation).
-	 * \param qid_target qubit identifier of the target.
+	 * \param target qubit identifier of the target.
 	 */
-	gate(gate_base const& op, uint32_t qid_target);
+	gate(gate_base const& op, qubit_id target);
 
 	/*! \brief Construct a controlled gate
 	 *
 	 * \param controlled_op the operation (must be a two qubit controlled operation).
-	 * \param qid_control qubit identifier of the control.
-	 * \param qid_target qubit identifier of the target.
+	 * \param control qubit identifier of the control.
+	 * \param target qubit identifier of the target.
 	 */
-	gate(gate_base const& controlled_op, uint32_t qid_control, uint32_t qid_target);
+	gate(gate_base const& controlled_op, qubit_id control, qubit_id target);
 
 	/*! \brief Construct a gate using vectors
 	 *
 	 * \param unitary_op the operation (must be unitary operation).
-	 * \param qids_control qubit(s) identifier of the control(s).
-	 * \param qid_target qubit identifier of the target.
+	 * \param control qubit(s) identifier of the control(s).
+	 * \param targets qubit identifier of the target.
 	 */
-	gate(gate_base const& unitary_op, std::vector<uint32_t> const& qids_control,
-	     std::vector<uint32_t> const& qid_target);
+	gate(gate_base const& unitary_op, std::vector<qubit_id> const& controls,
+	     std::vector<qubit_id> const& targets);
 #pragma endregion
 
 #pragma region Properties
@@ -54,11 +54,10 @@ public:
 	/*! \brief Calls ``fn`` on every target qubit of the gate.
 	 *
 	 * The paramater ``fn`` is any callable that must have one of the following two signatures.
-	 * - ``void(uint32_t)``
-	 * - ``bool(uint32_t)``
+	 * - ``void(qubit_id)``
+	 * - ``bool(qubit_id)``
 	 *
-	 * ``fn`` has one parameter: a qid. If ``fn`` returns a ``bool``, then it can interrupt the
-	 * iteration by returning ``false``.
+	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
 	 */
 	template<typename Fn>
 	void foreach_control(Fn&& fn) const;
@@ -66,9 +65,7 @@ public:
 	/*! \brief Calls ``fn`` on every target qubit of the gate.
 	 *
 	 * The paramater ``fn`` is any callable that must have one of the following signature.
-	 * - ``void(uint32_t)``
-	 *
-	 * ``fn`` has one parameter: a qid.
+	 * - ``void(qubit_id)``
 	 */
 	template<typename Fn>
 	void foreach_target(Fn&& fn) const;

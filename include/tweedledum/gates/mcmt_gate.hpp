@@ -6,8 +6,8 @@
 #pragma once
 
 #include "../networks/qubit.hpp"
-#include "gate_set.hpp"
 #include "gate_base.hpp"
+#include "gate_set.hpp"
 
 #include <algorithm>
 #include <array>
@@ -32,42 +32,42 @@ public:
 #pragma endregion
 
 #pragma region Constructors
-	mcmt_gate(gate_base const& op, uint32_t qid_target)
+	mcmt_gate(gate_base const& op, qubit_id target)
 	    : gate_base(op)
 	    , controls_(0)
 	    , targets_(0)
 	{
 		assert(is_single_qubit());
-		assert(qid_target <= network_max_num_qubits);
-		targets_ |= (1 << qid_target);
+		assert(target <= network_max_num_qubits);
+		targets_ |= (1 << target);
 	}
 
-	mcmt_gate(gate_base const& op, uint32_t qid_control, uint32_t qid_target)
+	mcmt_gate(gate_base const& op, qubit_id control, qubit_id target)
 	    : gate_base(op)
 	    , controls_(0)
 	    , targets_(0)
 	{
 		assert(is_double_qubit());
-		assert(qid_control <= network_max_num_qubits);
-		assert(qid_target <= network_max_num_qubits);
-		assert(qid_control != qid_target);
-		controls_ |= (1 << qid_control);
-		targets_ |= (1 << qid_target);
+		assert(control <= network_max_num_qubits);
+		assert(target <= network_max_num_qubits);
+		assert(control != target);
+		controls_ |= (1 << control);
+		targets_ |= (1 << target);
 	}
 
-	mcmt_gate(gate_base const& op, std::vector<uint32_t> const& qids_control,
-	          std::vector<uint32_t> const& qid_target)
+	mcmt_gate(gate_base const& op, std::vector<qubit_id> const& controls,
+	          std::vector<qubit_id> const& target)
 	    : gate_base(op)
 	    , controls_(0)
 	    , targets_(0)
 	{
-		assert(qids_control.size() <= max_num_qubits);
-		assert(qid_target.size() > 0 && qid_target.size() <= max_num_qubits);
-		for (auto control : qids_control) {
+		assert(controls.size() <= max_num_qubits);
+		assert(target.size() > 0 && target.size() <= max_num_qubits);
+		for (auto control : controls) {
 			assert(control <= network_max_num_qubits);
 			controls_ |= (1u << control);
 		}
-		for (auto target : qid_target) {
+		for (auto target : target) {
 			assert(target <= network_max_num_qubits);
 			targets_ |= (1u << target);
 		}

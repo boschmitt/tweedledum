@@ -5,6 +5,8 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../qubit.hpp"
+
 #include <array>
 #include <cstdint>
 #include <limits>
@@ -170,7 +172,7 @@ struct storage {
  */
 class qlabels_map {
 public:
-	auto map(uint32_t qid, std::string const& qlabel)
+	auto map(qubit_id qid, std::string const& qlabel)
 	{
 		qlabel_to_qid_.emplace(qlabel, qid);
 		qid_to_qlabel_.emplace_back(qlabel);
@@ -181,7 +183,7 @@ public:
 		return qlabel_to_qid_.at(qlabel);
 	}
 
-	auto to_qlabel(uint32_t qid) const
+	auto to_qlabel(qubit_id qid) const
 	{
 		return qid_to_qlabel_.at(qid);
 	}
@@ -207,7 +209,7 @@ public:
 	}
 
 private:
-	std::unordered_map<std::string, uint32_t> qlabel_to_qid_;
+	std::unordered_map<std::string, qubit_id> qlabel_to_qid_;
 	std::vector<std::string> qid_to_qlabel_;
 };
 

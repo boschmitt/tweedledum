@@ -7,6 +7,7 @@
 
 #include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
+#include "../../networks/qubit.hpp"
 #include "../generic/rewrite.hpp"
 
 #include <cstdint>
@@ -19,8 +20,8 @@ namespace detail {
 // Barenco, A., Bennett, C.H., Cleve, R., DiVincenzo, D.P., Margolus, N., Shor, P., Sleator, T., Smolin,
 // J.A. and Weinfurter, H., 1995. Elementary gates for quantum computation. Physical review A, 52(5), p.3457.
 template<class Network>
-void tofolli_barenco_decomposition(Network& network, std::vector<uint32_t> const& controls,
-                                   uint32_t target, uint32_t controls_threshold)
+void tofolli_barenco_decomposition(Network& network, std::vector<qubit_id> const& controls,
+                                   qubit_id target, uint32_t controls_threshold)
 {
 	const auto num_controls = controls.size();
 	assert(num_controls >= 2);
@@ -30,12 +31,15 @@ void tofolli_barenco_decomposition(Network& network, std::vector<uint32_t> const
 		return;
 	}
 
-	std::vector<uint32_t> workspace;
-	for (auto i = 0ull; i < network.num_qubits(); ++i) {
-		if (i != target && std::find(controls.begin(), controls.end(), i) == controls.end()) {
-			workspace.push_back(i);
+	std::vector<qubit_id> workspace;
+	network.foreach_cqubit([&](qubit_id qid) {
+		if (qid == target) {
+			return;
 		}
-	}
+		if (std::find(controls.begin(), controls.end(), qid) == controls.end()) {
+			workspace.push_back(qid);
+		}
+	});
 	const auto workspace_size = workspace.size();
 	if (workspace_size == 0) {
 		std::cout << "[e] no sufficient helper line found for mapping, break\n";
@@ -66,9 +70,9 @@ void tofolli_barenco_decomposition(Network& network, std::vector<uint32_t> const
 
 			for (int i = num_controls - 2 - 1; i >= offset; --i) {
 				network.add_gate(gate::mcx,
-				    std::vector<uint32_t>({controls[num_controls - 1 - i],
-				                           workspace[workspace_size - 1 - i]}),
-				    std::vector<uint32_t>({workspace[workspace_size - i]}));
+				                 std::vector({controls[num_controls - 1 - i],
+				                              workspace[workspace_size - 1 - i]}),
+				                 std::vector({workspace[workspace_size - i]}));
 			}
 		}
 		return;
@@ -77,8 +81,8 @@ void tofolli_barenco_decomposition(Network& network, std::vector<uint32_t> const
 	// Not enough qubits in the workspace, extra decomposition step
 	// Lemma 7.3: For any n ≥ 5, and m ∈ {2, ... , n − 3} a (n−2)-toffoli gate can be simulated
 	// by a network consisting of two m-toffoli gates and two (n−m−1)-toffoli gates
-	std::vector<uint32_t> controls0;
-	std::vector<uint32_t> controls1;
+	std::vector<qubit_id> controls0;
+	std::vector<qubit_id> controls1;
 	for (auto i = 0u; i < (num_controls >> 1); ++i) {
 		controls0.push_back(controls[i]);
 	}
@@ -143,12 +147,11 @@ Network barenco_decomposition(Network const& src, barenco_params params = {})
 				break;
 
 			default:
-				std::vector<uint32_t> controls;
-				std::vector<uint32_t> targets;
-				gate.foreach_control(
-				    [&](auto control) { controls.push_back(control); });
+				std::vector<qubit_id> controls;
+				std::vector<qubit_id> targets;
+				gate.foreach_control([&](auto control) { controls.push_back(control); });
 				gate.foreach_target([&](auto target) { targets.push_back(target); });
-				for (auto i = 1ull; i < targets.size(); ++i) {
+				for (auto i = 1u; i < targets.size(); ++i) {
 					dest.add_gate(gate::cx, targets[0], targets[i]);
 				}
 				detail::tofolli_barenco_decomposition(dest, controls, targets[0],

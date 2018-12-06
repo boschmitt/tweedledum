@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../networks/netlist.hpp"
+#include "../../networks/qubit.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -82,7 +83,7 @@ auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const& perm)
 		}
 	}
 
-	std::vector<uint32_t> base;
+	std::vector<qubit_id> base;
 	for (auto element : kitty::min_base_inplace(tt)) {
 		base.push_back(element);
 	}
@@ -122,7 +123,7 @@ Network dbs(std::vector<uint32_t> perm, STGSynthesisFn&& stg_synth, dbs_params p
 		network.add_qubit();
 	}
 
-	std::list<std::pair<kitty::dynamic_truth_table, std::vector<uint32_t>>> gates;
+	std::list<std::pair<kitty::dynamic_truth_table, std::vector<qubit_id>>> gates;
 	auto pos = gates.begin();
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		const auto [left, right] = detail::decompose(perm, i);

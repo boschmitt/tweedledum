@@ -5,6 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../../networks/qubit.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "gray_synth.hpp"
 #include "linear_synth.hpp"
@@ -36,16 +37,16 @@ struct stg_from_pkrm {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<uint32_t> const& qubits,
+	void operator()(Network& network, std::vector<qubit_id> const& qubits,
 	                kitty::dynamic_truth_table const& function)
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubits.size() == static_cast<std::size_t>(num_controls) + 1u);
 
-		std::vector<uint32_t> target = {qubits.back()};
+		std::vector<qubit_id> target = {qubits.back()};
 		for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
-			std::vector<uint32_t> controls;
-			std::vector<uint32_t> negations;
+			std::vector<qubit_id> controls;
+			std::vector<qubit_id> negations;
 			auto bits = cube._bits;
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
@@ -83,16 +84,16 @@ struct stg_from_pprm {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<uint32_t> const& qubits,
+	void operator()(Network& network, std::vector<qubit_id> const& qubits,
 	                kitty::dynamic_truth_table const& function)
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubits.size() == static_cast<std::size_t>(num_controls) + 1u);
 
-		std::vector<uint32_t> target = {qubits.back()};
+		std::vector<qubit_id> target = {qubits.back()};
 		for (auto const& cube : kitty::esop_from_pprm(function)) {
 			assert(cube._bits == cube._mask); /* PPRM property */
-			std::vector<uint32_t> controls;
+			std::vector<qubit_id> controls;
 			auto bits = cube._bits;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (bits & 1) {
@@ -129,7 +130,7 @@ struct stg_from_spectrum {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<uint32_t> const& qubits,
+	void operator()(Network& network, std::vector<qubit_id> const& qubits,
 	                kitty::dynamic_truth_table const& function)
 	{
 		const auto num_controls = function.num_vars();

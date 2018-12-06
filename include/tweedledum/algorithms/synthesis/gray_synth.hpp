@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../../gates/gate_set.hpp"
+#include "../../networks/qubit.hpp"
 #include "../../utils/bit_matrix_cm.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
@@ -44,7 +45,7 @@ class gray_synth_ftor {
 	};
 
 public:
-	gray_synth_ftor(Network& network, std::vector<uint32_t> const& qubits,
+	gray_synth_ftor(Network& network, std::vector<qubit_id> const& qubits,
 	                parity_terms const& parities, gray_synth_params params)
 	    : network_(network)
 	    , qubits_(qubits)
@@ -185,7 +186,7 @@ private:
 
 private:
 	Network& network_;
-	std::vector<uint32_t> qubits_;
+	std::vector<qubit_id> qubits_;
 	parity_terms parities_;
 	matrix_type parity_matrix_;
 	std::vector<state_type> state_stack_;
@@ -205,7 +206,7 @@ private:
  *                 See `gray_synth_params` for details.
  */
 template<class Network>
-void gray_synth(Network& network, std::vector<uint32_t> const& qubits,
+void gray_synth(Network& network, std::vector<qubit_id> const& qubits,
                 parity_terms const& parities, gray_synth_params params = {})
 {
 	detail::gray_synth_ftor synthesizer(network, qubits, parities, params);
@@ -243,7 +244,7 @@ Network gray_synth(uint32_t num_qubits, parity_terms const& parities, gray_synth
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<uint32_t> qubits(num_qubits);
+	std::vector<qubit_id> qubits(num_qubits);
 	std::iota(qubits.begin(), qubits.end(), 0u);
 	gray_synth(network, qubits, parities, params);
 	return network;

@@ -31,42 +31,42 @@ public:
 #pragma endregion
 
 #pragma region Constructors
-	mcst_gate(gate_base const& op, uint32_t qid_target)
+	mcst_gate(gate_base const& op, qubit_id target)
 	    : gate_base(op)
 	    , target_(0)
-	    , qid_slots_({qid_target, qid_invalid, qid_invalid})
+	    , qid_slots_({target, qid_invalid, qid_invalid})
 	{
 		assert(is_single_qubit());
 	}
 
-	mcst_gate(gate_base const& op, uint32_t qid_control, uint32_t qid_target)
+	mcst_gate(gate_base const& op, qubit_id control, qubit_id target)
 	    : gate_base(op)
 	    , target_(0)
-	    , qid_slots_({qid_target, qid_control, qid_invalid})
+	    , qid_slots_({target, control, qid_invalid})
 	{
 		assert(is_double_qubit());
-		assert(qid_control != qid_target);
-		if (qid_control < qid_target) {
+		assert(control != target);
+		if (control < target) {
 			std::swap(qid_slots_[0], qid_slots_[1]);
 			target_ = 1;
 		}
 	}
 
-	mcst_gate(gate_base const& op, std::vector<uint32_t> const& qids_control,
-	          std::vector<uint32_t> const& qid_target)
+	mcst_gate(gate_base const& op, std::vector<qubit_id> const& controls,
+	          std::vector<qubit_id> const& target)
 	    : gate_base(op)
 	    , target_(0)
 	    , qid_slots_({qid_invalid, qid_invalid, qid_invalid})
 	{
-		assert(qids_control.size() == num_controls());
-		assert(qid_target.size() == 1u);
-		for (auto i = 0u; i < qids_control.size(); ++i) {
-			qid_slots_[i] = qids_control[i];
+		assert(controls.size() == num_controls());
+		assert(target.size() == 1u);
+		for (auto i = 0u; i < controls.size(); ++i) {
+			qid_slots_[i] = controls[i];
 		}
-		qid_slots_[2] = qid_target[0];
+		qid_slots_[2] = target[0];
 		std::sort(qid_slots_.begin(), qid_slots_.end());
 		for (auto i = 0u; i < qid_slots_.size(); ++i) {
-			if (qid_slots_[i] == qid_target[0]) {
+			if (qid_slots_[i] == target[0]) {
 				target_ = i;
 				break;
 			}
@@ -107,7 +107,7 @@ public:
 			if (slot == target_ || qid_slots_[slot] == qid_invalid) {
 				continue;
 			}
-			if constexpr (std::is_invocable_r<bool, Fn, uint32_t>::value) {
+			if constexpr (std::is_invocable_r<bool, Fn, qubit_id>::value) {
 				if (!fn(qid_slots_[slot])) {
 					return;
 				}
@@ -129,7 +129,7 @@ private:
 	/*! \brief indicates the slot which holds the qid of the target. */
 	uint8_t target_;
 	/*! \brief an array which hold the qids' of the qubits this gate is acting upon */
-	std::array<uint32_t, max_num_qubits> qid_slots_;
+	std::array<qubit_id, max_num_qubits> qid_slots_;
 };
 
 } // namespace tweedledum

@@ -10,6 +10,7 @@
 #include <tweedledum/algorithms/synthesis/stg.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/networks/qubit.hpp>
 
 using namespace tweedledum;
 
@@ -22,7 +23,7 @@ inline auto circuit_and_map(uint32_t qubits)
 	for (auto i = 0u; i < qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<uint32_t> map(qubits);
+	std::vector<qubit_id> map(qubits);
 	std::iota(map.begin(), map.end(), 0u);
 	return std::make_pair(network, map);
 }

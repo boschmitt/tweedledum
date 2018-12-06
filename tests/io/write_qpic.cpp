@@ -9,6 +9,7 @@
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/io/write_qpic.hpp>
 #include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/networks/qubit.hpp>
 
 TEST_CASE("Write simple MCMT netlist into qpic", "[qpic]")
 {
@@ -17,8 +18,8 @@ TEST_CASE("Write simple MCMT netlist into qpic", "[qpic]")
 	mcmt_netlist.add_qubit();
 	mcmt_netlist.add_qubit();
 	mcmt_netlist.add_qubit();
-	auto controls = std::vector<uint32_t>({0u, 1u});
-	auto target = std::vector<uint32_t>({2u});
+	auto controls = std::vector<qubit_id>({0u, 1u});
+	auto target = std::vector<qubit_id>({2u});
 	mcmt_netlist.add_gate(gate::mcx, controls, target);
 	CHECK(mcmt_netlist.size() == 7);
 	CHECK(mcmt_netlist.num_qubits() == 3);
