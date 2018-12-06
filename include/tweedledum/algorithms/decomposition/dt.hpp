@@ -14,8 +14,19 @@
 
 namespace tweedledum {
 
-/*! \brief Relative Phase Toffoli decomposition
+/*! \brief Direct Toffoli (DT) decomposition
  *
+   \verbatim embed:rst
+
+   Decomposes all Multiple-controlled Toffoli gates with 2, 3 or 4 controls into Clifford+T.
+   Also decompose all Multiple-controlled Z gates with 2 controls into Clifford+T. This may
+   introduce one additional helper qubit called ancilla.
+   
+   These Clifford+T represetations were obtained using techniques inspired by :cite:`Maslov2016`
+   and given in :cite:`AAM13`
+
+   \endverbatim
+ * 
  * **Required gate functions:**
  * - `foreach_control`
  * - `foreach_target`
@@ -28,12 +39,12 @@ namespace tweedledum {
  * - `rewire`
  * - `rewire_map`
  * 
- * \algtype mapping
- * \algexpects TODO
- * \algreturns TODO
+ * \algtype decomposition
+ * \algexpects A network
+ * \algreturns A network
  */
 template<typename Network>
-Network rpt_decomposition(Network const& src)
+Network dt_decomposition(Network const& src)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
 		if (gate.is(gate_set::mcx)) {

@@ -1,6 +1,8 @@
 Decomposition
 -------------
 
+**Decomposition**: is the process of breaking down in parts or elements.
+
 High-level quantum algorithms are technology-independent, that is, allow arbitrary quantum gates,
 and do not take architectural constraints into account. Quite often, these algorithms involve quantum
 gates acting on *n* qubits. In order to execute such an algorithm in a quantum computer it is
@@ -13,5 +15,5 @@ decomposition algorithms that are currently provided in *tweedledum*
    :maxdepth: 2
    :hidden:
 
-   decomposition/nct
-   decomposition/rpt
+   decomposition/barenco
+   decomposition/dt

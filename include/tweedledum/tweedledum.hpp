@@ -4,8 +4,8 @@
 | Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 
-#include "algorithms/decomposition/nct.hpp"
-#include "algorithms/decomposition/rpt.hpp"
+#include "algorithms/decomposition/barenco.hpp"
+#include "algorithms/decomposition/dt.hpp"
 #include "algorithms/synthesis/cnot_patel.hpp"
 #include "algorithms/synthesis/dbs.hpp"
 #include "algorithms/synthesis/gray_synth.hpp"
