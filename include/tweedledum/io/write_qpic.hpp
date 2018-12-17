@@ -99,7 +99,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			break;
 		}
 		node.gate.foreach_control([&](auto qubit) {
-			os << fmt::format(" q{}", qubit); 
+			os << fmt::format(" {}q{}", qubit.is_complemented() ? "-" : "", qubit); 
 		});
 		os << '\n';
 	});

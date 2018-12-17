@@ -36,9 +36,12 @@ void tofolli_barenco_decomposition(Network& network, std::vector<qubit_id> const
 		if (qid == target) {
 			return;
 		}
-		if (std::find(controls.begin(), controls.end(), qid) == controls.end()) {
-			workspace.push_back(qid);
+		for (auto control : controls) {
+			if (qid.index() == control.index()) {
+				return;
+			}
 		}
+		workspace.push_back(qid);
 	});
 	const auto workspace_size = workspace.size();
 	if (workspace_size == 0) {

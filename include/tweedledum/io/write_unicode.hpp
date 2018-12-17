@@ -91,13 +91,25 @@ std::string to_unicode_str(Network const& network)
 
 		case gate_set::cx:
 		case gate_set::mcx:
-			gate.foreach_control([&](auto qid_control) { lines[qid_control] += "●"; });
+			gate.foreach_control([&](auto qid_control) { 
+				if (qid_control.is_complemented()) {
+					lines[qid_control] += "○";
+				} else {
+					lines[qid_control] += "●";
+				}
+			});
 			gate.foreach_target([&](auto qid_target) { lines[qid_target] += "⊕"; });
 			break;
 
 		case gate_set::cz:
 		case gate_set::mcz:
-			gate.foreach_control([&](auto qid_control) { lines[qid_control] += "●"; });
+			gate.foreach_control([&](auto qid_control) { 
+				if (qid_control.is_complemented()) {
+					lines[qid_control] += "○";
+				} else {
+					lines[qid_control] += "●";
+				}
+			});
 			gate.foreach_target([&](auto qid_target) { lines[qid_target] += "Z"; });
 			break;
 		}

@@ -100,7 +100,8 @@ public:
 
 	auto& add_gate(gate_base op, qubit_id control, qubit_id target)
 	{
-		gate_type gate(op, storage_->rewiring_map.at(control),
+		gate_type gate(op,
+		               qubit_id(storage_->rewiring_map.at(control), control.is_complemented()),
 		               storage_->rewiring_map.at(target));
 		return add_gate(gate);
 	}
@@ -108,9 +109,14 @@ public:
 	auto& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets)
 	{
 		std::transform(controls.begin(), controls.end(), controls.begin(),
-		               [&](qubit_id qid) -> qubit_id { return storage_->rewiring_map.at(qid); });
+		               [&](qubit_id qid) -> qubit_id {
+			               return qubit_id(storage_->rewiring_map.at(qid),
+			                               qid.is_complemented());
+		               });
 		std::transform(targets.begin(), targets.end(), targets.begin(),
-		               [&](qubit_id qid) -> qubit_id { return storage_->rewiring_map.at(qid); });
+		               [&](qubit_id qid) -> qubit_id {
+			               return storage_->rewiring_map.at(qid);
+		               });
 		gate_type gate(op, controls, targets);
 		return add_gate(gate);
 	}
@@ -151,14 +157,21 @@ public:
 
 #pragma region Const iterators
 	template<typename Fn>
-	void foreach_cqubit(Fn&& fn) const
+	qubit_id foreach_cqubit(Fn&& fn) const
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, qubit_id> ||
+			      std::is_invocable_r_v<bool, Fn, qubit_id> ||
 		              std::is_invocable_r_v<void, Fn, std::string const&> || 
 			      std::is_invocable_r_v<void, Fn, qubit_id, std::string const&>);
 		// clang-format on
-		if constexpr (std::is_invocable_r_v<void, Fn, qubit_id>) {
+		if constexpr (std::is_invocable_r_v<bool, Fn, qubit_id>) {
+			for (auto qid = 0u; qid < num_qubits(); ++qid) {
+				if (!fn(qubit_id(qid))) {
+					return qid;
+				}
+			}
+		} else if constexpr (std::is_invocable_r_v<void, Fn, qubit_id>) {
 			for (auto qid = 0u; qid < num_qubits(); ++qid) {
 				fn(qubit_id(qid));
 			}
@@ -172,6 +185,7 @@ public:
 				fn(qubit_id(qid++), qlabel);
 			}
 		}
+		return qid_invalid;
 	}
 
 	template<typename Fn>

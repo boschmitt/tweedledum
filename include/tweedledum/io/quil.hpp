@@ -6,7 +6,9 @@
 #pragma once
 
 #include "../gates/gate_set.hpp"
+#include "../networks/qubit.hpp"
 
+#include <cassert>
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
@@ -38,56 +40,75 @@ void write_quil(Network const& network, std::ostream& os)
 		switch (gate.operation()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
+			assert(0);
 			return true;
 
 		case gate_set::hadamard:
-			gate.foreach_target([&](auto q) { os << fmt::format("H {}\n", q); });
+			gate.foreach_target([&](auto target) { os << fmt::format("H {}\n", target); });
 			break;
 
 		case gate_set::pauli_x:
-			gate.foreach_target([&](auto q) { os << fmt::format("X {}\n", q); });
+			gate.foreach_target([&](auto target) { os << fmt::format("X {}\n", target); });
 			break;
 
 		case gate_set::t:
-			gate.foreach_target([&](auto q) { os << fmt::format("T {}\n", q); });
+			gate.foreach_target([&](auto target) { os << fmt::format("T {}\n", target); });
 			break;
 
 		case gate_set::t_dagger:
-			gate.foreach_target([&](auto q) { os << fmt::format("RZ(-pi/4) {}\n", q); });
+			gate.foreach_target([&](auto target) { os << fmt::format("RZ(-pi/4) {}\n", target); });
 			break;
 
 		case gate_set::rotation_z:
-			gate.foreach_target([&](auto qt) {
-				os << fmt::format("RZ({}) {}\n", gate.rotation_angle().numeric_value(), qt);
+			gate.foreach_target([&](auto target) {
+				os << fmt::format("RZ({}) {}\n", gate.rotation_angle().numeric_value(), target);
 			});
 			break;
 
 		case gate_set::cx:
-			gate.foreach_control([&](auto qc) {
-				gate.foreach_target([&](auto qt) {
-					os << fmt::format("CNOT {} {}\n", qc, qt); 
+			gate.foreach_control([&](auto control) {
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
+				gate.foreach_target([&](auto target) {
+					os << fmt::format("CNOT {} {}\n", control.index(), target); 
 				});
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
 			});
 			break;
 
 		case gate_set::mcx:
-			std::vector<uint32_t> controls, targets;
-			gate.foreach_control([&](auto q) { controls.push_back(q); });
-			gate.foreach_target([&](auto q) { targets.push_back(q); });
+			std::vector<qubit_id> controls;
+			std::vector<qubit_id> targets;
+			gate.foreach_control([&](auto control) {
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
+				controls.push_back(control.index()); 
+			});
+			gate.foreach_target([&](auto target) {
+				targets.push_back(target);
+			});
 			switch (controls.size()) {
 			default:
 				std::cerr << "[w] unsupported control size\n";
+				assert(0);
 				return true;
+
 			case 0u:
-				for (auto q : targets) {
-					os << fmt::format("X {}\n", q);
+				for (auto target : targets) {
+					os << fmt::format("X {}\n", target);
 				}
 				break;
+
 			case 1u:
-				for (auto q : targets) {
-					os << fmt::format("CNOT {} {}\n", controls[0], q);
+				for (auto target : targets) {
+					os << fmt::format("CNOT {} {}\n", controls[0], target);
 				}
 				break;
+
 			case 2u:
 				for (auto i = 1u; i < targets.size(); ++i) {
 					os << fmt::format("CNOT {} {}\n", targets[0], targets[i]);
@@ -99,6 +120,11 @@ void write_quil(Network const& network, std::ostream& os)
 				}
 				break;
 			}
+			gate.foreach_control([&](auto control) {
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
+			});
 			break;
 		}
 		return true;

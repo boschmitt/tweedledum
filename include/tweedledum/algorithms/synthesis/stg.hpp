@@ -51,21 +51,12 @@ struct stg_from_pkrm {
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (mask & 1) {
-					controls.push_back(qubits[v]);
-					if (!(bits & 1)) {
-						negations.push_back(qubits[v]);
-					}
+					controls.emplace_back(qubit_id(qubits[v], !(bits & 1)));
 				}
 				bits >>= 1;
 				mask >>= 1;
 			}
-			for (auto n : negations) {
-				network.add_gate(gate::pauli_x, n);
-			}
 			network.add_gate(gate::mcx, controls, target);
-			for (auto n : negations) {
-				network.add_gate(gate::pauli_x, n);
-			}
 		}
 	}
 };
