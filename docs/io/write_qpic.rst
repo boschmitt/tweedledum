@@ -1,5 +1,5 @@
-Writer into qpic files
-----------------------
+Write to qpic file format
+-------------------------
 
 .. doxygenfunction:: tweedledum::write_qpic(Network const&, std::string const&, bool)
 

@@ -8,6 +8,13 @@ include directories, and you can integrate it into your source files using
 
   #include <tweedledum/tweedledum.hpp>
 
+Alpha Disclaimer
+----------------
+
+**tweedledum is in version Alpha**. Hence, the software is still under active development and not
+feature complete, meaning the API is subject to big changes. This is released for developers or
+users who are comfortable living on the absolute bleeding edge.
+
 Requirements
 ------------
 
