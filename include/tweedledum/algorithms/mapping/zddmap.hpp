@@ -9,16 +9,13 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <stack>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
-
-//global quick fix
-std::vector<std::string> global_found_sets;
 
 namespace tweedledum {
 
@@ -502,20 +499,6 @@ public:
 		std::vector<uint32_t> set;
 		print_sets_rec(f, set, fmt);
 	}
-    
-    //public version of return sets
-    template<class Formatter = identity_format>
-    void return_sets_as_vect(node f, Formatter&& fmt = Formatter())
-    {
-        std::vector<uint32_t> set;
-        //std::vector<std::string> found_sets;
-        
-        //found_sets = return_sets_as_vect_rec(f, set, fmt);
-        return_sets_as_vect_rec(f, set, fmt);
-        
-        
-        //return found_sets;
-    }
 
 	template<class Formatter = identity_format>
 	void write_dot(std::ostream& os, Formatter&& fmt = Formatter())
@@ -545,11 +528,9 @@ private:
 	template<class Formatter>
 	void print_sets_rec(node f, std::vector<uint32_t>& set, Formatter&& fmt)
 	{
-        
-        if (f == 1) {
+		if (f == 1) {
 			for (auto v : set) {
 				std::cout << fmt(v) << " ";
-
 			}
 			std::cout << "\n";
 		} else if (f != 0) {
@@ -559,37 +540,7 @@ private:
 			print_sets_rec(nodes[f].hi, set1, fmt);
 		}
 	}
-    //below is where lists of possible assignments are saved to a vector
-    template<class Formatter>
-    void return_sets_as_vect_rec(node f, std::vector<uint32_t>& set, Formatter&& fmt)
-    {
-        //std::vector<std::string> found_sets;
-        
-        std::string single_set = "";
-        
-        if (f == 1) {
-            for (auto v : set) {
-                //single_set = "";
-                single_set = single_set + fmt(v) + " ";
-                
-                
-            }
-            
-            global_found_sets.push_back(single_set);
-            //return found_sets;
-            
-        } else if (f != 0) {
-            return_sets_as_vect_rec(nodes[f].lo, set, fmt);
-            auto set1 = set;
-            set1.push_back(nodes[f].var);
-            return_sets_as_vect_rec(nodes[f].hi, set1, fmt);
-        }
-        
-        //return found_sets;
 
-    }
-    
-    
 public:
 	void debug()
 	{
@@ -700,8 +651,11 @@ public:
 	    , zdd_(circ.num_qubits() * arch.num_vertices, 19)
 	    , from_(circ.num_qubits())
 	    , to_(arch.num_vertices)
+			, edge_perm_(arch.num_vertices, 0)
 	    , fmt_(circ.num_qubits())
-	{}
+	{
+		std::iota(edge_perm_.begin(), edge_perm_.end(), 0);
+	}
 
 	void run()
 	{
@@ -711,28 +665,25 @@ public:
 		init_valid();
 		zdd_.garbage_collect();
 		init_bad();
-		for (auto& t : to_)
-			zdd_.deref(t);
+		//for (auto& t : to_)
+		//	zdd_.deref(t);
 		zdd_.garbage_collect();
 
 		std::vector<zdd_base::node> mappings;
+		uint32_t c, t;
+		auto m = zdd_.bot();
+		
+        //counts the gates
+        uint32_t ctr = 0;
+        //vector that holds gate number that swap is needed for
+        std::vector<uint32_t> index_of_swap;
+        //vector that holds the qubits implemented swaps
+        std::vector<std::vector<uint32_t>> swapped_qubits;
         
-        //added below to keep track of where partitions start and gate counts per partition
-        std::vector<std::uint32_t> partition_starts;
-        std::vector<std::uint32_t> partition_gate_counts;
         
         
-        //clear value of global_found_sets for every run
-        global_found_sets.clear();
         
-        //std::vector<std::string> found_sets;
         
-		uint32_t c, t, gate_counter, total_gates, total_partitions;
-        
-        gate_counter = 1; // set j to 1
-        partition_starts.push_back(gate_counter);
-        
-        auto m = zdd_.bot();
 		circ_.foreach_cgate([&](auto const& n) {
 			if (n.gate.is_double_qubit()) {
 				n.gate.foreach_control([&](auto _c) { c = _c; });
@@ -740,328 +691,135 @@ public:
 
 				// std::cout << c << " " << t << "\n";
 
-				if (m == zdd_.bot()) {
+				// HACK
+//                if (ctr == 2) {
+//                    std::cout << "add swap\n";
+//
+//                    std::cout << "valid before:\n";
+//                    zdd_.print_sets(valid_, fmt_);
+//
+//                    std::swap(edge_perm_[0], edge_perm_[1]);
+//                    zdd_.deref(valid_);
+//                    init_valid();
+//
+//                    std::cout << "valid after:\n";
+//                    zdd_.print_sets(valid_, fmt_);
+//                }
+
+				//std::cout << "add gate " << ctr << "\n";
+
+				if (m == zdd_.bot())
+                {
 					/* first gate */
 					m = map(c, t);
-                    //std::cout << "c: " << c << "\n";
-                    //std::cout << "t: " << t << "\n";
-                    //gate_counter++;
-				} else {
+				}
+                else
+                {
 					auto m_next = map(c, t);
-                    //std::cout << "c: " << c << "\n";
-                    //std::cout << "t: " << t << "\n";
-					if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
-					    mp == zdd_.bot()) {
-                        partition_starts.push_back(gate_counter);
-                        std::cout << "new map needed starting at gate : " << gate_counter << " | ";
-                        std::cout << "c: " << c << " and ";
-                        std::cout << "t: " << t << "\n";
+					if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot())
+                    {
+						//case where current phi cannot be extended with new gate. must
+                        //swap to extend current partition or create new partition
                         
-						zdd_.ref(m);
-						mappings.push_back(m);
-						m = m_next;
+                        //below creates new partition
+                        //std::cout << "add new mapping\n";
+						//zdd_.ref(m);
+						//mappings.push_back(m);
+						//m = m_next;
+						//zdd_.ref(m);
+						//zdd_.garbage_collect();
+						//zdd_.deref(m);
+                        
+                        //below adds a swap in order to extend phi
+                        
+                        //std::cout << "add swap\n";
+                        //std::cout << "valid before:\n";
+                        //zdd_.print_sets(valid_, fmt_);
+                        
+                        for(uint32_t i = 0; i < circ_.num_qubits(); i++)
+                        {
+                            std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
+                            zdd_.deref(valid_);
+                            init_valid();
+                            //std::cout << "valid after:\n";
+                            //zdd_.print_sets(valid_, fmt_);
+                            
+                            auto m_next = map(c, t);
+                            if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot())
+                            {
+                            
+                                //std::cout << "SWAP did not extend Phi. Try next.\n";
+                                if(i == circ_.num_qubits()-1)
+                                {
+                                    std::cout << "A SWAP operation could not be found. Map cannot extend. Exiting...\n";
+                                    std::cout << "Current status before exit:\n";
+                                    std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
+                                    for(uint32_t i = 0; i<swapped_qubits.size(); i++ )
+                                    {
+                                        //std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << swapped_qubits[i][0]<< " " <<
+                                        //swapped_qubits[i][1] << "\n";
+                                        std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
+                                        
+                                    }
+                                    std::exit(0);
+                                }
+                                else{
+                                    continue;
+                                }
+                                
+                            }
+                            else
+                            {
+                                m=mp;
+                                index_of_swap.push_back(ctr);
+                                std::vector<uint32_t> one_swap;
+                                one_swap.push_back(i);
+                                one_swap.push_back((i+1)%circ_.num_qubits());
+                                swapped_qubits.push_back(one_swap);
+                                break;
+                            }
+                            
+                            
+                        }
                         
                         
-						zdd_.ref(m);
-						zdd_.garbage_collect();
-						zdd_.deref(m);
-					} else {
+                        
+					}
+                    else
+                    {
 						m = mp;
 					}
-                    //gate_counter++;
 				}
+				++ctr;
 			}
-            gate_counter++;
-            
 		});
-        
-        total_partitions = partition_starts.size();
-        partition_starts.push_back(gate_counter); //here (total_gates +1) @ last index marks end of partitions
-        total_gates = gate_counter - 1;
-        
-        std::cout << "Total gates in circuit: " << total_gates << "\n";
-        std::cout << "Total partitions: " << total_partitions << "\n";
-        std::cout << "Partition gate counts: " << "\n";
-        
-        for(uint32_t i = 0; i < total_partitions; i++){
-            std::cout <<"Partition " << i+1 << ": " << partition_starts[i+1]-partition_starts[i] << "\n";
-            partition_gate_counts.push_back(partition_starts[i+1]-partition_starts[i]);
-        }
-        
-        
 		zdd_.ref(m);
 		mappings.push_back(m);
+        
+        std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
+        for(uint32_t i = 0; i<swapped_qubits.size(); i++ )
+        {
+            //std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << swapped_qubits[i][0]<< " " <<
+            //swapped_qubits[i][1] << "\n";
+            std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
+            
+        }
 
 		uint32_t total{0};
-        
-        std::vector<std::uint32_t> found_mapping_counts;
-        
+        std::cout<< "\n";
 		for (auto const& map : mappings) {
 			std::cout << "found mapping with " << zdd_.count_sets(map)
 			          << " mappings using " << zdd_.count_nodes(map) << " nodes.\n";
-			
-            found_mapping_counts.push_back(zdd_.count_sets(map));
-            total += zdd_.count_sets(map);
-            
-            // was commented (below) , now uncommented
-            std::cout << "found sets: \n";
+			total += zdd_.count_sets(map);
+      
+            //below prints the found mappings in partition
+            std::cout << "\nfound sets: \n";
             zdd_.print_sets(map, fmt_);
-            
-            //test returning vector of sets
-            //found_sets = zdd_.return_sets_as_vect(map, fmt_);
-            
-            zdd_.return_sets_as_vect(map, fmt_); // each map stored in global variable global_found_sets
-            
-            
-            
-            
-            
-        
-            
+            std::cout << "\n";
             
 			zdd_.deref(map);
 		}
-        
-        //prints string elements of a vector that contains the found sets
-        //of possible pseudo to physical qubit mappings for all partitions
-        //std::cout << global_found_sets.size()<<" == global found sets size\n";
-        //for(auto const& i :global_found_sets)
-        //{
-        //    std::cout << i << "\n" ;
-        //}
-        
-        
-        std::vector<std::uint32_t> found_sets_index_barriers;
-        
-        for(uint32_t i = 0; i < found_mapping_counts.size(); i++)
-        {
-            if( i == 0)
-            {
-                found_sets_index_barriers.push_back(found_mapping_counts[i]);
-            }
-            else
-            {
-                found_sets_index_barriers.push_back(found_sets_index_barriers[i-1]+found_mapping_counts[i]);
-            }
-        }
-        
-        found_sets_index_barriers.insert(found_sets_index_barriers.begin(),0); //add 0 for first index of first partition
-        
-        
-        //prints out the barriers b/w partitions
-        //for(auto const& numbers:found_sets_index_barriers)
-        //{
-        //    std::cout << numbers <<"\n";
-        //}
-        
-        //insert swaps gates between partitions
-        //if there are N partitions, there will be n-1 single swap choices
-        //physical qubits are being swapped!
-        std::vector<std::string> swap_gates;
-        swap_gates.push_back("CD");
-        swap_gates.push_back("AD");
-        swap_gates.push_back("AD");
-        
-        
-
-        
-        
-        for(uint32_t i = 0; i < found_sets_index_barriers.size()-2; i++)
-        {
-            
-            std::cout<< "Finding map transitions between partition " << i+1 << " and " << i+2 << " using swap operation between [" <<
-            swap_gates[i]<<"]\n";
-            
-            std::vector<std::string> phi_1(global_found_sets.begin()+found_sets_index_barriers[i],global_found_sets.begin()+found_sets_index_barriers[i+1]);
-            
-            std::vector<std::string> phi_2(global_found_sets.begin()+found_sets_index_barriers[i+1],global_found_sets.begin()+found_sets_index_barriers[i+2]);
-            
-            char swapping_q1 = swap_gates[i][0];
-            char swapping_q2 = swap_gates[i][1];
-            
-            
-            
-            //std::cout << i <<"\n";
-            for(auto const& j : phi_1)
-            {
-                //break up string j into vector of strings with each pair at an index
-                std::istringstream iss(j);
-                std::vector<std::string> single_mapping_j((std::istream_iterator<std::string>(iss)),std::istream_iterator<std::string>());
-                
-                char q1_in_j, q2_in_j = '-';
-                
-                //find pseudo qubit associated with each physical qubit being swapped
-                //if physical qubit is unassigned, value will be '-'
-                for(uint32_t jj=0; jj< single_mapping_j.size(); jj++)
-                {
-                    if(single_mapping_j[jj].find(swapping_q1) != std::string::npos)
-                    {
-                        q1_in_j = single_mapping_j[jj][0];
-                        
-                    }
-                    if(single_mapping_j[jj].find(swapping_q2) != std::string::npos)
-                    {
-                        q2_in_j = single_mapping_j[jj][0];
-                        
-                    }
-                }
-                
-                
-                for(auto const& k : phi_2)
-                {
-                    //break up string k into vector of strings with each pair at an index
-                    std::istringstream iss(k);
-                    std::vector<std::string> single_mapping_k((std::istream_iterator<std::string>(iss)),std::istream_iterator<std::string>());
-                    
-                    char q1_in_k,q2_in_k = '-';
-                    
-                    //find pseudo qubit associated with each physical qubit being swapped
-                    //if physical qubit is unassigned, value will be '-'
-                    for(uint32_t kk=0; kk< single_mapping_k.size(); kk++)
-                    {
-                        if(single_mapping_k[kk].find(swapping_q1) != std::string::npos)
-                        {
-                            q1_in_k = single_mapping_k[kk][0];
-                            
-                        }
-                        if(single_mapping_k[kk].find(swapping_q2) != std::string::npos)
-                        {
-                            q2_in_k = single_mapping_k[kk][0];
-                            
-                        }
-                        
-                    }
-                    
-                    bool check1,check2,check3; //use these for tests
-                    check1 = false;
-                    check2 = false;
-                    check3 = false;
-                    
-                    //std::cout << check1 << " " << check2 << " " << check3 << "\n";
-                    //std::cout << q1_in_j << " " << q2_in_k << " "<< q1_in_k << " " << q2_in_j << "\n";
-                    
-                    
-                    //checks to see if pseudo qubits on swapped physical qubits match in phi_1 and phi_2 maps
-                    // i.e. if X<->Y , phi1 = aX bY <-> phi2 = bX aY
-                    if((q1_in_j == q2_in_k)||(q1_in_j=='-')||(q2_in_k=='-'))
-                    {
-                        check1 = true;
-                    }
-                    if ((q2_in_j == q1_in_k)||(q2_in_j=='-')||(q1_in_k=='-'))
-                    {
-                        check2 = true;
-                    }
-                    
-                    //std::cout << check1 << " " << check2 << " " << check3 << "\n";
-                    
-                    check3 =true;
-                    
-                    for(auto const& single_pair_j : single_mapping_j)
-                    {
-                        for(auto const& single_pair_k : single_mapping_k)
-                        {
-                            //std::cout<< "single pair j: "<<single_pair_j<< " & single pair k: "<< single_pair_k<<"\n";
-                            
-                            //last check determines if all other qubits match/are unassigned to determine
-                            //if a phi_1 and phi_2 mapping can work together after a swap
-                            
-                            //check for qubits NOT being swapped
-                            if((single_pair_j[1] !=swapping_q1)&&(single_pair_k[1] !=swapping_q1)&&(single_pair_j[1] !=swapping_q2)&&(single_pair_k[1] !=swapping_q2))
-                            {
-                                //case of one pseudo qubit assigned to multiple physical qubits
-                                if((single_pair_j[0]==single_pair_k[0])&&(single_pair_j[1]!=single_pair_k[1]))
-                                {
-                                    check3 = false;
-                                    
-                                }
-                                
-                                //case of multiple pseudo qubits assigned to single physical qubit
-                                if((single_pair_j[1]==single_pair_k[1])&&(single_pair_j[0]!=single_pair_k[0]))
-                                {
-                                    
-                                    check3 = false;
-                                    
-                                }
-                                
-                            }
-                            
-                            //check that swapped physical qubit is not also mapped to same pseudo qubit as non-swapped physical
-                            if ((single_pair_j[1]==swapping_q1)||(single_pair_j[1]==swapping_q2))
-                            {
-                                if ((single_pair_k[1] != swapping_q1)&&(single_pair_k[1] != swapping_q2))
-                                {
-                                    
-                                    if((single_pair_j[0]==single_pair_k[0])&&(single_pair_j[1]!=single_pair_k[1]))
-                                    {
-                                        
-                                        check3 = false;
-                                        
-                                    }
-                                    
-                                }
-                            }
-                            //check that swapped physical qubit is not also mapped to same pseudo qubit as non-swapped physical
-                            if ((single_pair_k[1]==swapping_q1)||(single_pair_k[1]==swapping_q2))
-                            {
-                                if ((single_pair_j[1] != swapping_q1)&&(single_pair_j[1] != swapping_q2))
-                                {
-                                    
-                                    if((single_pair_j[0]==single_pair_k[0])&&(single_pair_j[1]!=single_pair_k[1]))
-                                    {
-                                        
-                                        check3 = false;
-                                        
-                                    }
-                                    
-                                }
-                            }
-                            
-                            
-                            
-                        }
-                    }
-                    
-                    //std::cout << check1 << " " << check2 << " " << check3 << "\n";
-                    
-                    if((check1 == true) && (check2 ==true) && (check3 == true))
-                    {
-                        //std::cout <<"Do we get here?\n";
-                        
-                        std::cout << "With single swap, [" << swap_gates[i] << "], mapping " << j << " => " << k << "\n";
-                        
-                    }
-                    
-                    
-                    
-                    
-                    
-                
-                    
-                    
-
-                }
-                
-                
-            }
-            
-            
-            
-            
-                                           
-        }
-        
-        
-        
-
-        
-        
-        
-        
-        
-		
-        
-        
-        zdd_.summary();
+		zdd_.summary();
 		std::cout << "Total mappings: " << total << "\n";
 
 		zdd_.deref(valid_);
@@ -1070,11 +828,6 @@ public:
 			zdd_.deref(f);
 		zdd_.garbage_collect();
 		// zdd_.debug();
-        
-        
-        
-        
-        
 	}
 
 private:
@@ -1112,7 +865,7 @@ private:
 	{
 		valid_ = zdd_.bot();
 		for (auto const& [p, q] : arch_.edges) {
-			valid_ = zdd_.union_(valid_, zdd_.join(to_[p], to_[q]));
+			valid_ = zdd_.union_(valid_, zdd_.join(to_[edge_perm_[p]], to_[edge_perm_[q]]));
 		}
 		zdd_.ref(valid_);
 	}
@@ -1141,6 +894,7 @@ private:
 	zdd_base zdd_;
 	std::vector<zdd_base::node> from_, to_;
 	zdd_base::node valid_, bad_;
+	std::vector<uint32_t> edge_perm_;
 
 	struct set_formatter_t {
 		set_formatter_t(uint32_t n)

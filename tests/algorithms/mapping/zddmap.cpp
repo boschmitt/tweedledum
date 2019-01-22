@@ -74,20 +74,20 @@ device_t random(uint8_t m, uint8_t num_edges)
 
 TEST_CASE("Paper example for ZDD mapper", "[zddmap]")
 {
-	using namespace tweedledum;
-	netlist<mcst_gate> network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
+    using namespace tweedledum;
+    netlist<mcst_gate> network;
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
 
-	network.add_gate(gate::cz, 0, 1);
-	network.add_gate(gate::cz, 1, 2);
-	network.add_gate(gate::cz, 1, 3);
+    network.add_gate(gate::cz, 0, 1);
+    network.add_gate(gate::cz, 1, 2);
+    network.add_gate(gate::cz, 1, 3);
 
-	write_unicode(network);
+    write_unicode(network);
 
-	find_maximal_partitions(network, ring(network.num_qubits()));
+    find_maximal_partitions(network, ring(network.num_qubits()));
 }
 
 //TEST_CASE("Playing with ZDDs", "[zddmap]")
@@ -127,7 +127,40 @@ TEST_CASE("Paper example for ZDD mapper", "[zddmap]")
 //
 //  auto g = z.choose(f, 50);
 //  std::cout << z.count_nodes(g) << " " << z.count_sets(g) << "\n";
+//  //z.debug();
+//
+//
 //}
+
+//TEST_CASE("ZDD Practice ", "[zddmap]")
+//{
+//    zdd_base z1(20);
+//    zdd_base z2(3);
+//    z1.debug();
+//    z2.debug();
+//
+//    auto f = z1.union_(z1.elementary(0),z1.elementary(1));
+//    z1.debug();
+//    auto gg = z1.union_(f,z1.elementary(2));
+//    auto g = z1.join(gg,z1.elementary(1));
+//    auto h = z1.intersection(g,z1.join(z1.elementary(0),z1.elementary(1)));
+//    auto hh = z1.join(h,g);
+//    z1.debug();
+//    //z1.print_sets(f);
+//    std::cout <<"one \n";
+//    z1.print_sets(g);
+//    std::cout <<"two \n";
+//    z1.print_sets(f);
+//    std::cout <<"three \n";
+//    z1.print_sets(gg);
+//    std::cout<<"four \n";
+//    z1.print_sets(h);
+//    std::cout <<"five \n";
+//    z1.print_sets(hh);
+//
+//
+//}
+
 
 TEST_CASE("Extend paper example for ZDD mapper", "[zddmap]")
 {
@@ -138,26 +171,70 @@ TEST_CASE("Extend paper example for ZDD mapper", "[zddmap]")
     network.add_qubit();
     network.add_qubit();
     
-    
+
+
     network.add_gate(gate::cz, 0, 1);
     network.add_gate(gate::cz, 1, 2);
     network.add_gate(gate::cz, 1, 3);
-    
+
     network.add_gate(gate::cz, 2,3);
-    
-    
+
+
     network.add_gate(gate::cz, 0, 1);
     network.add_gate(gate::cz, 1, 2);
     network.add_gate(gate::cz, 1, 3);
-    
+
     network.add_gate(gate::cz, 2,3);
 
     network.add_gate(gate::cz, 0, 1);
     network.add_gate(gate::cz, 3, 2);
     network.add_gate(gate::cz, 1, 3);
-    
+
     network.add_gate(gate::cz, 2,3);
 
+
+    write_unicode(network);
+
+
+    find_maximal_partitions(network, ring(network.num_qubits()));
+}
+
+TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
+{
+    using namespace tweedledum;
+    netlist<mcst_gate> network;
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
+    network.add_qubit();
+    
+    
+    network.add_gate(gate::cz, 0, 1);
+    network.add_gate(gate::cz, 1, 2);
+    network.add_gate(gate::cz, 1, 3);
+    
+    network.add_gate(gate::cz, 2,5);
+    
+    
+    network.add_gate(gate::cz, 0, 1);
+    network.add_gate(gate::cz, 1, 2);
+    network.add_gate(gate::cz, 1, 3);
+    
+    network.add_gate(gate::cz, 2,3);
+    
+    network.add_gate(gate::cz, 0, 1);
+    network.add_gate(gate::cz, 3, 6);
+    network.add_gate(gate::cz, 1, 3);
+    
+    network.add_gate(gate::cz, 2,7);
+    network.add_gate(gate::cz, 0, 4);
+    network.add_gate(gate::cz, 2, 6);
+    network.add_gate(gate::cz, 1, 3);
+    
     
     write_unicode(network);
     
