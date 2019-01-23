@@ -41,7 +41,7 @@ struct stg_from_pkrm {
 	                kitty::dynamic_truth_table const& function)
 	{
 		const auto num_controls = function.num_vars();
-		assert(qubits.size() == static_cast<std::size_t>(num_controls) + 1u);
+		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
 		std::vector<qubit_id> target = {qubits.back()};
 		for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
@@ -79,7 +79,7 @@ struct stg_from_pprm {
 	                kitty::dynamic_truth_table const& function)
 	{
 		const auto num_controls = function.num_vars();
-		assert(qubits.size() == static_cast<std::size_t>(num_controls) + 1u);
+		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
 		std::vector<qubit_id> target = {qubits.back()};
 		for (auto const& cube : kitty::esop_from_pprm(function)) {
@@ -126,7 +126,7 @@ struct stg_from_spectrum {
 	{
 		const auto num_controls = function.num_vars();
 		assert((num_controls + 1u) <= 32u);
-		assert(qubits.size() == num_controls + 1u);
+		assert(qubits.size() >= num_controls + 1u);
 
 		auto gate_function = kitty::extend_to(function, num_controls + 1);
 		auto xt = gate_function.construct();
