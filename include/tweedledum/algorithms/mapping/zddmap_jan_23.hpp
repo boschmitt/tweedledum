@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#include <algorithm>
 
 namespace tweedledum {
 
@@ -685,28 +686,14 @@ public:
         
         
 		circ_.foreach_cgate([&](auto const& n) {
-			if (n.gate.is_double_qubit()) {
+			if (n.gate.is_double_qubit())
+            {
 				n.gate.foreach_control([&](auto _c) { c = _c; });
 				n.gate.foreach_target([&](auto _t) { t = _t; });
 
-				// std::cout << c << " " << t << "\n";
+                //std::cout << c << " " << t << "\n";
 
-				// HACK
-//                if (ctr == 2) {
-//                    std::cout << "add swap\n";
-//
-//                    std::cout << "valid before:\n";
-//                    zdd_.print_sets(valid_, fmt_);
-//
-//                    std::swap(edge_perm_[0], edge_perm_[1]);
-//                    zdd_.deref(valid_);
-//                    init_valid();
-//
-//                    std::cout << "valid after:\n";
-//                    zdd_.print_sets(valid_, fmt_);
-//                }
-
-				//std::cout << "add gate " << ctr << "\n";
+				std::cout << "add gate " << ctr << "\n";
 
 				if (m == zdd_.bot())
                 {
@@ -718,26 +705,18 @@ public:
 					auto m_next = map(c, t);
 					if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot())
                     {
-						//case where current phi cannot be extended with new gate. must
-                        //swap to extend current partition or create new partition
-                        
-                        //below creates new partition
-                        //std::cout << "add new mapping\n";
-						//zdd_.ref(m);
-						//mappings.push_back(m);
-						//m = m_next;
-						//zdd_.ref(m);
-						//zdd_.garbage_collect();
-						//zdd_.deref(m);
-                        
                         //below adds a swap in order to extend phi
                         
-                        //std::cout << "add swap\n";
+                        std::cout << "add swap\n";
                         //std::cout << "valid before:\n";
                         //zdd_.print_sets(valid_, fmt_);
                         
+                        //std::vector<uint32_t> new_depths(circ_.num_qubits(),0);
+                        std::vector<uint32_t> new_mappings_cnt(circ_.num_qubits(),0);
+                        
                         for(uint32_t i = 0; i < circ_.num_qubits(); i++)
                         {
+                            //swap edges
                             std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
                             zdd_.deref(valid_);
                             init_valid();
@@ -747,50 +726,66 @@ public:
                             auto m_next = map(c, t);
                             if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot())
                             {
-                            
-                                //std::cout << "SWAP did not extend Phi. Try next.\n";
-                                if(i == circ_.num_qubits()-1)
-                                {
-                                    std::cout << "A SWAP operation could not be found. Map cannot extend. Exiting...\n";
-                                    std::cout << "Current status before exit:\n";
-                                    std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
-                                    for(uint32_t i = 0; i<swapped_qubits.size(); i++ )
-                                    {
-                                        
-                                        std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
-                                        
-                                    }
-                                    std::exit(0);
-                                }
-                                else{
-                                    //unswap physical qubits for next iteration
-                                    std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
-                                    zdd_.deref(valid_);
-                                    init_valid();
-                                    continue;
-                                }
                                 
+                                new_mappings_cnt[i] = 0;
+//                                //std::cout << "SWAP did not extend Phi. Try next.\n";
+//                                if(i == circ_.num_qubits()-1)
+//                                {
+//                                    std::cout << "A SWAP operation could not be found. Map cannot extend. Exiting...\n";
+//                                    std::cout << "Current status before exit:\n";
+//                                    std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
+//                                    for(uint32_t i = 0; i<swapped_qubits.size(); i++ )
+//                                    {
+//
+//                                        std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
+//                                    }
+//                                    std::exit(0);
+//                                }
+//                                else{
+//                                    continue;
+//                                }
                             }
                             else
                             {
-                                if(i==0 ||i==1){
-                                    //unswap physical qubits for next iteration
-                                    std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
-                                    zdd_.deref(valid_);
-                                    init_valid();
-                                    continue;
-                                }
-                                m=mp;
-                                index_of_swap.push_back(ctr);
-                                std::vector<uint32_t> one_swap;
-                                one_swap.push_back(i);
-                                one_swap.push_back((i+1)%circ_.num_qubits());
-                                swapped_qubits.push_back(one_swap);
-                                break;
+                                new_mappings_cnt[i] = zdd_.count_sets(mp);
+                                //std::cout << new_mappings_cnt[i] << "\n";
+//                                m=mp;
+//                                index_of_swap.push_back(ctr);
+//                                std::vector<uint32_t> one_swap;
+//                                one_swap.push_back(i);
+//                                one_swap.push_back((i+1)%circ_.num_qubits());
+//                                swapped_qubits.push_back(one_swap);
+//                                break;
                             }
-                            
+                            //swap back for next check
+                            std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
+                            zdd_.deref(valid_);
+                            init_valid();
                         }
-
+                        //find best path and continue with that!
+                        uint32_t max_index = std::max_element(new_mappings_cnt.begin(), new_mappings_cnt.end())-new_mappings_cnt.begin();
+                        //uint32_t max_mappings = new_mappings_cnt[max_index];
+                        
+                        for (auto const& thing : new_mappings_cnt)
+                        {
+                            std::cout << thing << "\n";
+                        }
+                        std::cout <<"max index: "<< max_index  << "\n";
+                        
+                        std::swap(edge_perm_[max_index], edge_perm_[(max_index+1)%circ_.num_qubits()]);
+                        zdd_.deref(valid_);
+                        init_valid();
+                        
+                        auto m_next = map(c, t);
+                        //std::cout << c << " " << t << "\n";
+                        mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
+                        m = mp;
+                        index_of_swap.push_back(ctr);
+                        
+                        std::vector<uint32_t> one_swap;
+                        one_swap.push_back(max_index);
+                        one_swap.push_back((max_index+1)%circ_.num_qubits());
+                        swapped_qubits.push_back(one_swap);
                         
 					}
                     else
@@ -799,6 +794,7 @@ public:
 					}
 				}
 				++ctr;
+                //std::cout << "gate " <<ctr<< " total current mappings: " << zdd_.count_sets(m) << "\n";
 			}
 		});
 		zdd_.ref(m);
@@ -821,7 +817,7 @@ public:
 			total += zdd_.count_sets(map);
       
             //below prints the found mappings in partition
-            std::cout << "\nfound sets: \n";
+            std::cout << "Found sets: \n";
             zdd_.print_sets(map, fmt_);
             std::cout << "\n";
             

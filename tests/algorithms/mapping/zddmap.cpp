@@ -199,7 +199,51 @@ TEST_CASE("Extend paper example for ZDD mapper", "[zddmap]")
     find_maximal_partitions(network, ring(network.num_qubits()));
 }
 
-TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
+//TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
+//{
+//    using namespace tweedledum;
+//    netlist<mcst_gate> network;
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//
+//
+//    network.add_gate(gate::cz, 0, 1);
+//    network.add_gate(gate::cz, 1, 2);
+//    network.add_gate(gate::cz, 1, 3);
+//
+//    network.add_gate(gate::cz, 2,5);
+//
+//
+//    network.add_gate(gate::cz, 0, 1);
+//    network.add_gate(gate::cz, 1, 2);
+//    network.add_gate(gate::cz, 1, 3);
+//
+//    network.add_gate(gate::cz, 2,3);
+//
+//    network.add_gate(gate::cz, 0, 1);
+//    network.add_gate(gate::cz, 3, 6);
+//    network.add_gate(gate::cz, 1, 3);
+//
+//    network.add_gate(gate::cz, 2,7);
+//    network.add_gate(gate::cz, 0, 4);
+//    network.add_gate(gate::cz, 2, 6);
+//    network.add_gate(gate::cz, 1, 3);
+//
+//
+//    write_unicode(network);
+//
+//
+//    find_maximal_partitions(network, ring(network.num_qubits()));
+//}
+
+
+TEST_CASE("Extend paper example #3 for ZDD mapper", "[zddmap]")
 {
     using namespace tweedledum;
     netlist<mcst_gate> network;
@@ -207,17 +251,14 @@ TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
     network.add_qubit();
     network.add_qubit();
     network.add_qubit();
-    network.add_qubit();
-    network.add_qubit();
-    network.add_qubit();
-    network.add_qubit();
+    
     
     
     network.add_gate(gate::cz, 0, 1);
     network.add_gate(gate::cz, 1, 2);
     network.add_gate(gate::cz, 1, 3);
     
-    network.add_gate(gate::cz, 2,5);
+    network.add_gate(gate::cz, 2,3);
     
     
     network.add_gate(gate::cz, 0, 1);
@@ -227,13 +268,17 @@ TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
     network.add_gate(gate::cz, 2,3);
     
     network.add_gate(gate::cz, 0, 1);
-    network.add_gate(gate::cz, 3, 6);
+    network.add_gate(gate::cz, 3, 2);
     network.add_gate(gate::cz, 1, 3);
     
-    network.add_gate(gate::cz, 2,7);
-    network.add_gate(gate::cz, 0, 4);
-    network.add_gate(gate::cz, 2, 6);
-    network.add_gate(gate::cz, 1, 3);
+    network.add_gate(gate::cz, 2,3);
+    
+    network.add_gate(gate::cz, 3,2);
+    network.add_gate(gate::cz, 3,1);
+    network.add_gate(gate::cz, 3,0);
+
+
+
     
     
     write_unicode(network);

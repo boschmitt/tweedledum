@@ -763,23 +763,12 @@ public:
                                     std::exit(0);
                                 }
                                 else{
-                                    //unswap physical qubits for next iteration
-                                    std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
-                                    zdd_.deref(valid_);
-                                    init_valid();
                                     continue;
                                 }
                                 
                             }
                             else
                             {
-                                if(i==0 ||i==1){
-                                    //unswap physical qubits for next iteration
-                                    std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
-                                    zdd_.deref(valid_);
-                                    init_valid();
-                                    continue;
-                                }
                                 m=mp;
                                 index_of_swap.push_back(ctr);
                                 std::vector<uint32_t> one_swap;
@@ -789,8 +778,10 @@ public:
                                 break;
                             }
                             
+                            
                         }
-
+                        
+                        
                         
 					}
                     else
