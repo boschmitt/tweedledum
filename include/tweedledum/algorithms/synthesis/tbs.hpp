@@ -22,6 +22,13 @@ namespace tweedledum {
 
 /*! \brief Parameters for `tbs`. */
 struct tbs_params {
+	/*! \brief Variant of transformation-based synthesis.
+	   \verbatim embed:rst
+	   * Unidirectional: only adds gates from the output side
+	   * Bidirectional: adds gates from input or output side at each step
+		 * Multidirectional: adds gates from input and output side at each step (see :cite:`SDRM16`)
+	   \endverbatim
+	 */
 	enum class behavior : uint8_t {
 		unidirectional,
 		bidirectional,
@@ -29,7 +36,10 @@ struct tbs_params {
 	} behavior = behavior::unidirectional;
 
 	using cost_fn_type = std::function<uint32_t(std::vector<uint32_t> const&, uint32_t, uint32_t)>;
-	/* \brief Cost function. */
+	/*! \brief Cost function in multi-directional synthesis.
+	 *
+	 * By default the number of reversible gates is used as cost function.
+	 */
 	cost_fn_type cost_fn = [](auto& perm, auto x, auto z) {
 		// hamming distance from z to x and from x to f(z)
 		return __builtin_popcount(z ^ x) + __builtin_popcount(x ^ perm[z]);
@@ -78,7 +88,6 @@ inline void update_permutation_inv(std::vector<uint32_t>& perm, uint32_t control
 	}
 }
 
-/*! \brief TODO */
 template<typename Network>
 void tbs_unidirectional(Network& network, std::vector<qubit_id> const& qubits,
                         std::vector<uint32_t>& perm, tbs_params params = {})
@@ -110,7 +119,6 @@ void tbs_unidirectional(Network& network, std::vector<qubit_id> const& qubits,
 	}
 }
 
-/*! \brief TODO */
 template<typename Network>
 void tbs_bidirectional(Network& network, std::vector<qubit_id> const& qubits,
                        std::vector<uint32_t>& perm, tbs_params params = {})
@@ -157,7 +165,6 @@ void tbs_bidirectional(Network& network, std::vector<qubit_id> const& qubits,
 	}
 }
 
-/*! \brief TODO */
 template<typename Network>
 void tbs_multidirectional(Network& network, std::vector<qubit_id> const& qubits,
                           std::vector<uint32_t>& perm, tbs_params params = {})
@@ -214,14 +221,16 @@ void tbs_multidirectional(Network& network, std::vector<qubit_id> const& qubits,
 
 } // namespace detail
 
-/*! \brief TODO
+/*! \brief Transformation-based reversible logic synthesis.
  *
+ * This is the in-place variant of ``tbs``, in which the network is passed as
+ * a parameter and can potentially already contain some gates.  The parameter
+ * ``qubits`` provides a qubit mapping to the existing qubits in the network.
+ *
+ * \param network A quantum circuit
+ * \param qubits A qubit mapping
  * \param perm A permutation
  * \param params Parameters (see ``tbs_params``)
- * 
- * \algtype synthesis
- * \algexpects Permutation
- * \algreturns Quantum or reversible circuit
  */
 template<typename Network>
 void tbs(Network& network, std::vector<qubit_id> const& qubits, std::vector<uint32_t> perm,
@@ -242,14 +251,27 @@ void tbs(Network& network, std::vector<qubit_id> const& qubits, std::vector<uint
 	}
 }
 
-/*! \brief TODO
+/*! \brief Transformation-based reversible logic synthesis.
+ *
+   \verbatim embed:rst
+   This algorithm implements various variants of the transformation-based
+   synthesis algorithm originally proposed in :cite:`MMD03`.
+   A permutation is specified as a vector of :math:`2^n` different integers ranging from :math:`0`
+   to :math:`2^n-1`.
+
+   .. code-block:: c++
+
+      std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
+      auto network = tbs<netlist<mcst_gate>>(permutation);
+
+   \endverbatim
  *
  * \param perm A permutation
  * \param params Parameters (see ``tbs_params``)
  * 
  * \algtype synthesis
  * \algexpects Permutation
- * \algreturns Quantum or reversible circuit
+ * \algreturns Reversible circuit
  */
 template<typename Network>
 Network tbs(std::vector<uint32_t> perm, tbs_params params = {})
