@@ -15,6 +15,7 @@ Implements DATE'19 paper: **Compiling Permutations for Superconducting QPUs**
 * Algorithms:
     - CNOT Patel (`netlist`)
     - Decompostion based synthesis (`dbs`)
+    - Transformation based synthesis (`tbs`)
     - Gray synthesis (`gray_synth`)
     - Linear synthesis (`linear_synth`)
     - Single targe gate synthesis (`stg_from_pkrm`, `stg_from_pprm`, `stg_from_spectrum`)
