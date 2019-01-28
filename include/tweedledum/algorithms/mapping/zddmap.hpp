@@ -17,6 +17,11 @@
 #include <utility>
 #include <vector>
 
+#include <tweedledum/algorithms/synthesis/stg.hpp>
+#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/io/write_unicode.hpp>
+#include <tweedledum/networks/netlist.hpp>
+
 namespace tweedledum {
 
 #pragma region device data structure(to be moved)
@@ -681,11 +686,9 @@ public:
         std::vector<std::vector<uint32_t>> swapped_qubits;
         
         
-        
-        
-        
 		circ_.foreach_cgate([&](auto const& n) {
-			if (n.gate.is_double_qubit()) {
+			if (n.gate.is_double_qubit())
+            {
 				n.gate.foreach_control([&](auto _c) { c = _c; });
 				n.gate.foreach_target([&](auto _t) { t = _t; });
 
@@ -707,6 +710,7 @@ public:
 
                         
                         std::vector<uint32_t> new_mappings_cnt(circ_.num_qubits(),0);
+                        std::vector<uint32_t> depth_count(circ_.num_qubits(),0);
                         
                         for(uint32_t i = 0; i < circ_.num_qubits(); i++)
                         {
@@ -721,6 +725,7 @@ public:
                             {
                                 //cannot extend map
                                 new_mappings_cnt[i] = 0;
+                                depth_count[i] = 0;
                                 //unswap physical qubits for next iteration
                                 std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
                                 zdd_.deref(valid_);
@@ -731,8 +736,46 @@ public:
                             }
                             else
                             {
-                                //can extend map. determine number of mappings and move on to next possible swap
+                                //can extend map. determine depth and number of mappings
+                                //move on to next possible swap
                                 //make sure to swap qubits back before next iteration
+                                
+                                auto m_prime = m;
+                                //auto m_next_prime = m_next;
+                                
+                                uint32_t ctr2 = 0;
+                                uint32_t cc, tt;
+                                uint32_t single_depth = 0;
+                                uint32_t end_found = 0;
+                                
+                                circ_.foreach_cgate([&](auto const& nn) {
+                                    if (nn.gate.is_double_qubit())
+                                    {
+                                        if (ctr2>=ctr && end_found != 1)
+                                        {
+                                            nn.gate.foreach_control([&](auto _c) { cc = _c; });
+                                            nn.gate.foreach_target([&](auto _t) { tt = _t; });
+                                            
+                                            auto m_next_prime = map(cc, tt);
+                                            if (auto mp_prime = zdd_.nonsupersets(zdd_.join(m_prime, m_next_prime), bad_); mp_prime == zdd_.bot())
+                                            {
+                                                depth_count[i] = single_depth;
+                                                end_found = 1;
+                                            }
+                                            else
+                                            {
+                                                m_prime = mp_prime;
+                                                single_depth++;
+                                            }
+                                            
+                                            
+                                        }
+                                        
+                                        ++ctr2;
+                                    }
+                                });
+                                
+                                
                                 new_mappings_cnt[i] = zdd_.count_sets(mp);
                                 std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
                                 zdd_.deref(valid_);
@@ -743,18 +786,29 @@ public:
                             }
                             
                         }
-                        uint32_t max_index = std::max_element(new_mappings_cnt.begin(), new_mappings_cnt.end())-new_mappings_cnt.begin();
+
                         
+                        std::vector<uint32_t> scores(circ_.num_qubits(),0);
+                        uint32_t depth_weight = 0;
+                        uint32_t map_weight = 1;
                         
-                        uint32_t max_mappings = new_mappings_cnt[max_index];
+                        //std::cout << "\n";
+                        for(uint32_t index = 0; index < depth_count.size(); index ++)
+                        {
+                            
+                            scores[index] = depth_count[index]*depth_weight + new_mappings_cnt[index]*map_weight;
+                            
+                            //std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | score: " << scores[index]<< "\n";
+                            
+                            
+                        }
+                        //std::cout << "\n";
                         
-//                        for (auto const& thing : new_mappings_cnt)
-//                        {
-//                            std::cout << thing << "\n";
-//                        }
-//                        std::cout <<"max index: "<< max_index  << "\n";
+                        uint32_t max_index = std::max_element(scores.begin(), scores.end())-scores.begin();
+                        uint32_t max_score = scores[max_index];
+
                         
-                        if (max_mappings == 0)
+                        if (max_score == 0)
                         {
                             std::cout << "A SWAP operation could not be found. Map cannot extend. Exiting...\n";
                             std::cout << "Metrics before exit:\n";
@@ -807,6 +861,11 @@ public:
             std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
             
         }
+        
+        //make new circuit here
+        using namespace tweedledum;
+        //netlist<mcst_gate> network2;
+        
 
 		uint32_t total{0};
         std::cout<< "\n";
