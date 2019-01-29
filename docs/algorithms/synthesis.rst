@@ -11,6 +11,7 @@ all synthesis algorithms that are currently provided in *tweedledum*.
 
    synthesis/cnot_patel
    synthesis/dbs
+   synthesis/tbs
    synthesis/gray_synth
    synthesis/linear_synth
 
