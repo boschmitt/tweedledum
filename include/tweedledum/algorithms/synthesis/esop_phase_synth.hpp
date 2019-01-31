@@ -13,14 +13,16 @@
 
 namespace tweedledum {
 
-/*! \brief TODO
-
- * \param
- * \return
+/*! \brief ESOP-phase synthesis.
  *
- * \algtype synthesis
- * \algexpects
- * \algreturns
+ * This is the in-place variant of ``esop_phase_synth``, in which the network
+ * is passed as a parameter and can potentially already contain some gates.
+ * The parameter ``qubits`` provides a qubit mapping to the existing qubits in
+ * the network.
+ *
+ * \param network A quantum circuit
+ * \param qubits A qubit mapping
+ * \param function A Boolean function
  */
 template<typename Network>
 void esop_phase_synth(Network& network, std::vector<qubit_id> const& qubits,
@@ -46,14 +48,20 @@ void esop_phase_synth(Network& network, std::vector<qubit_id> const& qubits,
 	}
 }
 
-/*! \brief TODO
-
- * \param
- * \return
+/*! \brief ESOP-phase synthesis.
+ *
+ * Finds a quantum circuit using multiple-controlled Z gates that computes
+ * a phase into a quantum state based on the Boolean function.  Note that
+ * the circuit is the same for the function and its inverse.
+ *
+ * In order to find the multiple-controlled Z gates, the algorithm computes
+ * the function's PPRM representation.
+ *
+ * \param function A Boolean function
  *
  * \algtype synthesis
- * \algexpects
- * \algreturns
+ * \algexpects Boolean function
+ * \algreturns Quantum circuit
  */
 template<class Network>
 Network esop_phase_synth(kitty::dynamic_truth_table const& function)
@@ -69,4 +77,4 @@ Network esop_phase_synth(kitty::dynamic_truth_table const& function)
 	return network;
 }
 
-}; // namespace tweedledum
+} // namespace tweedledum

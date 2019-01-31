@@ -14,5 +14,6 @@ all synthesis algorithms that are currently provided in *tweedledum*.
    synthesis/tbs
    synthesis/gray_synth
    synthesis/linear_synth
+   synthesis/esop_phase_synth
 
 .. doc_synthesis_table::
