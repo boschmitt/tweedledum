@@ -19,6 +19,7 @@ Implements DATE'19 paper: **Compiling Permutations for Superconducting QPUs**
     - Gray synthesis (`gray_synth`)
     - Linear synthesis (`linear_synth`)
     - Single targe gate synthesis (`stg_from_pkrm`, `stg_from_pprm`, `stg_from_spectrum`)
+    - ESOP-phase synthesis (`esop_phase_synth`)
 * I/O
     - Open QASM 2.0 (`write_qasm`)
     - Quil (`write_quil`)
