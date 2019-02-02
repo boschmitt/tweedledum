@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <stack>
 #include <unordered_map>
 #include <unordered_set>
