@@ -1,7 +1,19 @@
 Change Log
 ==========
 
-v1.0-alpha (`GitHub <https://github.com/boschmitt/tweedledum/tree/v1.0-alpha>`_) 
+v1.0-beta [`Not yet released <https://github.com/boschmitt/tweedledum/tree/master>`_] 
+---------------------------------------------------------------------------------------------
+
+* Initial network and gate interfaces 
+* Gate implementations:
+* Network implementations:
+* Algorithms:
+    - Transformation based synthesis (`tbs`) `#6 <https://github.com/boschmitt/tweedledum/pull/6>`_
+    - ESOP-phase synthesis (`esop_phase_synth`) `#7 <https://github.com/boschmitt/tweedledum/pull/7>`_
+* I/O
+* Utility data structures:
+
+v1.0-alpha [`December 17, 2018 <https://github.com/boschmitt/tweedledum/tree/v1.0-alpha>`_]
 --------------------------------------------------------------------------------
 
 Implements DATE'19 paper: **Compiling Permutations for Superconducting QPUs**
@@ -13,13 +25,11 @@ Implements DATE'19 paper: **Compiling Permutations for Superconducting QPUs**
 * Network implementations:
     - Netlist (`netlist`)
 * Algorithms:
-    - CNOT Patel (`netlist`)
+    - CNOT Patel (`cnot_patel`)
     - Decompostion based synthesis (`dbs`)
-    - Transformation based synthesis (`tbs`)
     - Gray synthesis (`gray_synth`)
     - Linear synthesis (`linear_synth`)
     - Single targe gate synthesis (`stg_from_pkrm`, `stg_from_pprm`, `stg_from_spectrum`)
-    - ESOP-phase synthesis (`esop_phase_synth`)
 * I/O
     - Open QASM 2.0 (`write_qasm`)
     - Quil (`write_quil`)
