@@ -18,6 +18,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/barenco.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/dt.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/zddmap.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/greedymap.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/dbs.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/gray_synth.cpp"

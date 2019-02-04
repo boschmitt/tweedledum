@@ -96,6 +96,7 @@ TEST_CASE("Paper example for ZDD mapper", "[zddmap]")
     find_maximal_partitions(network, ring(network.num_qubits()));
 }
 
+
 //TEST_CASE("Playing with ZDDs", "[zddmap]")
 //{
 //  zdd_base z(4);
@@ -243,11 +244,14 @@ TEST_CASE("Extend paper example #3 for ZDD mapper", "[zddmap]")
     
     
     
+    
+    
     write_unicode(network);
     
     
     find_maximal_partitions(network, ring(network.num_qubits()));
 }
+
 
 //TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
 //{
@@ -313,6 +317,9 @@ TEST_CASE("Paper example #4 for ZDD mapper", "[zddmap]")
     network.add_gate(gate::cz, 4, 5);
     network.add_gate(gate::cz, 5, 6);
     network.add_gate(gate::cz, 5, 7);
+    //network.add_gate(gate::hadamard,qubit_id(0));
+    //network.add_gate(gate::t,qubit_id(2));
+
 
     
     write_unicode(network);
@@ -330,3 +337,5 @@ TEST_CASE("Paper example #4 for ZDD mapper", "[zddmap]")
 //    CHECK(network.num_qubits() == 3u);
 //    write_unicode(network);
 //}
+
+
