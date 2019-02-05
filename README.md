@@ -20,7 +20,7 @@ A modern compiler is required to build *tweedledum*. We are continuously
 testing with:
   * Clang 6.0.1
   * GCC 7.3.0
-  * GCC 8.2.0.
+  * GCC 8.2.0
 
 ## Disclaimer
 
