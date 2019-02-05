@@ -1020,42 +1020,7 @@ public:
             else
             {
                 //write gate
-                n.gate.foreach_target([&](auto _t) { t = _t; }); //find qubit gate is on
-                
-                if(n.gate.operation()==gate_set::hadamard)
-                {
-                    network2.add_gate(gate::hadamard,qubit_id(t));
-                }
-                else if(n.gate.operation()==gate_set::pauli_x)
-                {
-                    network2.add_gate(gate::pauli_x,qubit_id(t));
-                }
-                else if(n.gate.operation()==gate_set::pauli_z)
-                {
-                    network2.add_gate(gate::pauli_z,qubit_id(t));
-                }
-                else if(n.gate.operation()==gate_set::phase)
-                {
-                    network2.add_gate(gate::phase,qubit_id(t));
-                }
-                else if(n.gate.operation()==gate_set::phase_dagger)
-                {
-                    network2.add_gate(gate::phase_dagger,qubit_id(t));
-                }
-                else if(n.gate.operation()==gate_set::t)
-                {
-                    network2.add_gate(gate::t,qubit_id(t));
-                }
-                else if(n.gate.operation()==gate_set::t_dagger)
-                {
-                    network2.add_gate(gate::t_dagger,qubit_id(t));
-                }
-                else
-                {
-                    //gate missing....add it
-                    std::cout << "Missing gate type. Exiting...\n";
-                    std::exit(0);
-                }
+				network2.add_gate(n.gate);
             
 
             }
@@ -1065,6 +1030,55 @@ public:
         write_unicode(network2);
         
         
+		//try to build ZDD that represents all swaps that can be done in parallel 
+		zdd_base zdd_swap_layers(arch_.edges.size());
+		
+		//zdd_swap_layers.debug();
+		zdd_swap_layers.build_tautologies();
+		
+		auto univ_fam = zdd_swap_layers.tautology();
+		//zdd_swap_layers.debug();
+		std::cout << " universal family sets:";
+		zdd_swap_layers.count_sets(univ_fam);
+		std::vector<zdd_base::node> edges_p;
+
+		std::vector<std::vector<uint8_t>> incidents(arch_.num_vertices);
+		for (auto i = 0u; i < arch_.edges.size(); ++i) {
+			incidents[arch_.edges[i].first].push_back(i);
+			incidents[arch_.edges[i].second].push_back(i);
+		}
+
+		for (auto& i : incidents) {
+			std::sort(i.rbegin(), i.rend());
+			auto set = zdd_swap_layers.bot();
+			for (auto o : i) {
+				set = zdd_swap_layers.union_(set, zdd_swap_layers.elementary(o));
+			}
+			edges_p.push_back(set);
+			//std::cout << "Sets = \n";
+			//zdd_swap_layers.print_sets(edges_p.back());
+		}
+		
+		auto edges_union = zdd_swap_layers.bot();
+		for (int v = circ_.num_qubits() - 1; v >= 0; --v) {
+			edges_union = zdd_swap_layers.union_(edges_union, zdd_swap_layers.choose(edges_p[v], 2));
+			//std::cout << "choose_operation" << "\n";
+			//zdd_swap_layers.print_sets(zdd_swap_layers.choose(edges_p[v], 2));
+			//std::cout << "edges_union" << "\n";
+			//zdd_swap_layers.print_sets(edges_union);
+		}
+
+		auto layers = zdd_swap_layers.nonsupersets(univ_fam, edges_union);
+
+		//zdd_swap_layers.debug();
+		//std::cout << "universal fam:\n";
+		//zdd_swap_layers.print_sets(univ_fam);
+		std::cout << "layers (total sets " << zdd_swap_layers.count_sets(layers) << "):\n";
+		zdd_swap_layers.print_sets(layers);
+		
+
+
+		
 
 		uint32_t total{0};
         std::cout<< "\n";
@@ -1129,6 +1143,7 @@ private:
 			valid_ = zdd_.union_(valid_, zdd_.join(to_[edge_perm_[p]], to_[edge_perm_[q]]));
 		}
 		zdd_.ref(valid_);
+
 	}
 
 	void init_bad()
