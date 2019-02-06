@@ -7,8 +7,7 @@
 
 #include "../../networks/netlist.hpp"
 
-#include <kitty/dynamic_truth_table.hpp>
-#include <kitty/esop.hpp>
+#include <easy/esop/esop_from_pprm.hpp>
 #include <vector>
 
 namespace tweedledum {
@@ -28,7 +27,7 @@ template<typename Network>
 void esop_phase_synth(Network& network, std::vector<qubit_id> const& qubits,
                       kitty::dynamic_truth_table const& function)
 {
-	for (const auto& cube : kitty::esop_from_pprm(function)) {
+	for (const auto& cube : easy::esop::esop_from_pprm(function)) {
 		std::vector<qubit_id> controls;
 		std::vector<qubit_id> targets;
 		for (auto i = 0; i < function.num_vars(); ++i) {

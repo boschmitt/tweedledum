@@ -30,6 +30,27 @@ inline auto circuit_and_map(uint32_t qubits)
 
 } // namespace tweedledum::detail
 
+// TODO: improve test case 
+TEST_CASE("Synthesize a simple function into a quantum network using stg_from_exact_esop",
+          "[stg]")
+{
+	kitty::dynamic_truth_table tt(3);
+	kitty::create_from_binary_string(tt, "10000001");
+	auto [network, map] = detail::circuit_and_map<netlist<mcmt_gate>>(4u);
+	stg_from_exact_esop()(network, map, tt);
+
+	CHECK(network.num_gates() == 8u);
+	CHECK(network.num_qubits() == 4u);
+
+	// for (auto i = 0ull; i < tt.num_bits(); ++i) {
+	// 	auto expected_output = i;
+	// 	if (kitty::get_bit(tt, i)) {
+	// 		expected_output |= 1 << tt.num_vars();
+	// 	}
+	// 	CHECK(simulate_pattern_classical(network, i) == expected_output);
+	// }
+}
+
 TEST_CASE("Synthesize a simple function into a quantum network using stg_from_pkrm",
           "[stg]")
 {

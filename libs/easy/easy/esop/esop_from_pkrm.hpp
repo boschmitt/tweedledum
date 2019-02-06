@@ -1,5 +1,5 @@
-/* kitty: C++ truth table library
- * Copyright (C) 2017-2018  EPFL
+/* easy: C++ ESOP library
+ * Copyright (C) 2018  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,8 +24,8 @@
  */
 
 /*!
-  \file esop.hpp
-  \brief Implements methods to compute exclusive sum-of-products (ESOP) representations
+  \file constructors.hpp
+  \brief Implements constructors for exclusive-or sum-of-product forms.
 
   \author Mathias Soeken
   \author Winston Haaswijk
@@ -33,18 +33,15 @@
 
 #pragma once
 
-#warning "DEPRECATED: the functions in this file are marked as deprecated.  Most recent implementation can be found in https://github.com/hriener/easy/ in the file src/esop/constructors.hpp"
-
+#include <easy/esop/esop.hpp>
+#include <easy/esop/cube_manipulators.hpp>
+#include <kitty/hash.hpp>
+#include <kitty/operations.hpp>
+#include <kitty/operators.hpp>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
-#include "cube.hpp"
-#include "hash.hpp"
-#include "operations.hpp"
-#include "operators.hpp"
-
-namespace kitty
+namespace easy::esop
 {
 
 /*! \cond PRIVATE */
@@ -59,10 +56,10 @@ enum class pkrm_decomposition
 };
 
 template<typename TT>
-using expansion_cache = std::unordered_map<TT, std::pair<uint32_t, pkrm_decomposition>, hash<TT>>;
+using expansion_cache = std::unordered_map<TT, std::pair<uint32_t, pkrm_decomposition>, kitty::hash<TT>>;
 
 template<typename TT>
-uint32_t find_pkrm_expansions( const TT& tt, expansion_cache<TT>& cache, uint8_t var_index )
+inline uint32_t find_pkrm_expansions( const TT& tt, expansion_cache<TT>& cache, uint8_t var_index )
 {
   /* terminal cases */
   if ( is_const0( tt ) )
@@ -112,44 +109,8 @@ uint32_t find_pkrm_expansions( const TT& tt, expansion_cache<TT>& cache, uint8_t
   return cost;
 }
 
-inline void add_to_cubes( std::unordered_set<cube, hash<cube>>& pkrm, const cube& c, bool distance_one_merging = true )
-{
-  /* first check whether cube is already contained; if so, delete it */
-  const auto it = pkrm.find( c );
-  if ( it != pkrm.end() )
-  {
-    pkrm.erase( it );
-    return;
-  }
-
-  /* otherwise, check if there is a distance-1 cube; if so, merge it */
-  if ( distance_one_merging )
-  {
-    for ( auto it = pkrm.begin(); it != pkrm.end(); ++it )
-    {
-      if ( c.distance( *it ) == 1 )
-      {
-        auto new_cube = c.merge( *it );
-        pkrm.erase( it );
-        add_to_cubes( pkrm, new_cube );
-        return;
-      }
-    }
-  }
-
-  /* otherwise, just add the cube */
-  pkrm.insert( c );
-}
-
-inline cube with_literal( const cube& c, uint8_t var_index, bool polarity )
-{
-  auto copy = c;
-  copy.add_literal( var_index, polarity );
-  return copy;
-}
-
 template<typename TT>
-void optimum_pkrm_rec( std::unordered_set<cube, hash<cube>>& pkrm, const TT& tt, const expansion_cache<TT>& cache, uint8_t var_index, const cube& c )
+inline void optimum_pkrm_rec( std::unordered_set<kitty::cube, kitty::hash<kitty::cube>>& pkrm, const TT& tt, const expansion_cache<TT>& cache, uint8_t var_index, const kitty::cube& c )
 {
   /* terminal cases */
   if ( is_const0( tt ) )
@@ -183,28 +144,6 @@ void optimum_pkrm_rec( std::unordered_set<cube, hash<cube>>& pkrm, const TT& tt,
     break;
   }
 }
-
-template<typename TT>
-void esop_from_pprm_rec( std::unordered_set<cube, hash<cube>>& cubes, const TT& tt, uint8_t var_index, const cube& c )
-{
-  /* terminal cases */
-  if ( is_const0( tt ) )
-  {
-    return;
-  }
-  if ( is_const0( ~tt ) )
-  {
-    /* add to cubes, but do not apply distance-1 merging */
-    add_to_cubes( cubes, c, false );
-    return;
-  }
-
-  const auto tt0 = cofactor0( tt, var_index );
-  const auto tt1 = cofactor1( tt, var_index );
-
-  esop_from_pprm_rec( cubes, tt0, var_index + 1, c );
-  esop_from_pprm_rec( cubes, tt0 ^ tt1, var_index + 1, with_literal( c, var_index, true ) );
-}
 } // namespace detail
 /*! \endcond */
 
@@ -218,31 +157,21 @@ void esop_from_pprm_rec( std::unordered_set<cube, hash<cube>>& cubes, const TT& 
   \param tt Truth table
 */
 template<typename TT>
-inline std::vector<cube> esop_from_optimum_pkrm( const TT& tt )
+inline esop_t esop_from_optimum_pkrm( const TT& tt )
 {
-  std::unordered_set<cube, hash<cube>> cubes;
+  std::unordered_set<kitty::cube, kitty::hash<kitty::cube>> cubes;
   detail::expansion_cache<TT> cache;
 
   detail::find_pkrm_expansions( tt, cache, 0 );
-  detail::optimum_pkrm_rec( cubes, tt, cache, 0, cube() );
+  detail::optimum_pkrm_rec( cubes, tt, cache, 0, kitty::cube() );
 
-  return std::vector<cube>( cubes.begin(), cubes.end() );
+  return esop_t( cubes.begin(), cubes.end() );
 }
 
-/*! \brief Computes PPRM representation for a function
+} /* namespace easy::esop */
 
-  This algorithm applies recursively the positive Davio decomposition which
-  eventually leads into the PPRM representation of a function.
-
-  \param tt Truth table
-*/
-template<typename TT>
-inline std::vector<cube> esop_from_pprm( const TT& tt )
-{
-  std::unordered_set<cube, hash<cube>> cubes;
-  detail::esop_from_pprm_rec( cubes, tt, 0, cube() );
-
-  return std::vector<cube>( cubes.begin(), cubes.end() );
-}
-
-} // namespace kitty
+// Local Variables:
+// c-basic-offset: 2
+// eval: (c-set-offset 'substatement-open 0)
+// eval: (c-set-offset 'innamespace 0)
+// End:
