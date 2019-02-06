@@ -9,6 +9,7 @@
 #include <kitty/dynamic_truth_table.hpp>
 
 #include <tweedledum/algorithms/synthesis/quantum_state_preparation.hpp>
+#include <tweedledum/algorithms/decomposition/dmcz.hpp>
 #include <tweedledum/algorithms/generic/rewrite.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/io/qasm.hpp>
@@ -46,12 +47,13 @@ int main(int argc, char** argv)
 
 
 	
-	std::string tt_f = "11000001";
+	//std::string tt_f = "00011111";
+    std::string tt_f = "00111111";
     netlist<mcmt_gate> net;
 	qs_basic<netlist<mcmt_gate>>(net,tt_f);
 
-	
-	
+	std::vector<qubit_id> q = {0,1,2,3};
+	decomposition_mcz_synthesis(net,q);
 	
 
 
