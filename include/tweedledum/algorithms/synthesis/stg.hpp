@@ -32,10 +32,12 @@ struct stg_from_esop_params {};
 /*! \brief Synthesize a quantum network from a function by computing exact ESOP representation
  */
 struct stg_from_exact_esop {
-	stg_from_exact_esop(stg_from_esop_params const& params_ = {})
-	    : params(params_)
-	{}
-
+	/*! \brief Synthesize into a _existing_ quantum network
+	 *
+	 * \param network  A quantum network
+	 * \param qubits   The subset of qubits the gate acts upon.
+	 * \param function 
+	 */
 	template<class Network>
 	void operator()(Network& network, std::vector<qubit_id> const& qubits,
 	                kitty::dynamic_truth_table const& function)
@@ -67,8 +69,6 @@ struct stg_from_exact_esop {
 			network.add_gate(gate::mcx, controls, target);
 		}
 	}
-
-	stg_from_esop_params params;
 };
 
 /*! \brief Synthesize a quantum network from a function by computing PKRM representation
