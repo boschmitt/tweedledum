@@ -16,12 +16,9 @@
 #include <cstdint>
 #include <iostream>
 #include <easy/esop/constructors.hpp>
-#include <kitty/constructors.hpp>
-#include <kitty/dynamic_truth_table.hpp>
-#include <kitty/esop.hpp>
-#include <kitty/operations.hpp>
-#include <kitty/print.hpp>
-#include <kitty/spectral.hpp>
+#include <easy/esop/esop_from_pkrm.hpp>
+#include <easy/esop/esop_from_pprm.hpp>
+#include <kitty/kitty.hpp>
 #include <vector>
 
 namespace tweedledum {
@@ -90,7 +87,7 @@ struct stg_from_pkrm {
 		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
 		std::vector<qubit_id> target = {qubits.back()};
-		for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
+		for (auto const& cube : easy::esop::esop_from_optimum_pkrm(function)) {
 			std::vector<qubit_id> controls;
 			std::vector<qubit_id> negations;
 			auto bits = cube._bits;
@@ -128,7 +125,7 @@ struct stg_from_pprm {
 		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
 		std::vector<qubit_id> target = {qubits.back()};
-		for (auto const& cube : kitty::esop_from_pprm(function)) {
+		for (auto const& cube : easy::esop::esop_from_pprm(function)) {
 			assert(cube._bits == cube._mask); /* PPRM property */
 			std::vector<qubit_id> controls;
 			auto bits = cube._bits;

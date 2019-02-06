@@ -18,6 +18,6 @@ if (NOT TARGET glucose)
 endif()
 
 if (NOT TARGET kitty)
-  add_library(kitty INTERFACE) # v0.4
+  add_library(kitty INTERFACE)
   target_include_directories(kitty INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kitty)
 endif()
