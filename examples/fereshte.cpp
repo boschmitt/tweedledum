@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 	std::cout<<net.size()<<"\n";
 	write_unicode(net);
 	std::cout << "\n";
-	//write_qasm(net,"MTBS_hwb5.qasm");
+	write_qasm(net,"MTBS_hwb5.qasm");
 
 
 	return EXIT_SUCCESS;
