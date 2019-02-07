@@ -209,6 +209,23 @@ public:
 	/*! \brief Sets the visited value of a node. */
 	void set_visited(node_type const& node, uint32_t value);
 #pragma endregion
+
+#pragma region Custom node values
+	/*! \brief Reset all values to 0. */
+	void clear_values() const;
+
+	/*! \brief Returns value of a node. */
+	uint32_t value(node_type const& node) const;
+
+	/*! \brief Sets value of a node. */
+	void set_value(node_type const& node, uint32_t value) const;
+
+	/*! \brief Increments value of a node and returns *previous* value. */
+	uint32_t incr_value(node_type const& node) const;
+
+	/*! \brief Decrements value of a node and returns *new* value. */
+	uint32_t decr_value(node_type const& node) const;
+#pragma endregion
 };
 
 } // namespace tweedledum
