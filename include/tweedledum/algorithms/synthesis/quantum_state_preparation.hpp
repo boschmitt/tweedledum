@@ -19,7 +19,40 @@
 
 namespace tweedledum {
 namespace detail {
+template<class Network>
+void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map)//changed by fereshte
+{
+    
+    unsigned nlines = q_map.size();
+    auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
+    kitty::set_bit(tt,pow(2,nlines-1)-1);
+        
+    const auto num_controls = tt.num_vars();
+    //assert(qubit_map.size() == num_controls + 1);
+    
+    auto g = kitty::extend_to(tt, num_controls + 1);
+    auto xt = g.construct();
+    kitty::create_nth_var(xt, num_controls);
+    g &= xt;
+    std::cout<<"print tt2:\n";
+    kitty::print_binary(tt);
+    std::cout<<std::endl;
 
+    parity_terms parities;
+    const float nom = M_PI / (1 << g.num_vars());
+    const auto spectrum = kitty::rademacher_walsh_spectrum(g);
+    for (auto i = 1u; i < spectrum.size(); ++i) {
+        if (spectrum[i] == 0) {
+            continue;
+        }
+        parities.add_term(i, nom * spectrum[i]);
+        std::cout<<i<<std::endl;
+    }
+    
+    detail::linear_synth_gray(net, q_map, parities);
+
+        
+}
 
 } // namespace detail end
 //**************************************************************
@@ -110,7 +143,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                     q_map.emplace_back(ctrl/2);
                 }
                 q_map.emplace_back(target_id);
-                decomposition_mcz(net,q_map);
+                detail::decomposition_mcz(net,q_map);
                 for(const auto ctrl:controls){
                     if(ctrl%2 == 1)//negative control
                         net.add_gate(gate::pauli_x, ctrl/2);
@@ -132,7 +165,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                     q_map.emplace_back(ctrl/2);
                 }
                 q_map.emplace_back(target_id);
-                decomposition_mcz(net,q_map);
+                detail::decomposition_mcz(net,q_map);
                 for(const auto ctrl:controls){
                     if(ctrl%2 == 1)//negative control
                         net.add_gate(gate::pauli_x, ctrl/2);
