@@ -5,7 +5,6 @@
 #include <kitty/dynamic_truth_table.hpp>
 
 #include <tweedledum/algorithms/synthesis/quantum_state_preparation.hpp>
-#include <tweedledum/algorithms/decomposition/dmcz.hpp>
 #include <tweedledum/algorithms/generic/rewrite.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/io/qasm.hpp>

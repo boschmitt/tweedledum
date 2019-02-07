@@ -4,7 +4,7 @@
 #include "../../gates/gate_base.hpp"
 #include "../../networks/qubit.hpp"
 #include "../generic/rewrite.hpp"
-#include "../decomposition/dmcz.hpp"
+#include "linear_synth.hpp"
 
 #include <array>
 #include <iostream>
@@ -14,6 +14,7 @@
 #include <kitty/esop.hpp>
 #include <kitty/operations.hpp>
 #include <kitty/print.hpp>
+#include <kitty/kitty.hpp>
 #include <vector>
 
 
