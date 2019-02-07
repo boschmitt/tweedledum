@@ -29,6 +29,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_projectq.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_qpic.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/networks/gg_network.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/netlist.cpp"
   )
 
