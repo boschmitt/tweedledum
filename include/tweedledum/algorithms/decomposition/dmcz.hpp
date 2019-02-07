@@ -25,7 +25,7 @@
 namespace tweedledum {
 
 template<class Network>
-void decomposition_mcz_synthesis(Network& net,  std::vector<qubit_id> const& q_map)//changed by fereshte
+void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map)//changed by fereshte
 {
     
     unsigned nlines = q_map.size();

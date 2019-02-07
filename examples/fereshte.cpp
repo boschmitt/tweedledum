@@ -1,8 +1,4 @@
-/*-------------------------------------------------------------------------------------------------
-| This file is distributed under the MIT License.
-| See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
-*------------------------------------------------------------------------------------------------*/
+
 #include <cstdlib>
 #include <iostream>
 #include <kitty/constructors.hpp>
@@ -52,14 +48,14 @@ int main(int argc, char** argv)
     netlist<mcmt_gate> net;
 	qs_basic<netlist<mcmt_gate>>(net,tt_f);
 
-	std::vector<qubit_id> q = {0,1,2,3};
-	decomposition_mcz_synthesis(net,q);
+	// std::vector<qubit_id> q = {0,1,2,3};
+	// decomposition_mcz(net,q);
 	
-
-
+	std::cout << "size:\n";
+	std::cout<<net.size()<<"\n";
 	write_unicode(net);
 	std::cout << "\n";
-	write_qasm(net,"MTBS_hwb5.qasm");
+	//write_qasm(net,"MTBS_hwb5.qasm");
 
 
 	return EXIT_SUCCESS;
