@@ -129,7 +129,9 @@ struct cnot_patel_params {
 
 /*! \brief CNOT Patel synthesis for linear circuits
  *
- * A specialzed variant of `cnot_patel` which accepts a existing network (possibly with gates).
+ * This is the in-place variant of ``cnot_patel``, in which the network is passed as a parameter
+ * and can potentially already contain some gates. The parameter ``qubits`` provides a qubit
+ * mapping to the existing qubits in the network.
  *
  * \param network A quantum network
  * \param qubits  The subset of qubits the linear reversible circuit acts upon.

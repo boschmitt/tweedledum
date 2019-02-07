@@ -12,4 +12,5 @@ Algorithm
 ~~~~~~~~~
 
 .. doxygenfunction:: tweedledum::esop_phase_synth(kitty::dynamic_truth_table const&)
+
 .. doxygenfunction:: tweedledum::esop_phase_synth(Network&, std::vector<qubit_id> const&, kitty::dynamic_truth_table const&)
