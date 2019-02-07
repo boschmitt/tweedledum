@@ -10,7 +10,10 @@ v1.0-beta [`Not yet released <https://github.com/boschmitt/tweedledum/tree/maste
 * Algorithms:
     - Transformation based synthesis (`tbs`) `#6 <https://github.com/boschmitt/tweedledum/pull/6>`_
     - ESOP-phase synthesis (`esop_phase_synth`) `#7 <https://github.com/boschmitt/tweedledum/pull/7>`_
+    - Single targe gate synthesis (`stg_from_exact_esop`) `#11 <https://github.com/boschmitt/tweedledum/pull/11>`_
 * I/O
+    - Write to ProjectQ (`write_projectq`) `#13 <https://github.com/boschmitt/tweedledum/pull/13>`_
+    - Write to Quirk json format (`write_quirk`) `#12 <https://github.com/boschmitt/tweedledum/pull/12>`_
 * Utility data structures:
 
 v1.0-alpha [`December 17, 2018 <https://github.com/boschmitt/tweedledum/tree/v1.0-alpha>`_]
