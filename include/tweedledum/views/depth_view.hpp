@@ -23,11 +23,12 @@ namespace tweedledum {
  * - `is`
  *
  * **Required network functions:**
- * - `get_node`
- * - `clear_marks`
- * - `mark`
+ * - `clear_visited`
  * - `foreach_child`
- * - `foreach_output`
+ * - `foreach_coutput`
+ * - `get_node`
+ * - `set_visited`
+ * - `visited`
  */
 template<typename Network>
 class depth_view : public immutable_view<Network> {
@@ -37,6 +38,10 @@ public:
 	using node_ptr_type = typename Network::node_ptr_type;
 	using storage_type = typename Network::storage_type;
 
+	/*! \brief Default constructor.
+	 *
+	 * Constructs depth view on a network.
+	 */
 	explicit depth_view(Network& network)
 	    : immutable_view<Network>(network)
 	    , levels_(network)
