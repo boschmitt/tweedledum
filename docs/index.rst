@@ -24,6 +24,7 @@ Welcome to tweedledum's documentation!
    core/gate
    core/network
    core/implementations
+   core/views
 
 .. toctree::
    :maxdepth: 2
