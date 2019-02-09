@@ -42,3 +42,12 @@ TEST_CASE("Check simple example from Amy paper", "[gray_synth]")
 	});
 	id_matrix.print();
 }
+
+TEST_CASE("Check with empty parities", "[gray_synth]")
+{
+	using namespace tweedledum;
+	auto network = gray_synth<netlist<mcst_gate>>(4, {});
+
+	CHECK(network.num_gates() == 0u);
+	CHECK(network.num_qubits() == 4u);
+}
