@@ -211,6 +211,10 @@ template<class Network>
 void gray_synth(Network& network, std::vector<qubit_id> const& qubits,
                 parity_terms const& parities, gray_synth_params params = {})
 {
+	assert(qubits.size() <= 32u);
+	if (parities.num_terms() == 0u) {
+		return;
+	}
 	detail::gray_synth_ftor synthesizer(network, qubits, parities, params);
 	synthesizer.synthesize();
 }
