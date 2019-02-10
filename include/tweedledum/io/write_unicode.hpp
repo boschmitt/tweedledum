@@ -353,7 +353,7 @@ template<typename Network>
 void write_unicode(Network const& network, std::string const& filename, bool fancy = true)
 {
 	std::ofstream os(filename.c_str(), std::ofstream::out);
-	write_unicode(network, os);
+	write_unicode(network, fancy, os);
 }
 
 } // namespace tweedledum
