@@ -26,6 +26,8 @@
 
 //global quick fix
 std::vector< std::vector<uint32_t>> global_found_sets;
+std::vector< std::vector<uint32_t>> global_swap_layers;
+
 
 namespace tweedledum {
 
@@ -530,6 +532,13 @@ public:
     }
 
 	template<class Formatter = identity_format>
+    void add_to_global_swap_layers(node f, Formatter&& fmt = Formatter())
+    {
+        std::vector<uint32_t> set;
+        add_to_global_swap_layers_rec(f, set, fmt);
+    }
+
+	template<class Formatter = identity_format>
 	void write_dot(std::ostream& os, Formatter&& fmt = Formatter())
 	{
 		os << "digraph {\n";
@@ -594,6 +603,30 @@ private:
             add_to_global_found_sets_rec(nodes[f].hi, set1, fmt);
         }
     }
+
+	template<class Formatter>
+    void add_to_global_swap_layers_rec(node f, std::vector<uint32_t>& set, Formatter&& fmt)
+    {
+        //std::cout << set.size() << " set size \n";
+        if (f == 1) {
+            std::vector<uint32_t> single_set;
+            for (auto v : set) {
+                //std::cout<<"\nthe value of v " << v << "\n";
+                //std::cout << fmt(v) << " ";
+                single_set.push_back(v);
+                
+            }
+            global_swap_layers.push_back(single_set);
+            //std::cout << "\n";
+        } else if (f != 0) {
+            add_to_global_swap_layers_rec(nodes[f].lo, set, fmt);
+            auto set1 = set;
+            set1.push_back(nodes[f].var);
+            add_to_global_swap_layers_rec(nodes[f].hi, set1, fmt);
+        }
+    }
+
+
     
     //below does not completely work....
     std::vector<std::vector<uint32_t>> return_sets_rec(node f, std::vector<uint32_t>& set, std::vector<std::vector<uint32_t>>& single_set, uint32_t total_qubits)
@@ -758,8 +791,58 @@ public:
         std::vector<uint32_t> index_of_swap;
         //vector that holds the qubits implemented swaps
         std::vector<std::vector<uint32_t>> swapped_qubits;
+
+
+		//build ZDD that represents all swaps that can be done in parallel 
+		zdd_base zdd_swap_layers(arch_.edges.size());
+		
+		//zdd_swap_layers.debug();
+		zdd_swap_layers.build_tautologies();
+		
+		auto univ_fam = zdd_swap_layers.tautology();
+		//zdd_swap_layers.debug();
+		//std::cout << "universal family sets: " << zdd_swap_layers.count_sets(univ_fam)<<"\n" ;
+		std::vector<zdd_base::node> edges_p;
+
+		std::vector<std::vector<uint8_t>> incidents(arch_.num_vertices);
+		for (auto i = 0u; i < arch_.edges.size(); ++i) {
+			incidents[arch_.edges[i].first].push_back(i);
+			incidents[arch_.edges[i].second].push_back(i);
+		}
+
+		for (auto& i : incidents) {
+			std::sort(i.rbegin(), i.rend());
+			auto set = zdd_swap_layers.bot();
+			for (auto o : i) {
+				set = zdd_swap_layers.union_(set, zdd_swap_layers.elementary(o));
+			}
+			edges_p.push_back(set);
+			//std::cout << "Sets = \n";
+			//zdd_swap_layers.print_sets(edges_p.back());
+		}
+		
+		auto edges_union = zdd_swap_layers.bot();
+		for (int v = circ_.num_qubits() - 1; v >= 0; --v) {
+			edges_union = zdd_swap_layers.union_(edges_union, zdd_swap_layers.choose(edges_p[v], 2));
+			//std::cout << "choose_operation" << "\n";
+			//zdd_swap_layers.print_sets(zdd_swap_layers.choose(edges_p[v], 2));
+			//std::cout << "edges_union" << "\n";
+			//zdd_swap_layers.print_sets(edges_union);
+		}
+
+		auto layers = zdd_swap_layers.nonsupersets(univ_fam, edges_union);
+
+		//zdd_swap_layers.debug();
+		//std::cout << "universal fam:\n";
+		//zdd_swap_layers.print_sets(univ_fam);
+		std::cout << "layers (total sets " << zdd_swap_layers.count_sets(layers) << "):\n";
+		//zdd_swap_layers.print_sets(layers);
         
-        
+		global_swap_layers.clear();
+		zdd_swap_layers.add_to_global_swap_layers(layers);
+
+
+        //below is where we look for maps!
 		circ_.foreach_cgate([&](auto const& n) {
 			if (n.gate.is_double_qubit())
             {
@@ -783,32 +866,37 @@ public:
                     {
 
                         
-                        std::vector<uint32_t> new_mappings_cnt(circ_.num_qubits(),0);
-                        std::vector<uint32_t> depth_count(circ_.num_qubits(),0);
-                        
-                        for(uint32_t i = 0; i < circ_.num_qubits(); i++)
-                        {
-                            std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
-                            zdd_.deref(valid_);
-                            init_valid();
-                            //std::cout << "valid after:\n";
-                            //zdd_.print_sets(valid_, fmt_);
-                            
-                            auto m_next = map(c, t);
+                        std::vector<uint32_t> new_mappings_cnt(global_swap_layers.size(),0);
+                        std::vector<uint32_t> depth_count(global_swap_layers.size(),0);
+						std::vector<uint32_t> swap_count(global_swap_layers.size(),0);
+
+						for(uint32_t i = 0; i < global_swap_layers.size(); i++)
+						{
+							swap_count[i] = global_swap_layers[i].size();
+
+							for(auto const& item : global_swap_layers[i])
+							{
+								std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
+                            	zdd_.deref(valid_);
+                            	init_valid();
+							}
+							auto m_next = map(c, t);
                             if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot())
                             {
                                 //cannot extend map
                                 new_mappings_cnt[i] = 0;
                                 depth_count[i] = 0;
                                 //unswap physical qubits for next iteration
-                                std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
-                                zdd_.deref(valid_);
-                                init_valid();
+                                for(auto const& item : global_swap_layers[i])
+								{
+									std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
+                            		zdd_.deref(valid_);
+                            		init_valid();
+								}
                                 continue;
                             
-                                
                             }
-                            else
+							else
                             {
                                 //can extend map. determine depth and number of mappings
                                 //move on to next possible swap
@@ -851,35 +939,53 @@ public:
                                 
                                 
                                 new_mappings_cnt[i] = zdd_.count_sets(mp);
-                                std::swap(edge_perm_[i], edge_perm_[(i+1)%circ_.num_qubits()]);
-                                zdd_.deref(valid_);
-                                init_valid();
+                                for(auto const& item : global_swap_layers[i])
+								{
+									std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
+                            		zdd_.deref(valid_);
+                            		init_valid();
+								}
                                 continue;
 
                                 
                             }
-                            
-                        }
+
+						}
+
+						
+                        
 
                         
-                        std::vector<uint32_t> scores(circ_.num_qubits(),0);
+                        std::vector<double> scores(global_swap_layers.size(),0);
                         uint32_t depth_weight = 0;
                         uint32_t map_weight = 1;
+						double swap_weight = 1.5;
                         
                         //std::cout << "\n";
                         for(uint32_t index = 0; index < depth_count.size(); index ++)
                         {
+                            double inv_swap_cnt;
+                            if (swap_count[index] == 0)
+							{
+								inv_swap_cnt = 0;
+							}
+							else
+							{
+								inv_swap_cnt = 1.0/swap_count[index];
+							}
+							
+							scores[index] = (depth_count[index]*depth_weight + new_mappings_cnt[index]*map_weight)*((inv_swap_cnt)*swap_weight);
                             
-                            scores[index] = depth_count[index]*depth_weight + new_mappings_cnt[index]*map_weight;
-                            
-                            //std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | score: " << scores[index]<< "\n";
+                            std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | swap_count - " << swap_count[index]<< " | score: " << scores[index]<< "\n";
                             
                             
                         }
                         //std::cout << "\n";
                         
                         uint32_t max_index = std::max_element(scores.begin(), scores.end())-scores.begin();
-                        uint32_t max_score = scores[max_index];
+                        int max_score = scores[max_index];
+
+						
 
                         
                         if (max_score == 0)
@@ -898,20 +1004,32 @@ public:
                         else
                         {
                   
-                            std::swap(edge_perm_[max_index], edge_perm_[(max_index+1)%circ_.num_qubits()]);
-                            zdd_.deref(valid_);
-                            init_valid();
+                            for(auto const& item : global_swap_layers[max_index])
+							{
+								std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
+                            	zdd_.deref(valid_);
+                            	init_valid();
+							}
+                               
+							
+
                             
                             auto m_next = map(c, t);
                             //std::cout << c << " " << t << "\n";
                             mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
                             m = mp;
-                            index_of_swap.push_back(ctr);
                             
-                            std::vector<uint32_t> one_swap;
-                            one_swap.push_back(max_index);
-                            one_swap.push_back((max_index+1)%circ_.num_qubits());
-                            swapped_qubits.push_back(one_swap);
+
+                            for(auto const& item : global_swap_layers[max_index])
+							{
+								std::vector<uint32_t> one_swap;
+								one_swap.push_back(arch_.edges[item].first);
+                            	one_swap.push_back(arch_.edges[item].second);
+                            	swapped_qubits.push_back(one_swap);
+								index_of_swap.push_back(ctr);
+								
+							}
+
                         }
 
                         
@@ -937,6 +1055,10 @@ public:
         }
         std::cout << "\n";
         
+
+
+
+
         //find all sets to pick one for new map
         global_found_sets.clear();
         for (auto const& map : mappings)
@@ -980,32 +1102,37 @@ public:
                 
                 if(ctr == index_of_swap[index_counter])
                 {
-                    //insert swap
-                    network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
-                    network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
-                    network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+                    while(ctr == index_of_swap[index_counter])
+					{
+						//insert as many swaps that are needed in a particular spot
+                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+                    	network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
+                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
+                    	network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
+                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
+                    	network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
+                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
                     
-                    //adjust qubits in current mapping
-                    std::vector<uint32_t>::iterator itr0 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][0]);
-                    std::vector<uint32_t>::iterator itr1 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][1]);
+                    	//adjust qubits in current mapping
+                    	std::vector<uint32_t>::iterator itr0 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][0]);
+                    	std::vector<uint32_t>::iterator itr1 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][1]);
                     
-                    uint32_t indx0 = std::distance(current_mapping.begin(),itr0);
-                    uint32_t indx1 = std::distance(current_mapping.begin(),itr1);
+                    	uint32_t indx0 = std::distance(current_mapping.begin(),itr0);
+                    	uint32_t indx1 = std::distance(current_mapping.begin(),itr1);
                     
-                    current_mapping[indx0]= swapped_qubits[index_counter][1];
-                    current_mapping[indx1]= swapped_qubits[index_counter][0];
+                    	current_mapping[indx0]= swapped_qubits[index_counter][1];
+                    	current_mapping[indx1]= swapped_qubits[index_counter][0];
 
                     
-                    //insert gate
-                    network2.add_gate(gate::cz,current_mapping[c],current_mapping[t]);
+                    	//insert gate
+                    	network2.add_gate(gate::cz,current_mapping[c],current_mapping[t]);
                     
-                    index_counter++;
+                    	index_counter++;
+
+					}
+					
                 }
                 else
                 {
@@ -1028,57 +1155,6 @@ public:
 
         });
         write_unicode(network2);
-        
-        
-		//try to build ZDD that represents all swaps that can be done in parallel 
-		zdd_base zdd_swap_layers(arch_.edges.size());
-		
-		//zdd_swap_layers.debug();
-		zdd_swap_layers.build_tautologies();
-		
-		auto univ_fam = zdd_swap_layers.tautology();
-		//zdd_swap_layers.debug();
-		std::cout << " universal family sets:";
-		zdd_swap_layers.count_sets(univ_fam);
-		std::vector<zdd_base::node> edges_p;
-
-		std::vector<std::vector<uint8_t>> incidents(arch_.num_vertices);
-		for (auto i = 0u; i < arch_.edges.size(); ++i) {
-			incidents[arch_.edges[i].first].push_back(i);
-			incidents[arch_.edges[i].second].push_back(i);
-		}
-
-		for (auto& i : incidents) {
-			std::sort(i.rbegin(), i.rend());
-			auto set = zdd_swap_layers.bot();
-			for (auto o : i) {
-				set = zdd_swap_layers.union_(set, zdd_swap_layers.elementary(o));
-			}
-			edges_p.push_back(set);
-			//std::cout << "Sets = \n";
-			//zdd_swap_layers.print_sets(edges_p.back());
-		}
-		
-		auto edges_union = zdd_swap_layers.bot();
-		for (int v = circ_.num_qubits() - 1; v >= 0; --v) {
-			edges_union = zdd_swap_layers.union_(edges_union, zdd_swap_layers.choose(edges_p[v], 2));
-			//std::cout << "choose_operation" << "\n";
-			//zdd_swap_layers.print_sets(zdd_swap_layers.choose(edges_p[v], 2));
-			//std::cout << "edges_union" << "\n";
-			//zdd_swap_layers.print_sets(edges_union);
-		}
-
-		auto layers = zdd_swap_layers.nonsupersets(univ_fam, edges_union);
-
-		//zdd_swap_layers.debug();
-		//std::cout << "universal fam:\n";
-		//zdd_swap_layers.print_sets(univ_fam);
-		std::cout << "layers (total sets " << zdd_swap_layers.count_sets(layers) << "):\n";
-		zdd_swap_layers.print_sets(layers);
-		
-
-
-		
 
 		uint32_t total{0};
         std::cout<< "\n";

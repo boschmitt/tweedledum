@@ -265,7 +265,6 @@ TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
    network.add_qubit();
    network.add_qubit();
    network.add_qubit();
-   network.add_qubit();
 
 
    network.add_gate(gate::cz, 0, 1);
