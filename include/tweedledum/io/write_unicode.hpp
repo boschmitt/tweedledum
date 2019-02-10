@@ -17,9 +17,9 @@
 namespace tweedledum {
 namespace detail {
 
-class string_builder {
+class fancy_string_builder {
 public:
-	string_builder(uint32_t num_qubits)
+	fancy_string_builder(uint32_t num_qubits)
 	    : occupancy_(num_qubits, 0)
 	    , lines_(3 * num_qubits, "     ")
 	{
@@ -106,14 +106,13 @@ public:
 		new_column();
 	}
 
-	friend std::ostream& operator<<(std::ostream& out, string_builder builder)
+	std::string str()
 	{
 		std::string result;
-		for (auto const& line : builder.lines_) {
+		for (auto const& line : lines_) {
 			result += line + "\n";
 		}
-		out << result;
-		return out;
+		return result;
 	}
 
 private:
@@ -144,30 +143,74 @@ private:
 	std::vector<std::string> lines_;
 };
 
-} // namespace detail
+class string_builder {
+public:
+	string_builder(uint32_t num_qubits)
+	    : lines_(num_qubits, "―")
+	{ }
 
-/*! \brief Writes a network in Unicode format format into a output stream
- *
- * **Required gate functions:**
- * - `operation`
- * - `foreach_control`
- * - `foreach_target`
- *
- * **Required network functions:**
- * - `foreach_cgate`
- * - `num_qubits`
- *
- * \param network A quantum network
- * \param os Output stream (default: std::cout)
- */
-template<typename Network>
-void write_unicode(Network const& network, std::ostream& os = std::cout)
-{
-	if (network.num_gates() == 0) {
-		return;
+	void add_gate(std::string const& op, qubit_id target)
+	{
+		lines_[target] += op == "X" ? "⊕" : op;
+		new_column();
 	}
 
-	detail::string_builder builder(network.num_qubits());
+	void add_gate(std::string const& op, qubit_id control, qubit_id target)
+	{
+		if (control.is_complemented()) {
+			lines_[control] += "○";
+		} else {
+			lines_[control] += "●";
+		}
+		lines_[target] += op == "X" ? "⊕" : op;
+		new_column();
+	}
+
+	void add_gate(std::string const& op, std::vector<qubit_id> controls,
+	              std::vector<qubit_id> targets)
+	{
+		for (auto qid : controls) {
+			if (qid.is_complemented()) {
+				lines_[qid] += "○";
+			} else {
+				lines_[qid] += "●";
+			}
+		}
+		for (auto qid : targets) {
+			lines_[qid] += op == "X" ? "⊕" : op;
+		}
+		new_column();
+	}
+
+	std::string str()
+	{
+		std::string result;
+		for (auto const& line : lines_) {
+			result += line + "\n";
+		}
+		return result;
+	}
+
+private:
+	void new_column()
+	{
+		for (auto& line : lines_) {
+			if (line.size() % 2 == 0) {
+				line += "―";
+			} else {
+				line += "――";
+			}
+		}
+	}
+
+private:
+	std::vector<std::string> lines_;
+};
+
+// Maybe use it polymorphism instead of templates
+template<typename Network, typename Builder>
+auto to_unicode_str(Network const& network, Builder builder)
+{
 	network.foreach_cgate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
@@ -253,7 +296,42 @@ void write_unicode(Network const& network, std::ostream& os = std::cout)
 		}
 		return true;
 	});
-	os << builder;
+	return builder.str();
+}
+
+} // namespace detail
+
+/*! \brief Writes a network in Unicode format format into a output stream
+ *
+ * **Required gate functions:**
+ * - `operation`
+ * - `foreach_control`
+ * - `foreach_target`
+ *
+ * **Required network functions:**
+ * - `foreach_cgate`
+ * - `num_qubits`
+ *
+ * \param network A quantum network
+ * \param fancy (default: true)
+ * \param os Output stream (default: std::cout)
+ */
+template<typename Network>
+void write_unicode(Network const& network, bool fancy = true, std::ostream& os = std::cout)
+{
+	if (network.num_gates() == 0) {
+		return;
+	}
+
+	std::string unicode_str;
+	if (fancy) {
+		detail::fancy_string_builder builder(network.num_qubits());
+		unicode_str = detail::to_unicode_str(network, builder);
+	} else {
+		detail::string_builder builder(network.num_qubits());
+		unicode_str = detail::to_unicode_str(network, builder);
+	}
+	os << unicode_str;
 }
 
 /*! \brief Writes a network in Unicode format format into a file
@@ -268,10 +346,11 @@ void write_unicode(Network const& network, std::ostream& os = std::cout)
  * - `num_qubits`
  *
  * \param network A quantum network
+ * \param fancy (default: true)
  * \param filename Filename
  */
 template<typename Network>
-void write_unicode(Network const& network, std::string const& filename)
+void write_unicode(Network const& network, std::string const& filename, bool fancy = true)
 {
 	std::ofstream os(filename.c_str(), std::ofstream::out);
 	write_unicode(network, os);
