@@ -4,15 +4,15 @@
 | Author(s): Mathias Soeken
 *-----------------------------------------------------------------------------*/
 #include <catch.hpp>
-#include <tweedledum/algorithms/mapping/device.hpp>
-#include <tweedledum/algorithms/mapping/greedymap.hpp>
+#include <tweedledum/algorithms/mapping/greedy_map.hpp>
 #include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/utils/device.hpp>
 
 using namespace tweedledum;
 
-TEST_CASE("Simple example for Greedy mapper", "[greedymap]")
+TEST_CASE("Simple example for Greedy mapper", "[greedy_map]")
 {
 	using namespace tweedledum;
 	netlist<mcst_gate> network;
@@ -21,7 +21,7 @@ TEST_CASE("Simple example for Greedy mapper", "[greedymap]")
 	const auto c = network.add_qubit();
 	const auto d = network.add_qubit();
 
-  network.add_gate(gate::hadamard, a);
+	network.add_gate(gate::hadamard, a);
 	network.add_gate(gate::cz, a, b);
 	network.add_gate(gate::cz, b, c);
 	network.add_gate(gate::cz, b, d);
@@ -29,7 +29,7 @@ TEST_CASE("Simple example for Greedy mapper", "[greedymap]")
 
 	write_unicode(network);
 
-	const auto mapped = greedy_map(network, device_t::ring(network.num_qubits()));
+	const auto mapped = greedy_map(network, device::ring(network.num_qubits()));
 	if (mapped) {
 		std::cout << "\n";
 		write_unicode(*mapped);

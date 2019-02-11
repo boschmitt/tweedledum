@@ -17,6 +17,7 @@
 
 namespace tweedledum {
 
+// TODO: refactor, document
 class zdd_base {
 private:
 	struct node_t {
