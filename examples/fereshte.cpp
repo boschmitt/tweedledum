@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 
 	
 	//std::string tt_f = "00011111";
-    std::string tt_f = "00111111";
+    std::string tt_f = "00000111";
     netlist<mcmt_gate> net;
 	qs_basic<netlist<mcmt_gate>>(net,tt_f);
 
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
 	std::cout<<net.size()<<"\n";
 	write_unicode(net);
 	std::cout << "\n";
-	write_qasm(net,"MTBS_hwb5.qasm");
+	write_qasm(net,"test1.qasm");
 
 
 	return EXIT_SUCCESS;
