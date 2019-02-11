@@ -50,6 +50,7 @@ Welcome to tweedledum's documentation!
    :hidden:
 
    utils/angle
+   utils/device
 
 Indices and tables
 ==================

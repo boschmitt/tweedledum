@@ -13,5 +13,4 @@ coupling constraints of the device.
    :maxdepth: 2
    :hidden:
 
-   mapping/types
    mapping/greedy_map
