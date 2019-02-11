@@ -50,6 +50,14 @@ Welcome to tweedledum's documentation!
 
    utils/angle
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Development 
+   :hidden:
+
+   development/cpp_coding_guidelines
+   development/git_workflow
+
 Indices and tables
 ==================
 
