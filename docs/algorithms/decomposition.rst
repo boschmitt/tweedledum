@@ -1,7 +1,7 @@
 Decomposition
 -------------
 
-**Decomposition**: is the process of breaking down in parts or elements.
+**Decomposition**: is the process of breaking down larger parts or elements into smaller ones.
 
 High-level quantum algorithms are technology-independent, that is, allow arbitrary quantum gates,
 and do not take architectural constraints into account. Quite often, these algorithms involve quantum
