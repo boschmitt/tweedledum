@@ -20,6 +20,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/greedymap.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/dbs.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/esop_phase_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/gray_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/linear_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/stg.cpp"
@@ -27,7 +28,9 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/gates/mcst_gate.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/qasm.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/io/write_projectq.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_qpic.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/networks/gg_network.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/netlist.cpp"
   )
 

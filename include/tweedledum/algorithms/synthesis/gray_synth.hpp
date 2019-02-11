@@ -197,7 +197,9 @@ private:
 
 /*! \brief Gray synthesis for {CNOT, Rz} networks.
  *
- * A specialzed variant of `gray_synth` which accepts a existing network (possibly with gates).
+ * This is the in-place variant of ``gray_synth``, in which the network is passed as a parameter
+ * and can potentially already contain some gates. The parameter ``qubits`` provides a qubit
+ * mapping to the existing qubits in the network.
  *
  * \param network  A quantum network
  * \param qubits   The subset of qubits the linear reversible circuit acts upon
@@ -219,10 +221,6 @@ void gray_synth(Network& network, std::vector<qubit_id> const& qubits,
 
    This algorithm is based on the work in :cite:`AAM17`.
 
-   The following code shows how to apply the algorithm to the example in the
-   original paper.
-
-   .. code-block:: c++
    \endverbatim
  *
  * \param num_qubits Number of qubits

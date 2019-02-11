@@ -125,6 +125,17 @@ inline bool equal( const TT& first, const TT& second )
   return binary_predicate( first, second, std::equal_to<>() );
 }
 
+/*! \brief Checks if first truth table implies a second truth table
+
+  \param first First truth table
+  \param second Second truth table
+*/
+template<typename TT>
+inline bool implies( const TT& first, const TT& second )
+{
+  return is_const0( binary_operation( first, second, []( auto a, auto b ) { return ~( ~a | b ); } ) );
+}
+
 /*! \brief Checks whether a truth table is lexicographically smaller than another
 
   Comparison is initiated from most-significant bit.

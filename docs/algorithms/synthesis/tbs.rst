@@ -18,4 +18,5 @@ Algorithm
 ~~~~~~~~~
 
 .. doxygenfunction:: tweedledum::tbs(std::vector<uint32_t>, tbs_params)
+
 .. doxygenfunction:: tweedledum::tbs(Network&, std::vector<qubit_id> const&, std::vector<uint32_t>, tbs_params)

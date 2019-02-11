@@ -123,8 +123,10 @@ struct linear_synth_params {
 
 /*! \brief Linear synthesis for small {CNOT, Rz} networks
  *
- * A specialzed variant of `linear_synth` which accepts a existing network (possibly with gates)
- *
+ * This is the in-place variant of ``linear_synth``, in which the network is passed as a parameter
+ * and can potentially already contain some gates. The parameter ``qubits`` provides a qubit
+ * mapping to the existing qubits in the network.
+ * 
  * \param network  A quantum network
  * \param qubits   The subset of qubits the linear reversible circuit acts upon
  * \param parities List of parities and rotation angles to synthesize

@@ -5,7 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-static_assert(false, "file interface.hpp cannot be included, it's only used for documentation");
+static_assert(false, "file gate/interface.hpp cannot be included, it's only used for documentation");
 
 namespace tweedledum {
 
@@ -48,6 +48,16 @@ public:
 
 	/*! \brief Returns the number of targets. */
 	uint32_t num_targets() const;
+
+	/*! \brief Checks weather a qubit is a control for the gate */
+	auto is_control(qubit_id qid) const;
+
+	/*! \brief Returns the slot in which a qubit_id is stored in the gate
+	 *
+	 * The slot of a qubit is unique within the gate and ``qubit_id`` is
+	 * a unique qubit identifier within the circuit.
+	 */
+	auto qubit_slot(qubit_id qid) const;
 #pragma endregion
 
 #pragma region Iterators
