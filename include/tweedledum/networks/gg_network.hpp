@@ -10,27 +10,38 @@
 #include "detail/storage.hpp"
 #include "qubit.hpp"
 
-#include <algorithm>
-#include <cassert>
-#include <cstdint>
+#include <array>
 #include <fmt/format.h>
+#include <iostream>
+#include <limits>
 #include <memory>
-#include <string>
-#include <type_traits>
+#include <vector>
 
 namespace tweedledum {
 
-/*! \brief 
+/*! Gate Graph (GG) is a directed acyclic graph (DAG) representation.
+ *
+ * Represent a quantum circuit as a directed acyclic graph. The nodes in the
+ * graph are either input/output nodes or operation nodes. All nodes store
+ * a gate object, which is defined as a class template parameter, which allows
+ * great flexibility in the types supported as gates.
+ *
+ * The edges encode only the input/output relationship between the
+ * gates. That is, a directed edge from node A to node B means that the qubit
+ * _must_ pass from the output of A to the input of B.
+ *
+ * Some natural properties like depth can be computed directly from the graph.
  */
 template<typename GateType>
-class netlist {
+class gg_network {
 public:
 #pragma region Types and constructors
 	using gate_type = GateType;
-	using node_type = wrapper_node<gate_type, 1>;
+	using node_type = uniform_node<gate_type, 0, 1>;
+	using node_ptr_type = typename node_type::pointer_type;
 	using storage_type = storage<node_type>;
 
-	netlist()
+	gg_network()
 	    : storage_(std::make_shared<storage_type>())
 	    , qlabels_(std::make_shared<qlabels_map>())
 	{}
@@ -47,7 +58,10 @@ private:
 
 		storage_->nodes.emplace_back(input);
 		storage_->inputs.emplace_back(index);
-		storage_->outputs.emplace_back(output);
+
+		auto& output_node = storage_->outputs.emplace_back(output);
+		output_node.children[0] = index;
+
 		storage_->rewiring_map.push_back(qid);
 		return qid;
 	}
@@ -84,12 +98,52 @@ public:
 	}
 #pragma endregion
 
-#pragma region Add gates(qids)
+#pragma region Nodes
+	auto& get_node(node_ptr_type node_ptr) const
+	{
+		return storage_->nodes[node_ptr.index];
+	}
+
+	auto node_to_index(node_type const& node) const
+	{
+		if (node.gate.is(gate_set::output)) {
+			auto index = &node - storage_->outputs.data();
+			return static_cast<uint32_t>(index + storage_->nodes.size());
+		}
+		return static_cast<uint32_t>(&node - storage_->nodes.data());
+	}
+#pragma endregion
+
+#pragma region Add gates(qid)
+private:
+	void connect_node(qubit_id qid, uint32_t node_index)
+	{
+		auto& node = storage_->nodes.at(node_index);
+		auto& output = storage_->outputs.at(qid.index());
+		auto slot = node.gate.qubit_slot(qid);
+
+		assert(output.children[0].data != node_ptr_type::max);
+		foreach_child(output, [&node, slot](auto arc) {
+			node.children[slot] = arc;
+		});
+		output.children[0] = node_index;
+		return;
+	}
+
+	auto& do_add_gate(gate_type gate)
+	{
+		auto node_index = storage_->nodes.size();
+		auto& node = storage_->nodes.emplace_back(gate);
+
+		node.gate.foreach_control([&](auto& qid) { connect_node(qid, node_index); });
+		node.gate.foreach_target([&](auto& qid) { connect_node(qid, node_index); });
+		return node;
+	}
+
+public:
 	auto& add_gate(gate_type const& gate)
 	{
-		// assert(!gate.is_meta());
-		auto& node = storage_->nodes.emplace_back(gate);
-		return node;
+		return do_add_gate(gate);
 	}
 
 	auto& add_gate(gate_base op, qubit_id target)
@@ -225,8 +279,7 @@ public:
 	void foreach_cgate(Fn&& fn) const
 	{
 		foreach_element_if(storage_->nodes.cbegin(), storage_->nodes.cend(),
-		                   [](auto const& node) { return node.gate.is_unitary_gate(); },
-		                   fn);
+		                   [](auto const& node) { return node.gate.is_unitary_gate(); }, fn);
 	}
 
 	template<typename Fn>
@@ -235,6 +288,26 @@ public:
 		foreach_element(storage_->nodes.cbegin(), storage_->nodes.cend(), fn);
 		foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn,
 		                storage_->nodes.size());
+	}
+#pragma endregion
+
+#pragma region Const node iterators
+	template<typename Fn>
+	void foreach_child(node_type const& node, Fn&& fn) const
+	{
+		static_assert(is_callable_without_index_v< Fn, node_ptr_type, void>
+		|| is_callable_with_index_v<Fn, node_ptr_type, void>);
+
+		for (auto i = 0u; i < node.children.size(); ++i) {
+			if (node.children[i] == node_ptr_type::max) {
+				continue;
+			}
+			if constexpr (is_callable_without_index_v<Fn, node_ptr_type, void>) {
+				fn(node.children[i]);
+			} else if constexpr (is_callable_with_index_v<Fn, node_ptr_type, void>) {
+				fn(node.children[i], i);
+			}
+		}
 	}
 #pragma endregion
 

@@ -80,7 +80,7 @@ struct node_pointer<0> {
 } // namespace detail
 
 union cauint32_t {
-	uint32_t w{0};
+	uint32_t w = 0;
 	struct {
 		uint32_t b0 : 8;
 		uint32_t b1 : 8;
@@ -98,8 +98,8 @@ struct wrapper_node {
 	GateType gate;
 	mutable std::array<cauint32_t, DataSize> data;
 
-	wrapper_node(GateType const& g)
-	    : gate(g)
+	wrapper_node(GateType const& gate_)
+	    : gate(gate_)
 	{}
 
 	bool operator==(wrapper_node const& other) const
@@ -110,16 +110,16 @@ struct wrapper_node {
 
 /*! \brief 
  */
-template<typename GateType, int PointerFieldSize = 1, int DataSize = 0>
+template<typename GateType, int PointerFieldSize = 0, int DataSize = 0>
 struct regular_node {
 	using pointer_type = detail::node_pointer<PointerFieldSize>;
 
 	GateType gate;
-	std::array<std::vector<pointer_type>, GateType::max_num_qubits> qubit;
+	std::array<std::vector<pointer_type>, GateType::max_num_qubits> children;
 	mutable std::array<cauint32_t, DataSize> data;
 
-	regular_node(GateType const& g)
-	    : gate(g)
+	regular_node(GateType const& gate_)
+	    : gate(gate_)
 	{}
 
 	bool operator==(regular_node const& other) const
@@ -130,16 +130,16 @@ struct regular_node {
 
 /*! \brief 
  */
-template<typename GateType, int PointerFieldSize = 1, int DataSize = 0>
+template<typename GateType, int PointerFieldSize = 0, int DataSize = 0>
 struct uniform_node {
 	using pointer_type = detail::node_pointer<PointerFieldSize>;
 
 	GateType gate;
-	std::array<std::array<pointer_type, 2>, GateType::max_num_qubits> qubit;
+	std::array<pointer_type, GateType::max_num_qubits> children;
 	mutable std::array<cauint32_t, DataSize> data;
 
-	uniform_node(GateType const& g)
-	    : gate(g)
+	uniform_node(GateType const& gate_)
+	    : gate(gate_)
 	{}
 
 	bool operator==(uniform_node const& other) const

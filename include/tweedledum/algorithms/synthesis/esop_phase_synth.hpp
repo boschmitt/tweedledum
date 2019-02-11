@@ -14,10 +14,9 @@ namespace tweedledum {
 
 /*! \brief ESOP-phase synthesis.
  *
- * This is the in-place variant of ``esop_phase_synth``, in which the network
- * is passed as a parameter and can potentially already contain some gates.
- * The parameter ``qubits`` provides a qubit mapping to the existing qubits in
- * the network.
+ * This is the in-place variant of ``esop_phase_synth``, in which the network is passed as a
+ * parameter and can potentially already contain some gates. The parameter ``qubits`` provides a
+ * qubit mapping to the existing qubits in the network.
  *
  * \param network A quantum circuit
  * \param qubits A qubit mapping
