@@ -6,7 +6,7 @@ Some data structures are essential to several mapping algorithms.
 Device
 ~~~~~~
 
-**Header:** :file:`tweedledum/algorithms/mapping/device.hpp`
+**Header:** :file:`tweedledum/algorithms/utils/device.hpp`
 
-.. doxygenstruct:: tweedledum::device_t
+.. doxygenstruct:: tweedledum::device
    :members:
