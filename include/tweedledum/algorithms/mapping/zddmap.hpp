@@ -24,10 +24,6 @@
 #include <tweedledum/networks/netlist.hpp>
 
 
-//global quick fix
-std::vector< std::vector<uint32_t>> global_found_sets;
-std::vector< std::vector<uint32_t>> global_swap_layers;
-
 
 namespace tweedledum {
 
@@ -505,18 +501,6 @@ public:
 		}
 	};
 
-    //below does not completely work....
-    std::vector<std::vector<uint32_t>> return_sets(node f, uint32_t total_qubits)
-    {
-
-        std::vector<uint32_t> set;
-        std::vector<std::vector<uint32_t>> single_set ;
-        std::cout <<" we make it here? \n";
-        std::vector<std::vector<uint32_t>> found_single_set = return_sets_rec(f,set,single_set,total_qubits);
-        return found_single_set;
-
-    }
-
     template<class Formatter = identity_format>
 	void print_sets(node f, Formatter&& fmt = Formatter())
 	{
@@ -524,18 +508,11 @@ public:
 		print_sets_rec(f, set, fmt);
 	}
     
-    template<class Formatter = identity_format>
-    void add_to_global_found_sets(node f, Formatter&& fmt = Formatter())
-    {
-        std::vector<uint32_t> set;
-        add_to_global_found_sets_rec(f, set, fmt);
-    }
 
-	template<class Formatter = identity_format>
-    void add_to_global_swap_layers(node f, Formatter&& fmt = Formatter())
+    void sets_to_vector(node f, std::vector< std::vector<uint32_t>> *set_vector)
     {
         std::vector<uint32_t> set;
-        add_to_global_swap_layers_rec(f, set, fmt);
+        sets_to_vector_rec(f, set, set_vector);
     }
 
 	template<class Formatter = identity_format>
@@ -582,75 +559,30 @@ private:
 			print_sets_rec(nodes[f].hi, set1, fmt);
 		}
 	}
-    template<class Formatter>
-    void add_to_global_found_sets_rec(node f, std::vector<uint32_t>& set, Formatter&& fmt)
-    {
+
+	void sets_to_vector_rec(node f, std::vector<uint32_t>& set, std::vector< std::vector<uint32_t>> *set_vector)
+	{
+        //std::cout <<"value of f "<< f <<"\n";
         //std::cout << set.size() << " set size \n";
         if (f == 1) {
-            std::vector<uint32_t> single_set;
-            for (auto v : set) {
+			std::vector<uint32_t> single_set;
+			for (auto v : set) {
                 //std::cout<<"\nthe value of v " << v << "\n";
                 //std::cout << fmt(v) << " ";
-                single_set.push_back(v);
+				single_set.push_back(v);
                 
-            }
-            global_found_sets.push_back(single_set);
-            //std::cout << "\n";
-        } else if (f != 0) {
-            add_to_global_found_sets_rec(nodes[f].lo, set, fmt);
-            auto set1 = set;
-            set1.push_back(nodes[f].var);
-            add_to_global_found_sets_rec(nodes[f].hi, set1, fmt);
-        }
-    }
-
-	template<class Formatter>
-    void add_to_global_swap_layers_rec(node f, std::vector<uint32_t>& set, Formatter&& fmt)
-    {
-        //std::cout << set.size() << " set size \n";
-        if (f == 1) {
-            std::vector<uint32_t> single_set;
-            for (auto v : set) {
-                //std::cout<<"\nthe value of v " << v << "\n";
-                //std::cout << fmt(v) << " ";
-                single_set.push_back(v);
-                
-            }
-            global_swap_layers.push_back(single_set);
-            //std::cout << "\n";
-        } else if (f != 0) {
-            add_to_global_swap_layers_rec(nodes[f].lo, set, fmt);
-            auto set1 = set;
-            set1.push_back(nodes[f].var);
-            add_to_global_swap_layers_rec(nodes[f].hi, set1, fmt);
-        }
-    }
+			}
+			set_vector->push_back(single_set);
+			//std::cout << "\n";
+		} else if (f != 0) {
+			sets_to_vector_rec(nodes[f].lo, set, set_vector);
+			auto set1 = set;
+			set1.push_back(nodes[f].var);
+			sets_to_vector_rec(nodes[f].hi, set1, set_vector);
+		}
+	}
 
 
-    
-    //below does not completely work....
-    std::vector<std::vector<uint32_t>> return_sets_rec(node f, std::vector<uint32_t>& set, std::vector<std::vector<uint32_t>>& single_set, uint32_t total_qubits)
-    {
-        if (f == 1) {
-            uint32_t set_count = 0;
-            for (auto v : set) {
-                std::cout << "how about here \n";
-                single_set.push_back(std::vector<uint32_t>());
-                single_set[set_count].push_back(v/total_qubits); //pseudo_qubit
-                single_set[set_count].push_back(v%total_qubits); // real_qubit
-                //std::cout<<"\nthe value of v " << v << "\n";
-                //std::cout << fmt(v) << " ";
-                set_count++;
-            }
-            //std::cout << "\n";
-            return single_set;
-        } else if (f != 0) {
-            return_sets_rec(nodes[f].lo, set, single_set,total_qubits);
-            auto set1 = set;
-            set1.push_back(nodes[f].var);
-            return_sets_rec(nodes[f].hi, set1, single_set, total_qubits);
-        }
-    }
     
 
 public:
@@ -784,6 +716,10 @@ public:
 		std::vector<zdd_base::node> mappings;
 		uint32_t c, t;
 		auto m = zdd_.bot();
+
+		//vectors that hold sets found in mapping and swap layer zdds,respectively
+		std::vector< std::vector<uint32_t>> global_found_sets;
+		std::vector< std::vector<uint32_t>> global_swap_layers;
 		
         //counts the gates
         uint32_t ctr = 0;
@@ -838,8 +774,13 @@ public:
 		std::cout << "layers (total sets " << zdd_swap_layers.count_sets(layers) << "):\n";
 		//zdd_swap_layers.print_sets(layers);
         
-		global_swap_layers.clear();
-		zdd_swap_layers.add_to_global_swap_layers(layers);
+
+
+
+		std::vector< std::vector<uint32_t>> *set_vector = new std::vector< std::vector<uint32_t>>();
+		zdd_swap_layers.sets_to_vector(layers,set_vector);
+		global_swap_layers = *set_vector;
+		delete set_vector;
 
 
         //below is where we look for maps!
@@ -947,7 +888,6 @@ public:
 								}
                                 continue;
 
-                                
                             }
 
 						}
@@ -955,11 +895,11 @@ public:
 						
                         
 
-                        
+                        //USE BELOW TO SET WEIGHTS FOR SCORE FUNCTION
                         std::vector<double> scores(global_swap_layers.size(),0);
                         uint32_t depth_weight = 0;
                         uint32_t map_weight = 1;
-						double swap_weight = 1.5;
+						double swap_weight = 1;
                         
                         //std::cout << "\n";
                         for(uint32_t index = 0; index < depth_count.size(); index ++)
@@ -976,7 +916,8 @@ public:
 							
 							scores[index] = (depth_count[index]*depth_weight + new_mappings_cnt[index]*map_weight)*((inv_swap_cnt)*swap_weight);
                             
-                            std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | swap_count - " << swap_count[index]<< " | score: " << scores[index]<< "\n";
+							// uncomment below to see metrics used to pick swap(s)
+                            //std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | swap_count - " << swap_count[index]<< " | score: " << scores[index]<< "\n";
                             
                             
                         }
@@ -1060,15 +1001,21 @@ public:
 
 
         //find all sets to pick one for new map
-        global_found_sets.clear();
         for (auto const& map : mappings)
         {
-            zdd_.add_to_global_found_sets(map);
-            //beware seg faults below :(
-            //std::vector<std::vector<uint32_t>> test = zdd_.return_sets(map,circ_.num_qubits());
+ 
+			std::vector< std::vector<uint32_t>> *set_vector = new std::vector< std::vector<uint32_t>>();
+			zdd_.sets_to_vector(map,set_vector);
+
+			global_found_sets = *set_vector;
+			delete set_vector; 
+
+
         }
         
+		// THIS BELOW CHOOSES THE SET TO MAP NEW CIRCUIT TO!
         uint32_t set_to_use = 0;
+
         std::vector <uint32_t> chosen_mapping(circ_.num_qubits(),0); //index is pseudo, what is stored is the mapping
         for(auto const& item:global_found_sets[set_to_use])
         {
