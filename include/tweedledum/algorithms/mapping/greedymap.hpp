@@ -73,6 +73,23 @@ zdd_base swap_circuits(device_t const& arch)
 } // namespace utility
 #pragma endregion
 
+/*! \brief A very simple Greedy mapper.
+ *
+ * This mapper should only be used as a baseline for new implementations or
+ * evaluations.  It is one of the most simple possible mappers, yet using ZDDs
+ * to sample SWAP circuits.
+ *
+ * The initial mapping is the identity permutation.  It then adds gates from
+ * `circ` to the resulting circuit as long as the 2-input gates match the
+ * coupling constraints from `arch`.  At conflict, the mapper tries all possible
+ * SWAP circuits and takes the first one which allows the algorithm to map the
+ * next gate.
+ *
+ * There are two cases in which no mapping can be performed for `circ`. (i) the
+ * circuit uses more qubits than available in `arch`, and (ii) the circuit has
+ * gates that act on more than 2 controls.  In these two cases, the circuit
+ * returns `std::nullopt`, otherwise an optional containing the mapped circuit.
+ */
 template<class Circuit>
 std::optional<Circuit> greedy_map(Circuit& circ, device_t const& arch)
 {

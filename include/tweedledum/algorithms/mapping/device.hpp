@@ -14,10 +14,24 @@
 #include <vector>
 
 namespace tweedledum {
+/*! \brief Data-structure for the architecture of a quantum device.
+ *
+ * This data structure encapsulates the most essential properties of a physical
+ * quantum device used by our mapping algorithms.  These are the number of
+ * qubits and an undirected coupling graph describing which pairs of qubits can
+ * interact with each other.
+ */
 struct device_t {
+	/*! \brief Pairs of qubit connections in the coupling graph. */
 	std::vector<std::pair<uint8_t, uint8_t>> edges;
+
+	/*! \brief Number of qubits. */
 	uint8_t num_vertices;
 
+	/*! \brief Create a device for a ring topology.
+	 *
+	 * \param m Number of qubits
+	 */
 	static device_t ring(uint8_t m)
 	{
 		std::vector<std::pair<uint8_t, uint8_t>> edges;
@@ -27,6 +41,10 @@ struct device_t {
 		return {edges, m};
 	}
 
+	/*! \brief Create a device for a star topology.
+	 *
+	 * \param m Number of qubits
+	 */
 	static device_t star(uint8_t m)
 	{
 		std::vector<std::pair<uint8_t, uint8_t>> edges;
@@ -36,6 +54,13 @@ struct device_t {
 		return {edges, m};
 	}
 
+	/*! \brief Create a device for a grid topology.
+	 *
+	 * The device has `w * h` number of qubits.
+	 *
+	 * \param w Width of the grid
+	 * \param h Height of the grid
+	 */
 	static device_t grid(uint8_t w, uint8_t h)
 	{
 		std::vector<std::pair<uint8_t, uint8_t>> edges;
@@ -53,6 +78,11 @@ struct device_t {
 		return {edges, static_cast<uint8_t>(w * h)};
 	}
 
+	/*! \brief Creates a device with a random topology.
+	 *
+	 * \param m Number of qubits
+	 * \param num_edges Number of edges in coupling graph
+	 */
 	static device_t random(uint8_t m, uint8_t num_edges)
 	{
 		std::default_random_engine gen(
@@ -73,6 +103,7 @@ struct device_t {
 		return {edges, m};
 	}
 
+	/*! \brief Returns adjacency matrix of coupling graph. */
 	bit_matrix_rm<> get_coupling_matrix() const
 	{
 		bit_matrix_rm<> mat{num_vertices, num_vertices};

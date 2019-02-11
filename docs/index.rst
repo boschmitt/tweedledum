@@ -32,6 +32,7 @@ Welcome to tweedledum's documentation!
 
    algorithms/decomposition
    algorithms/synthesis
+   algorithms/mapping
 
 .. toctree::
    :maxdepth: 2
