@@ -14,4 +14,4 @@ coupling constraints of the device.
    :hidden:
 
    mapping/types
-   mapping/greedymap
+   mapping/greedy_map
