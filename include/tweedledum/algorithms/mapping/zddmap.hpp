@@ -1006,6 +1006,7 @@ public:
         {
  
 			std::vector< std::vector<uint32_t>> *set_vector = new std::vector< std::vector<uint32_t>>();
+
 			zdd_.sets_to_vector(map,set_vector);
 
 			global_found_sets = *set_vector;
