@@ -43,18 +43,47 @@ int main(int argc, char** argv)
 
 	
 	//std::string tt_f = "00011111";
-    std::string tt_f = "00000111";
+    std::string tt_f = "10000111";//lsb: left side
     netlist<mcmt_gate> net;
-	qs_basic<netlist<mcmt_gate>>(net,tt_f);
+	qsp_params stg;
+	//stg.strategy = 0u;
+	qsp<netlist<mcmt_gate>>(net,tt_f);
 
-	// std::vector<qubit_id> q = {0,1,2,3};
-	// decomposition_mcz(net,q);
+	netlist<mcmt_gate> net_sc;
+	net.foreach_cqubit( [&]( std::string const& qlabel ){
+		net_sc.add_qubit( qlabel );
+	} );
+
+	net.foreach_cgate([&](auto const& node) {
+		auto const& gate = node.gate;
+		if (gate.is(gate_set::mcx)) {
+			if (gate.num_controls() > 1) {
+				std::vector<qubit_id> q_map;
+				
+				gate.foreach_control([&](auto control) { q_map.push_back(control); });
+				gate.foreach_target([&](auto target) { q_map.push_back(target); });
+				net_sc.add_gate(gate::hadamard, q_map.back());
+				detail::decomposition_mcz(net_sc,q_map);
+				net_sc.add_gate(gate::hadamard, q_map.back());
+			}
+			else
+			{
+				net_sc.add_gate(gate);
+			}
+			
+		}
+		else
+		{
+			net_sc.add_gate(gate);
+		}
+		
+	});
 	
 	std::cout << "size:\n";
-	std::cout<<net.size()<<"\n";
-	write_unicode(net);
+	std::cout<<net_sc.size()<<"\n";
+	write_unicode(net_sc);
 	std::cout << "\n";
-	write_qasm(net,"test1.qasm");
+	write_qasm(net_sc,"test1.qasm");
 
 
 	return EXIT_SUCCESS;
