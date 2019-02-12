@@ -11,6 +11,7 @@
 #include "algorithms/synthesis/gray_synth.hpp"
 #include "algorithms/synthesis/linear_synth.hpp"
 #include "algorithms/synthesis/stg.hpp"
+#include "algorithms/synthesis/tbs.hpp"
 #include "gates/gate_set.hpp"
 #include "gates/mcmt_gate.hpp"
 #include "gates/mcst_gate.hpp"

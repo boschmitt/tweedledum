@@ -257,6 +257,26 @@ public:
 	}
 #pragma endregion
 
+#pragma region Visited flags
+	void clear_visited()
+	{
+		std::for_each(storage_->nodes.begin(), storage_->nodes.end(),
+		              [](auto& node) { node.data[0].w = 0; });
+		std::for_each(storage_->outputs.begin(), storage_->outputs.end(),
+		              [](auto& node) { node.data[0].w = 0; });
+	}
+
+	auto visited(node_type const& node) const
+	{
+		return node.data[0].w;
+	}
+
+	void set_visited(node_type const& node, uint32_t value)
+	{
+		node.data[0].w = value;
+	}
+#pragma endregion
+
 private:
 	std::shared_ptr<storage_type> storage_;
 	std::shared_ptr<qlabels_map> qlabels_;

@@ -19,7 +19,7 @@ GATE(hadamard, hadamard, '-', "Hadamard")
 // Arbitrary rotations
 GATE(rotation_x, rotation_x, 'x', "Arbitrary rotation X")
 GATE(rotation_y, rotation_y, 'y', "Arbitrary rotation Y")
-GATE(rotation_z, rotation_z, 'y', "Arbitrary rotation Z")
+GATE(rotation_z, rotation_z, 'z', "Arbitrary rotation Z")
 // Other rotations
 GATE(pauli_x, pauli_x, 'x', "Pauli-X (aka NOT gate)")
 GATE(pauli_y, pauli_x, 'y', "Pauli-Y")

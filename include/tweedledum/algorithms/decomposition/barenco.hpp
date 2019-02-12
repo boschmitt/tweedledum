@@ -20,7 +20,7 @@ namespace detail {
 // Barenco, A., Bennett, C.H., Cleve, R., DiVincenzo, D.P., Margolus, N., Shor, P., Sleator, T., Smolin,
 // J.A. and Weinfurter, H., 1995. Elementary gates for quantum computation. Physical review A, 52(5), p.3457.
 template<class Network>
-void tofolli_barenco_decomposition(Network& network, std::vector<qubit_id> const& controls,
+void toffoli_barenco_decomposition(Network& network, std::vector<qubit_id> const& controls,
                                    qubit_id target, uint32_t controls_threshold)
 {
 	const auto num_controls = controls.size();
@@ -94,10 +94,10 @@ void tofolli_barenco_decomposition(Network& network, std::vector<qubit_id> const
 	}
 	auto free_qubit = workspace.front();
 	controls1.push_back(free_qubit);
-	tofolli_barenco_decomposition(network, controls0, free_qubit, controls_threshold);
-	tofolli_barenco_decomposition(network, controls1, target, controls_threshold);
-	tofolli_barenco_decomposition(network, controls0, free_qubit, controls_threshold);
-	tofolli_barenco_decomposition(network, controls1, target, controls_threshold);
+	toffoli_barenco_decomposition(network, controls0, free_qubit, controls_threshold);
+	toffoli_barenco_decomposition(network, controls1, target, controls_threshold);
+	toffoli_barenco_decomposition(network, controls0, free_qubit, controls_threshold);
+	toffoli_barenco_decomposition(network, controls1, target, controls_threshold);
 }
 
 } /* namespace detail */
@@ -157,7 +157,7 @@ Network barenco_decomposition(Network const& src, barenco_params params = {})
 				for (auto i = 1u; i < targets.size(); ++i) {
 					dest.add_gate(gate::cx, targets[0], targets[i]);
 				}
-				detail::tofolli_barenco_decomposition(dest, controls, targets[0],
+				detail::toffoli_barenco_decomposition(dest, controls, targets[0],
 				                                      params.controls_threshold);
 				for (auto i = 1ull; i < targets.size(); ++i) {
 					dest.add_gate(gate::cx, targets[0], targets[i]);

@@ -24,7 +24,7 @@ TEST_CASE("Decompose 2-controlled Z gate", "[dt_decomposition]")
 	auto snetwork = dt_decomposition(network);
 }
 
-TEST_CASE("Decompose toffolli gate with one negative control", "[dt_decomposition]")
+TEST_CASE("Decompose toffoli gate with one negative control", "[dt_decomposition]")
 {
 	using namespace tweedledum;
 	netlist<mcmt_gate> network;

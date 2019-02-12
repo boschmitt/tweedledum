@@ -24,6 +24,7 @@ Welcome to tweedledum's documentation!
    core/gate
    core/network
    core/implementations
+   core/views
 
 .. toctree::
    :maxdepth: 2
@@ -48,6 +49,14 @@ Welcome to tweedledum's documentation!
    :hidden:
 
    utils/angle
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Development 
+   :hidden:
+
+   development/cpp_coding_guidelines
+   development/git_workflow
 
 Indices and tables
 ==================

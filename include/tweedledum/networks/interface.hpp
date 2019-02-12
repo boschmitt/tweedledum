@@ -5,11 +5,11 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-static_assert(false, "file interface.hpp cannot be included, it's only used for documentation");
+static_assert(false, "file netowks/interface.hpp cannot be included, it's only used for documentation");
 
 namespace tweedledum {
 
-template<typename G>
+template<typename GateType>
 class network final {
 public:
 #pragma region Types and constructors
@@ -25,7 +25,7 @@ public:
 	 * A ``Gate`` is an operation that can be applied to a collection of qubits. It could be a
 	 * meta operation, such as, primary input and a primary output, or a unitary operation gate.
 	 */
-	using gate_type = G;
+	using gate_type = GateType;
 
 	/*! \brief Type representing a node.
 	 *
@@ -48,17 +48,16 @@ public:
 #pragma endregion
 
 #pragma region I / O and ancillae qubits
-	/*! \brief Creates a labeled qubit in the network and returns its ``qid``
+	/*! \brief Creates a labeled qubit in the network and returns its ``qubit_id``
 	 */
-	auto add_qubit(std::string const& qlabel);
+	qubit_id add_qubit(std::string const& qlabel);
 
-	/*! \brief Creates a unlabeled qubit in the network and returns its ``qid``
+	/*! \brief Creates a unlabeled qubit in the network and returns its ``qubit_id``
 	 * 
 	 * Since all qubits in a network must be labeled, this function will create
-	 * a generic label with the form: qN, where N is the ``qid``.
+	 * a generic label with the form: qN, where N is the ``qubit_id``.
 	 */
-	auto add_qubit();
-
+	qubit_id add_qubit();
 #pragma endregion
 
 #pragma region Structural properties
@@ -72,21 +71,43 @@ public:
 	uint32_t num_gates() const;
 #pragma endregion
 
+#pragma region Nodes
+	/*! \brief Get the node a node_ptr is pointing to. */
+	auto& get_node(node_ptr node_ptr) const;
+
+	/*! \brief Returns the index of a node.
+	 *
+	 * The index of a node must be a unique for each node and must be between 0 (inclusive) and
+	 * the size of a network (exclusive, value returned by ``size()``).
+	 */
+	auto node_to_index(node const& node) const;
+#pragma endregion
+ 
 #pragma region Add gates(qids)
 	/*! \brief Add a gate to the network. */
-	// This assumes the gate have been properly rewired
 	node_type& add_gate(gate_type const& gate);
 
-	/*! \brief Add a gate to the network. */
-	node_type& add_gate(operation op, uint32_t qid_target, angle rotation_angle = 0.0);
+	/*! \brief Add an one-qubit gate to the network using qubit_id. */
+	node_type& add_gate(gate_base op, qubit_id target);
 
-	/*! \brief Add a gate to the network. */
-	node_type& add_gate(operation op, uint32_t qid_control, uint32_t qid_target,
-	                    angle rotation_angle = 0.0);
+	/*! \brief Add a controlled single-target gate to the network using qubit_ids. */
+	node_type& add_gate(gate_base op, qubit_id control, qubit_id target);
 
-	/*! \brief Add a gate to the network. */
-	node_type& add_gate(operation op, std::vector<uint32_t> const& qids_control,
-	                    std::vector<uint32_t> const& qids_target, angle rotation_angle = 0.0);
+	/*! \brief Add a multiple-controlled multiple-target gate to the network using qubit_ids */
+	node_type& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets);
+#pragma endregion
+
+#pragma region Add gates(qlabels)
+	/*! \brief Add an one-qubit gate to the network using qubit label (`qlabel`). */
+	node_type& add_gate(gate_base op, std::string const& qlabel_target);
+
+	/*! \brief Add a controlled single-target gate to the network using qubit labels (`qlabel`). */
+	node_type& add_gate(gate_base op, std::string const& qlabel_control,
+	               std::string const& qlabel_target);
+
+	/*! \brief Add a multiple-controlled multiple-target gate to the network qubit labels (`qlabel`). */
+	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
+	               std::vector<std::string> const& qlabels_target);
 #pragma endregion
 
 #pragma region Rewiring
@@ -164,6 +185,47 @@ public:
 	void foreach_cnode(Fn&& fn) const;
 #pragma endregion
 
+#pragma region Const node iterators
+	/*! \brief Calls ``fn`` on all children of a node.
+	 *
+	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
+	 * - ``void(node_ptr const&)``
+	 * - ``void(node_ptr const&, uint32_t)``
+	 * 
+	 * If ``fn`` has two parameters, the second parameter is an index starting
+	 * from 0 and incremented in every iteration.
+	 */
+	template<typename Fn>
+	void foreach_child(node_type const& node, Fn&& fn) const;
+#pragma endregion
+
+#pragma region Visited flags
+	/*! \brief Reset all visited values to 0. */
+	void clear_visited();
+
+	/*! \brief Returns the visited value of a node. */
+	auto visited(node_type const& node) const;
+
+	/*! \brief Sets the visited value of a node. */
+	void set_visited(node_type const& node, uint32_t value);
+#pragma endregion
+
+#pragma region Custom node values
+	/*! \brief Reset all values to 0. */
+	void clear_values() const;
+
+	/*! \brief Returns value of a node. */
+	uint32_t value(node_type const& node) const;
+
+	/*! \brief Sets value of a node. */
+	void set_value(node_type const& node, uint32_t value) const;
+
+	/*! \brief Increments value of a node and returns *previous* value. */
+	uint32_t incr_value(node_type const& node) const;
+
+	/*! \brief Decrements value of a node and returns *new* value. */
+	uint32_t decr_value(node_type const& node) const;
+#pragma endregion
 };
 
 } // namespace tweedledum

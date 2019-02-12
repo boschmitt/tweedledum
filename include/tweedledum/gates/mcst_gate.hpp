@@ -93,6 +93,28 @@ public:
 		assert(!is_meta());
 		return 1u;
 	}
+
+	auto is_control(qubit_id qid) const
+	{
+		for (auto i = 0u; i < max_num_qubits; ++i) {
+			if (qid_slots_[i] == qid && i != target_) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	auto qubit_slot(qubit_id qid) const
+	{
+		for (auto i = 0u; i < qid_slots_.size(); ++i) {
+			if (qid_slots_[i].index() == qid.index()) {
+				return i;
+			}
+		}
+		// This is unreachable
+		assert(0);
+		std::abort();
+	}
 #pragma endregion
 
 #pragma region Const iterators
@@ -120,7 +142,7 @@ public:
 	template<typename Fn>
 	void foreach_target(Fn&& fn) const
 	{
-		assert(!is_meta());
+		// assert(!is_meta());
 		fn(qid_slots_[target_]);
 	}
 #pragma endregion
