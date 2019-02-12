@@ -915,7 +915,8 @@ public:
 							}
 							
 							scores[index] = (depth_count[index]*depth_weight + new_mappings_cnt[index]*map_weight)*((inv_swap_cnt)*swap_weight);
-                            
+
+
 							// uncomment below to see metrics used to pick swap(s)
                             //std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | swap_count - " << swap_count[index]<< " | score: " << scores[index]<< "\n";
                             
