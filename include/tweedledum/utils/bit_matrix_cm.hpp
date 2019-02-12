@@ -145,6 +145,18 @@ public:
 	}
 #pragma endregion
 
+#pragma region Properties
+	constexpr auto is_square() const
+	{
+		return storage_.is_square();
+	}
+
+	constexpr auto is_identity() const
+	{
+		return storage_.is_identity();
+	}
+#pragma endregion
+
 #pragma region Modifiers
 	constexpr void push_back_column(column_type const& column)
 	{

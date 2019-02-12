@@ -118,10 +118,17 @@ public:
 	{
 		return storage_.empty();
 	}
+#pragma endregion
 
+#pragma region Properties
 	constexpr auto is_square() const
 	{
-		return num_rows() == num_columns();
+		return storage_.is_square();
+	}
+
+	constexpr auto is_identity() const
+	{
+		return storage_.is_identity();
 	}
 #pragma endregion
 
