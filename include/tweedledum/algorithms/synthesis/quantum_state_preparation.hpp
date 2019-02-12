@@ -16,7 +16,7 @@
 #include <kitty/print.hpp>
 #include <kitty/kitty.hpp>
 #include <vector>
-
+#include <math.h>
 
 namespace tweedledum {
 namespace detail {
@@ -99,7 +99,7 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
         
         //---add H gates---
         for(auto i=0u;i<var_index;i++)
-            gates.emplace_back("H",3.14159265/2,i,controls_new0);
+            gates.emplace_back("H",M_PI/2,i,controls_new0);
         //--check one cofactor----
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
@@ -108,7 +108,7 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
         if(c1_allone){
             //---add H gates---
             for(auto i=0u;i<var_index;i++)
-                gates.emplace_back("H",3.14159265/2,i,controls_new1);
+                gates.emplace_back("H",M_PI/2,i,controls_new1);
 
         }
         else if(c1_allzero){
@@ -127,7 +127,7 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
         if(c1_allone){
             //---add H gates---
             for(auto i=0u;i<var_index;i++)
-                gates.emplace_back("H",3.14159265/2,i,controls_new1);
+                gates.emplace_back("H",M_PI/2,i,controls_new1);
 
         }
         else if(c1_allzero){
@@ -147,7 +147,7 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
             general_qg_generation(gates,tt0,var_index-1,controls_new0);
             //---add H gates---
             for(auto i=0u;i<var_index;i++)
-                gates.emplace_back("H",3.14159265/2,i,controls_new1);
+                gates.emplace_back("H",M_PI/2,i,controls_new1);
 
         }
         else if(c1_allzero){
@@ -197,7 +197,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                 net.add_gate(gate::hadamard, target_id);
             else{//we have multi control probability gate
                 std::vector<qubit_id> q_map;
-                net.add_gate(gate_base(gate_set::rotation_y, 3.14159265/4), target_id);
+                net.add_gate(gate_base(gate_set::rotation_y, M_PI/4), target_id);
                 for(const auto ctrl:controls){
                     if(ctrl%2 == 1)//negative control
                         net.add_gate(gate::pauli_x, ctrl/2);
@@ -209,7 +209,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                     if(ctrl%2 == 1)//negative control
                         net.add_gate(gate::pauli_x, ctrl/2);
                 }
-                net.add_gate(gate_base(gate_set::rotation_y, -3.14159265/4), target_id);
+                net.add_gate(gate_base(gate_set::rotation_y, -M_PI/4), target_id);
             }//end multi control
         }//end H
 
