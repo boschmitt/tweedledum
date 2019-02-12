@@ -1,7 +1,7 @@
 /*------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken
+| Author(s): Mathias Soeken, Kate Smith
 *-----------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <chrono>
