@@ -1059,19 +1059,30 @@ public:
                     while(ctr == index_of_swap[index_counter])
 					{
 						//insert as many swaps that are needed in a particular spot
-                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    	network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
-                    	network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
-                    	network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
 
-						network2_volume = network2_volume + 9;
-						network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 7;
-						network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 5;
+                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+                    	// network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
+                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
+                    	// network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
+                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
+                    	// network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
+                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+
+						// network2_volume = network2_volume + 9;
+						// network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 7;
+						// network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 5;
+						// q2_gate_count= q2_gate_count + 3;
+
+						//cx implementation of SWAP
+						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
+						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][1]),qubit_id(swapped_qubits[index_counter][0]));
+						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
+
+						network2_volume = network2_volume + 3;
+						network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 3;
+						network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 3;
 						q2_gate_count= q2_gate_count + 3;
 
                     
@@ -1087,7 +1098,7 @@ public:
 
                     
                     	//insert gate
-                    	network2.add_gate(gate::cz,current_mapping[c],current_mapping[t]);
+                    	network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
 						network2_volume++;
 						network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
 						network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
@@ -1102,7 +1113,7 @@ public:
                 {
                     //insert gate with fixed qubits
                     
-                    network2.add_gate(gate::cz,current_mapping[c],current_mapping[t]);
+                    network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
 					network2_volume++;
 					network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
 					network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
