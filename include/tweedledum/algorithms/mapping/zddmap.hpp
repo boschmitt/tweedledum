@@ -46,11 +46,11 @@ private:
 		    , hi(hi)
 		{}
 
-		uint64_t var : 12;
-		uint64_t ref : 11;
+		uint64_t var : 9;
+		uint64_t ref : 10;
 		uint64_t dead : 1;
-		uint64_t lo : 20;
-		uint64_t hi : 20;
+		uint64_t lo : 22;
+		uint64_t hi : 22;
 	};
 
 	enum op_t {
@@ -692,7 +692,7 @@ public:
 	find_maximal_partitions_impl(Ntk const& circ, device_t const& arch)
 	    : circ_(circ)
 	    , arch_(arch)
-	    , zdd_(circ.num_qubits() * arch.num_vertices, 19)
+	    , zdd_(circ.num_qubits() * arch.num_vertices, 21)
 	    , from_(circ.num_qubits())
 	    , to_(arch.num_vertices)
 			, edge_perm_(arch.num_vertices, 0)
@@ -950,6 +950,7 @@ public:
 							{
 								std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
                             	zdd_.deref(valid_);
+								//zdd_.garbage_collect();
                             	init_valid();
 							}
                                
@@ -1035,6 +1036,7 @@ public:
 		netlist<mcst_gate> network2;
 		uint32_t network2_volume = 0;
 		std::vector<uint32_t> network2_depth(circ_.num_qubits(),0);
+		uint32_t q2_gate_count = 0;
 
         for(uint32_t i = 0; i< circ_.num_qubits(); i++)
         {
@@ -1070,6 +1072,7 @@ public:
 						network2_volume = network2_volume + 9;
 						network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 7;
 						network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 5;
+						q2_gate_count= q2_gate_count + 3;
 
                     
                     	//adjust qubits in current mapping
@@ -1088,6 +1091,7 @@ public:
 						network2_volume++;
 						network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
 						network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
+						q2_gate_count++;
                     
                     	index_counter++;
 
@@ -1102,6 +1106,7 @@ public:
 					network2_volume++;
 					network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
 					network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
+					q2_gate_count++;
                     
                 }
                 
@@ -1120,11 +1125,14 @@ public:
             
 
         });
-		
-        write_unicode(network2);
+		if(network2_volume < 40)
+		{
+			write_unicode(network2);
+		}
+        
 		uint32_t max_depth_index = std::max_element(network2_depth.begin(), network2_depth.end())-network2_depth.begin();
         uint32_t max_depth = network2_depth[max_depth_index];
-		std::cout <<"DEPTH: "<< max_depth<< " | VOL.: " << network2_volume << "\n";
+		std::cout <<"DEPTH: "<< max_depth<< " | VOL.: " << network2_volume << " | 2Q GATE COUNT: " << q2_gate_count <<"\n";
 
 		uint32_t total{0};
         std::cout<< "\n";
