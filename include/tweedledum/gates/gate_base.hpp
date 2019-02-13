@@ -33,68 +33,68 @@ public:
 
 #pragma region Operation properties
 	/*! \brief Returns the adjoint operation. */
-	constexpr auto adjoint() const
+	constexpr gate_set adjoint() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].adjoint;
 	}
 
 	/*! \brief Returns true if this is a meta gate. */
-	constexpr auto is_meta() const
+	constexpr bool is_meta() const
 	{
 		return (operation_ < gate_set::identity || operation_ == gate_set::num_defined_ops);
 	}
 
 	/*! \brief Returns true if this gate is a quantum unitary operation. */
-	constexpr auto is_unitary_gate() const
+	constexpr bool is_unitary_gate() const
 	{
 		return (operation_ >= gate_set::identity && operation_ <= gate_set::mcz);
 	}
 
 	/*! \brief Returns true if this gate acts on a single qubit. */
-	constexpr auto is_single_qubit() const
+	constexpr bool is_single_qubit() const
 	{
 		return (operation_ >= gate_set::input && operation_ <= gate_set::t_dagger);
 	}
 
 	/*! \brief Returns true if this gate acts on two qubits. */
-	constexpr auto is_double_qubit() const
+	constexpr bool is_double_qubit() const
 	{
-		return (operation_ == gate_set::cx || operation_ == gate_set::cz);
+		return is_one_of(gate_set::cx, gate_set::cz, gate_set::swap);
 	}
 
 	/*! \brief Returns true if this gate is a rotation around x axis. */
-	constexpr auto is_x_rotation() const
+	constexpr bool is_x_rotation() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis == 'x';
 	}
 
 	/*! \brief Returns true if this gate is a rotation around z axis. */
-	constexpr auto is_z_rotation() const
+	constexpr bool is_z_rotation() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis == 'z';
 	}
 
 	/*! \brief Returns true if this gate is the operation ``operation``. */
-	constexpr auto is(gate_set operation) const
+	constexpr bool is(gate_set operation) const
 	{
 		return operation_ == operation;
 	}
 
 	template<typename... OPs>
-	constexpr auto is_one_of(gate_set operation) const
+	bool is_one_of(gate_set operation) const
 	{
 		return is(operation);
 	}
 
 	/*! \brief Returns true if this gate is one of the operations ``{op0, op1, .. , opN}``. */
 	template<typename... OPs>
-	constexpr auto is_one_of(gate_set op0, OPs... opN) const
+	bool is_one_of(gate_set op0, OPs... opN) const
 	{
 		return is(op0) || is_one_of(opN...);
 	}
 
 	/*! \brief Returns the operation. (see ``gate_set``) */
-	constexpr auto operation() const
+	constexpr gate_set operation() const
 	{
 		return operation_;
 	}

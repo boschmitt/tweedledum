@@ -93,18 +93,18 @@ public:
 		return __builtin_popcount(controls_);
 	}
 
-	constexpr auto num_targets() const
+	uint32_t num_targets() const
 	{
 		assert(!is_meta());
 		return __builtin_popcount(targets_);
 	}
 
-	auto is_control(qubit_id qid) const
+	bool is_control(qubit_id qid) const
 	{
 		return (controls_ & (1u << qid.index()));
 	}
 
-	auto qubit_slot(qubit_id qid) const
+	uint32_t qubit_slot(qubit_id qid) const
 	{
 		return qid.index();
 	}

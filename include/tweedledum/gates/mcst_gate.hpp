@@ -90,13 +90,13 @@ public:
 		return num_controls;
 	}
 
-	constexpr auto num_targets() const
+	uint32_t num_targets() const
 	{
 		assert(!is_meta());
 		return 1u;
 	}
 
-	auto is_control(qubit_id qid) const
+	bool is_control(qubit_id qid) const
 	{
 		for (auto i = 0u; i < max_num_qubits; ++i) {
 			if (qid_slots_[i] == qid && i != target_) {
@@ -106,7 +106,7 @@ public:
 		return false;
 	}
 
-	auto qubit_slot(qubit_id qid) const
+	uint32_t qubit_slot(qubit_id qid) const
 	{
 		for (auto i = 0u; i < qid_slots_.size(); ++i) {
 			if (qid_slots_[i].index() == qid.index()) {
