@@ -95,10 +95,10 @@ inline void update_permutation_inv(std::vector<uint32_t>& permutation, uint32_t 
 
 template<typename Network>
 void tbs_unidirectional(Network& network, std::vector<qubit_id> const& qubits,
-                        std::vector<uint32_t>& permutation)
+                        std::vector<uint32_t>& permutation, uint32_t steps)
 {
 	std::vector<std::pair<uint32_t, uint32_t>> gates;
-	for (auto x = 0u; x < permutation.size(); ++x) {
+	for (auto x = 0u; x < steps /*permutation.size()*/; ++x) {
 		// skip identity lines
 		if (permutation[x] == x) {
 			continue;
@@ -119,6 +119,7 @@ void tbs_unidirectional(Network& network, std::vector<qubit_id> const& qubits,
 	}
 	std::reverse(gates.begin(), gates.end());
 	for (const auto [controls, targets] : gates) {
+		std::cout<<"ctrls: "<<controls<<" targets: "<<targets<<std::endl;
 		network.add_gate(gate::mcx, detail::to_qubit_vector(controls, qubits),
 		                 detail::to_qubit_vector(targets, qubits));
 	}
@@ -174,11 +175,11 @@ void tbs_bidirectional(Network& network, std::vector<qubit_id> const& qubits,
 
 template<typename Network>
 void tbs_multidirectional(Network& network, std::vector<qubit_id> const& qubits,
-                          std::vector<uint32_t>& permutation, uint32_t steps, tbs_params params = {})
+                          std::vector<uint32_t>& permutation,  tbs_params params = {})
 {
 	std::list<std::pair<uint32_t, uint32_t>> gates;
 	auto pos = gates.begin();
-	for (auto x = 0u; x < steps ; ++x) {
+	for (auto x = 0u; x < permutation.size() ; ++x) {
 		// find cheapest assignment
 		auto x_best = x;
 		uint32_t x_cost = __builtin_popcount(x ^ permutation[x]);

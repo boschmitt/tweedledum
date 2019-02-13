@@ -43,7 +43,14 @@ int main(int argc, char** argv)
 
 	
 	//std::string tt_f = "00011111";
-    std::string tt_f = "10000111";//lsb: left side
+	std::string ghz3 = "10000001"; //lsb: left side
+	std::string ghz4 = "1000000000000001";
+	std::string ghz5 = "10000000000000000000000000000001";
+	std::string Maj3 = "00010111";
+	std::string Maj5 = "0000000100010101";
+    std::string tt_f = Maj3;	
+	std::string bench_name = "Maj3";
+
     netlist<mcmt_gate> net;
 	qsp_params stg;
 	//stg.strategy = 0u;
@@ -81,9 +88,9 @@ int main(int argc, char** argv)
 	
 	std::cout << "size:\n";
 	std::cout<<net_sc.size()<<"\n";
-	write_unicode(net_sc);
-	std::cout << "\n";
-	write_qasm(net_sc,"test1.qasm");
+	//write_unicode(net_sc);
+	//std::cout << "\n";
+	write_qasm(net_sc,"firstallone"+bench_name+".qasm");
 
 
 	return EXIT_SUCCESS;

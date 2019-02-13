@@ -53,6 +53,42 @@ void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map)//chang
         
 }
 
+/*std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>*/ void control_line_cancelling
+(std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>& in_gates, uint32_t nqubits)
+{
+    //std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>> out_gates;
+    std::vector<uint32_t> line_values (nqubits, 0);
+    uint32_t idx=0;
+    for(auto & [name,angle,target_id,controls]: in_gates){
+        if(angle==0){
+            in_gates.erase(in_gates.begin()+idx);
+            continue;
+        }
+        idx++;
+        //check controls
+        if (controls.size()>0){
+            for(auto i=0u;i<controls.size();){
+                auto l = controls[i] / 2;
+                auto c_val = !(controls[i] % 2); // 0:!pos 1:!neg
+                if(line_values[l]==c_val){
+                    std::cout<<"erase control\n";
+                    controls.erase(controls.begin()+i);
+                    continue;
+                }
+                i++;
+            }
+        }
+        //update line values
+        if(angle = M_PI)
+            line_values[target_id] = 1;
+        else 
+            line_values[target_id] = 2;
+    }
+
+    return ;//out_gates;
+}
+
+
 } // namespace detail end
 //**************************************************************
 struct qsp_params {
@@ -220,10 +256,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
 template<typename Network>
 void qsp_ownfunction(Network & net, const std::string &tt_str)
 {
-    
-
     std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > > gates; // gate name, angle, target_id, controls:id and sign /2 and %2
-
     auto tt_vars = int(log2(tt_str.size()));
     
     kitty::dynamic_truth_table tt(tt_vars);
@@ -233,6 +266,7 @@ void qsp_ownfunction(Network & net, const std::string &tt_str)
  
     std::vector<uint32_t> cs;
     general_qg_generation(gates,tt,var_idx,cs);
+    detail::control_line_cancelling(gates,tt_vars);
     for(auto i=0u;i<gates.size();i++){
         std::cout<<"gates:\n";
         std::cout<<std::get<0> (gates[i]) <<std::endl;
@@ -263,8 +297,17 @@ void qsp_allone_first(Network & net, const std::string &tt_str)
     auto var_idx = tt_vars-1;
     std::vector<uint32_t> cs;
     general_qg_generation(gates,tt_new,var_idx,cs);
+    detail::control_line_cancelling(gates,tt_vars);
+    for(auto i=0u;i<gates.size();i++){
+        std::cout<<"gates:\n";
+        std::cout<<std::get<0> (gates[i]) <<std::endl;
+        std::cout<<std::get<1> (gates[i]) <<std::endl;
+        std::cout<<std::get<2> (gates[i]) <<std::endl;
+        for(auto j=0;j< (std::get<3> (gates[i])).size();j++)
+            std::cout<<(std::get<3> (gates[i])) [j] <<std::endl;
+    }
     qc_generation(net,gates);
-
+    
     std::vector<qubit_id> qubits(tt_vars);
 	std::iota(qubits.begin(), qubits.end(), 0u);
     std::vector<uint32_t> perm;
@@ -278,9 +321,10 @@ void qsp_allone_first(Network & net, const std::string &tt_str)
     for(auto i=0u;i<perm.size();i++)
     std::cout<<perm[i]<<" ";
 
-    detail::tbs_multidirectional(net, qubits, perm,ones);
+    detail::tbs_unidirectional(net, qubits, perm,ones);
                           
 }
+
 
 template<class Network>
 void qsp(Network& network, const std::string &tt_str, qsp_params params = {})
