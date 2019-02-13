@@ -159,6 +159,9 @@ void write_qasm(Network const& network, std::ostream& os)
 		}
 		return true;
 	});
+
+	for (auto i=0u;i<network.num_qubits();i++)
+		os << fmt::format("measure q[{}] -> c[{}];\n",i,i);
 }
 
 /*! \brief Writes network in OPENQASM 2.0 format into a file
