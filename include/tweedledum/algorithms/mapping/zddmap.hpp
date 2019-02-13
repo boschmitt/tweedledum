@@ -771,7 +771,7 @@ public:
 		//zdd_swap_layers.debug();
 		//std::cout << "universal fam:\n";
 		//zdd_swap_layers.print_sets(univ_fam);
-		std::cout << "layers (total sets " << zdd_swap_layers.count_sets(layers) << "):\n";
+		//std::cout << "layers (total sets " << zdd_swap_layers.count_sets(layers) << "):\n";
 		//zdd_swap_layers.print_sets(layers);
         
 
@@ -1031,8 +1031,11 @@ public:
         
         //make new circuit here
         using namespace tweedledum;
-        
-        netlist<mcst_gate> network2;
+
+		netlist<mcst_gate> network2;
+		uint32_t network2_volume = 0;
+		std::vector<uint32_t> network2_depth(circ_.num_qubits(),0);
+
         for(uint32_t i = 0; i< circ_.num_qubits(); i++)
         {
             network2.add_qubit();
@@ -1063,6 +1066,11 @@ public:
                     	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
                     	network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
                     	network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
+
+						network2_volume = network2_volume + 9;
+						network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 7;
+						network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 5;
+
                     
                     	//adjust qubits in current mapping
                     	std::vector<uint32_t>::iterator itr0 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][0]);
@@ -1077,6 +1085,9 @@ public:
                     
                     	//insert gate
                     	network2.add_gate(gate::cz,current_mapping[c],current_mapping[t]);
+						network2_volume++;
+						network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
+						network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
                     
                     	index_counter++;
 
@@ -1088,6 +1099,9 @@ public:
                     //insert gate with fixed qubits
                     
                     network2.add_gate(gate::cz,current_mapping[c],current_mapping[t]);
+					network2_volume++;
+					network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
+					network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
                     
                 }
                 
@@ -1096,14 +1110,21 @@ public:
             else
             {
                 //write gate
-				network2.add_gate(n.gate);
+				n.gate.foreach_target([&](auto _t) { t = _t; });
+				network2.add_gate(n.gate,qubit_id(current_mapping[t]));
+				network2_volume++;
+				network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
             
 
             }
             
 
         });
+		
         write_unicode(network2);
+		uint32_t max_depth_index = std::max_element(network2_depth.begin(), network2_depth.end())-network2_depth.begin();
+        uint32_t max_depth = network2_depth[max_depth_index];
+		std::cout <<"DEPTH: "<< max_depth<< " | VOL.: " << network2_volume << "\n";
 
 		uint32_t total{0};
         std::cout<< "\n";
