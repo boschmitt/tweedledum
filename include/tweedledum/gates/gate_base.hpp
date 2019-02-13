@@ -231,6 +231,7 @@ constexpr auto t_dagger = gate_base(gate_set::t_dagger, symbolic_angles::seven_e
 /* Double-qubit unitary gates */
 constexpr auto cx = gate_base(gate_set::cx, symbolic_angles::one_half);
 constexpr auto cz = gate_base(gate_set::cz, symbolic_angles::one_half);
+constexpr auto swap = gate_base(gate_set::swap, symbolic_angles::zero);
 
 /* Multiple-qubit unitary gates */
 constexpr auto mcx = gate_base(gate_set::mcx, symbolic_angles::one_half);

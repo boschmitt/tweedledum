@@ -107,7 +107,17 @@ void write_qasm(Network const& network, std::ostream& os)
 			});
 			break;
 
-		case gate_set::mcx:
+		case gate_set::swap: {
+			std::vector<qubit_id> targets;
+			gate.foreach_target([&](auto target) {
+				targets.push_back(target);
+			});
+			os << fmt::format("cx q[{}], q[{}];\n", targets[0], targets[1]);
+			os << fmt::format("cx q[{}], q[{}];\n", targets[1], targets[0]);
+			os << fmt::format("cx q[{}], q[{}];\n", targets[0], targets[1]);
+		} break;
+
+		case gate_set::mcx: {
 			std::vector<qubit_id> controls;
 			std::vector<qubit_id> targets;
 			gate.foreach_control([&](auto control) {
@@ -155,7 +165,7 @@ void write_qasm(Network const& network, std::ostream& os)
 					os << fmt::format("x q[{}];\n", control.index());
 				}
 			});
-			break;
+		} break;
 		}
 		return true;
 	});

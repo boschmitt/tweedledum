@@ -54,6 +54,16 @@ public:
 		new_column();
 	}
 
+	void add_swap(qubit_id target0, qubit_id target1)
+	{
+		if (!is_last_column_empty()) {
+			new_column();
+		}
+		columns_.back()[target0] = "Swap";
+		columns_.back()[target1] = "Swap";
+		new_column();
+	}
+
 	void add_gate(std::string const& op, std::vector<qubit_id> controls,
 	              std::vector<qubit_id> targets)
 	{
@@ -198,6 +208,12 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 			gate.foreach_control([&](auto control) { controls.push_back(control); });
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_gate("Z", controls, targets);
+		} break;
+
+		case gate_set::swap: {
+			std::vector<qubit_id> targets;
+			gate.foreach_target([&](auto target) { targets.push_back(target); });
+			builder.add_swap(targets.at(0), targets.at(1));
 		} break;
 		}
 		return true;

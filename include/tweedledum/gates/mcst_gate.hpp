@@ -45,6 +45,7 @@ public:
 	    , qid_slots_({target, control, qid_invalid})
 	{
 		assert(is_double_qubit());
+		assert(!is(gate_set::swap) && "Cannot represent SWAP with mcst.");
 		assert(control != target);
 		if (control < target) {
 			std::swap(qid_slots_[0], qid_slots_[1]);
@@ -58,6 +59,7 @@ public:
 	    , target_(0)
 	    , qid_slots_({qid_invalid, qid_invalid, qid_invalid})
 	{
+		assert(!is(gate_set::swap) && "Cannot represent SWAP with mcst.");
 		assert(controls.size() == num_controls());
 		assert(target.size() == 1u);
 		for (auto i = 0u; i < controls.size(); ++i) {
