@@ -21,12 +21,13 @@
 namespace tweedledum {
 namespace detail {
 template<class Network>
-void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map)//changed by fereshte
+void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty::dynamic_truth_table tt)//changed by fereshte
 {
     
-    unsigned nlines = q_map.size();
-    auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
-    kitty::set_bit(tt,pow(2,nlines-1)-1);
+    //unsigned nlines = q_map.size();
+    //auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
+    //kitty::set_bit(tt,pow(2,nlines-1)-1);
+    //kitty::set_bit(tt,5);
         
     const auto num_controls = tt.num_vars();
     //assert(qubit_map.size() == num_controls + 1);
@@ -95,7 +96,7 @@ struct qsp_params {
 	enum class strategy : uint32_t {
 		allone_first,
 		ownfunction,
-	} strategy = strategy::allone_first;
+	} strategy = strategy::ownfunction;
 };
 
 void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>& gates,
@@ -118,6 +119,8 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
         //angle *= (180/3.14159265); //in degree
         //----add probability gate----
         gates.emplace_back("RY",angle,var_index,controls);
+        std::cout<<"c0 ones: "<<c0_ones<<"tt one: "<<tt_ones<<std::endl;
+        std::cout<<"angle: "<<angle<<"control size: "<<controls.size()<<std::endl;
         
     }
     //-----qc of cofactors-------
@@ -199,30 +202,54 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
 }
 
 template<typename Network>
-void qc_generation(Network & net, std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > > gates){
+void qc_generation(Network & net, std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > >
+ gates){
     for(const auto [name,angle,target_id,controls]: gates){
         if(name=="RY"){
             
             if(controls.size()==0){
-                
                 auto temp = gate_base(gate_set::rotation_y, angle);
                 net.add_gate(temp, target_id);
+            }
+            else if( (controls.size()==1) && (angle==M_PI) ){
+                
+                    if(controls[0]%2 == 1){
+                        net.add_gate(gate::pauli_x, controls[0]/2);
+                        net.add_gate(gate::cx,controls[0]/2,target_id);
+                        net.add_gate(gate::pauli_x, controls[0]/2);
+                    }
+                    else
+                    {
+                        net.add_gate(gate::cx,controls[0]/2,target_id);
+                    }
+                    
                 
             }
-            else{//we have multi control probability gate
-            std::vector<qubit_id> q_map;
+            else {//we have multi control probability gate
+                unsigned nlines = controls.size()+1;
+                auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
+                uint32_t tt_idx_set=0;
+                //kitty::set_bit(tt,pow(2,nlines-1)-1);
+            
+                std::vector<qubit_id> q_map;
                 net.add_gate(gate_base(gate_set::rotation_y, angle/2), target_id);
+                auto idx=0;
                 for(const auto ctrl:controls){
-                    if(ctrl%2 == 1)//negative control
-                        net.add_gate(gate::pauli_x, ctrl/2);
+                    if(ctrl%2 == 0){//negative control
+                        //net.add_gate(gate::pauli_x, ctrl/2)
+                        tt_idx_set += pow(2,idx);
+                    }
+                    idx++;
                     q_map.emplace_back(ctrl/2);
                 }
                 q_map.emplace_back(target_id);
-                detail::decomposition_mcz(net,q_map);
-                for(const auto ctrl:controls){
-                    if(ctrl%2 == 1)//negative control
-                        net.add_gate(gate::pauli_x, ctrl/2);
-                }
+                tt_idx_set += pow(2,nlines-1);
+                kitty::set_bit(tt,tt_idx_set);
+                detail::decomposition_mcz(net,q_map,tt);
+                //for(const auto ctrl:controls){
+                    //if(ctrl%2 == 1)//negative control
+                        //net.add_gate(gate::pauli_x, ctrl/2);
+                //}
                 net.add_gate(gate_base(gate_set::rotation_y, -angle/2), target_id);
 
             }//end multi control
@@ -232,19 +259,28 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
             if(controls.size()==0)
                 net.add_gate(gate::hadamard, target_id);
             else{//we have multi control probability gate
+                unsigned nlines = controls.size()+1;
+                auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
+                uint32_t tt_idx_set=0;
                 std::vector<qubit_id> q_map;
                 net.add_gate(gate_base(gate_set::rotation_y, M_PI/4), target_id);
+                auto idx=0;
                 for(const auto ctrl:controls){
-                    if(ctrl%2 == 1)//negative control
-                        net.add_gate(gate::pauli_x, ctrl/2);
+                    if(ctrl%2 == 0){//negative control
+                        //net.add_gate(gate::pauli_x, ctrl/2)
+                        tt_idx_set += pow(2,idx);
+                    }
+                    idx++;
                     q_map.emplace_back(ctrl/2);
                 }
                 q_map.emplace_back(target_id);
-                detail::decomposition_mcz(net,q_map);
-                for(const auto ctrl:controls){
-                    if(ctrl%2 == 1)//negative control
-                        net.add_gate(gate::pauli_x, ctrl/2);
-                }
+                tt_idx_set += pow(2,nlines-1);
+                kitty::set_bit(tt,tt_idx_set);
+                detail::decomposition_mcz(net,q_map,tt);
+                // for(const auto ctrl:controls){
+                //     if(ctrl%2 == 1)//negative control
+                //         net.add_gate(gate::pauli_x, ctrl/2);
+                // }
                 net.add_gate(gate_base(gate_set::rotation_y, -M_PI/4), target_id);
             }//end multi control
         }//end H
@@ -266,7 +302,7 @@ void qsp_ownfunction(Network & net, const std::string &tt_str)
  
     std::vector<uint32_t> cs;
     general_qg_generation(gates,tt,var_idx,cs);
-    detail::control_line_cancelling(gates,tt_vars);
+    //detail::control_line_cancelling(gates,tt_vars);
     for(auto i=0u;i<gates.size();i++){
         std::cout<<"gates:\n";
         std::cout<<std::get<0> (gates[i]) <<std::endl;

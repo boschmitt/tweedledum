@@ -43,10 +43,10 @@ int main(int argc, char** argv)
 
 	
 	//std::string tt_f = "00011111";
-	std::string ghz3 = "10000001"; //lsb: left side
+	std::string ghz3 = "10000001"; //lsb: right side
 	std::string ghz4 = "1000000000000001";
 	std::string ghz5 = "10000000000000000000000000000001";
-	std::string Maj3 = "00010111";
+	std::string Maj3 = "11101000";
 	std::string Maj5 = "0000000100010101";
     std::string tt_f = Maj3;	
 	std::string bench_name = "Maj3";
@@ -70,7 +70,10 @@ int main(int argc, char** argv)
 				gate.foreach_control([&](auto control) { q_map.push_back(control); });
 				gate.foreach_target([&](auto target) { q_map.push_back(target); });
 				net_sc.add_gate(gate::hadamard, q_map.back());
-				detail::decomposition_mcz(net_sc,q_map);
+				unsigned nlines = q_map.size();
+    			auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
+    			kitty::set_bit(tt,pow(2,nlines-1)-1);
+				detail::decomposition_mcz(net_sc,q_map,tt);
 				net_sc.add_gate(gate::hadamard, q_map.back());
 			}
 			else
@@ -88,10 +91,21 @@ int main(int argc, char** argv)
 	
 	std::cout << "size:\n";
 	std::cout<<net_sc.size()<<"\n";
-	//write_unicode(net_sc);
+	write_unicode(net_sc);
 	//std::cout << "\n";
-	write_qasm(net_sc,"firstallone"+bench_name+".qasm");
+	write_qasm(net_sc,"ownfunction"+bench_name+".qasm");
 
-
+	netlist<mcmt_gate> net2;
+	std::vector<qubit_id> q;
+	q.emplace_back(0);
+	q.emplace_back(1);
+	q.emplace_back(2);
+	
+    // for (auto i = 0u; i < 3; ++i) {
+	// 	net2.add_qubit();
+	// }
+	// detail::decomposition_mcz<netlist<mcmt_gate>>(net2,q);
+	// write_unicode(net2);
+	// write_qasm(net2,"test.qasm");
 	return EXIT_SUCCESS;
 }
