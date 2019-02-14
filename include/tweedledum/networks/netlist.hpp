@@ -28,6 +28,7 @@ public:
 #pragma region Types and constructors
 	using gate_type = GateType;
 	using node_type = wrapper_node<gate_type, 1>;
+	using node_ptr_type = typename node_type::pointer_type;
 	using storage_type = storage<node_type>;
 
 	netlist()
@@ -81,6 +82,32 @@ public:
 	auto num_gates() const
 	{
 		return static_cast<uint32_t>(storage_->nodes.size() - storage_->inputs.size());
+	}
+#pragma endregion
+
+#pragma region Nodes
+	node_type& get_node(node_ptr_type node_ptr) const
+	{
+		return storage_->nodes[node_ptr.index];
+	}
+
+	node_type& get_input(qubit_id qid) const
+	{
+		return storage_->nodes[storage_->inputs.at(qid.index())];
+	}
+
+	node_type& get_output(qubit_id qid) const
+	{
+		return storage_->outputs.at(qid.index());
+	}
+
+	uint32_t node_to_index(node_type const& node) const
+	{
+		if (node.gate.is(gate_set::output)) {
+			auto index = &node - storage_->outputs.data();
+			return static_cast<uint32_t>(index + storage_->nodes.size());
+		}
+		return static_cast<uint32_t>(&node - storage_->nodes.data());
 	}
 #pragma endregion
 

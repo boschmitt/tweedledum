@@ -6,7 +6,6 @@
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/linear_synth.hpp>
 #include <tweedledum/gates/mcst_gate.hpp>
-#include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <tweedledum/utils/angle.hpp>
 #include <tweedledum/utils/parity_terms.hpp>
@@ -21,13 +20,10 @@ TEST_CASE("Synthesize a simple function into a quantum network using linear_synt
 	SECTION("Using binary strategy")
 	{
 		auto network = linear_synth<netlist<mcst_gate>>(3u, parities, {linear_synth_params::strategy::binary});
-		write_unicode(network);
 	}
 
 	SECTION("Using gray strategy (default)")
 	{
 		auto network = linear_synth<netlist<mcst_gate>>(3u, parities);
-		write_unicode(network);
 	}
-
 }

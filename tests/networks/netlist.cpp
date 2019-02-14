@@ -8,7 +8,6 @@
 #include <random>
 #include <string>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <vector>
 
@@ -33,7 +32,6 @@ TEST_CASE("Netlist simple constructors", "[netlist]")
 		network.add_gate(gate::cx, q0, q1);
 		CHECK(network.size() == 6);
 		CHECK(network.num_qubits() == 2);
-		write_unicode(network);
 	}
 	SECTION("One gate, negative control") {
 		netlist<mcmt_gate> network;
@@ -43,7 +41,6 @@ TEST_CASE("Netlist simple constructors", "[netlist]")
 		network.add_gate(gate::cx, !q0, q1);
 		CHECK(network.size() == 6);
 		CHECK(network.num_qubits() == 2);
-		write_unicode(network);
 	}
 	SECTION("One gate, negative control") {
 		netlist<mcmt_gate> network;
@@ -53,7 +50,6 @@ TEST_CASE("Netlist simple constructors", "[netlist]")
 		network.add_gate(gate::mcx, std::vector({!q0, q1}), std::vector({q2}));
 		CHECK(network.size() == 7);
 		CHECK(network.num_qubits() == 3);
-		write_unicode(network);
 	}
 
 }
@@ -79,5 +75,4 @@ TEST_CASE("Netlist const iterators", "[netlist]")
 	network.add_gate(gate::hadamard, "q0");
 	network.add_gate(gate::cx, "q0", "q1");
 	network.add_gate(gate::cx, "q1", "q0");
-	write_unicode(network);
 }
