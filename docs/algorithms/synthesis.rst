@@ -13,6 +13,7 @@ all synthesis algorithms that are currently provided in *tweedledum*.
    synthesis/dbs
    synthesis/tbs
    synthesis/gray_synth
+   synthesis/diagonal_synth
    synthesis/linear_synth
    synthesis/esop_phase_synth
 
