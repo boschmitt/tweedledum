@@ -222,8 +222,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                     {
                         net.add_gate(gate::cx,controls[0]/2,target_id);
                     }
-                    
-                
+                           
             }
             else {//we have multi control probability gate
                 unsigned nlines = controls.size()+1;
