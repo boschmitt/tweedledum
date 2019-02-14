@@ -462,7 +462,7 @@ public:
 			}
 		}
 
-		compute3_table.clear(); /* TODO: selective delete? */
+		//compute3_table.clear(); /* TODO: selective delete? */
 	}
 
 private:
@@ -799,6 +799,7 @@ public:
                 {
 					/* first gate */
 					m = map(c, t);
+					zdd_.ref(m);
 				}
                 else
                 {
@@ -819,6 +820,7 @@ public:
 							{
 								std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
                             	zdd_.deref(valid_);
+								zdd_.garbage_collect();
                             	init_valid();
 							}
 							auto m_next = map(c, t);
@@ -832,6 +834,7 @@ public:
 								{
 									std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
                             		zdd_.deref(valid_);
+									zdd_.garbage_collect();
                             		init_valid();
 								}
                                 continue;
@@ -884,6 +887,7 @@ public:
 								{
 									std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
                             		zdd_.deref(valid_);
+									zdd_.garbage_collect();
                             		init_valid();
 								}
                                 continue;
@@ -950,7 +954,7 @@ public:
 							{
 								std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
                             	zdd_.deref(valid_);
-								//zdd_.garbage_collect();
+								zdd_.garbage_collect();
                             	init_valid();
 							}
                                
@@ -960,6 +964,8 @@ public:
                             auto m_next = map(c, t);
                             //std::cout << c << " " << t << "\n";
                             mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
+							zdd_.deref(m);
+							zdd_.ref(mp);
                             m = mp;
                             
 
@@ -979,13 +985,15 @@ public:
 					}
                     else
                     {
+						zdd_.deref(m);
+						zdd_.ref(mp);
 						m = mp;
 					}
 				}
 				++ctr;
 			}
 		});
-		zdd_.ref(m);
+		//zdd_.ref(m);
 		mappings.push_back(m);
         
         std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
