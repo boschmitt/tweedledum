@@ -153,8 +153,7 @@ public:
 	node_type& add_gate(gate_base op, std::string const& qlabel_target)
 	{
 		auto qid_target = qlabels_->to_qid(qlabel_target);
-		gate_type gate(op, qid_target);
-		return add_gate(gate);
+		return add_gate(op, qid_target);
 	}
 
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
@@ -162,8 +161,7 @@ public:
 	{
 		auto qid_control = qlabels_->to_qid(qlabel_control);
 		auto qid_target = qlabels_->to_qid(qlabel_target);
-		gate_type gate(op, qid_control, qid_target);
-		return add_gate(gate);
+		return add_gate(op, qid_control, qid_target);
 	}
 
 	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
@@ -177,8 +175,7 @@ public:
 		for (auto& target : qlabels_target) {
 			targets.push_back(qlabels_->to_qid(target));
 		}
-		gate_type gate(op, controls, targets);
-		return add_gate(gate);
+		return add_gate(op, controls, targets);
 	}
 #pragma endregion
 
