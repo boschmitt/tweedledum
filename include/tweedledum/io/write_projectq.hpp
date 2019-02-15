@@ -128,6 +128,10 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 			os << fmt::format("C(All(Z), {}) | ([{}], [{}])\n", gate.num_controls(),
 			                  controls, targets);
 			break;
+
+		case gate_set::swap:
+			os << fmt::format("Swap | ({})\n", targets);
+			break;
 		}
 		if (!negative_controls.empty()) {
 			os << fmt::format("X | {}\n", negative_controls);

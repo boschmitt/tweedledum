@@ -67,6 +67,33 @@ public:
 		new_column();
 	}
 
+	void add_swap(qubit_id q0, qubit_id q1)
+	{
+		if (!is_last_column_empty()) {
+			new_column();
+		}
+		occupancy_[q0] = 1;
+		occupancy_[q1] = 1;
+
+		lines_[(3 * q0)] += q0 < q1 ? "     " : "  │  ";
+		lines_[(3 * q0) + 1] += "──╳──";
+		lines_[(3 * q0) + 2] += q0 < q1 ? "  │  " : "     ";
+
+		lines_[(3 * q1)] += q0 < q1 ? "  │  " : "     ";
+		lines_[(3 * q1) + 1] += "──╳──";
+		lines_[(3 * q1) + 2] += q0 < q1 ? "     " : "  │  ";
+
+		auto const min = std::min(q0.index(), q1.index());
+		auto const max = std::max(q0.index(), q1.index());
+		for (auto i = min + 1; i < max; ++i) {
+			occupancy_[i] = 1;
+			lines_[(3 * i)] += "  │  ";
+			lines_[(3 * i) + 1] += "──┼──";
+			lines_[(3 * i) + 2] += "  │  ";
+		}
+		new_column();
+	}
+
 	void add_gate(std::string const& op, std::vector<qubit_id> controls,
 	              std::vector<qubit_id> targets)
 	{
@@ -166,6 +193,13 @@ public:
 		new_column();
 	}
 
+	void add_swap(qubit_id q0, qubit_id q1)
+	{
+		lines_[q0] += "╳";
+		lines_[q1] += "╳";
+		new_column();
+	}
+
 	void add_gate(std::string const& op, std::vector<qubit_id> controls,
 	              std::vector<qubit_id> targets)
 	{
@@ -261,6 +295,15 @@ auto to_unicode_str(Network const& network, Builder builder)
 		case gate_set::t_dagger:
 			gate.foreach_target([&](auto qid) { builder.add_gate("⊥", qid); });
 			break;
+
+		case gate_set::swap: {
+			std::vector<qubit_id> qids;
+			gate.foreach_target([&](auto qid) {
+				qids.push_back(qid);
+			});
+			builder.add_swap(qids.at(0), qids.at(1));
+			
+		} break;
 
 		case gate_set::cx:
 			gate.foreach_control([&](auto qid_control) {

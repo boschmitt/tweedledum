@@ -95,6 +95,10 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			os << "G $R_{z}$";
 			break;
 
+		case gate_set::swap:
+			os << "SWAP";
+			break;
+
 		default:
 			break;
 		}

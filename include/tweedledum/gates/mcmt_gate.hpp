@@ -53,9 +53,15 @@ public:
 		assert(control <= network_max_num_qubits);
 		assert(target <= network_max_num_qubits);
 		assert(control != target);
-		controls_ |= (1 << control);
+
 		targets_ |= (1 << target);
-		polarity_ |= (control.is_complemented() << control.index());
+		if (is(gate_set::swap)) {
+			targets_ |= (1 << control);
+			assert(num_targets() == 2 && "Swap gates can only have two targets.");
+		} else {
+			controls_ |= (1 << control);
+			polarity_ |= (control.is_complemented() << control.index());
+		}
 	}
 
 	mcmt_gate(gate_base const& op, std::vector<qubit_id> const& controls,
@@ -87,18 +93,18 @@ public:
 		return __builtin_popcount(controls_);
 	}
 
-	constexpr auto num_targets() const
+	uint32_t num_targets() const
 	{
 		assert(!is_meta());
 		return __builtin_popcount(targets_);
 	}
 
-	auto is_control(qubit_id qid) const
+	bool is_control(qubit_id qid) const
 	{
 		return (controls_ & (1u << qid.index()));
 	}
 
-	auto qubit_slot(qubit_id qid) const
+	uint32_t qubit_slot(qubit_id qid) const
 	{
 		return qid.index();
 	}
