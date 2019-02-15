@@ -59,7 +59,7 @@ public:
 	/*! \brief Returns true if this gate acts on two qubits. */
 	constexpr bool is_double_qubit() const
 	{
-		return is_one_of(gate_set::cx, gate_set::cz, gate_set::swap);
+		return (operation_ >= gate_set::cx && operation_ <= gate_set::swap);
 	}
 
 	/*! \brief Returns true if this gate is a rotation around x axis. */
