@@ -34,7 +34,7 @@ void rewrite_network(NetworkDest& dest, NetworkSrc const& src, RewriteFn&& fn, u
 		if (!fn(dest, node.gate)) {
 			if constexpr (std::is_same_v<typename NetworkSrc::gate_type,
 			                             typename NetworkDest::gate_type>) {
-				dest.add_gate(node.gate);
+				dest.emplace_gate(node.gate);
 			}
 		}
 	});
