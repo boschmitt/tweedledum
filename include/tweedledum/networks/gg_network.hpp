@@ -130,11 +130,12 @@ private:
 		return;
 	}
 
-	auto& do_add_gate(gate_type gate)
+public:
+	template<typename... Args>
+	node_type& emplace_gate(Args&&... args)
 	{
 		auto node_index = storage_->nodes.size();
-		auto& node = storage_->nodes.emplace_back(gate);
-
+		auto& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
 		node.gate.foreach_control([&](auto& qid) { connect_node(qid, node_index); });
 		node.gate.foreach_target([&](auto& qid) { connect_node(qid, node_index); });
 		return node;
@@ -142,24 +143,16 @@ private:
 
 	node_type& add_gate(gate_base op, qubit_id target)
 	{
-		return do_add_gate(gate);
+		return emplace_gate(gate_type(op, storage_->rewiring_map.at(target)));
 	}
 
 	node_type& add_gate(gate_base op, qubit_id control, qubit_id target)
 	{
-		gate_type gate(op, storage_->rewiring_map.at(target));
-		return add_gate(gate);
+		const qubit_id control_(storage_->rewiring_map.at(control), control.is_complemented());
+		return emplace_gate(gate_type(op, control_, storage_->rewiring_map.at(target)));
 	}
 
 	node_type& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets)
-	{
-		gate_type gate(op,
-		               qubit_id(storage_->rewiring_map.at(control), control.is_complemented()),
-		               storage_->rewiring_map.at(target));
-		return add_gate(gate);
-	}
-
-	auto& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets)
 	{
 		std::transform(controls.begin(), controls.end(), controls.begin(),
 		               [&](qubit_id qid) -> qubit_id {
@@ -170,8 +163,7 @@ private:
 		               [&](qubit_id qid) -> qubit_id {
 			               return storage_->rewiring_map.at(qid);
 		               });
-		gate_type gate(op, controls, targets);
-		return add_gate(gate);
+		return emplace_gate(gate_type(op, controls, targets));
 	}
 #pragma endregion
 
@@ -183,7 +175,7 @@ private:
 	}
 
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
-	               std::string const& qlabel_target)
+	                    std::string const& qlabel_target)
 	{
 		auto qid_control = qlabels_->to_qid(qlabel_control);
 		auto qid_target = qlabels_->to_qid(qlabel_target);
@@ -191,7 +183,7 @@ private:
 	}
 
 	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
-	               std::vector<std::string> const& qlabels_target)
+	                    std::vector<std::string> const& qlabels_target)
 	{
 		std::vector<qubit_id> controls;
 		for (auto& control : qlabels_control) {

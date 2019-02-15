@@ -112,25 +112,21 @@ public:
 #pragma endregion
 
 #pragma region Add gates(qids)
-	auto& add_gate(gate_type const& gate)
+	template<typename... Args>
+	node_type& emplace_gate(Args&&... args)
 	{
-		// assert(!gate.is_meta());
-		auto& node = storage_->nodes.emplace_back(gate);
-		return node;
+		return storage_->nodes.emplace_back(std::forward<Args>(args)...);
 	}
 
 	node_type& add_gate(gate_base op, qubit_id target)
 	{
-		gate_type gate(op, storage_->rewiring_map.at(target));
-		return add_gate(gate);
+		return emplace_gate(gate_type(op, storage_->rewiring_map.at(target)));
 	}
 
 	node_type& add_gate(gate_base op, qubit_id control, qubit_id target)
 	{
-		gate_type gate(op,
-		               qubit_id(storage_->rewiring_map.at(control), control.is_complemented()),
-		               storage_->rewiring_map.at(target));
-		return add_gate(gate);
+		const qubit_id control_(storage_->rewiring_map.at(control), control.is_complemented());
+		return emplace_gate(gate_type(op, control_, storage_->rewiring_map.at(target)));
 	}
 
 	node_type& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets)
@@ -144,8 +140,7 @@ public:
 		               [&](qubit_id qid) -> qubit_id {
 			               return storage_->rewiring_map.at(qid);
 		               });
-		gate_type gate(op, controls, targets);
-		return add_gate(gate);
+		return emplace_gate(gate_type(op, controls, targets));
 	}
 #pragma endregion
 
@@ -157,7 +152,7 @@ public:
 	}
 
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
-	               std::string const& qlabel_target)
+	                    std::string const& qlabel_target)
 	{
 		auto qid_control = qlabels_->to_qid(qlabel_control);
 		auto qid_target = qlabels_->to_qid(qlabel_target);
@@ -165,7 +160,7 @@ public:
 	}
 
 	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
-	               std::vector<std::string> const& qlabels_target)
+	                    std::vector<std::string> const& qlabels_target)
 	{
 		std::vector<qubit_id> controls;
 		for (auto& control : qlabels_control) {
