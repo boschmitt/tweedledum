@@ -51,6 +51,7 @@ private:
 		uint64_t dead : 1;
 		uint64_t lo : 22;
 		uint64_t hi : 22;
+		
 	};
 
 	enum op_t {
@@ -466,8 +467,7 @@ public:
 	}
 
 private:
-	void garbage_collect_rec(node f)
-	{
+	void garbage_collect_rec(node f){
 		if (f <= 1)
 			return;
 		auto& n = nodes[f];
@@ -480,8 +480,7 @@ private:
 		}
 	}
 
-	void kill_node(node f)
-	{
+	void kill_node(node f){
 		free.push(f);
 		auto& n = nodes[f];
 		n.dead = 1;
@@ -501,23 +500,20 @@ public:
 		}
 	};
 
-    template<class Formatter = identity_format>
-	void print_sets(node f, Formatter&& fmt = Formatter())
-	{
+	template<class Formatter = identity_format>
+	void print_sets(node f, Formatter&& fmt = Formatter()){
 		std::vector<uint32_t> set;
 		print_sets_rec(f, set, fmt);
 	}
     
 
-    void sets_to_vector(node f, std::vector< std::vector<uint32_t>> *set_vector)
-    {
-        std::vector<uint32_t> set;
-        sets_to_vector_rec(f, set, set_vector);
-    }
+    	void sets_to_vector(node f, std::vector< std::vector<uint32_t>> *set_vector){
+		std::vector<uint32_t> set;
+        	sets_to_vector_rec(f, set, set_vector);
+    	}
 
 	template<class Formatter = identity_format>
-	void write_dot(std::ostream& os, Formatter&& fmt = Formatter())
-	{
+	void write_dot(std::ostream& os, Formatter&& fmt = Formatter()){
 		os << "digraph {\n";
 		os << "0[shape=rectangle,label=⊥];\n";
 		os << "1[shape=rectangle,label=⊤];\n";
@@ -543,13 +539,9 @@ private:
 	template<class Formatter>
 	void print_sets_rec(node f, std::vector<uint32_t>& set, Formatter&& fmt)
 	{
-        //std::cout <<"value of f "<< f <<"\n";
-        //std::cout << set.size() << " set size \n";
-        if (f == 1) {
+        	if (f == 1) {
 			for (auto v : set) {
-                //std::cout<<"\nthe value of v " << v << "\n";
-                std::cout << fmt(v) << " ";
-                
+				std::cout << fmt(v) << " ";
 			}
 			std::cout << "\n";
 		} else if (f != 0) {
@@ -560,20 +552,14 @@ private:
 		}
 	}
 
-	void sets_to_vector_rec(node f, std::vector<uint32_t>& set, std::vector< std::vector<uint32_t>> *set_vector)
-	{
-        //std::cout <<"value of f "<< f <<"\n";
-        //std::cout << set.size() << " set size \n";
-        if (f == 1) {
+	void sets_to_vector_rec(node f, std::vector<uint32_t>& set, std::vector< std::vector<uint32_t>> *set_vector){
+        	if (f == 1) {
 			std::vector<uint32_t> single_set;
 			for (auto v : set) {
-                //std::cout<<"\nthe value of v " << v << "\n";
-                //std::cout << fmt(v) << " ";
 				single_set.push_back(v);
                 
 			}
 			set_vector->push_back(single_set);
-			//std::cout << "\n";
 		} else if (f != 0) {
 			sets_to_vector_rec(nodes[f].lo, set, set_vector);
 			auto set1 = set;
@@ -586,8 +572,7 @@ private:
     
 
 public:
-	void debug()
-	{
+	void debug(){
 		std::cout << "    i     VAR    LO    HI   REF  DEAD\n";
 		int i{0};
 		for (auto const& n : nodes) {
@@ -598,8 +583,7 @@ public:
 		summary();
 	}
 
-	void summary()
-	{
+	void summary(){
 		std::cout << "live nodes = " << num_nodes() << "   dead nodes = " << free.size()
 		          << "\n";
 	}
@@ -630,8 +614,7 @@ private: /* hash functions */
 	};
 
 private:
-	node unique(uint32_t var, node lo, node hi)
-	{
+	node unique(uint32_t var, node lo, node hi){
 		/* ZDD reduction rule */
 		if (hi == 0) {
 			return lo;
@@ -680,7 +663,7 @@ private:
 	std::vector<std::unordered_map<std::pair<uint32_t, uint32_t>, node, unique_table_hash>> unique_table;
 	std::unordered_map<std::tuple<uint32_t, uint32_t, op_t>, node, compute_table_hash> compute_table;
 	std::unordered_map<std::tuple<uint32_t, uint32_t, uint32_t, op_t>, node, compute3_table_hash>
-	    compute3_table;
+	compute3_table;
 };
 #pragma endregion
 
@@ -701,8 +684,7 @@ public:
 		std::iota(edge_perm_.begin(), edge_perm_.end(), 0);
 	}
 
-	void run()
-	{
+	void run(){
 		// zdd_.build_tautologies();
 		init_from();
 		init_to();
@@ -721,23 +703,19 @@ public:
 		std::vector< std::vector<uint32_t>> global_found_sets;
 		std::vector< std::vector<uint32_t>> global_swap_layers;
 		
-        //counts the gates
-        uint32_t ctr = 0;
-        //vector that holds gate number that swap is needed for
-        std::vector<uint32_t> index_of_swap;
-        //vector that holds the qubits implemented swaps
-        std::vector<std::vector<uint32_t>> swapped_qubits;
+        	//counts the gates
+        	uint32_t ctr = 0;
+        	//vector that holds gate number that swap is needed for
+        	std::vector<uint32_t> index_of_swap;
+        	//vector that holds the qubits implemented swaps
+        	std::vector<std::vector<uint32_t>> swapped_qubits;
 
 
 		//build ZDD that represents all swaps that can be done in parallel 
 		zdd_base zdd_swap_layers(arch_.edges.size());
-		
-		//zdd_swap_layers.debug();
 		zdd_swap_layers.build_tautologies();
 		
 		auto univ_fam = zdd_swap_layers.tautology();
-		//zdd_swap_layers.debug();
-		//std::cout << "universal family sets: " << zdd_swap_layers.count_sets(univ_fam)<<"\n" ;
 		std::vector<zdd_base::node> edges_p;
 
 		std::vector<std::vector<uint8_t>> incidents(arch_.num_vertices);
@@ -753,28 +731,14 @@ public:
 				set = zdd_swap_layers.union_(set, zdd_swap_layers.elementary(o));
 			}
 			edges_p.push_back(set);
-			//std::cout << "Sets = \n";
-			//zdd_swap_layers.print_sets(edges_p.back());
 		}
 		
 		auto edges_union = zdd_swap_layers.bot();
 		for (int v = circ_.num_qubits() - 1; v >= 0; --v) {
 			edges_union = zdd_swap_layers.union_(edges_union, zdd_swap_layers.choose(edges_p[v], 2));
-			//std::cout << "choose_operation" << "\n";
-			//zdd_swap_layers.print_sets(zdd_swap_layers.choose(edges_p[v], 2));
-			//std::cout << "edges_union" << "\n";
-			//zdd_swap_layers.print_sets(edges_union);
 		}
 
 		auto layers = zdd_swap_layers.nonsupersets(univ_fam, edges_union);
-
-		//zdd_swap_layers.debug();
-		//std::cout << "universal fam:\n";
-		//zdd_swap_layers.print_sets(univ_fam);
-		//std::cout << "layers (total sets " << zdd_swap_layers.count_sets(layers) << "):\n";
-		//zdd_swap_layers.print_sets(layers);
-        
-
 
 
 		std::vector< std::vector<uint32_t>> *set_vector = new std::vector< std::vector<uint32_t>>();
@@ -783,208 +747,150 @@ public:
 		delete set_vector;
 
 
-        //below is where we look for maps!
+        	//below is where we look for maps!
 		circ_.foreach_cgate([&](auto const& n) {
-			if (n.gate.is_double_qubit())
-            {
+			if (n.gate.is_double_qubit()){
 				n.gate.foreach_control([&](auto _c) { c = _c; });
 				n.gate.foreach_target([&](auto _t) { t = _t; });
-
-				// std::cout << c << " " << t << "\n";
-
-
-				//std::cout << "add gate " << ctr << "\n";
-
-				if (m == zdd_.bot())
-                {
+				if (m == zdd_.bot()){
 					/* first gate */
 					m = map(c, t);
 					zdd_.ref(m);
 				}
-                else
-                {
+                		else{
 					auto m_next = map(c, t);
-					if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot())
-                    {
-
-                        
-                        std::vector<uint32_t> new_mappings_cnt(global_swap_layers.size(),0);
-                        std::vector<uint32_t> depth_count(global_swap_layers.size(),0);
+					if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot()){
+						std::vector<uint32_t> new_mappings_cnt(global_swap_layers.size(),0);
+                        			std::vector<uint32_t> depth_count(global_swap_layers.size(),0);
 						std::vector<uint32_t> swap_count(global_swap_layers.size(),0);
 
-						for(uint32_t i = 0; i < global_swap_layers.size(); i++)
-						{
+						for(uint32_t i = 0; i < global_swap_layers.size(); i++){
 							swap_count[i] = global_swap_layers[i].size();
-
-							for(auto const& item : global_swap_layers[i])
-							{
+							for(auto const& item : global_swap_layers[i]){
 								std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
-                            	zdd_.deref(valid_);
+                            					zdd_.deref(valid_);
 								zdd_.garbage_collect();
-                            	init_valid();
+                            					init_valid();
 							}
 							auto m_next = map(c, t);
-                            if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot())
-                            {
-                                //cannot extend map
-                                new_mappings_cnt[i] = 0;
-                                depth_count[i] = 0;
-                                //unswap physical qubits for next iteration
-                                for(auto const& item : global_swap_layers[i])
-								{
+                            				if (auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_); mp == zdd_.bot()){
+                                				//cannot extend map
+                                				new_mappings_cnt[i] = 0;
+                                				depth_count[i] = 0;
+                                				//unswap physical qubits for next iteration
+                                				for(auto const& item : global_swap_layers[i]){
 									std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
-                            		zdd_.deref(valid_);
+                            						zdd_.deref(valid_);
 									zdd_.garbage_collect();
-                            		init_valid();
+                            						init_valid();
 								}
-                                continue;
-                            
-                            }
-							else
-                            {
-                                //can extend map. determine depth and number of mappings
-                                //move on to next possible swap
-                                //make sure to swap qubits back before next iteration
+                                				continue;
+							}
+							else{
+                                				//can extend map. determine depth and number of mappings
+                                				//move on to next possible swap
+                                				//make sure to swap qubits back before next iteration
                                 
-                                auto m_prime = m;
-                                //auto m_next_prime = m_next;
+                                				auto m_prime = m;
                                 
-                                uint32_t ctr2 = 0;
-                                uint32_t cc, tt;
-                                uint32_t single_depth = 0;
-                                uint32_t end_found = 0;
+                                				uint32_t ctr2 = 0;
+                                				uint32_t cc, tt;
+                                				uint32_t single_depth = 0;
+                                				uint32_t end_found = 0;
                                 
-                                circ_.foreach_cgate([&](auto const& nn) {
-                                    if (nn.gate.is_double_qubit())
-                                    {
-                                        if (ctr2>=ctr && end_found != 1)
-                                        {
-                                            nn.gate.foreach_control([&](auto _c) { cc = _c; });
-                                            nn.gate.foreach_target([&](auto _t) { tt = _t; });
-                                            
-                                            auto m_next_prime = map(cc, tt);
-                                            if (auto mp_prime = zdd_.nonsupersets(zdd_.join(m_prime, m_next_prime), bad_); mp_prime == zdd_.bot())
-                                            {
-                                                depth_count[i] = single_depth;
-                                                end_found = 1;
-                                            }
-                                            else
-                                            {
-                                                m_prime = mp_prime;
-                                                single_depth++;
-                                            }
+                                				circ_.foreach_cgate([&](auto const& nn) {
+                                    					if (nn.gate.is_double_qubit()){
+                                        					if (ctr2>=ctr && end_found != 1){
+                                            						nn.gate.foreach_control([&](auto _c) { cc = _c; });
+                                            						nn.gate.foreach_target([&](auto _t) { tt = _t; });
+                                            						auto m_next_prime = map(cc, tt);
+                                            						if (auto mp_prime = zdd_.nonsupersets(zdd_.join(m_prime, m_next_prime), bad_); mp_prime == zdd_.bot()){
+                                                						depth_count[i] = single_depth;
+                                                						end_found = 1;
+                                            						}
+											else{
+                                                						m_prime = mp_prime;
+                                                						single_depth++;
+                                            						}
                                             
                                             
-                                        }
-                                        
-                                        ++ctr2;
-                                    }
-                                });
-                                
-                                
-                                new_mappings_cnt[i] = zdd_.count_sets(mp);
-                                for(auto const& item : global_swap_layers[i])
-								{
+                                        					}
+                                        					++ctr2;
+                                    					}
+                                				});
+                                				new_mappings_cnt[i] = zdd_.count_sets(mp);
+                                				for(auto const& item : global_swap_layers[i]){
 									std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
-                            		zdd_.deref(valid_);
+                            						zdd_.deref(valid_);
 									zdd_.garbage_collect();
-                            		init_valid();
+                            						init_valid();
 								}
-                                continue;
+                                				continue;
 
-                            }
+                            				}
 
 						}
-
-						
-                        
-
-                        //USE BELOW TO SET WEIGHTS FOR SCORE FUNCTION
-                        std::vector<double> scores(global_swap_layers.size(),0);
-                        uint32_t depth_weight = 0;
-                        uint32_t map_weight = 1;
+                        			//USE BELOW TO SET WEIGHTS FOR SCORE FUNCTION
+                        			std::vector<double> scores(global_swap_layers.size(),0);
+                        			uint32_t depth_weight = 0;
+                        			uint32_t map_weight = 1;
 						double swap_weight = 1;
                         
-                        //std::cout << "\n";
-                        for(uint32_t index = 0; index < depth_count.size(); index ++)
-                        {
-                            double inv_swap_cnt;
-                            if (swap_count[index] == 0)
-							{
+                        			for(uint32_t index = 0; index < depth_count.size(); index ++){
+                            				double inv_swap_cnt;
+                            				if (swap_count[index] == 0){
 								inv_swap_cnt = 0;
 							}
-							else
-							{
+							else{
 								inv_swap_cnt = 1.0/swap_count[index];
 							}
-							
 							scores[index] = (depth_count[index]*depth_weight + new_mappings_cnt[index]*map_weight)*((inv_swap_cnt)*swap_weight);
 
 
 							// uncomment below to see metrics used to pick swap(s)
-                            //std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | swap_count - " << swap_count[index]<< " | score: " << scores[index]<< "\n";
-                            
-                            
-                        }
-                        //std::cout << "\n";
-                        
-                        uint32_t max_index = std::max_element(scores.begin(), scores.end())-scores.begin();
-                        int max_score = scores[max_index];
+                            				//std::cout << index << ": depth - " << depth_count[index] << " | mappings - " << new_mappings_cnt[index] << " | swap_count - " << swap_count[index]<< " | score: " << scores[index]<< "\n";
 
-						
-
+                        			}
                         
-                        if (max_score == 0)
-                        {
-                            std::cout << "A SWAP operation could not be found. Map cannot extend. Exiting...\n";
-                            std::cout << "Metrics before exit:\n";
-                            std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
-                            for(uint32_t i = 0; i<swapped_qubits.size(); i++ )
-                            {
-                                std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
-                                
-                            }
-                            std::exit(0);
-                            //return;
-                        }
-                        else
-                        {
-                  
-                            for(auto const& item : global_swap_layers[max_index])
-							{
+                        			uint32_t max_index = std::max_element(scores.begin(), scores.end())-scores.begin();
+                        			int max_score = scores[max_index];
+
+                        			if (max_score == 0){
+							std::cout << "A SWAP operation could not be found. Map cannot extend. Exiting...\n";
+                            				std::cout << "Metrics before exit:\n";
+                            				std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
+                            				for(uint32_t i = 0; i<swapped_qubits.size(); i++ ){
+                                				std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
+                            				}
+                            				std::exit(0);
+                        			}
+                        			else{
+                            				for(auto const& item : global_swap_layers[max_index]){
 								std::swap(edge_perm_[arch_.edges[item].first], edge_perm_[arch_.edges[item].second]);
-                            	zdd_.deref(valid_);
+                            					zdd_.deref(valid_);
 								zdd_.garbage_collect();
-                            	init_valid();
+                            					init_valid();
 							}
                                
-							
-
-                            
-                            auto m_next = map(c, t);
-                            //std::cout << c << " " << t << "\n";
-                            mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
+							auto m_next = map(c, t);
+                            				mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
 							zdd_.deref(m);
 							zdd_.ref(mp);
-                            m = mp;
-                            
-
-                            for(auto const& item : global_swap_layers[max_index])
-							{
+							m = mp;
+							for(auto const& item : global_swap_layers[max_index]){
 								std::vector<uint32_t> one_swap;
 								one_swap.push_back(arch_.edges[item].first);
-                            	one_swap.push_back(arch_.edges[item].second);
-                            	swapped_qubits.push_back(one_swap);
+                            					one_swap.push_back(arch_.edges[item].second);
+                            					swapped_qubits.push_back(one_swap);
 								index_of_swap.push_back(ctr);
 								
 							}
 
-                        }
+                        			}
 
                         
 					}
-                    else
-                    {
+                    			else{
 						zdd_.deref(m);
 						zdd_.ref(mp);
 						m = mp;
@@ -996,94 +902,61 @@ public:
 		//zdd_.ref(m);
 		mappings.push_back(m);
         
-        std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
-        for(uint32_t i = 0; i<swapped_qubits.size(); i++ )
-        {
-            //std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << swapped_qubits[i][0]<< " " <<
-            //swapped_qubits[i][1] << "\n";
-            std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
+        	std::cout << "\nTotal SWAPs: " << swapped_qubits.size() << "\n";
+        	for(uint32_t i = 0; i<swapped_qubits.size(); i++ ){
+            		//std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << swapped_qubits[i][0]<< " " <<
+            		//swapped_qubits[i][1] << "\n";
+            		std::cout << "Swap at gate: " <<index_of_swap[i] <<" | Physical qubits swapped: " << std::string(1, 'A' + swapped_qubits[i][0])<< " " <<std::string(1, 'A' + swapped_qubits[i][1])<< "\n";
             
-        }
-        std::cout << "\n";
+        	}
+        	std::cout << "\n";
         
 
-
-
-
-        //find all sets to pick one for new map
-        for (auto const& map : mappings)
-        {
- 
+        	//retrieve all sets to pick one for new map
+        	for (auto const& map : mappings){
 			std::vector< std::vector<uint32_t>> *set_vector = new std::vector< std::vector<uint32_t>>();
-
 			zdd_.sets_to_vector(map,set_vector);
-
 			global_found_sets = *set_vector;
 			delete set_vector; 
-
-
-        }
+		}
         
 		// THIS BELOW CHOOSES THE SET TO MAP NEW CIRCUIT TO!
-        uint32_t set_to_use = 0;
+        	uint32_t set_to_use = 0;
 
-        std::vector <uint32_t> chosen_mapping(circ_.num_qubits(),0); //index is pseudo, what is stored is the mapping
-        for(auto const& item:global_found_sets[set_to_use])
-        {
-            uint32_t pseudo_qubit = item /circ_.num_qubits();
-            uint32_t physical_qubit = item % circ_.num_qubits();
-            chosen_mapping[pseudo_qubit] = physical_qubit;
-        }
+        	std::vector <uint32_t> chosen_mapping(circ_.num_qubits(),0); //index is pseudo, what is stored is the mapping
+        	for(auto const& item:global_found_sets[set_to_use]){
+            		uint32_t pseudo_qubit = item /circ_.num_qubits();
+            		uint32_t physical_qubit = item % circ_.num_qubits();
+            		chosen_mapping[pseudo_qubit] = physical_qubit;
+        	}
         
-        std::vector <uint32_t> current_mapping = chosen_mapping;
+       		std::vector <uint32_t> current_mapping = chosen_mapping;
         
         
-        //make new circuit here
-        using namespace tweedledum;
+        	//make new circuit here
+        	using namespace tweedledum;
 
 		netlist<mcst_gate> network2;
 		uint32_t network2_volume = 0;
 		std::vector<uint32_t> network2_depth(circ_.num_qubits(),0);
 		uint32_t q2_gate_count = 0;
 
-        for(uint32_t i = 0; i< circ_.num_qubits(); i++)
-        {
-            network2.add_qubit();
-        }
+        	for(uint32_t i = 0; i< circ_.num_qubits(); i++){
+            		network2.add_qubit();
+        	}
         
-        ctr = 0;
-        uint32_t index_counter = 0;
-        circ_.foreach_cgate([&](auto const& n) {
-            if (n.gate.is_double_qubit() && n.gate.operation()==gate_set::cz)
-            {
-                //keep track and include SWAPS
-                n.gate.foreach_control([&](auto _c) { c = _c; });
-                n.gate.foreach_target([&](auto _t) { t = _t; });
-                
-                //std::cout <<std::string(1, 'a' + c)  << " " << std::string(1, 'a' + t) << "\n";
-                
-                if(ctr == index_of_swap[index_counter])
-                {
-                    while(ctr == index_of_swap[index_counter])
-					{
+        	ctr = 0;
+        	uint32_t index_counter = 0;
+        	circ_.foreach_cgate([&](auto const& n) {
+            		if (n.gate.is_double_qubit() && n.gate.operation()==gate_set::cz){
+                		//keep track and include SWAPS
+                		n.gate.foreach_control([&](auto _c) { c = _c; });
+                		n.gate.foreach_target([&](auto _t) { t = _t; });
+                		//std::cout <<std::string(1, 'a' + c)  << " " << std::string(1, 'a' + t) << "\n";
+	
+                		if(ctr == index_of_swap[index_counter]){
+					while(ctr == index_of_swap[index_counter]){
 						//insert as many swaps that are needed in a particular spot
-
-                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    	// network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
-                    	// network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][1]));
-                    	// network2.add_gate(gate::cz,swapped_qubits[index_counter][0],swapped_qubits[index_counter][1]);
-                    	// network2.add_gate(gate::hadamard,qubit_id(swapped_qubits[index_counter][0]));
-
-						// network2_volume = network2_volume + 9;
-						// network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 7;
-						// network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 5;
-						// q2_gate_count= q2_gate_count + 3;
-
-						//cx implementation of SWAP
 						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
 						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][1]),qubit_id(swapped_qubits[index_counter][0]));
 						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
@@ -1093,77 +966,67 @@ public:
 						network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 3;
 						q2_gate_count= q2_gate_count + 3;
 
-                    
-                    	//adjust qubits in current mapping
-                    	std::vector<uint32_t>::iterator itr0 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][0]);
-                    	std::vector<uint32_t>::iterator itr1 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][1]);
-                    
-                    	uint32_t indx0 = std::distance(current_mapping.begin(),itr0);
-                    	uint32_t indx1 = std::distance(current_mapping.begin(),itr1);
-                    
-                    	current_mapping[indx0]= swapped_qubits[index_counter][1];
-                    	current_mapping[indx1]= swapped_qubits[index_counter][0];
+                	    			//adjust qubits in current mapping
+                	    			auto itr0 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][0]);
+                	    			auto itr1 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][1]);
+	
+                	    			uint32_t indx0 = std::distance(current_mapping.begin(),itr0);
+                	    			uint32_t indx1 = std::distance(current_mapping.begin(),itr1);
+	
+                	    			current_mapping[indx0]= swapped_qubits[index_counter][1];
+                	    			current_mapping[indx1]= swapped_qubits[index_counter][0];
 
-                    
-                    	//insert gate
-                    	network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
+                	    			//insert gate
+                	    			network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
 						network2_volume++;
 						network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
 						network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
 						q2_gate_count++;
-                    
-                    	index_counter++;
+	
+                	    			index_counter++;
 
 					}
-					
-                }
-                else
-                {
-                    //insert gate with fixed qubits
-                    
-                    network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
+
+                		}
+                		else{
+                	    		//insert gate with fixed qubits
+                	    		network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
 					network2_volume++;
 					network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
 					network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
 					q2_gate_count++;
-                    
-                }
-                
-                ctr++;
-            }
-            else
-            {
-                //write gate
+	
+                		}
+                		ctr++;
+            		}
+            		else{
+                		//write gate
 				n.gate.foreach_target([&](auto _t) { t = _t; });
 				network2.add_gate(n.gate,qubit_id(current_mapping[t]));
 				network2_volume++;
 				network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
-            
+            		}
 
-            }
-            
-
-        });
+        	});
 		if(network2_volume < 40)
 		{
 			write_unicode(network2);
 		}
         
 		uint32_t max_depth_index = std::max_element(network2_depth.begin(), network2_depth.end())-network2_depth.begin();
-        uint32_t max_depth = network2_depth[max_depth_index];
+        	uint32_t max_depth = network2_depth[max_depth_index];
 		std::cout <<"DEPTH: "<< max_depth<< " | VOL.: " << network2_volume << " | 2Q GATE COUNT: " << q2_gate_count <<"\n";
 
-		uint32_t total{0};
-        std::cout<< "\n";
+		uint32_t total = 0;
+        	std::cout<< "\n";
 		for (auto const& map : mappings) {
-			std::cout << "found mapping with " << zdd_.count_sets(map)
-			          << " mappings using " << zdd_.count_nodes(map) << " nodes.\n";
+			std::cout << "found mapping with " << zdd_.count_sets(map)<< " mappings using " << zdd_.count_nodes(map) << " nodes.\n";
 			total += zdd_.count_sets(map);
       
-            //below prints the found mappings in partition
-            std::cout << "\nfound sets: \n";
-            zdd_.print_sets(map, fmt_);
-            std::cout << "\n";
+            		//below prints the found mappings in partition
+           		std::cout << "\nfound sets: \n";
+            		zdd_.print_sets(map, fmt_);
+            		std::cout << "\n";
             
 			zdd_.deref(map);
 		}
