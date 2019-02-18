@@ -14,6 +14,11 @@
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <iterator>
+
 
 #include <tweedledum/algorithms/decomposition/barenco.hpp>
 #include <tweedledum/algorithms/synthesis/dbs.hpp>
@@ -74,11 +79,172 @@ device_t random(uint8_t m, uint8_t num_edges)
 			edges.push_back(edge);
 		}
 	}
+        
 
 	return {edges, m};
 }
 
-TEST_CASE("Paper example for ZDD mapper", "[zddmap]")
+netlist<mcst_gate> make_network_from_quil(std::string file_name){
+        //use this to transform quil to netlist
+        //note: quil must be in clifford+t representation
+        netlist<mcst_gate> new_nwk;
+        std::vector<std::string> qubits_used;
+
+        std::ifstream ckt_file(file_name);
+        if(ckt_file.is_open()){
+                std::string line;
+                while(getline(ckt_file,line)){
+                        std::istringstream buf(line);
+                        std::istream_iterator<std::string> beg(buf), end;
+                        std::vector<std::string> tokens(beg, end);
+                        if(tokens[0]=="H"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        new_nwk.add_gate(gate::hadamard,tokens[1]);
+                                }
+                                else{
+                                        qubits_used.push_back(tokens[1]);
+                                        new_nwk.add_qubit(tokens[1]);
+                                        new_nwk.add_gate(gate::hadamard,tokens[1]);
+                                }
+                        }
+                        else if(tokens[0]=="X"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        new_nwk.add_gate(gate::pauli_x,tokens[1]);
+                                }
+                                else{
+                                        qubits_used.push_back(tokens[1]);
+                                        new_nwk.add_qubit(tokens[1]);
+                                        new_nwk.add_gate(gate::pauli_x,tokens[1]);
+                                }
+                        }
+                        else if(tokens[0]=="Z"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        new_nwk.add_gate(gate::pauli_z,tokens[1]);
+                                }
+                                else{
+                                        qubits_used.push_back(tokens[1]);
+                                        new_nwk.add_qubit(tokens[1]);
+                                        new_nwk.add_gate(gate::pauli_z,tokens[1]);
+                                }
+                        }
+                        else if(tokens[0]=="T"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        new_nwk.add_gate(gate::t,tokens[1]);
+                                }
+                                else{
+                                        qubits_used.push_back(tokens[1]);
+                                        new_nwk.add_qubit(tokens[1]);
+                                        new_nwk.add_gate(gate::t,tokens[1]);
+                                }
+                        }
+                        else if(tokens[0]=="RZ(-pi/4)"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        new_nwk.add_gate(gate::t_dagger,tokens[1]);
+                                }
+                                else{
+                                        qubits_used.push_back(tokens[1]);
+                                        new_nwk.add_qubit(tokens[1]);
+                                        new_nwk.add_gate(gate::t_dagger,tokens[1]);
+                                }
+                        }
+                        else if(tokens[0]=="S"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        new_nwk.add_gate(gate::phase,tokens[1]);
+                                }
+                                else{
+                                        qubits_used.push_back(tokens[1]);
+                                        new_nwk.add_qubit(tokens[1]);
+                                        new_nwk.add_gate(gate::phase,tokens[1]);
+                                }
+                        }
+                        else if(tokens[0]=="RZ(-pi/2)"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        new_nwk.add_gate(gate::phase_dagger,tokens[1]);
+                                }
+                                else{
+                                        qubits_used.push_back(tokens[1]);
+                                        new_nwk.add_qubit(tokens[1]);
+                                        new_nwk.add_gate(gate::phase_dagger,tokens[1]);
+                                }
+                        }
+                        else if(tokens[0]=="CNOT"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        if (std::find(qubits_used.begin(), qubits_used.end(), tokens[2]) != qubits_used.end()) {
+                                                new_nwk.add_gate(gate::cx,tokens[1],tokens[2]);
+
+                                        }
+                                        else{
+                                                qubits_used.push_back(tokens[2]);
+                                                new_nwk.add_qubit(tokens[2]);
+                                                new_nwk.add_gate(gate::cx,tokens[1],tokens[2]);
+                                        }
+                    
+                                }
+                                else{
+                                        if (std::find(qubits_used.begin(), qubits_used.end(), tokens[2]) != qubits_used.end()){
+                                                qubits_used.push_back(tokens[1]);
+                                                new_nwk.add_qubit(tokens[1]);
+                                                new_nwk.add_gate(gate::cx,tokens[1],tokens[2]);
+                                        }
+                                        else{
+                                                qubits_used.push_back(tokens[1]);
+                                                qubits_used.push_back(tokens[2]);
+                                                new_nwk.add_qubit(tokens[1]);
+                                                new_nwk.add_qubit(tokens[2]);
+                                                new_nwk.add_gate(gate::cx,tokens[1],tokens[2]);
+                                        }
+
+                                }
+
+                        }
+                        else if(tokens[0]=="CZ"){
+                                if(std::find(qubits_used.begin(), qubits_used.end(), tokens[1]) != qubits_used.end()){
+                                        if (std::find(qubits_used.begin(), qubits_used.end(), tokens[2]) != qubits_used.end()) {
+                                                new_nwk.add_gate(gate::cz,tokens[1],tokens[2]);
+
+                                        }
+                                        else{
+                                                qubits_used.push_back(tokens[2]);
+                                                new_nwk.add_qubit(tokens[2]);
+                                                new_nwk.add_gate(gate::cz,tokens[1],tokens[2]);
+                                        }
+                    
+                                }
+                                else{
+                                        if (std::find(qubits_used.begin(), qubits_used.end(), tokens[2]) != qubits_used.end()){
+                                                qubits_used.push_back(tokens[1]);
+                                                new_nwk.add_qubit(tokens[1]);
+                                                new_nwk.add_gate(gate::cz,tokens[1],tokens[2]);
+                                        }
+                                        else{
+                                                qubits_used.push_back(tokens[1]);
+                                                qubits_used.push_back(tokens[2]);
+                                                new_nwk.add_qubit(tokens[1]);
+                                                new_nwk.add_qubit(tokens[2]);
+                                                new_nwk.add_gate(gate::cz,tokens[1],tokens[2]);
+                                        }
+
+                                }
+            
+                        }
+                        else{
+                                std::cout << "Gate could not be added to network. Exiting...\n";
+                                std::exit(0);
+                        }
+
+                }
+
+
+         
+
+        }
+   
+
+   
+   return new_nwk;
+}
+
+TEST_CASE("ORIGINAL Paper example for ZDD mapper", "[zddmap]")
 {
     using namespace tweedledum;
     netlist<mcst_gate> network;
@@ -91,10 +257,27 @@ TEST_CASE("Paper example for ZDD mapper", "[zddmap]")
     network.add_gate(gate::cz, 1, 2);
     network.add_gate(gate::cz, 1, 3);
 
+
+
     write_unicode(network);
 
     find_maximal_partitions(network, ring(network.num_qubits()));
 }
+
+TEST_CASE("Test reading in quil", "[zddmap]"){
+        netlist<mcst_gate> network = make_network_from_quil("../examples/quil_benchmarks/tof_5.quil");
+        network.add_qubit();
+        //write_unicode(network);
+        find_maximal_partitions(network, ring(10));
+
+
+
+
+}
+
+
+
+
 
 
 //TEST_CASE("Playing with ZDDs", "[zddmap]")
@@ -253,91 +436,93 @@ TEST_CASE("Paper example for ZDD mapper", "[zddmap]")
 // }
 
 
-TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
-{
-   using namespace tweedledum;
-   netlist<mcst_gate> network;
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
 
 
-   network.add_gate(gate::cz, 0, 1);
-   network.add_gate(gate::cz, 1, 2);
-   network.add_gate(gate::cz, 1, 3);
-
-   network.add_gate(gate::cz, 2,5);
-
-
-   network.add_gate(gate::cz, 0, 1);
-   network.add_gate(gate::cz, 1, 2);
-   network.add_gate(gate::cz, 1, 3);
-
-
-
-
+// TEST_CASE("Extend paper example #2 for ZDD mapper", "[zddmap]")
+// {
+//    using namespace tweedledum;
+//    netlist<mcst_gate> network;
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
 
 
-   write_unicode(network);
+//    network.add_gate(gate::cz, 0, 1);
+//    network.add_gate(gate::cz, 1, 2);
+//    network.add_gate(gate::cz, 1, 3);
+
+//    network.add_gate(gate::cz, 2,5);
 
 
-   find_maximal_partitions(network, ring(network.num_qubits()));
-}
-TEST_CASE("Extend paper example #3.5 for ZDD mapper", "[zddmap]")
-{
-   using namespace tweedledum;
-   netlist<mcst_gate> network;
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-   network.add_qubit();
-
-
-
-
-   network.add_gate(gate::cz, 0, 1);
-   network.add_gate(gate::cz, 1, 2);
-   network.add_gate(gate::cz, 1, 3);
-
-   network.add_gate(gate::cz, 2,5);
-
-
-   network.add_gate(gate::cz, 9, 8);
-   network.add_gate(gate::cz, 1, 5);
-   network.add_gate(gate::cz, 4, 3);
-
-   network.add_gate(gate::cz, 8, 7);
-   network.add_gate(gate::cz, 6, 8);
-   network.add_gate(gate::cz, 1, 3);
-
-   network.add_gate(gate::cz, 2,5);
-
-
-   network.add_gate(gate::cz, 0, 1);
-   network.add_gate(gate::cz, 1, 2);
-   network.add_gate(gate::cz, 1, 3);
+//    network.add_gate(gate::cz, 0, 1);
+//    network.add_gate(gate::cz, 1, 2);
+//    network.add_gate(gate::cz, 1, 3);
 
 
 
 
 
 
-   write_unicode(network);
+//    write_unicode(network);
 
 
-   find_maximal_partitions(network, ring(network.num_qubits()));
-}
+//    find_maximal_partitions(network, ring(network.num_qubits()));
+// }
+// TEST_CASE("Extend paper example #3.5 for ZDD mapper", "[zddmap]")
+// {
+//    using namespace tweedledum;
+//    netlist<mcst_gate> network;
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+//    network.add_qubit();
+
+
+
+
+//    network.add_gate(gate::cz, 0, 1);
+//    network.add_gate(gate::cz, 1, 2);
+//    network.add_gate(gate::cz, 1, 3);
+
+//    network.add_gate(gate::cz, 2,5);
+
+
+//    network.add_gate(gate::cz, 9, 8);
+//    network.add_gate(gate::cz, 1, 5);
+//    network.add_gate(gate::cz, 4, 3);
+
+//    network.add_gate(gate::cz, 8, 7);
+//    network.add_gate(gate::cz, 6, 8);
+//    network.add_gate(gate::cz, 1, 3);
+
+//    network.add_gate(gate::cz, 2,5);
+
+
+//    network.add_gate(gate::cz, 0, 1);
+//    network.add_gate(gate::cz, 1, 2);
+//    network.add_gate(gate::cz, 1, 3);
+
+
+
+
+
+
+//    write_unicode(network);
+
+
+//    find_maximal_partitions(network, ring(network.num_qubits()));
+// }
 
 // TEST_CASE("Paper example #4 for ZDD mapper", "[zddmap]")
 // {

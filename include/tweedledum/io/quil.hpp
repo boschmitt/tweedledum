@@ -79,6 +79,20 @@ void write_quil(Network const& network, std::ostream& os)
 			});
 			break;
 
+                case gate_set::cz:
+			gate.foreach_control([&](auto control) {
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
+				gate.foreach_target([&](auto target) {
+					os << fmt::format("CZ {} {}\n", control.index(), target); 
+				});
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
+			});
+			break;
+
 		case gate_set::mcx:
 			std::vector<qubit_id> controls;
 			std::vector<qubit_id> targets;

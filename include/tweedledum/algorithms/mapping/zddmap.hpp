@@ -22,6 +22,7 @@
 #include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/io/quil.hpp>
 
 
 
@@ -931,7 +932,7 @@ public:
         	}
         
        		std::vector <uint32_t> current_mapping = chosen_mapping;
-        
+                
         
         	//make new circuit here
         	using namespace tweedledum;
@@ -948,55 +949,68 @@ public:
         	ctr = 0;
         	uint32_t index_counter = 0;
         	circ_.foreach_cgate([&](auto const& n) {
-            		if (n.gate.is_double_qubit() && n.gate.operation()==gate_set::cz){
+            		if (n.gate.is_double_qubit()){
                 		//keep track and include SWAPS
                 		n.gate.foreach_control([&](auto _c) { c = _c; });
                 		n.gate.foreach_target([&](auto _t) { t = _t; });
                 		//std::cout <<std::string(1, 'a' + c)  << " " << std::string(1, 'a' + t) << "\n";
 	
-                		if(ctr == index_of_swap[index_counter]){
-					while(ctr == index_of_swap[index_counter]){
-						//insert as many swaps that are needed in a particular spot
-						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
-						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][1]),qubit_id(swapped_qubits[index_counter][0]));
-						network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
+                		if(index_of_swap.size() !=0){
+                                        //need condition above to prevent seg faults if no swaps are required for circuit
+                                        if(ctr == index_of_swap[index_counter]){
+					        while(ctr == index_of_swap[index_counter]){
+						        //insert as many swaps that are needed in a particular spot
+						        network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
+						        network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][1]),qubit_id(swapped_qubits[index_counter][0]));
+						        network2.add_gate(gate::cx,qubit_id(swapped_qubits[index_counter][0]),qubit_id(swapped_qubits[index_counter][1]));
 
-						network2_volume = network2_volume + 3;
-						network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 3;
-						network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 3;
-						q2_gate_count= q2_gate_count + 3;
+						        network2_volume = network2_volume + 3;
+						        network2_depth[swapped_qubits[index_counter][0]] = network2_depth[swapped_qubits[index_counter][0]] + 3;
+						        network2_depth[swapped_qubits[index_counter][1]] = network2_depth[swapped_qubits[index_counter][1]] + 3;
+						        q2_gate_count= q2_gate_count + 3;
 
-                	    			//adjust qubits in current mapping
-                	    			auto itr0 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][0]);
-                	    			auto itr1 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][1]);
+                	    			        //adjust qubits in current mapping
+                	    			        auto itr0 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][0]);
+                	    			        auto itr1 = std::find(current_mapping.begin(), current_mapping.end(), swapped_qubits[index_counter][1]);
 	
-                	    			uint32_t indx0 = std::distance(current_mapping.begin(),itr0);
-                	    			uint32_t indx1 = std::distance(current_mapping.begin(),itr1);
+                	    			        uint32_t indx0 = std::distance(current_mapping.begin(),itr0);
+                	    			        uint32_t indx1 = std::distance(current_mapping.begin(),itr1);
 	
-                	    			current_mapping[indx0]= swapped_qubits[index_counter][1];
-                	    			current_mapping[indx1]= swapped_qubits[index_counter][0];
+                	    			        current_mapping[indx0]= swapped_qubits[index_counter][1];
+                	    			        current_mapping[indx1]= swapped_qubits[index_counter][0];
 
-                	    			//insert gate
-                	    			network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
-						network2_volume++;
-						network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
-						network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
-						q2_gate_count++;
+                	    			        //insert gate
+                	    			        network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
+						        network2_volume++;
+						        network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
+						        network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
+						        q2_gate_count++;
 	
-                	    			index_counter++;
+                	    			        index_counter++;
 
-					}
+					        }
 
-                		}
-                		else{
-                	    		//insert gate with fixed qubits
-                	    		network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
+                		        }
+                		        else{
+                	    		        //insert gate with fixed qubits
+                	    		        network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
+					        network2_volume++;
+					        network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
+					        network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
+					        q2_gate_count++;
+	
+                		        }
+
+                                }
+                                else{
+                                        //no swaps needed for circuit b/c zero items in index_of_swap
+                                        network2.add_gate(n.gate,qubit_id(current_mapping[c]),qubit_id(current_mapping[t]));
 					network2_volume++;
 					network2_depth[current_mapping[c]]= network2_depth[current_mapping[c]]+1;
 					network2_depth[current_mapping[t]] = network2_depth[current_mapping[t]]+1;
 					q2_gate_count++;
-	
-                		}
+                                        
+                                }
                 		ctr++;
             		}
             		else{
@@ -1012,6 +1026,8 @@ public:
 		{
 			write_unicode(network2);
 		}
+
+                write_quil(network2,"fileout.quil");
         
 		uint32_t max_depth_index = std::max_element(network2_depth.begin(), network2_depth.end())-network2_depth.begin();
         	uint32_t max_depth = network2_depth[max_depth_index];
@@ -1166,7 +1182,7 @@ void find_maximal_partitions(Ntk const& circ, device_t const& arch)
 	}
 
   auto set = zdd_map.bot();
-  for (auto const& f : from) {
+for (auto const& f : from) {
     std::cout << "CHOOSE\n";
     zdd_map.print_sets(zdd_map.choose(f, 2), fmt);
     set = zdd_map.union_(set, zdd_map.choose(f, 2));
