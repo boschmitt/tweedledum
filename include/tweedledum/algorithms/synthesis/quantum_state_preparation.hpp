@@ -54,6 +54,151 @@ void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty:
         
 }
 
+std::vector<double> gauss(std::vector< std::vector<double> > A) 
+{
+    auto n = A.size();
+
+    for (auto i=0u; i<n; i++) {
+        // Search for maximum in this column
+        double maxEl = abs(A[i][i]);
+        auto maxRow = i;
+        for (auto k=i+1; k<n; k++) {
+            if (abs(A[k][i]) > maxEl) {
+                maxEl = abs(A[k][i]);
+                maxRow = k;
+            }
+        }
+
+        // Swap maximum row with current row (column by column)
+        for (auto k=i; k<n+1;k++) {
+            double tmp = A[maxRow][k];
+            A[maxRow][k] = A[i][k];
+            A[i][k] = tmp;
+        }
+
+        // Make all rows below this one 0 in current column
+        for (auto k=i+1; k<n; k++) {
+            double c = -A[k][i]/A[i][i];
+            for (int j=i; j<n+1; j++) {
+                if (i==j) {
+                    A[k][j] = 0;
+                } else {
+                    A[k][j] += c * A[i][j];
+                }
+            }
+        }
+    }
+
+    // Solve equation Ax=b for an upper triangular matrix A
+    std::vector<double> x(n);
+    for (auto i=n-1; i>=0; i--) {
+        x[i] = A[i][n]/A[i][i];
+        for (auto k=i-1;k>=0; k--) {
+            A[k][n] -= A[k][i] * x[i];
+        }
+    }
+    return x;
+}
+
+template<class Network>
+void multiplex_decomposition(Network& net, std::vector<double> mux_angles, uint32_t target_id)
+{
+    uint32_t n = mux_angles.size();
+    auto binarytogray = [](uint32_t num) { return (num>>1) ^ num;};
+    //create M matrix
+    std::vector<double> line(n+1,0);
+    std::vector< std::vector<double> > M(n,line);
+    for (auto i=0u; i<n; i++) {
+        for (auto j=0u; j<n; j++) {
+            M[i][j] = pow(-1, __builtin_popcount(i & (binarytogray(j)) ));
+        }
+    }
+    //solving n equations n unknowns
+    for (int i=0; i<n; i++) {
+        M[i][n] = mux_angles[i];
+    }
+    std::vector<double> angs(n);
+    angs = gauss(M);
+
+    //add gates to network
+    for(auto i=0; i<n;i++){
+        net.add_gate(gate_base(gate_set::rotation_y, angs[i]), target_id);
+        uint32_t ctrl = binarytogray(i) ^  ( (i==n-1) ? 0 : binarytogray(i+1) );
+        net.add_gate(gate::cx,ctrl,target_id);
+    }
+}
+
+std::vector<uint32_t> extract_angle_idxs(std::vector<uint32_t> idxvec)
+{
+    std::vector<uint32_t> out_idx;
+    auto temp=0;
+    out_idx.emplace_back(temp);
+    std::cout<<"size: "<<idxvec.size()<<std::endl;
+    for(auto i=0u;i<idxvec.size();i++)
+    {
+        if(idxvec[i]==2)
+        {
+            for(auto j=0u;j<out_idx.size();j++)
+            {
+                auto temp1 = out_idx[j] + pow(2,i);
+                out_idx.emplace_back(temp1);
+            }
+        }
+        else
+        {
+            for(auto j=0u;j<out_idx.size();j++)
+                out_idx[j] += (pow(2,i) * idxvec[i]);
+        }
+        
+        
+    }
+
+    return out_idx;
+}
+
+template<typename Network>
+void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > >
+ gates)
+{
+    auto angle_1 = std::get<1> (gates[0]);
+    auto targetid_1 = std::get<2> (gates[0]);
+    auto csize_1 = (std::get<3> (gates[0])).size();
+    if( (csize_1==0) && (targetid_1==(n-1)) )
+    {
+        if(angle_1 != 0)
+            net.add_gate(gate_base(gate_set::rotation_y, angle_1), targetid_1);
+        gates.erase(gates.begin());
+    }
+
+    for(auto i=n-2;i>=0;i--)
+    {
+        auto num_angles = pow (2, (n-i-1) );
+        std::cout<<"num angles: "<<num_angles<<std::endl;
+        std::vector<double> angles(num_angles,0);
+        for( auto [name,angle,target_id,controls]: gates)
+        { 
+            if(target_id==i)
+            {
+                auto len = n-target_id-1;
+                std::vector<uint32_t> idxs (len,2);
+                std::for_each(begin(controls), end(controls), [&idxs] (uint32_t c) {idxs[0] = 0;});
+                for(auto id : idxs)
+                    std::cout<<"idxs: "<<id<<std::endl;
+                std::cout<<"alaki\n";
+                std::vector<uint32_t> angle_idxs = extract_angle_idxs(idxs);
+                std::cout<<"alaki2\n";
+                for(auto id : angle_idxs)
+                    angles[id] = angle;
+
+            }
+        }
+        for(auto id : angles)
+            std::cout<<"angle: "<<id<<std::endl;
+        multiplex_decomposition(net, angles, i);
+    }
+    
+}
+
 /*std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>*/ void control_line_cancelling
 (std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>& in_gates, uint32_t nqubits)
 {
@@ -70,7 +215,7 @@ void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty:
         if (controls.size()>0){
             for(auto i=0u;i<controls.size();){
                 auto l = controls[i] / 2;
-                auto c_val = !(controls[i] % 2); // 0:!pos 1:!neg
+                auto c_val = (controls[i] % 2); // 0:pos 1:neg
                 if(line_values[l]==c_val){
                     std::cout<<"erase control\n";
                     controls.erase(controls.begin()+i);
@@ -114,7 +259,7 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
     
     auto c1_ones = kitty::count_ones(tt1);
     auto tt_ones = kitty::count_ones(tt);
-    if (c0_ones!=tt_ones){ // == --> identity and ignore
+    //if (c0_ones!=tt_ones){ // == --> identity and ignore
         double angle = 2*acos(sqrt(static_cast<double> (c0_ones)/tt_ones));
         //angle *= (180/3.14159265); //in degree
         //----add probability gate----
@@ -122,7 +267,7 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
         std::cout<<"c0 ones: "<<c0_ones<<"tt one: "<<tt_ones<<std::endl;
         std::cout<<"angle: "<<angle<<"control size: "<<controls.size()<<std::endl;
         
-    }
+    //}
     //-----qc of cofactors-------
     //---check state--- 
     auto c0_allone = (c0_ones==pow(2, tt0.num_vars())) ? true : false ;
@@ -132,22 +277,22 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
 
     std::vector<uint32_t> controls_new0;
     std::copy(controls.begin(), controls.end(), back_inserter(controls_new0)); 
-    auto ctrl0 = var_index*2 + 1; //negetive control: /2 ---> index %2 ---> sign
+    auto ctrl0 = var_index*2 + 0; //negetive control: /2 ---> index %2 ---> sign
     controls_new0.emplace_back(ctrl0);
     if (c0_allone){
         
         //---add H gates---
         for(auto i=0u;i<var_index;i++)
-            gates.emplace_back("H",M_PI/2,i,controls_new0);
+            gates.emplace_back("RY",M_PI/2,i,controls_new0);
         //--check one cofactor----
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 0; //negetive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 1; //negetive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
             //---add H gates---
             for(auto i=0u;i<var_index;i++)
-                gates.emplace_back("H",M_PI/2,i,controls_new1);
+                gates.emplace_back("RY",M_PI/2,i,controls_new1);
 
         }
         else if(c1_allzero){
@@ -161,12 +306,12 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
         //--check one cofactor----
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 0; //negetive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 1; //negetive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
             //---add H gates---
             for(auto i=0u;i<var_index;i++)
-                gates.emplace_back("H",M_PI/2,i,controls_new1);
+                gates.emplace_back("RY",M_PI/2,i,controls_new1);
 
         }
         else if(c1_allzero){
@@ -180,13 +325,13 @@ void general_qg_generation(std::vector<std::tuple<std::string,double,uint32_t,st
         
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 0; //negetive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 1; //negetive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
             general_qg_generation(gates,tt0,var_index-1,controls_new0);
             //---add H gates---
             for(auto i=0u;i<var_index;i++)
-                gates.emplace_back("H",M_PI/2,i,controls_new1);
+                gates.emplace_back("RY",M_PI/2,i,controls_new1);
 
         }
         else if(c1_allzero){
@@ -213,7 +358,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
             }
             else if( (controls.size()==1) && (angle==M_PI) ){
                 
-                    if(controls[0]%2 == 1){
+                    if(controls[0]%2 == 0){
                         net.add_gate(gate::pauli_x, controls[0]/2);
                         net.add_gate(gate::cx,controls[0]/2,target_id);
                         net.add_gate(gate::pauli_x, controls[0]/2);
@@ -234,7 +379,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                 net.add_gate(gate_base(gate_set::rotation_y, angle/2), target_id);
                 auto idx=0;
                 for(const auto ctrl:controls){
-                    if(ctrl%2 == 0){//negative control
+                    if(ctrl%2 == 1){//negative control
                         //net.add_gate(gate::pauli_x, ctrl/2)
                         tt_idx_set += pow(2,idx);
                     }
@@ -265,7 +410,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                 net.add_gate(gate_base(gate_set::rotation_y, M_PI/4), target_id);
                 auto idx=0;
                 for(const auto ctrl:controls){
-                    if(ctrl%2 == 0){//negative control
+                    if(ctrl%2 == 1){//negative control
                         //net.add_gate(gate::pauli_x, ctrl/2)
                         tt_idx_set += pow(2,idx);
                     }
@@ -311,9 +456,10 @@ void qsp_ownfunction(Network & net, const std::string &tt_str)
             std::cout<<(std::get<3> (gates[i])) [j] <<std::endl;
     }
 
-    qc_generation(net,gates);
+    detail::extract_multiplex_gates(net,tt_vars,gates);
     
 }
+
 template<typename Network>
 void qsp_allone_first(Network & net, const std::string &tt_str)
 {
