@@ -1027,11 +1027,17 @@ public:
 			write_unicode(network2);
 		}
 
-                write_quil(network2,"fileout.quil");
+                
         
 		uint32_t max_depth_index = std::max_element(network2_depth.begin(), network2_depth.end())-network2_depth.begin();
         	uint32_t max_depth = network2_depth[max_depth_index];
 		std::cout <<"DEPTH: "<< max_depth<< " | VOL.: " << network2_volume << " | 2Q GATE COUNT: " << q2_gate_count <<"\n";
+
+                std::string file_name = "fileout.quil";
+                write_quil(network2,file_name);
+                std::ofstream ckt_file;
+                ckt_file.open(file_name,std::ios_base::app);
+                ckt_file << "#DEPTH: "<< max_depth<< " | VOL.: " << network2_volume << " | 2Q GATE COUNT: " << q2_gate_count <<"\n";
 
 		uint32_t total = 0;
         	std::cout<< "\n";

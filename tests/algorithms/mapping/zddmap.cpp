@@ -265,10 +265,11 @@ TEST_CASE("ORIGINAL Paper example for ZDD mapper", "[zddmap]")
 }
 
 TEST_CASE("Test reading in quil", "[zddmap]"){
-        netlist<mcst_gate> network = make_network_from_quil("../examples/quil_benchmarks/tof_5.quil");
-        network.add_qubit();
+        std::string bench_name = "../examples/quil_benchmarks/tof_5.quil";
+        netlist<mcst_gate> network = make_network_from_quil(bench_name);
         //write_unicode(network);
-        find_maximal_partitions(network, ring(10));
+        std::cout << "number of qubits :" << network.num_qubits();
+        find_maximal_partitions(network, ring(network.num_qubits()));
 
 
 
