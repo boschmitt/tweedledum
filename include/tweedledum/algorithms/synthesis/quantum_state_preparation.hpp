@@ -57,7 +57,7 @@ void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty:
 std::vector<double> gauss(std::vector< std::vector<double> > A) 
 {
     auto n = A.size();
-
+    std::cout<<"m size: "<<n<<std::endl;
     for (auto i=0u; i<n; i++) {
         // Search for maximum in this column
         double maxEl = abs(A[i][i]);
@@ -88,15 +88,20 @@ std::vector<double> gauss(std::vector< std::vector<double> > A)
             }
         }
     }
-
+std::cout<<"after m manipulation\n";
     // Solve equation Ax=b for an upper triangular matrix A
-    std::vector<double> x(n);
-    for (auto i=n-1; i>=0; i--) {
+    std::vector<double> x(n,0);
+    for (int32_t i=n-1; i>=0; i--) {
+        std::cout<<"i: "<<i<<std::endl;
         x[i] = A[i][n]/A[i][i];
-        for (auto k=i-1;k>=0; k--) {
+        std::cout<<"x[i]: "<<x[i]<<"\n";
+        for (int32_t k=i-1;k>=0; k--) {
+            std::cout<<"k: "<<k<<std::endl;
             A[k][n] -= A[k][i] * x[i];
+            std::cout<<"A[k][n]: "<<A[k][n]<<"\n";
         }
     }
+    std::cout<<"after equation solve\n";
     return x;
 }
 
@@ -117,13 +122,16 @@ void multiplex_decomposition(Network& net, std::vector<double> mux_angles, uint3
     for (int i=0; i<n; i++) {
         M[i][n] = mux_angles[i];
     }
+    std::cout<<"after M\n";
     std::vector<double> angs(n);
     angs = gauss(M);
-
+    std::cout<<"after gauss\n";
     //add gates to network
     for(auto i=0; i<n;i++){
         net.add_gate(gate_base(gate_set::rotation_y, angs[i]), target_id);
-        uint32_t ctrl = binarytogray(i) ^  ( (i==n-1) ? 0 : binarytogray(i+1) );
+        uint32_t ctrl = log2(binarytogray(i) ^  ( (i==n-1) ? 0 : binarytogray(i+1) )) +1;
+        ctrl += target_id;
+        std::cout<<"control,target: "<<ctrl<<" "<<target_id<<std::endl;
         net.add_gate(gate::cx,ctrl,target_id);
     }
 }
@@ -170,7 +178,7 @@ void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple
         gates.erase(gates.begin());
     }
 
-    for(auto i=n-2;i>=0;i--)
+    for(int32_t i=n-2;i>=0;i--)
     {
         auto num_angles = pow (2, (n-i-1) );
         std::cout<<"num angles: "<<num_angles<<std::endl;
@@ -181,10 +189,12 @@ void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple
             {
                 auto len = n-target_id-1;
                 std::vector<uint32_t> idxs (len,2);
-                std::for_each(begin(controls), end(controls), [&idxs] (uint32_t c) {idxs[0] = 0;});
+                
+                std::for_each(begin(controls), end(controls), [&idxs,n] (uint32_t c) {idxs[n-1-(c/2)] = c%2;});
                 for(auto id : idxs)
                     std::cout<<"idxs: "<<id<<std::endl;
                 std::cout<<"alaki\n";
+                std::reverse(idxs.begin(),idxs.end());
                 std::vector<uint32_t> angle_idxs = extract_angle_idxs(idxs);
                 std::cout<<"alaki2\n";
                 for(auto id : angle_idxs)
@@ -448,7 +458,7 @@ void qsp_ownfunction(Network & net, const std::string &tt_str)
     general_qg_generation(gates,tt,var_idx,cs);
     //detail::control_line_cancelling(gates,tt_vars);
     for(auto i=0u;i<gates.size();i++){
-        std::cout<<"gates:\n";
+        std::cout<<"gates: "<<i<<"\n";
         std::cout<<std::get<0> (gates[i]) <<std::endl;
         std::cout<<std::get<1> (gates[i]) <<std::endl;
         std::cout<<std::get<2> (gates[i]) <<std::endl;
@@ -480,7 +490,7 @@ void qsp_allone_first(Network & net, const std::string &tt_str)
     general_qg_generation(gates,tt_new,var_idx,cs);
     detail::control_line_cancelling(gates,tt_vars);
     for(auto i=0u;i<gates.size();i++){
-        std::cout<<"gates:\n";
+        std::cout<<"gates: "<<i<<"\n";
         std::cout<<std::get<0> (gates[i]) <<std::endl;
         std::cout<<std::get<1> (gates[i]) <<std::endl;
         std::cout<<std::get<2> (gates[i]) <<std::endl;

@@ -47,9 +47,9 @@ int main(int argc, char** argv)
 	std::string ghz4 = "1000000000000001";
 	std::string ghz5 = "10000000000000000000000000000001";
 	std::string Maj3 = "11101000";
-	std::string Maj5 = "0000000100010101";
-    std::string tt_f = Maj3;	
-	std::string bench_name = "Maj3";
+	std::string Maj4 = "1110100010000000";
+    std::string tt_f = ghz3;	
+	std::string bench_name = "ghz3";
 
     netlist<mcmt_gate> net;
 	qsp_params stg;
