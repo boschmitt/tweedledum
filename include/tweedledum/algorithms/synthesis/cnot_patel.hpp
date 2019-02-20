@@ -163,6 +163,7 @@ void cnot_patel(Network& network, std::vector<qubit_id> const& qubits, Matrix co
 	auto const min_ps = params.best_partition_size ? 1u : params.partition_size;
 	auto const max_ps = params.best_partition_size ? matrix.num_rows() : params.partition_size;
 	auto const old_num_gates = network.num_gates();
+	(void)old_num_gates; /* var not used in Release mode */
 	auto best_num_gates = std::numeric_limits<uint32_t>::max();
 
 	if (params.allow_rewiring == true) {
