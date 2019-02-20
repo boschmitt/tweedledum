@@ -51,6 +51,10 @@ void write_quil(Network const& network, std::ostream& os)
 			gate.foreach_target([&](auto target) { os << fmt::format("X {}\n", target); });
 			break;
 
+                case gate_set::pauli_z:
+			gate.foreach_target([&](auto target) { os << fmt::format("Z {}\n", target); });
+			break;
+
 		case gate_set::t:
 			gate.foreach_target([&](auto target) { os << fmt::format("T {}\n", target); });
 			break;

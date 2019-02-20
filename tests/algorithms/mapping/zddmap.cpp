@@ -244,30 +244,29 @@ netlist<mcst_gate> make_network_from_quil(std::string file_name){
    return new_nwk;
 }
 
-TEST_CASE("ORIGINAL Paper example for ZDD mapper", "[zddmap]")
-{
-    using namespace tweedledum;
-    netlist<mcst_gate> network;
-    network.add_qubit();
-    network.add_qubit();
-    network.add_qubit();
-    network.add_qubit();
+// TEST_CASE("ORIGINAL Paper example for ZDD mapper", "[zddmap]")
+// {
+//     using namespace tweedledum;
+//     netlist<mcst_gate> network;
+//     network.add_qubit();
+//     network.add_qubit();
+//     network.add_qubit();
+//     network.add_qubit();
 
-    network.add_gate(gate::cz, 0, 1);
-    network.add_gate(gate::cz, 1, 2);
-    network.add_gate(gate::cz, 1, 3);
+//     network.add_gate(gate::cz, 0, 1);
+//     network.add_gate(gate::cz, 1, 2);
+//     network.add_gate(gate::cz, 1, 3);
 
 
 
-    write_unicode(network);
+//     write_unicode(network);
 
-    find_maximal_partitions(network, ring(network.num_qubits()));
-}
+//     find_maximal_partitions(network, ring(network.num_qubits()));
+// }
 
 TEST_CASE("Test reading in quil", "[zddmap]"){
-        std::string bench_name = "../examples/quil_benchmarks/tof_5.quil";
+        std::string bench_name = "../examples/quil_benchmarks/qft_4.quil";
         netlist<mcst_gate> network = make_network_from_quil(bench_name);
-        //write_unicode(network);
         std::cout << "number of qubits :" << network.num_qubits();
         find_maximal_partitions(network, ring(network.num_qubits()));
 

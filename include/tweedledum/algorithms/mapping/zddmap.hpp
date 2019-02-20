@@ -1033,7 +1033,7 @@ public:
         	uint32_t max_depth = network2_depth[max_depth_index];
 		std::cout <<"DEPTH: "<< max_depth<< " | VOL.: " << network2_volume << " | 2Q GATE COUNT: " << q2_gate_count <<"\n";
 
-                std::string file_name = "fileout.quil";
+                std::string file_name = "qft_4_zdd_mapped.quil";
                 write_quil(network2,file_name);
                 std::ofstream ckt_file;
                 ckt_file.open(file_name,std::ios_base::app);
