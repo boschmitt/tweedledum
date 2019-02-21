@@ -1,7 +1,7 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
+| Author(s): Bruno Schmitt, Kate Smith
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -51,6 +51,10 @@ void write_quil(Network const& network, std::ostream& os)
 			gate.foreach_target([&](auto target) { os << fmt::format("X {}\n", target); });
 			break;
 
+                case gate_set::pauli_z:
+			gate.foreach_target([&](auto target) { os << fmt::format("Z {}\n", target); });
+                        break;
+
 		case gate_set::t:
 			gate.foreach_target([&](auto target) { os << fmt::format("T {}\n", target); });
 			break;
@@ -78,6 +82,20 @@ void write_quil(Network const& network, std::ostream& os)
 				}
 			});
 			break;
+                
+                case gate_set::cz:
+			gate.foreach_control([&](auto control) {
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
+				gate.foreach_target([&](auto target) {
+					os << fmt::format("CZ {} {}\n", control.index(), target); 
+				});
+				if (control.is_complemented()) {
+					os << fmt::format("X {}\n", control.index());
+				}
+			});
+                        break;
 		
 		case gate_set::swap: {
 			std::vector<qubit_id> targets;
