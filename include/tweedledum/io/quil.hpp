@@ -63,6 +63,14 @@ void write_quil(Network const& network, std::ostream& os)
 			gate.foreach_target([&](auto target) { os << fmt::format("RZ(-pi/4) {}\n", target); });
 			break;
 
+                case gate_set::phase:
+			gate.foreach_target([&](auto target) { os << fmt::format("S {}\n", target); });
+			break;
+
+		case gate_set::phase_dagger:
+			gate.foreach_target([&](auto target) { os << fmt::format("RZ(-pi/2) {}\n", target); });
+			break;
+
 		case gate_set::rotation_z:
 			gate.foreach_target([&](auto target) {
 				os << fmt::format("RZ({}) {}\n", gate.rotation_angle().numeric_value(), target);
