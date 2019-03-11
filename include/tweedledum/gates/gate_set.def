@@ -33,6 +33,7 @@ GATE(t_dagger,     t,            'z', "Conjugate transpose of T")
 /* Double-qubit unitary gates */
 GATE(cx, cx, 'x', "Control Not")
 GATE(cz, cz, 'z', "Control Pauli-Z")
+GATE(swap, swap, '-', "Swap gate")
 
 /* Multiple-qubit unitary gates */
 GATE(mcx, mcx, 'x', "Multiple Control Not (aka Toffoli)")

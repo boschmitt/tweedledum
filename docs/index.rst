@@ -49,6 +49,7 @@ Welcome to tweedledum's documentation!
    :hidden:
 
    utils/angle
+   utils/device
 
 .. toctree::
    :maxdepth: 2

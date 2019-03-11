@@ -18,8 +18,8 @@ TEST_CASE("Write simple MCMT netlist into qasm", "[qasm]")
 	mcmt_netlist.add_qubit();
 	mcmt_netlist.add_qubit();
 	mcmt_netlist.add_qubit();
-	auto controls = std::vector<qubit_id>({0u, 1u});
-	auto target = std::vector<qubit_id>(1, 2u);
+	std::vector<qubit_id> controls = {qubit_id(0), qubit_id(1)};
+	std::vector<qubit_id> target = {qubit_id(2)};
 	mcmt_netlist.add_gate(gate::mcx, controls, target);
 	CHECK(mcmt_netlist.size() == 7);
 	CHECK(mcmt_netlist.num_qubits() == 3);
