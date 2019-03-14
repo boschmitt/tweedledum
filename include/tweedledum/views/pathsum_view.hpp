@@ -19,15 +19,17 @@
 
 namespace tweedledum {
 
-/*! \brief
+/*! \brief This view computes the path sums of each node of the network.
  *
- * This view computes the path sums of each node of the network. It implements the
- * network interface methods `get_pathsum`. The pathsums are computed at construction
- * and can be recomputed by calling the `update` method.
+ * It implements the network interface methods `get_pathsum`.  The pathsums are computed at
+ * construction. The network must be on basis {CX, Rz, H}
  *
  * **Required gate functions:**
  *
  * **Required network functions:**
+ * - `foreach_cgate`
+ * - `foreach_cinput`
+ * - `foreach_coutput`
  */
 template<typename Network>
 class pathsum_view : public immutable_view<Network> {
@@ -44,8 +46,31 @@ public:
 	    , pathsum_to_node_()
 	    , node_to_pathsum_(network)
 	    , num_path_vars_(network.num_qubits() + 1)
+	    , qubit_state_(this->num_qubits())
+	    , phy_virtual_map_(network.num_qubits(), 0)
 	{
-		update();
+		std::iota(phy_virtual_map_.begin(), phy_virtual_map_.end(), 0);
+		compute_pathsums();
+	}
+
+	// Pathsums can be employed to verify mappings.  Assuming that the mapping do not screw-up
+	// adding single qubit gates, we can safely ignore them and verify if the set of output path sums
+	// of the original circuit mataches the set of output path sums of the mapped circuit.
+	//
+	// The user need to pass the _initial_ physical->virtual mapping so that the path literals
+	// can be placed correctly.
+	explicit pathsum_view(Network& network, std::vector<uint32_t> phy_virtual_map)
+	    : immutable_view<Network>(network)
+	    , pathsum_to_node_()
+	    , node_to_pathsum_(network)
+	    , num_path_vars_(network.num_qubits() + 1)
+	    , qubit_state_(this->num_qubits())
+	    , phy_virtual_map_(phy_virtual_map.size(), 0)
+	{
+		for (uint32_t i = 0; i < phy_virtual_map.size(); ++i) {
+			phy_virtual_map_[phy_virtual_map[i]] = i;
+		}
+		compute_pathsums();
 	}
 
 	/*! \brief Returns the path equations of a node. */
@@ -54,88 +79,70 @@ public:
 		return node_to_pathsum_[node]->first;
 	}
 
-	void update()
+private:
+	void map_pathsum_to_node(qubit_id qid, node_type const& node, uint32_t node_index)
 	{
-		compute_pathsums();
+		const std::vector<uint32_t> node_list = {node_index};
+		auto map_element = pathsum_to_node_.emplace(
+		    std::make_pair(qubit_state_[qid], node_list));
+		if (map_element.second == false) {
+			map_element.first->second.push_back(node_index);
+		}
+		node_to_pathsum_[node] = map_element.first;
 	}
 
-private:
 	void compute_pathsums()
 	{
-		std::vector<esop_type> qubit_state(this->num_qubits());
-
-		// Initialize qubit_state with initial path literals
+		// Initialize qubit_state_ with initial path literals
 		this->foreach_cinput([&](auto& node, auto node_index) {
-			const auto path_literal = ((node_index + 1) << 1);
-			qubit_state[node_index].emplace(path_literal);
-			auto map_element = pathsum_to_node_.emplace(std::make_pair(qubit_state[node_index], std::vector<uint32_t>{node_index}));
-			node_to_pathsum_[node] = map_element.first;
-			// std::cout << fmt::format("Qubit {} : {}\n", node_index, path_literal);
+			const auto path_literal = ((phy_virtual_map_[node_index] + 1) << 1);
+			qubit_state_[node_index].emplace(path_literal);
+			map_pathsum_to_node(node_index, node, node_index);
+			// std::cout << fmt::format("Qubit {} : {} \n", node_index, path_literal);
 		});
-
 		this->foreach_cgate([&](auto const& node, auto node_index) {
 			// If is a Z rotation save the current state of the qubit
 			if (node.gate.is_z_rotation()) {
-				node.gate.foreach_target([&](auto qid) {
-					// std::cout << fmt::format("Adding Rz: {} \n", qid);
-					auto map_element = pathsum_to_node_.find(qubit_state[qid]);
-					assert(map_element != pathsum_to_node_.end());
-					node_to_pathsum_[node] = map_element;
-					map_element->second.push_back(node_index);
-				});
+				auto qid = node.gate.target();
+				auto map_element = pathsum_to_node_.find(qubit_state_[qid]);
+				assert(map_element != pathsum_to_node_.end());
+				node_to_pathsum_[node] = map_element;
+				map_element->second.push_back(node_index);
 			}
 			if (node.gate.is(gate_set::pauli_x)) {
-				node.gate.foreach_target([&](auto target_qid) {
-					// std::cout << fmt::format("X {}\n", target_qid);
-					auto search_it = qubit_state[target_qid].find(1);
-					if (search_it != qubit_state[target_qid].end()) {
-							qubit_state[target_qid].erase(search_it);
-					} else {
-						qubit_state[target_qid].emplace(1);
-					}
-					auto map_element = pathsum_to_node_.emplace(std::make_pair(qubit_state[target_qid], std::vector<uint32_t>{node_index}));
-						if (map_element.second == false) {
-							map_element.first->second.push_back(node_index);
-						}
-					node_to_pathsum_[node] = map_element.first;
-				});
+				auto target_qid = node.gate.target();
+				auto search_it = qubit_state_[target_qid].find(1);
+				if (search_it != qubit_state_[target_qid].end()) {
+					qubit_state_[target_qid].erase(search_it);
+				} else {
+					qubit_state_[target_qid].emplace(1);
+				}
+				map_pathsum_to_node(target_qid, node, node_index);
 			}
 			if (node.gate.is(gate_set::cx)) {
-				// std::cout << "cx\n";
-				node.gate.foreach_target([&](auto target_qid) {
-					// std::cout << fmt::format("{}", target_qid);
-					node.gate.foreach_control([&](auto control_qid) {
-						// std::cout << fmt::format(" : {}\n", control_qid);
-						for (auto term : qubit_state[control_qid]) {
-							auto search_it = qubit_state[target_qid].find(term);
-							if (search_it != qubit_state[target_qid].end()) {
-								qubit_state[target_qid].erase(search_it);
-								continue;
-							}
-							qubit_state[target_qid].emplace(term);
-						}
-						auto map_element = pathsum_to_node_.emplace(std::make_pair(qubit_state[target_qid], std::vector<uint32_t>{node_index}));
-						if (map_element.second == false) {
-							map_element.first->second.push_back(node_index);
-						}
-						node_to_pathsum_[node] = map_element.first;
-					});
-				});
+				auto target_qid = node.gate.target();
+				auto control_qid = node.gate.control();
+				for (auto term : qubit_state_[control_qid]) {
+					auto search_it = qubit_state_[target_qid].find(term);
+					if (search_it != qubit_state_[target_qid].end()) {
+						qubit_state_[target_qid].erase(search_it);
+						continue;
+					}
+					qubit_state_[target_qid].emplace(term);
+				}
+				map_pathsum_to_node(target_qid, node, node_index);
 			}
 			// In case of hadamard gate a new path variable
 			if (node.gate.is(gate_set::hadamard)) {
-				node.gate.foreach_target([&](auto qid) {
-					// std::cout << "New path variable\n";
-					qubit_state[qid].clear();
-					qubit_state[qid].emplace((num_path_vars_++ << 1));
-					auto map_element = pathsum_to_node_.emplace(std::make_pair(qubit_state[qid], std::vector<uint32_t>{node_index}));
-					node_to_pathsum_[node] = map_element.first;
-				});
+				auto qid = node.gate.target();
+				qubit_state_[qid].clear();
+				qubit_state_[qid].emplace((num_path_vars_++ << 1));
+				map_pathsum_to_node(qid, node, node_index);
 			}
 		});
 		this->foreach_coutput([&](auto& node, auto node_index) {
 			node.gate.foreach_target([&](auto qid) {
-				auto map_element = pathsum_to_node_.find(qubit_state[qid]);
+				auto map_element = pathsum_to_node_.find(qubit_state_[qid]);
 				assert(map_element != pathsum_to_node_.end());
 				node_to_pathsum_[node] = map_element;
 				map_element->second.push_back(node_index);
@@ -147,6 +154,8 @@ private:
 	std::unordered_map<esop_type, std::vector<uint32_t>> pathsum_to_node_;
 	node_map<std::unordered_map<esop_type, std::vector<uint32_t>>::iterator, Network> node_to_pathsum_;
 	uint32_t num_path_vars_;
+	std::vector<esop_type> qubit_state_;
+	std::vector<uint32_t> phy_virtual_map_;
 };
 
 } // namespace tweedledum
