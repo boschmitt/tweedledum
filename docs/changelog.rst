@@ -20,6 +20,7 @@ v1.0-beta [`Not yet released <https://github.com/boschmitt/tweedledum/tree/maste
 * Views:
     - Disable structural modifications to network (`immutable_view`) `#17 <https://github.com/boschmitt/tweedledum/pull/17>`_
     - View compute depth and node levels (`depth_view`) `#17 <https://github.com/boschmitt/tweedledum/pull/17>`_
+    - View compute nodes path sums (`pathsum_view`) `#36 <https://github.com/boschmitt/tweedledum/pull/36>`_
 
 v1.0-alpha [`December 17, 2018 <https://github.com/boschmitt/tweedledum/tree/v1.0-alpha>`_]
 -------------------------------------------------------------------------------------------
