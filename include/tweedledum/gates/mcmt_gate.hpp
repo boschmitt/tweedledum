@@ -99,6 +99,22 @@ public:
 		return __builtin_popcount(targets_);
 	}
 
+	qubit_id target() const
+	{
+		if (num_targets() > 1) {
+			return qid_invalid;
+		}
+		return __builtin_clz(targets_);
+	}
+
+	qubit_id control() const
+	{
+		if (!is_one_of(gate_set::cx, gate_set::cz)) {
+			return qid_invalid;
+		}
+		return qubit_id(__builtin_clz(controls_), polarity_);
+	}
+
 	bool is_control(qubit_id qid) const
 	{
 		return (controls_ & (1u << qid.index()));
