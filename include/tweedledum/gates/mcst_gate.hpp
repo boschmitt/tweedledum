@@ -96,6 +96,22 @@ public:
 		return 1u;
 	}
 
+	qubit_id target() const
+	{
+		return qid_slots_[target_];
+	}
+
+	qubit_id control() const
+	{
+		if (!is_one_of(gate_set::cx, gate_set::cz)) {
+			return qid_invalid;
+		}
+		if (target_) {
+			return qid_slots_[0];
+		}
+		return qid_slots_[1];
+	}
+
 	bool is_control(qubit_id qid) const
 	{
 		for (auto i = 0u; i < max_num_qubits; ++i) {

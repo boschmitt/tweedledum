@@ -49,15 +49,29 @@ public:
 	/*! \brief Returns the number of targets. */
 	uint32_t num_targets() const;
 
+	/*! \brief Returns the qubit id of the target qubit.
+	 *
+	 * When there is multiple targets this function
+	 * must return `invalid_qid`.
+	 */
+	qubit_id target() const;
+
+	/*! \brief Returns the qubit id of the control qubit. 
+	 *
+	 * When there is no controls or multiple controls this function
+	 * must return `invalid_qid`.
+	 */
+	qubit_id control() const;
+
 	/*! \brief Checks weather a qubit is a control for the gate */
-	auto is_control(qubit_id qid) const;
+	bool is_control(qubit_id qid) const;
 
 	/*! \brief Returns the slot in which a qubit_id is stored in the gate
 	 *
 	 * The slot of a qubit is unique within the gate and ``qubit_id`` is
 	 * a unique qubit identifier within the circuit.
 	 */
-	auto qubit_slot(qubit_id qid) const;
+	uint32_t qubit_slot(qubit_id qid) const;
 #pragma endregion
 
 #pragma region Iterators
