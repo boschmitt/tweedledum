@@ -556,14 +556,7 @@ public:
                 st_.time_new_crk = new_crk_made_sec.count();
                 st_.time_total = end_time_sec.count();
                 
-                std::vector<uint32_t> u_chosen_mapping;
-                for(auto i : chosen_mapping)
-                        u_chosen_mapping.push_back(i);
-                create_pathsum(circ_, network2, u_chosen_mapping);
-
-
-                
-                
+	       	return network2; 
 	}
 
 private:
@@ -623,75 +616,6 @@ private:
 	{
 		return zdd_.intersection(zdd_.join(from_[c], from_[t]), valid_);
 	}
-
-        void create_pathsum(netlist<mcst_gate> original_nwk, netlist<mcst_gate> new_nwk, std::vector<uint32_t>& map){
-                netlist<mcst_gate> original_nwk_cx;
-                netlist<mcst_gate> new_nwk_cx;
-                uint32_t c, t;
-                for(uint32_t i = 0; i< original_nwk.num_qubits(); i++){
-            		original_nwk_cx.add_qubit();
-                        new_nwk_cx.add_qubit();
-        	}
-                original_nwk.foreach_cgate([&](auto const& n) {
-                        if (n.gate.is_double_qubit()){
-                                n.gate.foreach_control([&](auto _c) { c = _c; });
-                	        n.gate.foreach_target([&](auto _t) { t = _t; });
-                                original_nwk_cx.add_gate(n.gate,qubit_id(c),qubit_id(t));
-                        }
-
-                });
-                new_nwk.foreach_cgate([&](auto const& n) {
-                        if (n.gate.is_double_qubit()){
-                                n.gate.foreach_control([&](auto _c) { c = _c; });
-                	        n.gate.foreach_target([&](auto _t) { t = _t; });
-                                new_nwk_cx.add_gate(n.gate,qubit_id(c),qubit_id(t));
-                        }
-
-                });
-
-	        std::vector<uint32_t> dummy(map.size(), 0);
-	        std::iota(dummy.begin(), dummy.end(), 0);
-                pathsum_view sums(original_nwk_cx, dummy);
-                pathsum_view sums2(new_nwk_cx, map);
-
-                if(ps_.verbose){
-                        std::cout << "pathsums original network: \n";
-	                sums.foreach_coutput([&](auto const& node) {
-		                auto& sum = sums.get_pathsum(node);
-		                for (auto e : sum) {
-			                std::cout << e << ' ';
-		                }
-		                std::cout << '\n';
-	                });
-
-                        std::cout << "pathsums mapped network: \n";
-	                sums2.foreach_coutput([&](auto const& node) {
-		                auto& sum2 = sums2.get_pathsum(node);
-		                for (auto e : sum2){
-			                std::cout << e << ' ';
-		                }
-		                std::cout << '\n';
-	                });
-
-                
-                }
-	        auto num_ok = 0;
-	        sums.foreach_coutput([&](auto const& node) {
-		        auto& sum = sums.get_pathsum(node);
-		        sums2.foreach_coutput([&](auto const& node) {
-			        auto& sum2 = sums2.get_pathsum(node);
-			        if (sum == sum2) {
-				        num_ok++;
-			        }
-		        });
-	        });
-	        //std::cout << "num: " << num_ok << '\n';
-	        assert(num_ok == sums.num_qubits());
-
-
-
-        }
-
 private:
 	Ntk const& circ_;
 	device const& arch_;
