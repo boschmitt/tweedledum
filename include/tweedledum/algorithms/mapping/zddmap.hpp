@@ -5,7 +5,18 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../../gates/mcst_gate.hpp"
+#include "../../io/quil.hpp"
+#include "../../io/write_unicode.hpp"
+#include "../../networks/netlist.hpp"
+#include "../../utils/dd/zdd.hpp"
+#include "../../utils/device.hpp"
+#include "../../views/pathsum_view.hpp"
+
+#include <algorithm>
+#include <chrono>
 #include <cstdint>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -16,21 +27,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <algorithm>
-#include <chrono>
-#include <ctime>
 
-#include "tweedledum/algorithms/synthesis/stg.hpp"
-#include "tweedledum/gates/mcst_gate.hpp"
-#include "tweedledum/io/write_unicode.hpp"
-#include "tweedledum/networks/netlist.hpp"
-#include "tweedledum/io/quil.hpp"
-#include "tweedledum/views/pathsum_view.hpp"
-#include "tweedledum/utils/device.hpp"
-
-
-
-#include "../../utils/dd/zdd.hpp"
 namespace tweedledum {
 
 struct find_maximal_partitions_params
