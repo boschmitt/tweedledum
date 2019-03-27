@@ -59,7 +59,7 @@ public:
 	//
 	// The user need to pass the _initial_ physical->virtual mapping so that the path literals
 	// can be placed correctly.
-	explicit pathsum_view(Network& network, std::vector<uint32_t> phy_virtual_map)
+	explicit pathsum_view(Network& network, std::vector<uint32_t> const& phy_virtual_map)
 	    : immutable_view<Network>(network)
 	    , pathsum_to_node_()
 	    , node_to_pathsum_(network)
