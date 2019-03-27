@@ -491,6 +491,12 @@ public:
 		foreach_set_rec(f, set, fn);
 	}
 
+	void sets_to_vector(node f, std::vector<std::vector<uint32_t>>* set_vector)
+	{
+		std::vector<uint32_t> set;
+		sets_to_vector_rec(f, set, set_vector);
+	}
+
 	template<class Formatter = identity_format>
 	void print_sets(node f, Formatter&& fmt = Formatter())
 	{
@@ -545,6 +551,23 @@ private:
 		}
 
 		return true;
+	}
+
+	void sets_to_vector_rec(node f, std::vector<uint32_t>& set,
+	                        std::vector<std::vector<uint32_t>>* set_vector)
+	{
+		if (f == 1) {
+			std::vector<uint32_t> single_set;
+			for (auto v : set) {
+				single_set.push_back(v);
+			}
+			set_vector->push_back(single_set);
+		} else if (f != 0) {
+			sets_to_vector_rec(nodes[f].lo, set, set_vector);
+			auto set1 = set;
+			set1.push_back(nodes[f].var);
+			sets_to_vector_rec(nodes[f].hi, set1, set_vector);
+		}
 	}
 
 public:
