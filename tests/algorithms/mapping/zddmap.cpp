@@ -10,7 +10,7 @@
 #include "tweedledum/io/read_device.hpp"
 #include "tweedledum/utils/device.hpp"
 #include <random>
-#include <tweedledum/algorithms/mapping/zddmap.hpp>
+#include <tweedledum/algorithms/mapping/zdd_map.hpp>
 #include <tweedledum/algorithms/synthesis/stg.hpp>
 #include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/io/write_unicode.hpp>

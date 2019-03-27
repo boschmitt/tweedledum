@@ -30,7 +30,7 @@
 
 namespace tweedledum {
 
-struct find_maximal_partitions_params
+struct zdd_map_params
 {
         std::string mapped_filename = "zdd_mapped.quil";
 
@@ -38,7 +38,7 @@ struct find_maximal_partitions_params
         bool very_verbose = false;
 };
 
-struct find_maximal_partitions_stats
+struct zdd_map_stats
 {
         double time_swap_layers_built = 0.0;
         double time_map_search = 0.0;
@@ -52,7 +52,7 @@ namespace detail
 template<typename Ntk>
 class find_maximal_partitions_impl {
 public:
-	find_maximal_partitions_impl(Ntk const& circ, device const& arch, find_maximal_partitions_params const& ps, find_maximal_partitions_stats& st)
+	find_maximal_partitions_impl(Ntk const& circ, device const& arch, zdd_map_params const& ps, zdd_map_stats& st)
 	    : circ_(circ)
 	    , arch_(arch)
             , ps_(ps)
@@ -392,8 +392,6 @@ public:
 
 
         	//make new circuit here
-        	using namespace tweedledum;
-
 		netlist<mcst_gate> network2;
 		uint32_t network2_volume = 0;
 		std::vector<uint32_t> network2_depth(circ_.num_qubits(),0);
@@ -555,7 +553,7 @@ public:
                 st_.time_map_search = maps_found_sec.count();
                 st_.time_new_crk = new_crk_made_sec.count();
                 st_.time_total = end_time_sec.count();
-                
+
 	       	return network2; 
 	}
 
@@ -619,8 +617,8 @@ private:
 private:
 	Ntk const& circ_;
 	device const& arch_;
-        find_maximal_partitions_params const& ps_;
-        find_maximal_partitions_stats& st_;
+        zdd_map_params const& ps_;
+        zdd_map_stats& st_;
 
 	zdd_base zdd_;
 	std::vector<zdd_base::node> from_, to_;
@@ -652,15 +650,15 @@ private:
  *
  */
 template<typename Network>
-Network zdd_map(Network& network, device const& arch, find_maximal_partitions_params const& ps = {},
-                find_maximal_partitions_stats* pst = nullptr)
+Network zdd_map(Network& network, device const& arch, zdd_map_params const& ps = {},
+                zdd_map_stats* pst = nullptr)
 {
-        find_maximal_partitions_stats st;
+	zdd_map_stats st;
 	detail::find_maximal_partitions_impl<Network> impl(network, arch, ps, st);
 	Network mapped_network = impl.run();
 	if (pst) {
-                *pst = st;
-        }
+		*pst = st;
+	}
 	return mapped_network;
 }
 
