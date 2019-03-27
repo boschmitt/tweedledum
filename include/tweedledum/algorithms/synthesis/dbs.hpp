@@ -31,7 +31,7 @@ struct dbs_params {
 
 namespace detail {
 
-auto decompose(std::vector<uint32_t>& permutation, uint8_t var)
+inline auto decompose(std::vector<uint32_t>& permutation, uint8_t var)
 {
 	std::vector<uint32_t> left(permutation.size(), 0);
 	std::vector<uint32_t> right(permutation.size(), 0);
@@ -74,7 +74,7 @@ auto decompose(std::vector<uint32_t>& permutation, uint8_t var)
 	return std::make_pair(left, right);
 }
 
-auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const& permutation)
+inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const& permutation)
 {
 	kitty::dynamic_truth_table tt(num_vars);
 	for (uint32_t row = 0; row < permutation.size(); ++row) {
