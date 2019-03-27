@@ -227,14 +227,10 @@ TEST_CASE("Test reading in quil", "[zddmap]"){
         ps.verbose = false;
         find_maximal_partitions_stats st;
         write_unicode(network);
-        find_maximal_partitions(network, arch, ps, &st); 
+        auto mapped_ntk = zdd_map(network, arch, ps, &st); 
 
         std::cout << fmt::format( "Total time = {:7.2f} secs\n", st.time_total );
         std::cout << fmt::format( "Time for map search = {:7.2f} secs\n", st.time_map_search );
-
-
-
-
 }
 
 

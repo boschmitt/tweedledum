@@ -66,7 +66,7 @@ public:
 		std::iota(edge_perm_.begin(), edge_perm_.end(), 0);
 	}
 
-	void run(){
+	auto run(){
 		auto start = std::chrono::system_clock::now(); //start of function
                 
                 uint32_t depth_weight = 0;
@@ -720,16 +720,24 @@ private:
 
 } // namespace detail
 
-template<typename Ntk>
-void find_maximal_partitions(Ntk const& circ, device const& arch, find_maximal_partitions_params const& ps = {}, find_maximal_partitions_stats* pst = nullptr )
+/*! \brief
+ *
+ * **Required gate functions:**
+ *
+ * **Required network functions:**
+ *
+ */
+template<typename Network>
+Network zdd_map(Network& network, device const& arch, find_maximal_partitions_params const& ps = {},
+                find_maximal_partitions_stats* pst = nullptr)
 {
         find_maximal_partitions_stats st;
-	detail::find_maximal_partitions_impl<Ntk> impl(circ, arch, ps, st);
-	impl.run();
-
-        if ( pst ) {
+	detail::find_maximal_partitions_impl<Network> impl(network, arch, ps, st);
+	Network mapped_network = impl.run();
+	if (pst) {
                 *pst = st;
         }
+	return mapped_network;
 }
 
 } // namespace tweedledum
