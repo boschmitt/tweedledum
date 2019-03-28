@@ -33,6 +33,19 @@ struct device {
 	    : num_vertices(num_qubits)
 	{}
 
+	/*! \brief Create a device for a path topology.
+	 *
+	 * \param num_qubits Number of qubits
+	 */
+	static device path(uint32_t num_qubits)
+	{
+		device arch(num_qubits);
+		for (uint32_t i = 1; i < num_qubits; ++i) {
+			arch.add_edge(i - 1, i);
+		}
+		return arch;
+	}
+
 	/*! \brief Create a device for a ring topology.
 	 *
 	 * \param num_qubits Number of qubits
