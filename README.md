@@ -11,7 +11,7 @@ The library is written to be scalable up to problem sizes in which quantum circu
 ones. Also, it is meant to be used both independently and alongside established tools for example
 compilers or more general and high level frameworks, e.g., IBM's QISKit, Rigetti's Forest, ProjectQ.
 
-tweedledum powers [RevKit v3](https://github.com/msoeken/cirkit/).
+tweedledum powers [RevKit v3](https://github.com/msoeken/cirkit/) and [RevKit v3.1](https://github.com/msoeken/revkit).
 
 [Read the full documentation.](http://tweedledum.readthedocs.io/en/latest/?badge=latest)
 ## Installation requirements
@@ -19,8 +19,20 @@ tweedledum powers [RevKit v3](https://github.com/msoeken/cirkit/).
 A modern compiler is required to build *tweedledum*. We are continuously
 testing with:
   * Clang 6.0.1
+  * Clang 8.0
   * GCC 7.3.0
-  * GCC 8.2.0
+  * GCC 8.3.0
+
+## Contributing
+
+We welcome contributions. Please follow these
+[guidelines](https://github.com/boschmitt/tweedledum/blob/master/CONTRIBUTING.md).
+
+We use [Github issues](https://github.com/boschmitt/tweedledum/issues) for
+tracking requests and bugs. To ask quetion, then just send me an e-mail at
+<bruno [dot] schmitt [at] epfl [dot] ch> or post it to the
+[Quantum Computing Stack Exchange](https://quantumcomputing.stackexchange.com/)
+with a 'tweedledum' tag.
 
 ## Disclaimer
 

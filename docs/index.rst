@@ -19,7 +19,7 @@ Welcome to tweedledum's documentation!
    :maxdepth: 2
    :caption: Core Componetns
 
-   core/philosophy
+   core/architecture
    core/gate_set
    core/gate
    core/network
