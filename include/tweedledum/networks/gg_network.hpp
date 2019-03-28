@@ -264,10 +264,11 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_cgate(Fn&& fn) const
+	void foreach_cgate(Fn&& fn, uint32_t start = 0) const
 	{
-		foreach_element_if(storage_->nodes.cbegin(), storage_->nodes.cend(),
-		                   [](auto const& node) { return node.gate.is_unitary_gate(); }, fn);
+		foreach_element_if(storage_->nodes.cbegin() + start, storage_->nodes.cend(),
+		                   [](auto const& node) { return node.gate.is_unitary_gate(); },
+		                   fn);
 	}
 
 	template<typename Fn>

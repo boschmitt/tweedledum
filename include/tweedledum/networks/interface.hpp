@@ -165,11 +165,13 @@ public:
 	 * - ``void(node_type const& node, uint32_t node_index)``
 	 * - ``bool(node_type const& node)``
 	 * - ``bool(node_type const& node, uint32_t node_index)``
+	 * 
+	 * The paramater ``start`` is a index to a starting point.
 	 *
 	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
 	 */
 	template<typename Fn>
-	void foreach_cgate(Fn&& fn) const;
+	void foreach_cgate(Fn&& fn, uint32_t start = 0u) const;
 
 	/*! \brief Calls ``fn`` on every node in the network.
 	 *
