@@ -41,13 +41,14 @@ public:
 
 	using esop_type = std::set<uint32_t>;
 
-	explicit pathsum_view(Network& network)
+	explicit pathsum_view(Network& network, bool ignore_single_qubit = false)
 	    : immutable_view<Network>(network)
 	    , pathsum_to_node_()
 	    , node_to_pathsum_(network)
 	    , num_path_vars_(network.num_qubits() + 1)
 	    , qubit_state_(this->num_qubits())
 	    , phy_virtual_map_(network.num_qubits(), 0)
+	    , ignore_single_qubit_(ignore_single_qubit)
 	{
 		std::iota(phy_virtual_map_.begin(), phy_virtual_map_.end(), 0);
 		compute_pathsums();
@@ -57,18 +58,20 @@ public:
 	// adding single qubit gates, we can safely ignore them and verify if the set of output path sums
 	// of the original circuit mataches the set of output path sums of the mapped circuit.
 	//
-	// The user need to pass the _initial_ physical->virtual mapping so that the path literals
+	// The user need to pass the _initial_ virtual->physical mapping so that the path literals
 	// can be placed correctly.
-	explicit pathsum_view(Network& network, std::vector<uint32_t> const& phy_virtual_map)
+	explicit pathsum_view(Network& network, std::vector<uint32_t> const& virtual_phy_map,
+	                      bool ignore_single_qubit = false)
 	    : immutable_view<Network>(network)
 	    , pathsum_to_node_()
 	    , node_to_pathsum_(network)
 	    , num_path_vars_(network.num_qubits() + 1)
 	    , qubit_state_(this->num_qubits())
-	    , phy_virtual_map_(phy_virtual_map.size(), 0)
+	    , phy_virtual_map_(network.num_qubits(), 0)
+	    , ignore_single_qubit_(ignore_single_qubit)
 	{
-		for (uint32_t i = 0; i < phy_virtual_map.size(); ++i) {
-			phy_virtual_map_[phy_virtual_map[i]] = i;
+		for (uint32_t i = 0; i < virtual_phy_map.size(); ++i) {
+			phy_virtual_map_[virtual_phy_map[i]] = i;
 		}
 		compute_pathsums();
 	}
@@ -95,21 +98,22 @@ private:
 	{
 		// Initialize qubit_state_ with initial path literals
 		this->foreach_cinput([&](auto& node, auto node_index) {
-			const auto path_literal = ((phy_virtual_map_[node_index] + 1) << 1);
-			qubit_state_[node_index].emplace(path_literal);
-			map_pathsum_to_node(node_index, node, node_index);
+			const auto qid = node.gate.target();
+			const auto path_literal = ((phy_virtual_map_.at(qid) + 1) << 1);
+			qubit_state_.at(qid).emplace(path_literal);
+			map_pathsum_to_node(qid, node, node_index);
 			// std::cout << fmt::format("Qubit {} : {} \n", node_index, path_literal);
 		});
 		this->foreach_cgate([&](auto const& node, auto node_index) {
 			// If is a Z rotation save the current state of the qubit
-			if (node.gate.is_z_rotation()) {
+			if (node.gate.is_z_rotation() && !ignore_single_qubit_) {
 				auto qid = node.gate.target();
 				auto map_element = pathsum_to_node_.find(qubit_state_[qid]);
 				assert(map_element != pathsum_to_node_.end());
 				node_to_pathsum_[node] = map_element;
 				map_element->second.push_back(node_index);
 			}
-			if (node.gate.is(gate_set::pauli_x)) {
+			if (node.gate.is(gate_set::pauli_x) && !ignore_single_qubit_) {
 				auto target_qid = node.gate.target();
 				auto search_it = qubit_state_[target_qid].find(1);
 				if (search_it != qubit_state_[target_qid].end()) {
@@ -133,7 +137,7 @@ private:
 				map_pathsum_to_node(target_qid, node, node_index);
 			}
 			// In case of hadamard gate a new path variable
-			if (node.gate.is(gate_set::hadamard)) {
+			if (node.gate.is(gate_set::hadamard) && !ignore_single_qubit_) {
 				auto qid = node.gate.target();
 				qubit_state_[qid].clear();
 				qubit_state_[qid].emplace((num_path_vars_++ << 1));
@@ -156,6 +160,7 @@ private:
 	uint32_t num_path_vars_;
 	std::vector<esop_type> qubit_state_;
 	std::vector<uint32_t> phy_virtual_map_;
+	bool ignore_single_qubit_;
 };
 
 } // namespace tweedledum
