@@ -1,5 +1,7 @@
-Network interface API
-=====================
+.. _network:
+
+Network API
+===========
 
 This page describes the interface of a quantum network data structure in *tweedledum*.
 
