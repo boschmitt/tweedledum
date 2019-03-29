@@ -141,7 +141,29 @@ struct device {
 			matrix.at(v, w) = true;
 			matrix.at(w, v) = true;
 		}
+		return matrix;
+	}
 
+	/*! \brief Returns distance matrix of coupling graph. */
+	std::vector<std::vector<uint32_t>> get_distance_matrix() const
+	{
+		std::vector<std::vector<uint32_t>> matrix(num_vertices, std::vector<uint32_t>(num_vertices, num_vertices + 1));
+		for (auto const& [v, w] : edges) {
+			matrix[v][w] = 1;
+			matrix[w][v] = 1;
+		}
+		for (auto v = 0u; v < num_vertices; ++v) {
+			matrix[v][v] = 0;
+		}
+		for (auto k = 0u; k < num_vertices; ++k) {
+			for (auto i = 0u; i < num_vertices; ++i) {
+				for (auto j = 0u; j < num_vertices; ++j) {
+					if (matrix[i][j] > matrix[i][k] + matrix[k][j]) {
+						matrix[i][j] = matrix[i][k] + matrix[k][j];
+					}
+				}
+			}
+		}
 		return matrix;
 	}
 };
