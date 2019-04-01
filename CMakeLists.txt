@@ -33,7 +33,7 @@ add_subdirectory(libs)
 # =============================================================================
 add_library(tweedledum INTERFACE)
 target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum INTERFACE easy fmt glucose kitty)
+target_link_libraries(tweedledum INTERFACE easy fmt glucose kitty rang tweedledee)
 
 # Documentation
 # =============================================================================
