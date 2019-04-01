@@ -9,12 +9,134 @@
 #include "../networks/qubit.hpp"
 
 #include <cassert>
+#include <fmt/color.h>
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <tweedledee/qasm/qasm.hpp>
+#include <tweedledee/qasm/ast/visitor.hpp>
 
 namespace tweedledum {
+#pragma region utility functions(for readability)
+void node_printer(tweedledee::qasm::ast_node const& node)
+{
+	using namespace tweedledee::qasm;
+	switch (node.kind()) {
+	case ast_node_kinds::decl_gate:
+		fmt::print(fg(fmt::color::green) | fmt::emphasis::bold, "decl_gate ");
+		fmt::print(fg(fmt::color::cyan), "{}",
+		           static_cast<decl_gate const&>(node).identifier());
+		break;
+
+	case ast_node_kinds::decl_param:
+		fmt::print(fg(fmt::color::green) | fmt::emphasis::bold, "decl_param ");
+		fmt::print(fg(fmt::color::cyan), "{}",
+		           static_cast<decl_param const&>(node).identifier());
+		break;
+
+	case ast_node_kinds::decl_register:
+		fmt::print(fg(fmt::color::green) | fmt::emphasis::bold, "decl_register ");
+		fmt::print(fg(fmt::color::cyan), "{}",
+		           static_cast<decl_register const&>(node).identifier());
+		fmt::print(fg(fmt::color::green), " '{}:{}'",
+		           static_cast<decl_register const&>(node).type() == register_type::quantum ?
+		               "Quantum" :
+		               "Classical",
+		           static_cast<decl_register const&>(node).size());
+		break;
+
+	case ast_node_kinds::expr_binary_op:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "expr_binary_op ");
+		fmt::print("{}", static_cast<expr_binary_op const&>(node).op());
+		break;
+
+	case ast_node_kinds::expr_decl_ref:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "expr_decl_ref ");
+		node_printer(*static_cast<expr_decl_ref const&>(node).declaration());
+		break;
+
+	case ast_node_kinds::expr_integer:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "expr_integer ");
+		fmt::print(fg(fmt::color::cyan), "{}",
+		           static_cast<expr_integer const&>(node).evaluate());
+		break;
+
+	case ast_node_kinds::expr_real:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "expr_real ");
+		fmt::print(fg(fmt::color::cyan), "{}", static_cast<expr_real const&>(node).value());
+		break;
+
+	case ast_node_kinds::expr_reg_idx_ref:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "expr_reg_idx_ref ");
+		break;
+
+	case ast_node_kinds::expr_unary_op:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "expr_unary_op ");
+		fmt::print(fg(fmt::color::cyan), "{}",
+		           static_cast<expr_unary_op const&>(node).name());
+		break;
+
+	case ast_node_kinds::stmt_cnot:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "stmt_cnot");
+		break;
+
+	case ast_node_kinds::stmt_gate:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "stmt_gate");
+		break;
+
+	case ast_node_kinds::stmt_unitary:
+		fmt::print(fg(fmt::terminal_color::bright_magenta) | fmt::emphasis::bold,
+		           "stmt_unitary");
+		break;
+
+	case ast_node_kinds::program:
+	default:
+		break;
+	}
+}
+
+void print_ast(std::ostream& out, const tweedledee::qasm::program& program)
+{
+	using namespace tweedledee::qasm;
+	out << "AST for :\n";
+	std::string prefix;
+	visit(program, [&](const ast_node& node, visitor_info info) {
+		if (node.kind() == ast_node_kinds::program)
+			return true;
+		else if (info == visitor_info::container_end) {
+			prefix.pop_back();
+			prefix.pop_back();
+		} else {
+			out << prefix;
+			if (info == visitor_info::container_begin)
+				prefix += "| ";
+			out << "|-";
+			node_printer(node);
+			out << '\n';
+		}
+		return true;
+	});
+}
+#pragma endregion
+
+/*! \brief Reads OPENQASM 2.0 format
+ */
+void read_qasm_from_file(std::string const& path)
+{
+	auto program_ast = tweedledee::qasm::read_from_file(path);
+	if (program_ast) {
+		print_ast(std::cout, *program_ast);
+	}
+}
 
 /*! \brief Writes network in OPENQASM 2.0 format into output stream
  *
