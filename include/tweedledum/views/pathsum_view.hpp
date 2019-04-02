@@ -10,6 +10,7 @@
 #include "../utils/node_map.hpp"
 #include "immutable_view.hpp"
 
+#include <array>
 #include <cstdint>
 #include <fmt/format.h>
 #include <iostream>
@@ -135,6 +136,14 @@ private:
 					qubit_state_[target_qid].emplace(term);
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
+			}
+			if (node.gate.is(gate_set::swap)) {
+				std::array<qubit_id, 2> targets;
+				uint32_t i = 0;
+				node.gate.foreach_target([&](auto qid) {
+					targets[i++] = qid;
+				});
+				std::swap(qubit_state_[targets[0]], qubit_state_[targets[1]]);
 			}
 			// In case of hadamard gate a new path variable
 			if (node.gate.is(gate_set::hadamard) && !ignore_single_qubit_) {

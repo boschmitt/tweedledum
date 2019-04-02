@@ -29,7 +29,7 @@ TEST_CASE("MCST gate constructor", "[mcst_gate]")
 		CHECK(h_gate.operation() == gate_set::hadamard);
 		CHECK(h_gate.num_controls() == 0u);
 		CHECK(h_gate.num_targets() == 1u);
-		CHECK(h_gate.rotation_angle() == symbolic_angles::one_half);
+		// CHECK(h_gate.rotation_angle() == angles::one_half);
 	}
 
 	SECTION("Controlled gate")
@@ -38,7 +38,7 @@ TEST_CASE("MCST gate constructor", "[mcst_gate]")
 		CHECK(cx_gate.operation() == gate_set::cx);
 		CHECK(cx_gate.num_controls() == 1u);
 		CHECK(cx_gate.num_targets() == 1u);
-		CHECK(cx_gate.rotation_angle() == symbolic_angles::one_half);
+		CHECK(cx_gate.rotation_angle() == angles::one);
 
 		// Using vectors to define a single controlled gate
 		auto controls = std::vector<qubit_id>({control0});
@@ -47,7 +47,7 @@ TEST_CASE("MCST gate constructor", "[mcst_gate]")
 		CHECK(cx_gate2.operation() == gate_set::cx);
 		CHECK(cx_gate2.num_controls() == 1u);
 		CHECK(cx_gate2.num_targets() == 1u);
-		CHECK(cx_gate2.rotation_angle() == symbolic_angles::one_half);
+		CHECK(cx_gate2.rotation_angle() == angles::one);
 	}
 
 	SECTION("Multiple controlled gate")
@@ -58,7 +58,7 @@ TEST_CASE("MCST gate constructor", "[mcst_gate]")
 		CHECK(mcx_gate.operation() == gate_set::mcx);
 		CHECK(mcx_gate.num_controls() == 2u);
 		CHECK(mcx_gate.num_targets() == 1u);
-		CHECK(mcx_gate.rotation_angle() == symbolic_angles::one_half);
+		CHECK(mcx_gate.rotation_angle() == angles::one);
 	}
 }
 
@@ -92,8 +92,8 @@ TEST_CASE("MCST gate iterators", "[mcst_gate]")
 		auto control = std::vector<qubit_id>({control0});
 		auto targets = std::vector<qubit_id>({target});
 		mcst_gate cx_gate(gate::cx, control, targets);
-		cx_gate.foreach_target([&target](auto qid) { CHECK(target == qid); });
-		cx_gate.foreach_control([&control0](auto qid) { CHECK(control0 == qid); });
+		CHECK(target == cx_gate.target());
+		CHECK(control0 == cx_gate.control());
 	}
 
 	SECTION("Multiple controlled gate")

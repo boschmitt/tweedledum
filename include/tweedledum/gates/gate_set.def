@@ -15,6 +15,7 @@ GATE(output,    undefined, '-', "Output")
 
 /* Single-qubit unitary gates */
 GATE(identity, identity, '-', "Identity")
+GATE(u3,       u3,       '-', "Parameterizable single-qubit gate")
 GATE(hadamard, hadamard, '-', "Hadamard")
 // Arbitrary rotations
 GATE(rotation_x, rotation_x, 'x', "Arbitrary rotation X")

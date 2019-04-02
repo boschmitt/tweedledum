@@ -4,12 +4,14 @@
 | Author(s): Mathias Soeken, Kate Smith
 *------------------------------------------------------------------------------------------------*/
 #include "tweedledum/algorithms/mapping/zdd_map.hpp"
+
 #include "tweedledum/gates/gate_set.hpp"
 #include "tweedledum/gates/mcst_gate.hpp"
+#include "tweedledum/gates/mcmt_gate.hpp"
+#include "tweedledum/io/write_unicode.hpp"
 #include "tweedledum/networks/gg_network.hpp"
 #include "tweedledum/utils/device.hpp"
 #include "tweedledum/views/mapping_view.hpp"
-#include "tweedledum/io/write_unicode.hpp"
 
 #include <catch.hpp>
 
@@ -55,236 +57,240 @@ bool check_map(Network const& orignal, mapping_view<Network> const& mapped)
 	return num_ok == orignal_sums.num_qubits();
 }
 
-TEST_CASE("Test reading in quil", "[zdd_map]")
+TEMPLATE_PRODUCT_TEST_CASE("Test for ZDD mapper", "[zdd_map][template]", (gg_network),
+                           (mcmt_gate, mcst_gate))
 {
-	gg_network<mcst_gate> network;
+	SECTION("Test reading in quil")
+	{
+		TestType network;
 
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	device arch = device::ring(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-}
+		device arch = device::ring(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+	}
 
-TEST_CASE("Extend paper example for ZDD mapper", "[zdd_map]")
-{
-	gg_network<mcst_gate> network;
+	SECTION("Extend paper example for ZDD mapper")
+	{
+		TestType network;
 
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
-	network.add_gate(gate::cx, 2, 3);
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
-	network.add_gate(gate::cx, 2, 3);
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 3, 2);
-	network.add_gate(gate::cx, 1, 3);
-	network.add_gate(gate::cx, 2, 3);
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 2, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 2, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 3, 2);
+		network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 2, 3);
 
-	device arch = device::ring(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-}
+		device arch = device::ring(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+	}
 
-TEST_CASE("Extend paper example #2 for ZDD mapper", "[zdd_map]")
-{
-	gg_network<mcst_gate> network;
+	SECTION("Extend paper example #2 for ZDD mapper")
+	{
+		TestType network;
 
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
-	network.add_gate(gate::cx, 2, 5);
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 2, 5);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	device arch = device::ring(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-}
+		device arch = device::ring(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+	}
 
-TEST_CASE("Extend paper example #3 for ZDD mapper", "[zdd_map]")
-{
-	gg_network<mcst_gate> network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
+	SECTION("Extend paper example #3 for ZDD mapper")
+	{
+		TestType network;
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	network.add_gate(gate::cx, 2, 3);
+		network.add_gate(gate::cx, 2, 3);
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	network.add_gate(gate::cx, 2, 3);
+		network.add_gate(gate::cx, 2, 3);
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 3, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 3, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	network.add_gate(gate::cx, 2, 3);
+		network.add_gate(gate::cx, 2, 3);
 
-	network.add_gate(gate::cx, 3, 2);
-	network.add_gate(gate::cx, 3, 1);
-	network.add_gate(gate::cx, 3, 0);
+		network.add_gate(gate::cx, 3, 2);
+		network.add_gate(gate::cx, 3, 1);
+		network.add_gate(gate::cx, 3, 0);
 
-	device arch = device::ring(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-}
+		device arch = device::ring(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+	}
 
-TEST_CASE("Extend paper example #3.5 for ZDD mapper", "[zdd_map]")
-{
-	gg_network<mcst_gate> network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
+	SECTION("Extend paper example #3.5 for ZDD mapper")
+	{
+		TestType network;
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	network.add_gate(gate::cx, 2, 5);
+		network.add_gate(gate::cx, 2, 5);
 
-	network.add_gate(gate::cx, 9, 8);
-	network.add_gate(gate::cx, 1, 5);
-	network.add_gate(gate::cx, 4, 3);
+		network.add_gate(gate::cx, 9, 8);
+		network.add_gate(gate::cx, 1, 5);
+		network.add_gate(gate::cx, 4, 3);
 
-	network.add_gate(gate::cx, 8, 7);
-	network.add_gate(gate::cx, 6, 8);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 8, 7);
+		network.add_gate(gate::cx, 6, 8);
+		network.add_gate(gate::cx, 1, 3);
 
-	network.add_gate(gate::cx, 2, 5);
+		network.add_gate(gate::cx, 2, 5);
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	device arch = device::ring(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-}
+		device arch = device::ring(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+	}
 
-TEST_CASE("Paper example #4 for ZDD mapper", "[zdd_map]")
-{
-	gg_network<mcst_gate> network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
+	SECTION("Paper example #4 for ZDD mapper")
+	{
+		TestType network;
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 1, 3);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 1, 3);
 
-	network.add_gate(gate::cx, 4, 5);
-	network.add_gate(gate::cx, 5, 6);
-	network.add_gate(gate::cx, 5, 7);
+		network.add_gate(gate::cx, 4, 5);
+		network.add_gate(gate::cx, 5, 6);
+		network.add_gate(gate::cx, 5, 7);
 
-	device arch = device::ring(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-}
+		device arch = device::ring(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+	}
 
-TEST_CASE("Test for ZDD mapper", "[zdd_map]")
-{
-	gg_network<mcst_gate> network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
+	SECTION("Test for ZDD mapper")
+	{
+		TestType network;
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
 
-	network.add_gate(gate::cx, 0, 2);
-	network.add_gate(gate::cx, 2, 1);
-	network.add_gate(gate::cx, 0, 4);
-	network.add_gate(gate::cx, 3, 0);
-	network.add_gate(gate::cx, 0, 5);
+		network.add_gate(gate::cx, 0, 2);
+		network.add_gate(gate::cx, 2, 1);
+		network.add_gate(gate::cx, 0, 4);
+		network.add_gate(gate::cx, 3, 0);
+		network.add_gate(gate::cx, 0, 5);
 
-	device arch = device::ring(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-}
+		device arch = device::ring(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+	}
 
-TEST_CASE("Test two consecutive swaps ZDD mapper", "[zdd_map]")
-{
-	gg_network<mcst_gate> network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
+	SECTION("Test two consecutive swaps ZDD mapper")
+	{
+		TestType network;
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
+		network.add_qubit();
 
-	network.add_gate(gate::cx, 0, 1);
-	network.add_gate(gate::cx, 1, 2);
-	network.add_gate(gate::cx, 2, 3);
-	network.add_gate(gate::cx, 3, 4);
-	network.add_gate(gate::cx, 0, 4);
+		network.add_gate(gate::cx, 0, 1);
+		network.add_gate(gate::cx, 1, 2);
+		network.add_gate(gate::cx, 2, 3);
+		network.add_gate(gate::cx, 3, 4);
+		network.add_gate(gate::cx, 0, 4);
 
-	device arch = device::path(network.num_qubits());
-	zdd_map_params ps;
-	ps.verbose = false;
-	zdd_map_stats st;
-	auto mapped_ntk = zdd_map(network, arch, ps, &st);
-	CHECK(check_map(network, mapped_ntk));
-        CHECK(mapped_ntk.is_partial());
+		device arch = device::path(network.num_qubits());
+		zdd_map_params ps;
+		ps.verbose = false;
+		zdd_map_stats st;
+		auto mapped_ntk = zdd_map(network, arch, ps, &st);
+		CHECK(check_map(network, mapped_ntk));
+		CHECK(mapped_ntk.is_partial());
+	}
 }

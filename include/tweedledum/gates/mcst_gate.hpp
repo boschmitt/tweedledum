@@ -139,7 +139,6 @@ public:
 	template<typename Fn>
 	void foreach_control(Fn&& fn) const
 	{
-		assert(!is_meta());
 		if (is_single_qubit()) {
 			return;
 		}
@@ -160,7 +159,6 @@ public:
 	template<typename Fn>
 	void foreach_target(Fn&& fn) const
 	{
-		// assert(!is_meta());
 		fn(qid_slots_[target_]);
 	}
 #pragma endregion
