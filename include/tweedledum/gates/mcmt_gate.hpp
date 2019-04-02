@@ -89,13 +89,11 @@ public:
 #pragma region Properties
 	uint32_t num_controls() const
 	{
-		assert(!is_meta());
 		return __builtin_popcount(controls_);
 	}
 
 	uint32_t num_targets() const
 	{
-		assert(!is_meta());
 		return __builtin_popcount(targets_);
 	}
 
@@ -140,7 +138,6 @@ public:
 	template<typename Fn>
 	void foreach_target(Fn&& fn) const
 	{
-		assert(!is_meta());
 		for (auto i = targets_, id = 0u; i; i >>= 1, ++id) {
 			if (i & 1) {
 				fn(qubit_id(id, 0));
