@@ -6,14 +6,16 @@
 #include <catch.hpp>
 #include <tweedledum/algorithms/decomposition/barenco.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
+#include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <tweedledum/networks/qubit.hpp>
 #include <vector>
 
-TEST_CASE("Decompose 3-controlled Toffoli gate", "[barenco]")
+using namespace tweedledum;
+TEMPLATE_PRODUCT_TEST_CASE("Decompose 3-controlled Toffoli gate", "[barenco][template]",
+                           (gg_network, netlist), (mcmt_gate))
 {
-	using namespace tweedledum;
-	netlist<mcmt_gate> network;
+	TestType network;
 	network.add_qubit();
 	network.add_qubit();
 	network.add_qubit();
