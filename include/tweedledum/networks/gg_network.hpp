@@ -136,8 +136,8 @@ public:
 	{
 		auto node_index = storage_->nodes.size();
 		auto& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
-		node.gate.foreach_control([&](auto& qid) { connect_node(qid, node_index); });
-		node.gate.foreach_target([&](auto& qid) { connect_node(qid, node_index); });
+		node.gate.foreach_control([&](auto qid) { connect_node(qid, node_index); });
+		node.gate.foreach_target([&](auto qid) { connect_node(qid, node_index); });
 		return node;
 	}
 
