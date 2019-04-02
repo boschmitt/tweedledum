@@ -20,7 +20,7 @@
 ########################
 
 //This is the directory where this CMakeCache.txt was created
-CMAKE_CACHEFILE_DIR:INTERNAL=/Users/mozafari/Desktop/tweedledum_5feb/tweedledum
+CMAKE_CACHEFILE_DIR:INTERNAL=/Users/mozafari/Desktop/tweedledum
 //Major version of cmake used to create the current loaded cache
 CMAKE_CACHE_MAJOR_VERSION:INTERNAL=3
 //Minor version of cmake used to create the current loaded cache
