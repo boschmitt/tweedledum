@@ -11,17 +11,17 @@
 namespace tweedledum {
 
 /* \brief Simple class to hold a qubit indentifier ``qid`` */
-class qubit_id {
+class io_id {
 public:
 
 #pragma region Types and constructors
-	explicit qubit_id() = default;
+	explicit io_id() = default;
 
-	constexpr qubit_id(uint32_t index)
+	constexpr io_id(uint32_t index)
 	    : literal_(index << 1)
 	{}
 
-	explicit qubit_id(uint32_t index, bool complemented)
+	explicit io_id(uint32_t index, bool complemented)
 	    : literal_((index << 1) | (complemented ? 1 : 0))
 	{}
 #pragma endregion
@@ -56,24 +56,24 @@ public:
 		return (literal_ >> 1);
 	}
 
-	qubit_id operator!() const
+	io_id operator!() const
 	{
-		qubit_id c_;
+		io_id c_;
 		c_.literal_ = literal_ ^ 1;
 		return c_;
 	}
 
-	bool operator<(qubit_id other) const
+	bool operator<(io_id other) const
 	{
 		return literal_ < other.literal_;
 	}
 
-	bool operator==(qubit_id other) const
+	bool operator==(io_id other) const
 	{
 		return literal_ == other.literal_;
 	}
 
-	bool operator!=(qubit_id other) const
+	bool operator!=(io_id other) const
 	{
 		return literal_ != other.literal_;
 	}
@@ -83,6 +83,6 @@ private:
 	uint32_t literal_ = std::numeric_limits<uint32_t>::max();
 };
 
-constexpr auto qid_invalid = qubit_id(std::numeric_limits<uint32_t>::max());
+constexpr auto io_invalid = io_id(std::numeric_limits<uint32_t>::max());
 
 } // namespace tweedledum

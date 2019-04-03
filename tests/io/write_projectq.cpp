@@ -11,7 +11,7 @@
 #include <tweedledum/io/write_projectq.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/networks/qubit.hpp>
+#include <tweedledum/networks/io_id.hpp>
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Write simple network into projectq", "[projectq][template]",
@@ -24,8 +24,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Write simple network into projectq", "[projectq][tem
 		auto q1 = network.add_qubit();
 		auto q2 = network.add_qubit();
 
-		std::vector<qubit_id> controls = {q0, q1};
-		std::vector<qubit_id> target = {q2};
+		std::vector<io_id> controls = {q0, q1};
+		std::vector<io_id> target = {q2};
 		network.add_gate(gate::mcx, controls, target);
 
 		CHECK(network.size() == 7);
@@ -44,8 +44,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Write simple network into projectq", "[projectq][tem
 		auto q1 = network.add_qubit();
 		auto q2 = network.add_qubit();
 
-		std::vector<qubit_id> controls = {!q0, !q1};
-		std::vector<qubit_id> target = {q2};
+		std::vector<io_id> controls = {!q0, !q1};
+		std::vector<io_id> target = {q2};
 		network.add_gate(gate::mcx, controls, target);
 
 		CHECK(network.size() == 7);

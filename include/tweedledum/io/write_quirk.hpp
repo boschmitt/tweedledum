@@ -7,7 +7,7 @@
 
 #include "../gates/gate_base.hpp"
 #include "../gates/gate_set.hpp"
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -36,7 +36,7 @@ public:
 		new_column();
 	}
 
-	void add_gate(std::string const& op, qubit_id target)
+	void add_gate(std::string const& op, io_id target)
 	{
 		if (columns_.back()[target] != "1") {
 			new_column();
@@ -44,7 +44,7 @@ public:
 		columns_.back()[target] = op;
 	}
 
-	void add_gate(std::string const& op, qubit_id control, qubit_id target)
+	void add_gate(std::string const& op, io_id control, io_id target)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -54,7 +54,7 @@ public:
 		new_column();
 	}
 
-	void add_swap(qubit_id target0, qubit_id target1)
+	void add_swap(io_id target0, io_id target1)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -64,8 +64,8 @@ public:
 		new_column();
 	}
 
-	void add_gate(std::string const& op, std::vector<qubit_id> controls,
-	              std::vector<qubit_id> targets)
+	void add_gate(std::string const& op, std::vector<io_id> controls,
+	              std::vector<io_id> targets)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -187,8 +187,8 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 			break;
 
 		case gate_set::mcx: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) { controls.push_back(control); });
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_gate("X", controls, targets);
@@ -203,15 +203,15 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 			break;
 
 		case gate_set::mcz: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) { controls.push_back(control); });
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_gate("Z", controls, targets);
 		} break;
 
 		case gate_set::swap: {
-			std::vector<qubit_id> targets;
+			std::vector<io_id> targets;
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_swap(targets.at(0), targets.at(1));
 		} break;

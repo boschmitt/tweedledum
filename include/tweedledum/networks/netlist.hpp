@@ -8,7 +8,7 @@
 #include "../gates/gate_base.hpp"
 #include "../utils/foreach.hpp"
 #include "detail/storage.hpp"
-#include "qubit.hpp"
+#include "io_id.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -41,7 +41,7 @@ public:
 private:
 	auto create_io(gate_set type_in, gate_set type_out)
 	{
-		qubit_id qid(storage_->inputs.size());
+		io_id qid(storage_->inputs.size());
 		uint32_t index = storage_->nodes.size();
 		gate_type input(gate_base(type_in), qid);
 		gate_type output(gate_base(type_out), qid);
@@ -54,27 +54,27 @@ private:
 	}
 
 public:
-	qubit_id add_qubit(std::string const& qlabel)
+	io_id add_qubit(std::string const& qlabel)
 	{
 		auto qid = create_io(gate_set::q_input, gate_set::q_output);
 		qlabels_->map(qid, qlabel);
 		return qid;
 	}
 
-	qubit_id add_qubit()
+	io_id add_qubit()
 	{
 		auto qlabel = fmt::format("q{}", storage_->inputs.size());
 		return add_qubit(qlabel);
 	}
 
-	qubit_id add_cbit(std::string const& label)
+	io_id add_cbit(std::string const& label)
 	{
 		auto qid = create_io(gate_set::c_input, gate_set::c_output);
 		qlabels_->map(qid, label);
 		return qid;
 	}
 
-	qubit_id add_cbit()
+	io_id add_cbit()
 	{
 		auto label = fmt::format("c{}", storage_->inputs.size());
 		return add_cbit(label);
@@ -109,12 +109,12 @@ public:
 		return storage_->nodes[node_ptr.index];
 	}
 
-	node_type& get_input(qubit_id qid) const
+	node_type& get_input(io_id qid) const
 	{
 		return storage_->nodes[storage_->inputs.at(qid.index())];
 	}
 
-	node_type& get_output(qubit_id qid) const
+	node_type& get_output(io_id qid) const
 	{
 		return storage_->outputs.at(qid.index());
 	}
@@ -136,26 +136,26 @@ public:
 		return storage_->nodes.emplace_back(std::forward<Args>(args)...);
 	}
 
-	node_type& add_gate(gate_base op, qubit_id target)
+	node_type& add_gate(gate_base op, io_id target)
 	{
 		return emplace_gate(gate_type(op, storage_->rewiring_map.at(target)));
 	}
 
-	node_type& add_gate(gate_base op, qubit_id control, qubit_id target)
+	node_type& add_gate(gate_base op, io_id control, io_id target)
 	{
-		const qubit_id control_(storage_->rewiring_map.at(control), control.is_complemented());
+		const io_id control_(storage_->rewiring_map.at(control), control.is_complemented());
 		return emplace_gate(gate_type(op, control_, storage_->rewiring_map.at(target)));
 	}
 
-	node_type& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets)
+	node_type& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets)
 	{
 		std::transform(controls.begin(), controls.end(), controls.begin(),
-		               [&](qubit_id qid) -> qubit_id {
-			               return qubit_id(storage_->rewiring_map.at(qid),
+		               [&](io_id qid) -> io_id {
+			               return io_id(storage_->rewiring_map.at(qid),
 			                               qid.is_complemented());
 		               });
 		std::transform(targets.begin(), targets.end(), targets.begin(),
-		               [&](qubit_id qid) -> qubit_id {
+		               [&](io_id qid) -> io_id {
 			               return storage_->rewiring_map.at(qid);
 		               });
 		return emplace_gate(gate_type(op, controls, targets));
@@ -180,11 +180,11 @@ public:
 	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
 	                    std::vector<std::string> const& qlabels_target)
 	{
-		std::vector<qubit_id> controls;
+		std::vector<io_id> controls;
 		for (auto& control : qlabels_control) {
 			controls.push_back(qlabels_->to_qid(control));
 		}
-		std::vector<qubit_id> targets;
+		std::vector<io_id> targets;
 		for (auto& target : qlabels_target) {
 			targets.push_back(qlabels_->to_qid(target));
 		}
@@ -194,23 +194,23 @@ public:
 
 #pragma region Const iterators
 	template<typename Fn>
-	qubit_id foreach_cqubit(Fn&& fn) const
+	io_id foreach_cqubit(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, qubit_id> ||
-			      std::is_invocable_r_v<bool, Fn, qubit_id> ||
+		static_assert(std::is_invocable_r_v<void, Fn, io_id> ||
+			      std::is_invocable_r_v<bool, Fn, io_id> ||
 		              std::is_invocable_r_v<void, Fn, std::string const&> || 
-			      std::is_invocable_r_v<void, Fn, qubit_id, std::string const&>);
+			      std::is_invocable_r_v<void, Fn, io_id, std::string const&>);
 		// clang-format on
-		if constexpr (std::is_invocable_r_v<bool, Fn, qubit_id>) {
+		if constexpr (std::is_invocable_r_v<bool, Fn, io_id>) {
 			for (auto qid = 0u; qid < num_qubits(); ++qid) {
-				if (!fn(qubit_id(qid))) {
+				if (!fn(io_id(qid))) {
 					return qid;
 				}
 			}
-		} else if constexpr (std::is_invocable_r_v<void, Fn, qubit_id>) {
+		} else if constexpr (std::is_invocable_r_v<void, Fn, io_id>) {
 			for (auto qid = 0u; qid < num_qubits(); ++qid) {
-				fn(qubit_id(qid));
+				fn(io_id(qid));
 			}
 		} else if constexpr (std::is_invocable_r_v<void, Fn, std::string const&>) {
 			for (auto const& qlabel : *qlabels_) {
@@ -219,10 +219,10 @@ public:
 		} else {
 			auto qid = 0u;
 			for (auto const& qlabel : *qlabels_) {
-				fn(qubit_id(qid++), qlabel);
+				fn(io_id(qid++), qlabel);
 			}
 		}
-		return qid_invalid;
+		return io_invalid;
 	}
 
 	template<typename Fn>

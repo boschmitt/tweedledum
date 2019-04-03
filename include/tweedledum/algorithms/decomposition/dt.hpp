@@ -7,7 +7,7 @@
 
 #include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
-#include "../../networks/qubit.hpp"
+#include "../../networks/io_id.hpp"
 #include "../generic/rewrite.hpp"
 
 #include <array>
@@ -18,7 +18,7 @@ namespace tweedledum {
 namespace detail {
 
 template<typename Network>
-void ccx(Network& network, std::array<qubit_id, 4> const& controls, std::vector<qubit_id> const& targets)
+void ccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
 {
 	const auto target = targets[0];
 	for (auto i = 1u; i < targets.size(); ++i) {
@@ -48,7 +48,7 @@ void ccx(Network& network, std::array<qubit_id, 4> const& controls, std::vector<
 }
 
 template<typename Network>
-void cccx(Network& network, std::array<qubit_id, 4> const& controls, std::vector<qubit_id> const& targets)
+void cccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
 {
 	const auto a = controls[0];
 	const auto b = controls[1];
@@ -56,7 +56,7 @@ void cccx(Network& network, std::array<qubit_id, 4> const& controls, std::vector
 	const auto target = targets[0];
 
 	// Find helper qubit
-	auto helper = network.foreach_cqubit([&](qubit_id qid) -> bool {
+	auto helper = network.foreach_cqubit([&](io_id qid) -> bool {
 		if (qid == a || qid == b || qid == c) {
 			return true;
 		}
@@ -68,7 +68,7 @@ void cccx(Network& network, std::array<qubit_id, 4> const& controls, std::vector
 		// will return the current qid
 		return false;
 	});
-	assert(helper != qid_invalid);
+	assert(helper != io_invalid);
 
 	for (auto i = 1u; i < targets.size(); ++i) {
 		network.add_gate(gate::cx, target, targets[i]);
@@ -124,7 +124,7 @@ void cccx(Network& network, std::array<qubit_id, 4> const& controls, std::vector
 }
 
 template<typename Network>
-void ccccx(Network& network, std::array<qubit_id, 4> const& controls, std::vector<qubit_id> const& targets)
+void ccccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
 {
 	const auto a = controls[0];
 	const auto b = controls[1];
@@ -133,7 +133,7 @@ void ccccx(Network& network, std::array<qubit_id, 4> const& controls, std::vecto
 	const auto target = targets[0];
 
 	// Find helper qubit
-	auto helper = network.foreach_cqubit([&](qubit_id qid) -> bool {
+	auto helper = network.foreach_cqubit([&](io_id qid) -> bool {
 		if (qid == a || qid == b || qid == c || qid == d) {
 			return true;
 		}
@@ -145,7 +145,7 @@ void ccccx(Network& network, std::array<qubit_id, 4> const& controls, std::vecto
 		// will return the current qid
 		return false;
 	});
-	assert(helper != qid_invalid);
+	assert(helper != io_invalid);
 
 	for (auto i = 1u; i < targets.size(); ++i) {
 		network.add_gate(gate::cx, target, targets[i]);
@@ -212,7 +212,7 @@ void ccccx(Network& network, std::array<qubit_id, 4> const& controls, std::vecto
 }
 
 template<typename Network>
-void ccz(Network& network, std::array<qubit_id, 2> const& controls, qubit_id target)
+void ccz(Network& network, std::array<io_id, 2> const& controls, io_id target)
 {
 	network.add_gate(gate::cx, controls[1].index(), target);
 	network.add_gate(controls[0].is_complemented() ? gate::t : gate::t_dagger, target);
@@ -266,9 +266,9 @@ Network dt_decomposition(Network const& src)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
 		if (gate.is(gate_set::mcx)) {
-			std::array<qubit_id, 4> controls;
+			std::array<io_id, 4> controls;
 			auto* p = controls.data();
-			std::vector<qubit_id> targets;
+			std::vector<io_id> targets;
 
 			switch (gate.num_controls()) {
 			default:
@@ -338,9 +338,9 @@ Network dt_decomposition(Network const& src)
 			return true;
 		} else if (gate.is(gate_set::mcz)) {
 			if (gate.num_controls() == 2) {
-				std::array<qubit_id, 2> controls;
+				std::array<io_id, 2> controls;
 				auto* p = controls.data();
-				std::vector<qubit_id> targets;
+				std::vector<io_id> targets;
 
 				gate.foreach_control([&](auto control) { *p++ = control; });
 				gate.foreach_target([&](auto target) { targets.push_back(target); });

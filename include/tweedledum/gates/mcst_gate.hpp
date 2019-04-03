@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 #include "gate_set.hpp"
 #include "gate_base.hpp"
 
@@ -31,18 +31,18 @@ public:
 #pragma endregion
 
 #pragma region Constructors
-	mcst_gate(gate_base const& op, qubit_id target)
+	mcst_gate(gate_base const& op, io_id target)
 	    : gate_base(op)
 	    , target_(0)
-	    , qid_slots_({target, qid_invalid, qid_invalid})
+	    , qid_slots_({target, io_invalid, io_invalid})
 	{
 		assert(is_single_qubit());
 	}
 
-	mcst_gate(gate_base const& op, qubit_id control, qubit_id target)
+	mcst_gate(gate_base const& op, io_id control, io_id target)
 	    : gate_base(op)
 	    , target_(0)
-	    , qid_slots_({target, control, qid_invalid})
+	    , qid_slots_({target, control, io_invalid})
 	{
 		assert(is_double_qubit());
 		assert(!is(gate_set::swap) && "Cannot represent SWAP with mcst.");
@@ -53,11 +53,11 @@ public:
 		}
 	}
 
-	mcst_gate(gate_base const& op, std::vector<qubit_id> const& controls,
-	          std::vector<qubit_id> const& target)
+	mcst_gate(gate_base const& op, std::vector<io_id> const& controls,
+	          std::vector<io_id> const& target)
 	    : gate_base(op)
 	    , target_(0)
-	    , qid_slots_({qid_invalid, qid_invalid, qid_invalid})
+	    , qid_slots_({io_invalid, io_invalid, io_invalid})
 	{
 		assert(!is(gate_set::swap) && "Cannot represent SWAP with mcst.");
 		assert(controls.size() == num_controls());
@@ -96,15 +96,15 @@ public:
 		return 1u;
 	}
 
-	qubit_id target() const
+	io_id target() const
 	{
 		return qid_slots_[target_];
 	}
 
-	qubit_id control() const
+	io_id control() const
 	{
 		if (!is_one_of(gate_set::cx, gate_set::cz)) {
-			return qid_invalid;
+			return io_invalid;
 		}
 		if (target_) {
 			return qid_slots_[0];
@@ -112,7 +112,7 @@ public:
 		return qid_slots_[1];
 	}
 
-	bool is_control(qubit_id qid) const
+	bool is_control(io_id qid) const
 	{
 		for (auto i = 0u; i < max_num_qubits; ++i) {
 			if (qid_slots_[i] == qid && i != target_) {
@@ -122,7 +122,7 @@ public:
 		return false;
 	}
 
-	uint32_t qubit_slot(qubit_id qid) const
+	uint32_t qubit_slot(io_id qid) const
 	{
 		for (auto i = 0u; i < qid_slots_.size(); ++i) {
 			if (qid_slots_[i].index() == qid.index()) {
@@ -143,10 +143,10 @@ public:
 			return;
 		}
 		for (auto slot = 0u; slot < max_num_qubits; ++slot) {
-			if (slot == target_ || qid_slots_[slot] == qid_invalid) {
+			if (slot == target_ || qid_slots_[slot] == io_invalid) {
 				continue;
 			}
-			if constexpr (std::is_invocable_r<bool, Fn, qubit_id>::value) {
+			if constexpr (std::is_invocable_r<bool, Fn, io_id>::value) {
 				if (!fn(qid_slots_[slot])) {
 					return;
 				}
@@ -167,7 +167,7 @@ private:
 	/*! \brief indicates the slot which holds the qid of the target. */
 	uint8_t target_;
 	/*! \brief an array which hold the qids' of the qubits this gate is acting upon */
-	std::array<qubit_id, max_num_qubits> qid_slots_;
+	std::array<io_id, max_num_qubits> qid_slots_;
 };
 
 } // namespace tweedledum

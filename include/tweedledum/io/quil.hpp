@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../gates/gate_set.hpp"
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -106,7 +106,7 @@ void write_quil(Network const& network, std::ostream& os)
                         break;
 		
 		case gate_set::swap: {
-			std::vector<qubit_id> targets;
+			std::vector<io_id> targets;
 			gate.foreach_target([&](auto target) {
 				targets.push_back(target);
 			});
@@ -116,8 +116,8 @@ void write_quil(Network const& network, std::ostream& os)
 		} break;
 
 		case gate_set::mcx: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) {
 				if (control.is_complemented()) {
 					os << fmt::format("X {}\n", control.index());

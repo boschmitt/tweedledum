@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/qubit.hpp"
+#include "../../networks/io_id.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "gray_synth.hpp"
 #include "linear_synth.hpp"
@@ -36,7 +36,7 @@ struct stg_from_exact_esop {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<qubit_id> const& qubits,
+	void operator()(Network& network, std::vector<io_id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		using exact_synthesizer = easy::esop::esop_from_tt<kitty::dynamic_truth_table,
@@ -49,16 +49,16 @@ struct stg_from_exact_esop {
 		easy::esop::helliwell_maxsat_params ps;
 		exact_synthesizer synthesizer(stats, ps);
 
-		std::vector<qubit_id> target = {qubits.back()};
+		std::vector<io_id> target = {qubits.back()};
 		const auto cubes = synthesizer.synthesize(function);
 		for (auto const& cube : cubes) {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> negations;
+			std::vector<io_id> controls;
+			std::vector<io_id> negations;
 			auto bits = cube._bits;
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (mask & 1) {
-					controls.emplace_back(qubit_id(qubits[v], !(bits & 1)));
+					controls.emplace_back(io_id(qubits[v], !(bits & 1)));
 				}
 				bits >>= 1;
 				mask >>= 1;
@@ -80,21 +80,21 @@ struct stg_from_pkrm {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<qubit_id> const& qubits,
+	void operator()(Network& network, std::vector<io_id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
-		std::vector<qubit_id> target = {qubits.back()};
+		std::vector<io_id> target = {qubits.back()};
 		for (auto const& cube : easy::esop::esop_from_optimum_pkrm(function)) {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> negations;
+			std::vector<io_id> controls;
+			std::vector<io_id> negations;
 			auto bits = cube._bits;
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (mask & 1) {
-					controls.emplace_back(qubit_id(qubits[v], !(bits & 1)));
+					controls.emplace_back(io_id(qubits[v], !(bits & 1)));
 				}
 				bits >>= 1;
 				mask >>= 1;
@@ -118,16 +118,16 @@ struct stg_from_pprm {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<qubit_id> const& qubits,
+	void operator()(Network& network, std::vector<io_id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
-		std::vector<qubit_id> target = {qubits.back()};
+		std::vector<io_id> target = {qubits.back()};
 		for (auto const& cube : easy::esop::esop_from_pprm(function)) {
 			assert(cube._bits == cube._mask); /* PPRM property */
-			std::vector<qubit_id> controls;
+			std::vector<io_id> controls;
 			auto bits = cube._bits;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (bits & 1) {
@@ -164,7 +164,7 @@ struct stg_from_spectrum {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<qubit_id> const& qubits,
+	void operator()(Network& network, std::vector<io_id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();

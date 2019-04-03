@@ -22,7 +22,7 @@ public:
 	 * \param op the operation (must be a single qubit operation).
 	 * \param target qubit identifier of the target.
 	 */
-	gate(gate_base const& op, qubit_id target);
+	gate(gate_base const& op, io_id target);
 
 	/*! \brief Construct a controlled gate
 	 *
@@ -30,7 +30,7 @@ public:
 	 * \param control qubit identifier of the control.
 	 * \param target qubit identifier of the target.
 	 */
-	gate(gate_base const& controlled_op, qubit_id control, qubit_id target);
+	gate(gate_base const& controlled_op, io_id control, io_id target);
 
 	/*! \brief Construct a gate using vectors
 	 *
@@ -38,8 +38,8 @@ public:
 	 * \param control qubit(s) identifier of the control(s).
 	 * \param targets qubit identifier of the target.
 	 */
-	gate(gate_base const& unitary_op, std::vector<qubit_id> const& controls,
-	     std::vector<qubit_id> const& targets);
+	gate(gate_base const& unitary_op, std::vector<io_id> const& controls,
+	     std::vector<io_id> const& targets);
 #pragma endregion
 
 #pragma region Properties
@@ -54,32 +54,32 @@ public:
 	 * When there is multiple targets this function
 	 * must return `invalid_qid`.
 	 */
-	qubit_id target() const;
+	io_id target() const;
 
 	/*! \brief Returns the qubit id of the control qubit. 
 	 *
 	 * When there is no controls or multiple controls this function
 	 * must return `invalid_qid`.
 	 */
-	qubit_id control() const;
+	io_id control() const;
 
 	/*! \brief Checks weather a qubit is a control for the gate */
-	bool is_control(qubit_id qid) const;
+	bool is_control(io_id qid) const;
 
-	/*! \brief Returns the slot in which a qubit_id is stored in the gate
+	/*! \brief Returns the slot in which a io_id is stored in the gate
 	 *
-	 * The slot of a qubit is unique within the gate and ``qubit_id`` is
+	 * The slot of a qubit is unique within the gate and ``io_id`` is
 	 * a unique qubit identifier within the circuit.
 	 */
-	uint32_t qubit_slot(qubit_id qid) const;
+	uint32_t qubit_slot(io_id qid) const;
 #pragma endregion
 
 #pragma region Iterators
 	/*! \brief Calls ``fn`` on every target qubit of the gate.
 	 *
 	 * The paramater ``fn`` is any callable that must have one of the following two signatures.
-	 * - ``void(qubit_id)``
-	 * - ``bool(qubit_id)``
+	 * - ``void(io_id)``
+	 * - ``bool(io_id)``
 	 *
 	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
 	 */
@@ -89,7 +89,7 @@ public:
 	/*! \brief Calls ``fn`` on every target qubit of the gate.
 	 *
 	 * The paramater ``fn`` is any callable that must have one of the following signature.
-	 * - ``void(qubit_id)``
+	 * - ``void(io_id)``
 	 */
 	template<typename Fn>
 	void foreach_target(Fn&& fn) const;

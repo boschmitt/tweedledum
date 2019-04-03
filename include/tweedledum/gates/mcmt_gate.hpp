@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 #include "gate_base.hpp"
 #include "gate_set.hpp"
 
@@ -32,7 +32,7 @@ public:
 #pragma endregion
 
 #pragma region Constructors
-	mcmt_gate(gate_base const& op, qubit_id target)
+	mcmt_gate(gate_base const& op, io_id target)
 	    : gate_base(op)
 	    , controls_(0)
 	    , polarity_(0)
@@ -43,7 +43,7 @@ public:
 		targets_ |= (1 << target);
 	}
 
-	mcmt_gate(gate_base const& op, qubit_id control, qubit_id target)
+	mcmt_gate(gate_base const& op, io_id control, io_id target)
 	    : gate_base(op)
 	    , controls_(0)
 	    , polarity_(0)
@@ -64,8 +64,8 @@ public:
 		}
 	}
 
-	mcmt_gate(gate_base const& op, std::vector<qubit_id> const& controls,
-	          std::vector<qubit_id> const& target)
+	mcmt_gate(gate_base const& op, std::vector<io_id> const& controls,
+	          std::vector<io_id> const& target)
 	    : gate_base(op)
 	    , controls_(0)
 	    , polarity_(0)
@@ -97,28 +97,28 @@ public:
 		return __builtin_popcount(targets_);
 	}
 
-	qubit_id target() const
+	io_id target() const
 	{
 		if (num_targets() > 1) {
-			return qid_invalid;
+			return io_invalid;
 		}
 		return __builtin_ctz(targets_);
 	}
 
-	qubit_id control() const
+	io_id control() const
 	{
 		if (!is_one_of(gate_set::cx, gate_set::cz)) {
-			return qid_invalid;
+			return io_invalid;
 		}
-		return qubit_id(__builtin_ctz(controls_), polarity_);
+		return io_id(__builtin_ctz(controls_), polarity_);
 	}
 
-	bool is_control(qubit_id qid) const
+	bool is_control(io_id qid) const
 	{
 		return (controls_ & (1u << qid.index()));
 	}
 
-	uint32_t qubit_slot(qubit_id qid) const
+	uint32_t qubit_slot(io_id qid) const
 	{
 		return qid.index();
 	}
@@ -130,7 +130,7 @@ public:
 	{
 		for (auto i = controls_, id = 0u, p = polarity_; i; i >>= 1, ++id, p >>= 1) {
 			if (i & 1) {
-				fn(qubit_id(id, (p & 1)));
+				fn(io_id(id, (p & 1)));
 			}
 		}
 	}
@@ -140,7 +140,7 @@ public:
 	{
 		for (auto i = targets_, id = 0u; i; i >>= 1, ++id) {
 			if (i & 1) {
-				fn(qubit_id(id, 0));
+				fn(io_id(id, 0));
 			}
 		}
 	}

@@ -10,7 +10,7 @@
 #include <tweedledum/gates/mcst_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/networks/qubit.hpp>
+#include <tweedledum/networks/io_id.hpp>
 
 using namespace tweedledum;
 

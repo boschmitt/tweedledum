@@ -48,16 +48,16 @@ public:
 #pragma endregion
 
 #pragma region I / O and ancillae qubits
-	/*! \brief Creates a labeled qubit in the network and returns its ``qubit_id``
+	/*! \brief Creates a labeled qubit in the network and returns its ``io_id``
 	 */
-	qubit_id add_qubit(std::string const& qlabel);
+	io_id add_qubit(std::string const& qlabel);
 
-	/*! \brief Creates a unlabeled qubit in the network and returns its ``qubit_id``
+	/*! \brief Creates a unlabeled qubit in the network and returns its ``io_id``
 	 * 
 	 * Since all qubits in a network must be labeled, this function will create
-	 * a generic label with the form: qN, where N is the ``qubit_id``.
+	 * a generic label with the form: qN, where N is the ``io_id``.
 	 */
-	qubit_id add_qubit();
+	io_id add_qubit();
 #pragma endregion
 
 #pragma region Structural properties
@@ -87,14 +87,14 @@ public:
 	/*! \brief Add a gate to the network. */
 	node_type& add_gate(gate_type const& gate);
 
-	/*! \brief Add an one-qubit gate to the network using qubit_id. */
-	node_type& add_gate(gate_base op, qubit_id target);
+	/*! \brief Add an one-qubit gate to the network using io_id. */
+	node_type& add_gate(gate_base op, io_id target);
 
 	/*! \brief Add a controlled single-target gate to the network using qubit_ids. */
-	node_type& add_gate(gate_base op, qubit_id control, qubit_id target);
+	node_type& add_gate(gate_base op, io_id control, io_id target);
 
 	/*! \brief Add a multiple-controlled multiple-target gate to the network using qubit_ids */
-	node_type& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets);
+	node_type& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets);
 #pragma endregion
 
 #pragma region Add gates(qlabels)

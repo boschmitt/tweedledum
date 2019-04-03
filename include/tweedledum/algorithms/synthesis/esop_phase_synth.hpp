@@ -23,12 +23,12 @@ namespace tweedledum {
  * \param function A Boolean function
  */
 template<typename Network>
-void esop_phase_synth(Network& network, std::vector<qubit_id> const& qubits,
+void esop_phase_synth(Network& network, std::vector<io_id> const& qubits,
                       kitty::dynamic_truth_table const& function)
 {
 	for (const auto& cube : easy::esop::esop_from_pprm(function)) {
-		std::vector<qubit_id> controls;
-		std::vector<qubit_id> targets;
+		std::vector<io_id> controls;
+		std::vector<io_id> targets;
 		for (auto i = 0; i < function.num_vars(); ++i) {
 			if (!cube.get_mask(i)) {
 				continue;
@@ -69,7 +69,7 @@ Network esop_phase_synth(kitty::dynamic_truth_table const& function)
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<qubit_id> qubits(num_qubits);
+	std::vector<io_id> qubits(num_qubits);
 	std::iota(qubits.begin(), qubits.end(), 0u);
 	esop_phase_synth(network, qubits, function);
 	return network;

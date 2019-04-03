@@ -17,9 +17,9 @@ TEST_CASE("MCST gate constructor", "[mcst_gate]")
 	using namespace tweedledum;
 	// Generate random qubit ids
 	std::random_device rd;
-	qubit_id target = rd();
-	qubit_id control0 = rd();
-	qubit_id control1 = rd();
+	io_id target = rd();
+	io_id control0 = rd();
+	io_id control1 = rd();
 	INFO("Target qubit id is " << target);
 	INFO("Control qubits ids are " << control0 << " and " << control1);
 
@@ -41,8 +41,8 @@ TEST_CASE("MCST gate constructor", "[mcst_gate]")
 		CHECK(cx_gate.rotation_angle() == angles::one);
 
 		// Using vectors to define a single controlled gate
-		auto controls = std::vector<qubit_id>({control0});
-		auto targets = std::vector<qubit_id>({target});
+		auto controls = std::vector<io_id>({control0});
+		auto targets = std::vector<io_id>({target});
 		mcst_gate cx_gate2(gate::cx, controls, targets);
 		CHECK(cx_gate2.operation() == gate_set::cx);
 		CHECK(cx_gate2.num_controls() == 1u);
@@ -52,8 +52,8 @@ TEST_CASE("MCST gate constructor", "[mcst_gate]")
 
 	SECTION("Multiple controlled gate")
 	{
-		auto controls = std::vector<qubit_id>({control0, control1});
-		auto targets = std::vector<qubit_id>({target});
+		auto controls = std::vector<io_id>({control0, control1});
+		auto targets = std::vector<io_id>({target});
 		mcst_gate mcx_gate(gate::mcx, controls, targets);
 		CHECK(mcx_gate.operation() == gate_set::mcx);
 		CHECK(mcx_gate.num_controls() == 2u);
@@ -67,9 +67,9 @@ TEST_CASE("MCST gate iterators", "[mcst_gate]")
 	using namespace tweedledum;
 	// Generate random qubit ids
 	std::random_device rd;
-	qubit_id target = rd();
-	qubit_id control0 = rd();
-	qubit_id control1 = rd();
+	io_id target = rd();
+	io_id control0 = rd();
+	io_id control1 = rd();
 	if (control0 > control1) {
 		std::swap(control0, control1);
 	}
@@ -89,8 +89,8 @@ TEST_CASE("MCST gate iterators", "[mcst_gate]")
 
 	SECTION("Controlled gate")
 	{
-		auto control = std::vector<qubit_id>({control0});
-		auto targets = std::vector<qubit_id>({target});
+		auto control = std::vector<io_id>({control0});
+		auto targets = std::vector<io_id>({target});
 		mcst_gate cx_gate(gate::cx, control, targets);
 		CHECK(target == cx_gate.target());
 		CHECK(control0 == cx_gate.control());
@@ -98,8 +98,8 @@ TEST_CASE("MCST gate iterators", "[mcst_gate]")
 
 	SECTION("Multiple controlled gate")
 	{
-		auto controls = std::vector<qubit_id>({control0, control1});
-		auto targets = std::vector<qubit_id>({target});
+		auto controls = std::vector<io_id>({control0, control1});
+		auto targets = std::vector<io_id>({target});
 		mcst_gate mcx_gate(gate::mcx, controls, targets);
 		mcx_gate.foreach_target([&target](auto qid) { CHECK(target == qid); });
 		auto i = 0u;

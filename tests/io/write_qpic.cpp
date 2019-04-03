@@ -11,7 +11,7 @@
 #include <tweedledum/io/write_qpic.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/networks/qubit.hpp>
+#include <tweedledum/networks/io_id.hpp>
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Write simple network into qpic", "[qpic][template]",
@@ -21,8 +21,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Write simple network into qpic", "[qpic][template]",
 	network.add_qubit();
 	network.add_qubit();
 	network.add_qubit();
-	std::vector<qubit_id> controls = {qubit_id(0), qubit_id(1)};
-	std::vector<qubit_id> target = {qubit_id(2)};
+	std::vector<io_id> controls = {io_id(0), io_id(1)};
+	std::vector<io_id> target = {io_id(2)};
 	network.add_gate(gate::mcx, controls, target);
 	CHECK(network.size() == 7);
 	CHECK(network.num_qubits() == 3);

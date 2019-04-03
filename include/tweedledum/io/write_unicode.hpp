@@ -28,7 +28,7 @@ public:
 		}
 	}
 
-	void add_gate(std::string const& op, qubit_id target)
+	void add_gate(std::string const& op, io_id target)
 	{
 		if (occupancy_[target] != 0) {
 			new_column();
@@ -40,7 +40,7 @@ public:
 		lines_[(3 * target) + 2] += "└───┘";
 	}
 
-	void add_gate(std::string const& op, qubit_id control, qubit_id target)
+	void add_gate(std::string const& op, io_id control, io_id target)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -67,7 +67,7 @@ public:
 		new_column();
 	}
 
-	void add_swap(qubit_id q0, qubit_id q1)
+	void add_swap(io_id q0, io_id q1)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -94,8 +94,8 @@ public:
 		new_column();
 	}
 
-	void add_gate(std::string const& op, std::vector<qubit_id> controls,
-	              std::vector<qubit_id> targets)
+	void add_gate(std::string const& op, std::vector<io_id> controls,
+	              std::vector<io_id> targets)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -176,13 +176,13 @@ public:
 	    : lines_(num_qubits, "―")
 	{ }
 
-	void add_gate(std::string const& op, qubit_id target)
+	void add_gate(std::string const& op, io_id target)
 	{
 		lines_[target] += op == "X" ? "⊕" : op;
 		new_column();
 	}
 
-	void add_gate(std::string const& op, qubit_id control, qubit_id target)
+	void add_gate(std::string const& op, io_id control, io_id target)
 	{
 		if (control.is_complemented()) {
 			lines_[control] += "○";
@@ -193,15 +193,15 @@ public:
 		new_column();
 	}
 
-	void add_swap(qubit_id q0, qubit_id q1)
+	void add_swap(io_id q0, io_id q1)
 	{
 		lines_[q0] += "╳";
 		lines_[q1] += "╳";
 		new_column();
 	}
 
-	void add_gate(std::string const& op, std::vector<qubit_id> controls,
-	              std::vector<qubit_id> targets)
+	void add_gate(std::string const& op, std::vector<io_id> controls,
+	              std::vector<io_id> targets)
 	{
 		for (auto qid : controls) {
 			if (qid.is_complemented()) {
@@ -297,7 +297,7 @@ auto to_unicode_str(Network const& network, Builder builder)
 			break;
 
 		case gate_set::swap: {
-			std::vector<qubit_id> qids;
+			std::vector<io_id> qids;
 			gate.foreach_target([&](auto qid) {
 				qids.push_back(qid);
 			});
@@ -314,8 +314,8 @@ auto to_unicode_str(Network const& network, Builder builder)
 			break;
 
 		case gate_set::mcx: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) { controls.push_back(control); });
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_gate("X", controls, targets);
@@ -330,8 +330,8 @@ auto to_unicode_str(Network const& network, Builder builder)
 			break;
 
 		case gate_set::mcz: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) { controls.push_back(control); });
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_gate("Z", controls, targets);

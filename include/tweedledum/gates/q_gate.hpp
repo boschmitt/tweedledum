@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 #include "gate_base.hpp"
 #include "gate_set.hpp"
 
@@ -32,26 +32,26 @@ public:
 #pragma endregion
 
 #pragma region Constructors
-	q_gate(gate_base const& op, qubit_id target)
+	q_gate(gate_base const& op, io_id target)
 	    : gate_base(op)
 	    , target0_(0)
 	    , target1_(std::numeric_limits<uint8_t>::max())
 	    , control0_(std::numeric_limits<uint8_t>::max())
 	    , control1_(std::numeric_limits<uint8_t>::max())
-	    , qids_({target, qid_invalid, qid_invalid})
+	    , qids_({target, io_invalid, io_invalid})
 	{
 		assert(is_single_qubit());
 	}
 
 	// When dealing with CX and CZ q0 is the control and q1 the target
 	// in case of swaps they are both targets
-	q_gate(gate_base const& op, qubit_id q0, qubit_id q1)
+	q_gate(gate_base const& op, io_id q0, io_id q1)
 	    : gate_base(op)
 	    , target0_(0)
 	    , target1_(std::numeric_limits<uint8_t>::max())
 	    , control0_(1)
 	    , control1_(std::numeric_limits<uint8_t>::max())
-	    , qids_({q1, q0, qid_invalid})
+	    , qids_({q1, q0, io_invalid})
 	{
 		assert(is_double_qubit());
 		assert(q0 != q1); 
@@ -64,14 +64,14 @@ public:
 		}
 	}
 
-	q_gate(gate_base const& op, std::vector<qubit_id> const& controls,
-	       std::vector<qubit_id> const& target)
+	q_gate(gate_base const& op, std::vector<io_id> const& controls,
+	       std::vector<io_id> const& target)
 	    : gate_base(op)
 	    , target0_(0)
 	    , target1_(std::numeric_limits<uint8_t>::max())
 	    , control0_(std::numeric_limits<uint8_t>::max())
 	    , control1_(std::numeric_limits<uint8_t>::max())
-	    , qids_({qid_invalid, qid_invalid, qid_invalid})
+	    , qids_({io_invalid, io_invalid, io_invalid})
 	{
 		assert(controls.size() == num_controls());
 		assert(target.size() == 1u);
@@ -125,28 +125,28 @@ public:
 		return 1u;
 	}
 
-	qubit_id target() const
+	io_id target() const
 	{
 		if (!is(gate_set::swap)) {
-			return qid_invalid;
+			return io_invalid;
 		}
 		return qid_slots_[target0_];
 	}
 
-	qubit_id control() const
+	io_id control() const
 	{
 		if (!is_one_of(gate_set::cx, gate_set::cz)) {
-			return qid_invalid;
+			return io_invalid;
 		}
 		return qid_slots_[control0_];
 	}
 
-	bool is_control(qubit_id qid) const
+	bool is_control(io_id qid) const
 	{
 		return (qids_[control0_] == qid || qids_[control1_] == qid);
 	}
 
-	uint32_t qubit_slot(qubit_id qid) const
+	uint32_t qubit_slot(io_id qid) const
 	{
 		for (auto i = 0u; i < qids_.size(); ++i) {
 			if (qids_[i].index() == qid.index()) {
@@ -188,7 +188,7 @@ private:
 	uint8_t control0_;
 	uint8_t control1_;
 	/*! \brief an array which hold the qids' of the qubits this gate is acting upon */
-	std::array<qubit_id, max_num_qubits> qids_;
+	std::array<io_id, max_num_qubits> qids_;
 };
 
 } // namespace tweedledum

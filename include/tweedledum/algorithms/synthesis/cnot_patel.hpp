@@ -7,7 +7,7 @@
 
 #include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
-#include "../../networks/qubit.hpp"
+#include "../../networks/io_id.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
 
@@ -27,7 +27,7 @@ class cnot_patel_ftor {
 	using qubit_pair_type = std::pair<uint32_t, uint32_t>;
 
 public:
-	cnot_patel_ftor(network_type& network, std::vector<qubit_id> const& qubits,
+	cnot_patel_ftor(network_type& network, std::vector<io_id> const& qubits,
 	                matrix_type const& matrix, uint32_t partition_size)
 	    : network_(network)
 	    , qubits_(qubits)
@@ -113,7 +113,7 @@ private:
 
 private:
 	network_type& network_;
-	std::vector<qubit_id> qubits_;
+	std::vector<io_id> qubits_;
 	matrix_type matrix_;
 	uint32_t partition_size_;
 };
@@ -143,7 +143,7 @@ struct cnot_patel_params {
  *                See `cnot_patel_params` for details.
  */
 template<class Network, class Matrix>
-void cnot_patel(Network& network, std::vector<qubit_id> const& qubits, Matrix const& matrix,
+void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const& matrix,
                 cnot_patel_params params = {})
 {
 	assert(network.num_qubits() >= qubits.size());
@@ -259,7 +259,7 @@ Network cnot_patel(Matrix const& matrix, cnot_patel_params params = {})
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<qubit_id> qubits(num_qubits);
+	std::vector<io_id> qubits(num_qubits);
 	std::iota(qubits.begin(), qubits.end(), 0u);
 	cnot_patel(network, qubits, matrix, params);
 	return network;

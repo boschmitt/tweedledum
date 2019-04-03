@@ -84,7 +84,7 @@ public:
 	}
 
 private:
-	void map_pathsum_to_node(qubit_id qid, node_type const& node, uint32_t node_index)
+	void map_pathsum_to_node(io_id qid, node_type const& node, uint32_t node_index)
 	{
 		const std::vector<uint32_t> node_list = {node_index};
 		auto map_element = pathsum_to_node_.emplace(
@@ -138,7 +138,7 @@ private:
 				map_pathsum_to_node(target_qid, node, node_index);
 			}
 			if (node.gate.is(gate_set::swap)) {
-				std::array<qubit_id, 2> targets;
+				std::array<io_id, 2> targets;
 				uint32_t i = 0;
 				node.gate.foreach_target([&](auto qid) {
 					targets[i++] = qid;
