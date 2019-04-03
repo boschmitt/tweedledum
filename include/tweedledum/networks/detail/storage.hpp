@@ -153,15 +153,18 @@ struct uniform_node {
 template<typename NodeType>
 struct storage {
 	storage()
+	    : num_qubits(0)
 	{
 		nodes.reserve(1024u);
 	}
 
 	storage(uint32_t size)
+	    : num_qubits(0)
 	{
 		nodes.reserve(size);
 	}
 
+	uint32_t num_qubits;
 	std::vector<uint32_t> inputs;
 	std::vector<NodeType> nodes;
 	std::vector<NodeType> outputs;

@@ -58,12 +58,13 @@ public:
 	{
 		auto qid = create_io(gate_set::q_input, gate_set::q_output);
 		labels_->map(qid, qlabel);
+		storage_->num_qubits += 1;
 		return qid;
 	}
 
 	io_id add_qubit()
 	{
-		auto qlabel = fmt::format("q{}", storage_->inputs.size());
+		auto qlabel = fmt::format("q{}", num_qubits());
 		return add_qubit(qlabel);
 	}
 
@@ -76,7 +77,7 @@ public:
 
 	io_id add_cbit()
 	{
-		auto label = fmt::format("c{}", storage_->inputs.size());
+		auto label = fmt::format("c{}", num_cbits());
 		return add_cbit(label);
 	}
 #pragma endregion
@@ -89,12 +90,12 @@ public:
 
 	uint32_t num_qubits() const
 	{
-		return (storage_->inputs.size());
+		return (storage_->num_qubits);
 	}
 
 	uint32_t num_cbits() const
 	{
-		return (storage_->inputs.size());
+		return (storage_->inputs.size() - num_qubits());
 	}
 
 	uint32_t num_gates() const
