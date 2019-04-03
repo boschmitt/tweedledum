@@ -54,10 +54,21 @@ public:
 
 	/*! \brief Creates a unlabeled qubit in the network and returns its ``io_id``
 	 * 
-	 * Since all qubits in a network must be labeled, this function will create
+	 * Since all I/Os in a network must be labeled, this function will create
 	 * a generic label with the form: qN, where N is the ``io_id``.
 	 */
 	io_id add_qubit();
+
+	/*! \brief Creates a labeled cbit (classical bit) in the network and returns its ``io_id``
+	 */
+	io_id add_cbit(std::string const& label);
+
+	/*! \brief Creates a unlabeled cbit (classical bit) in the network and returns its ``io_id``
+	 * 
+	 * Since all I/Os in a network must be labeled, this function will create
+	 * a generic label with the form: cN, where N is the ``io_id``.
+	 */
+	io_id add_cbit()
 #pragma endregion
 
 #pragma region Structural properties
@@ -66,6 +77,9 @@ public:
 
 	/*! \brief Returns the number of qubits. */
 	uint32_t num_qubits() const;
+
+	/*! \brief Returns the number of classical bits. */
+	uint32_t num_cbits() const;
 
 	/*! \brief Returns the number of gates, i.e., nodes that hold unitary operations */
 	uint32_t num_gates() const;
