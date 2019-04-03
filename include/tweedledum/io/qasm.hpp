@@ -26,7 +26,7 @@ namespace tweedledum {
  * - `op`
  * 
  * **Required network functions:**
- * - `foreach_cnode`
+ * - `foreach_node`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -41,7 +41,7 @@ void write_qasm(Network const& network, std::ostream& os)
 	os << fmt::format("qreg q[{}];\n", network.num_qubits());
 	os << fmt::format("creg c[{}];\n", network.num_qubits());
 
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
@@ -180,7 +180,7 @@ void write_qasm(Network const& network, std::ostream& os)
  * 
  * **Required network functions:**
  * - `num_qubits`
- * - `foreach_cnode`
+ * - `foreach_node`
  *
  * \param network A quantum network
  * \param filename Filename

@@ -25,7 +25,7 @@ namespace tweedledum {
  * **Required network functions:**
  * - `clear_visited`
  * - `foreach_child`
- * - `foreach_coutput`
+ * - `foreach_output`
  * - `get_node`
  * - `set_visited`
  * - `visited`
@@ -91,7 +91,7 @@ private:
 	void compute_levels()
 	{
 		depth_ = 0;
-		this->foreach_coutput([&](auto const& node) {
+		this->foreach_output([&](auto const& node) {
 			depth_ = std::max(depth_, compute_levels(node));
 		});
 	}

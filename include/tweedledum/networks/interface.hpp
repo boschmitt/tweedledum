@@ -152,7 +152,7 @@ public:
 	 * - ``void(uint32_t qid, string const& qlabel)``
 	 */
 	template<typename Fn>
-	void foreach_cqubit(Fn&& fn) const;
+	void foreach_qubit(Fn&& fn) const;
 
 	/*! \brief Calls ``fn`` on every input node in the network.
 	 *
@@ -161,7 +161,7 @@ public:
 	 * - ``void(node_type const& node, uint32_t node_index)``
 	 */
 	template<typename Fn>
-	void foreach_cinput(Fn&& fn) const;
+	void foreach_input(Fn&& fn) const;
 
 	/*! \brief Calls ``fn`` on every output node in the network.
 	 *
@@ -170,7 +170,7 @@ public:
 	 * - ``void(node_type const& node, uint32_t node_index)``
 	 */
 	template<typename Fn>
-	void foreach_coutput(Fn&& fn) cons;
+	void foreach_output(Fn&& fn) cons;
 
 	/*! \brief Calls ``fn`` on every unitrary gate node in the network.
 	 *
@@ -185,7 +185,7 @@ public:
 	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
 	 */
 	template<typename Fn>
-	void foreach_cgate(Fn&& fn, uint32_t start = 0u) const;
+	void foreach_gate(Fn&& fn, uint32_t start = 0u) const;
 
 	/*! \brief Calls ``fn`` on every node in the network.
 	 *
@@ -198,7 +198,7 @@ public:
 	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
 	 */
 	template<typename Fn>
-	void foreach_cnode(Fn&& fn) const;
+	void foreach_node(Fn&& fn) const;
 #pragma endregion
 
 #pragma region Const node iterators

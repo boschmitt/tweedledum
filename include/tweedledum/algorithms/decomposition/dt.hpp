@@ -56,7 +56,7 @@ void cccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io
 	const auto target = targets[0];
 
 	// Find helper qubit
-	auto helper = network.foreach_cqubit([&](io_id qid) -> bool {
+	auto helper = network.foreach_qubit([&](io_id qid) -> bool {
 		if (qid == a || qid == b || qid == c) {
 			return true;
 		}
@@ -133,7 +133,7 @@ void ccccx(Network& network, std::array<io_id, 4> const& controls, std::vector<i
 	const auto target = targets[0];
 
 	// Find helper qubit
-	auto helper = network.foreach_cqubit([&](io_id qid) -> bool {
+	auto helper = network.foreach_qubit([&](io_id qid) -> bool {
 		if (qid == a || qid == b || qid == c || qid == d) {
 			return true;
 		}
@@ -252,8 +252,8 @@ void ccz(Network& network, std::array<io_id, 2> const& controls, io_id target)
  *
  * **Required network functions:**
  * - `add_gate`
- * - `foreach_cqubit`
- * - `foreach_cgate`
+ * - `foreach_qubit`
+ * - `foreach_gate`
  * - `rewire`
  * - `rewire_map`
  * 
@@ -357,7 +357,7 @@ Network dt_decomposition(Network const& src)
 	};
 
 	auto num_ancillae = 0u;
-	src.foreach_cgate([&](auto const& node) {
+	src.foreach_gate([&](auto const& node) {
 		if (node.gate.is(gate_set::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == src.num_qubits()) {
 			num_ancillae = 1u;

@@ -245,7 +245,7 @@ private:
 template<typename Network, typename Builder>
 auto to_unicode_str(Network const& network, Builder builder)
 {
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
@@ -352,7 +352,7 @@ auto to_unicode_str(Network const& network, Builder builder)
  * - `foreach_target`
  *
  * **Required network functions:**
- * - `foreach_cgate`
+ * - `foreach_gate`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -385,7 +385,7 @@ void write_unicode(Network const& network, bool fancy = true, std::ostream& os =
  * - `foreach_target`
  *
  * **Required network functions:**
- * - `foreach_cgate`
+ * - `foreach_gate`
  * - `num_qubits`
  *
  * \param network A quantum network

@@ -15,8 +15,8 @@ namespace tweedledum {
  * 
  * **Required network functions:**
  * - `add_gate`
- * - `foreach_cqubit`
- * - `foreach_cgate`
+ * - `foreach_qubit`
+ * - `foreach_gate`
  * - `rewire`
  * - `rewire_map`
  */
@@ -24,13 +24,13 @@ template<class NetworkDest, class NetworkSrc, class RewriteFn>
 void rewrite_network(NetworkDest& dest, NetworkSrc const& src, RewriteFn&& fn, uint32_t ancillae = 0)
 {
 	assert(dest.size() == 0);
-	src.foreach_cqubit([&](std::string const& qlabel) {
+	src.foreach_qubit([&](std::string const& qlabel) {
 		dest.add_qubit(qlabel);
 	});
 	for (auto i = 0u; i < ancillae; ++i) {
 		dest.add_qubit();
 	}
-	src.foreach_cgate([&](auto const& node) {
+	src.foreach_gate([&](auto const& node) {
 		if (!fn(dest, node.gate)) {
 			if constexpr (std::is_same_v<typename NetworkSrc::gate_type,
 			                             typename NetworkDest::gate_type>) {
@@ -45,8 +45,8 @@ void rewrite_network(NetworkDest& dest, NetworkSrc const& src, RewriteFn&& fn, u
  *
  * **Required network functions:**
  * - `add_gate`
- * - `foreach_cqubit`
- * - `foreach_cgate`
+ * - `foreach_qubit`
+ * - `foreach_gate`
  * - `rewire`
  * - `rewire_map`
  */
@@ -54,14 +54,14 @@ template<class NetworkDest, class NetworkSrc, class RewriteFn>
 NetworkDest rewrite_network(NetworkSrc const& src, RewriteFn&& fn, uint32_t ancillae = 0)
 {
 	NetworkDest dest;
-	src.foreach_cqubit([&](std::string const& qlabel) {
+	src.foreach_qubit([&](std::string const& qlabel) {
 		dest.add_qubit(qlabel);
 	});
 	for (auto i = 0u; i < ancillae; ++i) {
 		dest.add_qubit();
 	}
 
-	src.foreach_cgate([&](auto const& node) {
+	src.foreach_gate([&](auto const& node) {
 		if (!fn(dest, node.gate)) {
 			dest.add_gate(node.gate);
 		}

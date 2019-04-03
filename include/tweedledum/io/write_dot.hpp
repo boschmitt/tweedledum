@@ -32,8 +32,8 @@ namespace tweedledum {
  * - `mark`
  * - `foreach_child`
  * - `foreach_gate`
- * - `foreach_cinput`
- * - `foreach_coutput`
+ * - `foreach_input`
+ * - `foreach_output`
  *
  * \param network Network
  * \param os Output stream
@@ -70,7 +70,7 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
 	os << "\t{\n";
 	os << "\t\trank = same;\n";
 	os << fmt::format("\t\tLevel{};\n", ntk_lvl.depth());
-	dag_network.foreach_coutput([&os](auto const& node, auto index) {
+	dag_network.foreach_output([&os](auto const& node, auto index) {
 		node.gate.foreach_target([&os, &index](auto qid) {
 			os << fmt::format("\t\tNode{} [label = \"{}\", shape = cds, color = coral, "
 			                  "fillcolor = coral];\n",
@@ -84,7 +84,7 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
 		os << "\t{\n";
 		os << "\t\trank = same;\n";
 		os << fmt::format("\t\tLevel{};\n", level);
-		ntk_lvl.foreach_cgate([&ntk_lvl, &os, level](auto const& node, auto index) {
+		ntk_lvl.foreach_gate([&ntk_lvl, &os, level](auto const& node, auto index) {
 			if (ntk_lvl.level(node) != level) {
 				return;
 			}
@@ -98,7 +98,7 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
 	os << "\t{\n";
 	os << "\t\trank = same;\n";
 	os << "\t\tLevel0;\n";
-	ntk_lvl.foreach_cinput([&os](auto const& node, auto index) {
+	ntk_lvl.foreach_input([&os](auto const& node, auto index) {
 		node.gate.foreach_target([&os, &index](auto qid) {
 			os << fmt::format("\t\tNode{} [label = \"{}\", shape = cds, color = coral, "
 			                  "fillcolor = coral];\n",
@@ -108,13 +108,13 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
 	os << "\t}\n\n";
 
 	// std::cout << "  + Create edges\n";
-	ntk_lvl.foreach_cgate([&ntk_lvl, &os](auto const& node, auto index) {
+	ntk_lvl.foreach_gate([&ntk_lvl, &os](auto const& node, auto index) {
 		ntk_lvl.foreach_child(node, [&](auto child, auto qid) {
 			os << fmt::format("\tNode{} -> Node{} [style = {}];\n", index, child.index,
 			                  node.gate.is_control(qid) ? "dotted" : "solid");
 		});
 	});
-	ntk_lvl.foreach_coutput([&ntk_lvl, &os](auto const& node, auto index) {
+	ntk_lvl.foreach_output([&ntk_lvl, &os](auto const& node, auto index) {
 		ntk_lvl.foreach_child(node, [&](auto child) {
 			os << fmt::format("\tNode{} -> Node{} [style = solid];\n", index,
 			                  child.index);
@@ -137,8 +137,8 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
  * - `mark`
  * - `foreach_child`
  * - `foreach_gate`
- * - `foreach_cinput`
- * - `foreach_coutput`
+ * - `foreach_input`
+ * - `foreach_output`
  *
  * \param network Network
  * \param filename Filename

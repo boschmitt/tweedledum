@@ -170,47 +170,47 @@ struct storage {
 
 /*! \brief 
  */
-class qlabels_map {
+class labels_map {
 public:
-	auto map(io_id qid, std::string const& qlabel)
+	void map(io_id qid, std::string const& label)
 	{
-		qlabel_to_qid_.emplace(qlabel, qid);
-		qid_to_qlabel_.emplace_back(qlabel);
+		label_to_id_.emplace(label, qid);
+		id_to_label_.emplace_back(label);
 	}
 
-	auto to_qid(std::string const& qlabel) const
+	io_id to_id(std::string const& label) const
 	{
-		return qlabel_to_qid_.at(qlabel);
+		return label_to_id_.at(label);
 	}
 
-	auto to_qlabel(io_id qid) const
+	auto to_label(io_id qid) const
 	{
-		return qid_to_qlabel_.at(qid);
+		return id_to_label_.at(qid);
 	}
 
 	auto cbegin() const
 	{
-		return qid_to_qlabel_.cbegin();
+		return id_to_label_.cbegin();
 	}
 
 	auto cend() const
 	{
-		return qid_to_qlabel_.cend();
+		return id_to_label_.cend();
 	}
 
 	auto begin()
 	{
-		return qid_to_qlabel_.begin();
+		return id_to_label_.begin();
 	}
 
 	auto end()
 	{
-		return qid_to_qlabel_.end();
+		return id_to_label_.end();
 	}
 
 private:
-	std::unordered_map<std::string, io_id> qlabel_to_qid_;
-	std::vector<std::string> qid_to_qlabel_;
+	std::unordered_map<std::string, io_id> label_to_id_;
+	std::vector<std::string> id_to_label_;
 };
 
 } // namespace tweedledum

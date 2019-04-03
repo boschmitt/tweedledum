@@ -115,7 +115,7 @@ public:
 		mapped_ntk.set_virtual_phy_map(current_mapping);
         	uint32_t count_2q = 0;
         	uint32_t index_counter = partition_start; // Start at first 2q gate in partition
-        	network_.foreach_cgate([&](auto const& node) {
+        	network_.foreach_gate([&](auto const& node) {
 			auto const& gate = node.gate;
 			if (!gate.is_double_qubit()) {
 				mapped_ntk.add_gate(gate, gate.target());
@@ -257,7 +257,7 @@ private:
 
 		depth_view depth_nkt(network_);
 		// Below is where we look for maps!
-		depth_nkt.foreach_cgate([&](auto const& n, auto node_index) {
+		depth_nkt.foreach_gate([&](auto const& n, auto node_index) {
 			if (!n.gate.is_double_qubit()) {
 				return;
 			}
@@ -305,7 +305,7 @@ private:
 					// Determine depth and number of maps_
 					// Move on to next possible swap
 					auto m_prime = m;
-					network_.foreach_cgate([&](auto const& nn) {
+					network_.foreach_gate([&](auto const& nn) {
 						if (!nn.gate.is_double_qubit()) {
 							return true;
 						}

@@ -30,7 +30,7 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_cnode([&](auto const& node) {
+		network.foreach_node([&](auto const& node) {
 			if (!node.gate.is(gate_set::cx)) {
 				return;
 			}
@@ -52,7 +52,7 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_cnode([&](auto const& node) {
+		network.foreach_node([&](auto const& node) {
 			if (!node.gate.is(gate_set::cx)) {
 				return;
 			}

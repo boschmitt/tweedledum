@@ -24,9 +24,9 @@ bool check_map(Network const& orignal, mapping_view<Network> const& mapped)
 	pathsum_view mapped_sums(mapped, mapped.init_virtual_phy_map(), true);
 
 	uint32_t num_ok = 0;
-	orignal_sums.foreach_coutput([&](auto const& node) {
+	orignal_sums.foreach_output([&](auto const& node) {
 		auto& sum = orignal_sums.get_pathsum(node);
-		mapped_sums.foreach_coutput([&](auto const& node) {
+		mapped_sums.foreach_output([&](auto const& node) {
 			auto& sum2 = mapped_sums.get_pathsum(node);
 			if (sum == sum2) {
 				num_ok++;
@@ -37,7 +37,7 @@ bool check_map(Network const& orignal, mapping_view<Network> const& mapped)
 	// If something goes wrong, print pathsums!
 	if (num_ok != orignal_sums.num_qubits()) {
 		std::cout << "Pathsums original network: \n";
-		orignal_sums.foreach_coutput([&](auto const& node) {
+		orignal_sums.foreach_output([&](auto const& node) {
 			auto& sum = orignal_sums.get_pathsum(node);
 			for (auto e : sum) {
 				std::cout << e << ' ';
@@ -46,7 +46,7 @@ bool check_map(Network const& orignal, mapping_view<Network> const& mapped)
 		});
 
 		std::cout << "Pathsums mapped network: \n";
-		mapped_sums.foreach_coutput([&](auto const& node) {
+		mapped_sums.foreach_output([&](auto const& node) {
 			auto& sum = mapped_sums.get_pathsum(node);
 			for (auto e : sum) {
 				std::cout << e << ' ';

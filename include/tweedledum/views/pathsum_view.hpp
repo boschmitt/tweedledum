@@ -28,9 +28,9 @@ namespace tweedledum {
  * **Required gate functions:**
  *
  * **Required network functions:**
- * - `foreach_cgate`
- * - `foreach_cinput`
- * - `foreach_coutput`
+ * - `foreach_gate`
+ * - `foreach_input`
+ * - `foreach_output`
  */
 template<typename Network>
 class pathsum_view : public immutable_view<Network> {
@@ -98,14 +98,14 @@ private:
 	void compute_pathsums()
 	{
 		// Initialize qubit_state_ with initial path literals
-		this->foreach_cinput([&](auto& node, auto node_index) {
+		this->foreach_input([&](auto& node, auto node_index) {
 			const auto qid = node.gate.target();
 			const auto path_literal = ((phy_virtual_map_.at(qid) + 1) << 1);
 			qubit_state_.at(qid).emplace(path_literal);
 			map_pathsum_to_node(qid, node, node_index);
 			// std::cout << fmt::format("Qubit {} : {} \n", node_index, path_literal);
 		});
-		this->foreach_cgate([&](auto const& node, auto node_index) {
+		this->foreach_gate([&](auto const& node, auto node_index) {
 			// If is a Z rotation save the current state of the qubit
 			if (node.gate.is_z_rotation() && !ignore_single_qubit_) {
 				auto qid = node.gate.target();
@@ -153,7 +153,7 @@ private:
 				map_pathsum_to_node(qid, node, node_index);
 			}
 		});
-		this->foreach_coutput([&](auto& node, auto node_index) {
+		this->foreach_output([&](auto& node, auto node_index) {
 			node.gate.foreach_target([&](auto qid) {
 				auto map_element = pathsum_to_node_.find(qubit_state_[qid]);
 				assert(map_element != pathsum_to_node_.end());

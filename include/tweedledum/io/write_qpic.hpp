@@ -23,8 +23,8 @@ namespace tweedledum {
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -37,11 +37,11 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 	if (color_marked_gates) {
 		os << "DEFINE mark color=red:style=thick\n";
 	}
-	network.foreach_cqubit([&](auto id, auto const& name) {
+	network.foreach_qubit([&](auto id, auto const& name) {
 		os << fmt::format("q{} W {} {}\n", id, name, name);
 	});
 
-	network.foreach_cgate([&](auto& node) {
+	network.foreach_gate([&](auto& node) {
 		auto prefix = "";
 		if (node.gate.is(gate_set::mcx)) {
 			prefix = "+";
@@ -117,8 +117,8 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network

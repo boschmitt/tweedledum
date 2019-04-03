@@ -61,7 +61,7 @@ TEST_CASE("Netlist const iterators", "[netlist]")
 	network.add_qubit("q0");
 	network.add_qubit("q1");
 
-	network.foreach_cqubit([](auto qid, auto const& qlabel) {
+	network.foreach_qubit([](auto qid, auto const& qlabel) {
 		if (qid == io_id(0)) {
 			CHECK(qlabel == std::string("q0"));
 		}

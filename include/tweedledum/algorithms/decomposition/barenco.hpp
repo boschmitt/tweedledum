@@ -32,7 +32,7 @@ void toffoli_barenco_decomposition(Network& network, std::vector<io_id> const& c
 	}
 
 	std::vector<io_id> workspace;
-	network.foreach_cqubit([&](io_id qid) {
+	network.foreach_qubit([&](io_id qid) {
 		if (qid == target) {
 			return;
 		}
@@ -120,8 +120,8 @@ struct barenco_params {
  *
  * **Required network functions:**
  * - `add_gate`
- * - `foreach_cqubit`
- * - `foreach_cgate`
+ * - `foreach_qubit`
+ * - `foreach_gate`
  * - `rewire`
  * - `rewire_map`
  * 
@@ -170,7 +170,7 @@ Network barenco_decomposition(Network const& src, barenco_params params = {})
 	};
 
 	auto num_ancillae = 0u;
-	src.foreach_cgate([&](auto const& node) {
+	src.foreach_gate([&](auto const& node) {
 		if (node.gate.is(gate_set::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == src.num_qubits()) {
 			num_ancillae = 1u;

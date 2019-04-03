@@ -25,8 +25,8 @@ namespace tweedledum {
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -35,7 +35,7 @@ namespace tweedledum {
 template<typename Network>
 void write_quil(Network const& network, std::ostream& os)
 {
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
@@ -175,8 +175,8 @@ void write_quil(Network const& network, std::ostream& os)
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network

@@ -43,7 +43,7 @@ public:
 
 	gg_network()
 	    : storage_(std::make_shared<storage_type>())
-	    , qlabels_(std::make_shared<qlabels_map>())
+	    , labels_(std::make_shared<labels_map>())
 	{}
 #pragma endregion
 
@@ -70,7 +70,7 @@ public:
 	io_id add_qubit(std::string const& qlabel)
 	{
 		auto qid = create_io(gate_set::q_input, gate_set::q_output);
-		qlabels_->map(qid, qlabel);
+		labels_->map(qid, qlabel);
 		return qid;
 	}
 
@@ -83,7 +83,7 @@ public:
 	io_id add_cbit(std::string const& label)
 	{
 		auto qid = create_io(gate_set::c_input, gate_set::c_output);
-		qlabels_->map(qid, label);
+		labels_->map(qid, label);
 		return qid;
 	}
 
@@ -183,15 +183,15 @@ public:
 #pragma region Add gates(qlabels)
 	node_type& add_gate(gate_base op, std::string const& qlabel_target)
 	{
-		auto qid_target = qlabels_->to_qid(qlabel_target);
+		auto qid_target = labels_->to_id(qlabel_target);
 		return add_gate(op, qid_target);
 	}
 
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
 	                    std::string const& qlabel_target)
 	{
-		auto qid_control = qlabels_->to_qid(qlabel_control);
-		auto qid_target = qlabels_->to_qid(qlabel_target);
+		auto qid_control = labels_->to_id(qlabel_control);
+		auto qid_target = labels_->to_id(qlabel_target);
 		return add_gate(op, qid_control, qid_target);
 	}
 
@@ -200,11 +200,11 @@ public:
 	{
 		std::vector<io_id> controls;
 		for (auto& control : qlabels_control) {
-			controls.push_back(qlabels_->to_qid(control));
+			controls.push_back(labels_->to_id(control));
 		}
 		std::vector<io_id> targets;
 		for (auto& target : qlabels_target) {
-			targets.push_back(qlabels_->to_qid(target));
+			targets.push_back(labels_->to_id(target));
 		}
 		return add_gate(op, controls, targets);
 	}
@@ -212,7 +212,7 @@ public:
 
 #pragma region Const iterators
 	template<typename Fn>
-	io_id foreach_cqubit(Fn&& fn) const
+	io_id foreach_qubit(Fn&& fn) const
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, io_id> ||
@@ -231,12 +231,12 @@ public:
 				fn(io_id(qid));
 			}
 		} else if constexpr (std::is_invocable_r_v<void, Fn, std::string const&>) {
-			for (auto const& qlabel : *qlabels_) {
+			for (auto const& qlabel : *labels_) {
 				fn(qlabel);
 			}
 		} else {
 			auto qid = 0u;
-			for (auto const& qlabel : *qlabels_) {
+			for (auto const& qlabel : *labels_) {
 				fn(io_id(qid++), qlabel);
 			}
 		}
@@ -244,7 +244,7 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_cinput(Fn&& fn) const
+	void foreach_input(Fn&& fn) const
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&, uint32_t> ||
@@ -260,7 +260,7 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_coutput(Fn&& fn) const
+	void foreach_output(Fn&& fn) const
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&, uint32_t> ||
@@ -277,7 +277,7 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_cgate(Fn&& fn, uint32_t start = 0) const
+	void foreach_gate(Fn&& fn, uint32_t start = 0) const
 	{
 		foreach_element_if(storage_->nodes.cbegin() + start, storage_->nodes.cend(),
 		                   [](auto const& node) { return node.gate.is_unitary_gate(); },
@@ -285,7 +285,7 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_cnode(Fn&& fn) const
+	void foreach_node(Fn&& fn) const
 	{
 		foreach_element(storage_->nodes.cbegin(), storage_->nodes.cend(), fn);
 		foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn,
@@ -354,7 +354,7 @@ public:
 
 private:
 	std::shared_ptr<storage_type> storage_;
-	std::shared_ptr<qlabels_map> qlabels_;
+	std::shared_ptr<labels_map> labels_;
 };
 
 } // namespace tweedledum

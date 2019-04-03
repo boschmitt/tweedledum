@@ -129,7 +129,7 @@ private:
  * - `foreach_target`
  *
  * **Required network functions:**
- * - `foreach_cgate`
+ * - `foreach_gate`
  * - `num_qubits`
  *
  * \param network Network
@@ -143,7 +143,7 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 	}
 
 	detail::quirk_json_builder builder(network.num_qubits());
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
@@ -230,7 +230,7 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
  * - `foreach_target`
  *
  * **Required network functions:**
- * - `foreach_cgate`
+ * - `foreach_gate`
  * - `num_qubits`
  *
  * \param network Network
