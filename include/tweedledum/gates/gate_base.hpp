@@ -71,7 +71,7 @@ public:
 	/*! \brief Returns true if this gate acts on a single qubit. */
 	constexpr bool is_single_qubit() const
 	{
-		return (operation_ >= gate_set::input && operation_ <= gate_set::t_dagger);
+		return (operation_ >= gate_set::q_input && operation_ <= gate_set::t_dagger);
 	}
 
 	/*! \brief Returns true if this gate acts on two qubits. */

@@ -49,12 +49,12 @@ public:
 
 #pragma region I / O and ancillae qubits
 private:
-	qubit_id create_qubit()
+	io_id create_io(gate_set type_in, gate_set type_out)
 	{
 		qubit_id qid(storage_->inputs.size());
 		uint32_t index = storage_->nodes.size();
-		gate_type input(gate_base(gate_set::input), qid);
-		gate_type output(gate_base(gate_set::output), qid);
+		gate_type input(gate_base(type_in), qid);
+		gate_type output(gate_base(type_out), qid);
 
 		storage_->nodes.emplace_back(input);
 		storage_->inputs.emplace_back(index);
@@ -69,7 +69,7 @@ private:
 public:
 	qubit_id add_qubit(std::string const& qlabel)
 	{
-		auto qid = create_qubit();
+		auto qid = create_io(gate_set::q_input, gate_set::q_output);
 		qlabels_->map(qid, qlabel);
 		return qid;
 	}
@@ -78,6 +78,19 @@ public:
 	{
 		auto qlabel = fmt::format("q{}", storage_->inputs.size());
 		return add_qubit(qlabel);
+	}
+
+	qubit_id add_cbit(std::string const& label)
+	{
+		auto qid = create_io(gate_set::c_input, gate_set::c_output);
+		qlabels_->map(qid, label);
+		return qid;
+	}
+
+	qubit_id add_cbit()
+	{
+		auto label = fmt::format("c{}", storage_->inputs.size());
+		return add_cbit(label);
 	}
 #pragma endregion
 
@@ -106,7 +119,7 @@ public:
 
 	auto node_to_index(node_type const& node) const
 	{
-		if (node.gate.is(gate_set::output)) {
+		if (node.gate.is_one_of(gate_set::c_output, gate_set::q_output)) {
 			auto index = &node - storage_->outputs.data();
 			return static_cast<uint32_t>(index + storage_->nodes.size());
 		}

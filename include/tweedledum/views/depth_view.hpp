@@ -75,7 +75,7 @@ private:
 			return levels_[node];
 		}
 
-		if (node.gate.is(gate_set::input)) {
+		if (node.gate.is_one_of(gate_set::c_input, gate_set::q_input)) {
 			return levels_[node] = 0u;
 		}
 

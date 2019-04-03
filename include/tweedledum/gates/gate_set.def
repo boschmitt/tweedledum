@@ -10,8 +10,10 @@
 /* Meta gates */
 GATE(undefined, undefined, '-', "Undefined")
 GATE(unknown,   undefined, '-', "Unknown")
-GATE(input,     undefined, '-', "Input")
-GATE(output,    undefined, '-', "Output")
+GATE(c_input,   undefined, '-', "Cbit input")
+GATE(c_output,  undefined, '-', "Cbit output")
+GATE(q_input,   undefined, '-', "Qubit input ")
+GATE(q_output,  undefined, '-', "Qubit output")
 
 /* Single-qubit unitary gates */
 GATE(identity, identity, '-', "Identity")
