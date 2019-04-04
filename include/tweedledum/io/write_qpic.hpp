@@ -37,8 +37,12 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 	if (color_marked_gates) {
 		os << "DEFINE mark color=red:style=thick\n";
 	}
-	network.foreach_qubit([&](auto id, auto const& name) {
-		os << fmt::format("q{} W {} {}\n", id, name, name);
+	network.foreach_io([&](auto id, auto const& name) {
+		if (id.is_qubit()) {
+			os << fmt::format("id{} W {} {}\n", id, name, name);
+		} else {
+			os << fmt::format("id{} W {} {} cwire\n", id, name, name);
+		}
 	});
 
 	network.foreach_gate([&](auto& node) {
@@ -47,7 +51,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			prefix = "+";
 		}
 		node.gate.foreach_target([&](auto qubit) {
-			os << fmt::format("{}q{} ", prefix, qubit);
+			os << fmt::format("{}id{} ", prefix, qubit);
 		});
 		switch (node.gate.operation()) {
 		case gate_set::pauli_x:
@@ -103,7 +107,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			break;
 		}
 		node.gate.foreach_control([&](auto qubit) {
-			os << fmt::format(" {}q{}", qubit.is_complemented() ? "-" : "", qubit); 
+			os << fmt::format(" {}id{}", qubit.is_complemented() ? "-" : "", qubit); 
 		});
 		os << '\n';
 	});

@@ -19,16 +19,14 @@ TEMPLATE_PRODUCT_TEST_CASE("Write simple network into qpic", "[qpic][template]",
 {
 	TestType network;
 	auto q0 = network.add_qubit();
+	network.add_cbit();
 	auto q1 = network.add_qubit();
 	auto q2 = network.add_qubit();
 	std::vector<io_id> controls = {q0, q1};
 	std::vector<io_id> target = {q2};
 	network.add_gate(gate::mcx, controls, target);
-	CHECK(network.size() == 7);
-	CHECK(network.num_qubits() == 3);
-	CHECK(network.num_gates() == 1);
 
 	std::ostringstream os;
 	write_qpic(network, os);
-	CHECK(os.str() == "q0 W q0 q0\nq1 W q1 q1\nq2 W q2 q2\n+q2  q0 q1\n");
+	CHECK(os.str() == "id0 W q0 q0\nid1 W c0 c0 cwire\nid2 W q1 q1\nid3 W q2 q2\n+id3  id0 id2\n");
 }
