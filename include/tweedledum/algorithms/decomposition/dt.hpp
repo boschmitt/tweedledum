@@ -26,18 +26,18 @@ void ccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_
 	}
 	network.add_gate(gate::hadamard, target);
 
-	network.add_gate(gate::cx, controls[1].index(), target);
+	network.add_gate(gate::cx, controls[1].id(), target);
 	network.add_gate(controls[0].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].index(), target);
+	network.add_gate(gate::cx, controls[0].id(), target);
 	network.add_gate(gate::t, target);
-	network.add_gate(gate::cx, controls[1].index(), target);
+	network.add_gate(gate::cx, controls[1].id(), target);
 	network.add_gate(controls[1].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].index(), target);
+	network.add_gate(gate::cx, controls[0].id(), target);
 	network.add_gate(controls[0].is_complemented() && !controls[1].is_complemented()? gate::t_dagger : gate::t, target);
 	
-	network.add_gate(gate::cx, controls[0].index(), controls[1]);
+	network.add_gate(gate::cx, controls[0].id(), controls[1]);
 	network.add_gate(gate::t_dagger, controls[1]);
-	network.add_gate(gate::cx, controls[0].index(), controls[1]);
+	network.add_gate(gate::cx, controls[0].id(), controls[1]);
 	network.add_gate(controls[1].is_complemented() ? gate::t_dagger : gate::t, controls[0]);
 	network.add_gate(controls[0].is_complemented() ? gate::t_dagger : gate::t, controls[1]);
 
@@ -214,18 +214,18 @@ void ccccx(Network& network, std::array<io_id, 4> const& controls, std::vector<i
 template<typename Network>
 void ccz(Network& network, std::array<io_id, 2> const& controls, io_id target)
 {
-	network.add_gate(gate::cx, controls[1].index(), target);
+	network.add_gate(gate::cx, controls[1].id(), target);
 	network.add_gate(controls[0].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].index(), target);
+	network.add_gate(gate::cx, controls[0].id(), target);
 	network.add_gate(gate::t, target);
-	network.add_gate(gate::cx, controls[1].index(), target);
+	network.add_gate(gate::cx, controls[1].id(), target);
 	network.add_gate(controls[1].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].index(), target);
+	network.add_gate(gate::cx, controls[0].id(), target);
 	network.add_gate(controls[0].is_complemented() && !controls[1].is_complemented()? gate::t_dagger : gate::t, target);
 	
-	network.add_gate(gate::cx, controls[0].index(), controls[1]);
+	network.add_gate(gate::cx, controls[0].id(), controls[1]);
 	network.add_gate(gate::t_dagger, controls[1]);
-	network.add_gate(gate::cx, controls[0].index(), controls[1]);
+	network.add_gate(gate::cx, controls[0].id(), controls[1]);
 	network.add_gate(controls[1].is_complemented() ? gate::t_dagger : gate::t, controls[0]);
 	network.add_gate(controls[0].is_complemented() ? gate::t_dagger : gate::t, controls[1]);
 }
@@ -266,7 +266,7 @@ Network dt_decomposition(Network const& src)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
 		if (gate.is(gate_set::mcx)) {
-			std::array<io_id, 4> controls;
+			std::array<io_id, 4> controls = {io_invalid, io_invalid, io_invalid, io_invalid};
 			auto* p = controls.data();
 			std::vector<io_id> targets;
 
@@ -283,13 +283,13 @@ Network dt_decomposition(Network const& src)
 			case 1u:
 				gate.foreach_control([&](auto control) {
 					if (control.is_complemented()) {
-						dest.add_gate(gate::pauli_x, control.index());
+						dest.add_gate(gate::pauli_x, !control);
 					}
 					gate.foreach_target([&](auto target) {
 						dest.add_gate(gate::cx, control, target);
 					});
 					if (control.is_complemented()) {
-						dest.add_gate(gate::pauli_x, control.index());
+						dest.add_gate(gate::pauli_x, !control);
 					}
 				});
 				break;
@@ -305,7 +305,7 @@ Network dt_decomposition(Network const& src)
 
 			case 3u:
 				gate.foreach_control([&](auto control) {
-					*p++ = control.index(); 
+					*p++ = control.id(); 
 					if (control.is_complemented()) {
 						dest.add_gate(gate::pauli_x, control);
 					}
@@ -321,9 +321,10 @@ Network dt_decomposition(Network const& src)
 
 			case 4u:
 				gate.foreach_control([&](auto control) {
-					*p++ = control.index(); 
+					*p++ = control.id(); 
 					if (control.is_complemented()) {
 						dest.add_gate(gate::pauli_x, control);
+						return;
 					}
 				});
 				gate.foreach_target([&](auto target) { targets.push_back(target); });
@@ -338,7 +339,7 @@ Network dt_decomposition(Network const& src)
 			return true;
 		} else if (gate.is(gate_set::mcz)) {
 			if (gate.num_controls() == 2) {
-				std::array<io_id, 2> controls;
+				std::array<io_id, 2> controls = {io_invalid, io_invalid};
 				auto* p = controls.data();
 				std::vector<io_id> targets;
 

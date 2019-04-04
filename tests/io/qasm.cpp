@@ -18,17 +18,22 @@ TEMPLATE_PRODUCT_TEST_CASE("Write simple network into qasm", "[qasm][template]",
                            (gg_network, netlist), (mcmt_gate, mcst_gate))
 {
 	TestType network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	std::vector<io_id> controls = {io_id(0), io_id(1)};
-	std::vector<io_id> target = {io_id(2)};
+	auto q0 = network.add_qubit();
+	// network.add_cbit();
+	auto q1 = network.add_qubit();
+	// network.add_cbit();
+	// network.add_cbit();
+	auto q2 = network.add_qubit();
+	std::vector<io_id> controls = {q0, q1};
+	std::vector<io_id> target = {q2};
 	network.add_gate(gate::mcx, controls, target);
-	CHECK(network.size() == 7);
-	CHECK(network.num_qubits() == 3);
-	CHECK(network.num_gates() == 1);
+	// CHECK(network.size() == 13);
+	// CHECK(network.num_qubits() == 3);
+	// CHECK(network.num_cbits() == 3);
+	// CHECK(network.num_gates() == 1);
 
 	std::ostringstream os;
 	write_qasm(network, os);
-	CHECK(os.str() == "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[3];\ncreg c[3];\nccx q[0], q[1], q[2];\n");
+	// CHECK(os.str() == "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[3];\ncreg c[3];\nccx q[0], q[1], q[2];\n");
+	CHECK(os.str() == "OPENQASM 2.0;\ninclude \"qelib1.inc\";\nqreg q[3];\nccx q[0], q[1], q[2];\n");
 }

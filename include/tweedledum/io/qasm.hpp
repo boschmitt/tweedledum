@@ -39,7 +39,9 @@ void write_qasm(Network const& network, std::ostream& os)
 	os << "OPENQASM 2.0;\n";
 	os << "include \"qelib1.inc\";\n";
 	os << fmt::format("qreg q[{}];\n", network.num_qubits());
-	os << fmt::format("creg c[{}];\n", network.num_qubits());
+	if (network.num_cbits()) {
+		os << fmt::format("creg c[{}];\n", network.num_cbits());
+	}
 
 	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
@@ -124,7 +126,7 @@ void write_qasm(Network const& network, std::ostream& os)
 				if (control.is_complemented()) {
 					os << fmt::format("x q[{}];\n", control.index());
 				}
-				controls.push_back(control.index()); 
+				controls.push_back(control.id()); 
 			});
 			gate.foreach_target([&](auto target) {
 				targets.push_back(target);

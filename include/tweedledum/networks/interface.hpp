@@ -5,7 +5,8 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-static_assert(false, "file netowks/interface.hpp cannot be included, it's only used for documentation");
+static_assert(false,
+              "file netowks/interface.hpp cannot be included, it's only used for documentation");
 
 namespace tweedledum {
 
@@ -53,7 +54,7 @@ public:
 	io_id add_qubit(std::string const& qlabel);
 
 	/*! \brief Creates a unlabeled qubit in the network and returns its ``io_id``
-	 * 
+	 *
 	 * Since all I/Os in a network must be labeled, this function will create
 	 * a generic label with the form: qN, where N is the ``io_id``.
 	 */
@@ -64,11 +65,11 @@ public:
 	io_id add_cbit(std::string const& label);
 
 	/*! \brief Creates a unlabeled cbit (classical bit) in the network and returns its ``io_id``
-	 * 
+	 *
 	 * Since all I/Os in a network must be labeled, this function will create
 	 * a generic label with the form: cN, where N is the ``io_id``.
 	 */
-	io_id add_cbit()
+	io_id add_cbit();
 #pragma endregion
 
 #pragma region Structural properties
@@ -96,7 +97,7 @@ public:
 	 */
 	auto node_to_index(node const& node) const;
 #pragma endregion
- 
+
 #pragma region Add gates(qids)
 	/*! \brief Add a gate to the network. */
 	node_type& add_gate(gate_type const& gate);
@@ -117,11 +118,11 @@ public:
 
 	/*! \brief Add a controlled single-target gate to the network using qubit labels (`qlabel`). */
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
-	               std::string const& qlabel_target);
+	                    std::string const& qlabel_target);
 
 	/*! \brief Add a multiple-controlled multiple-target gate to the network qubit labels (`qlabel`). */
 	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
-	               std::vector<std::string> const& qlabels_target);
+	                    std::vector<std::string> const& qlabels_target);
 #pragma endregion
 
 #pragma region Rewiring
@@ -179,7 +180,7 @@ public:
 	 * - ``void(node_type const& node, uint32_t node_index)``
 	 * - ``bool(node_type const& node)``
 	 * - ``bool(node_type const& node, uint32_t node_index)``
-	 * 
+	 *
 	 * The paramater ``start`` is a index to a starting point.
 	 *
 	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
@@ -207,7 +208,7 @@ public:
 	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
 	 * - ``void(node_ptr const&)``
 	 * - ``void(node_ptr const&, uint32_t)``
-	 * 
+	 *
 	 * If ``fn`` has two parameters, the second parameter is an index starting
 	 * from 0 and incremented in every iteration.
 	 */

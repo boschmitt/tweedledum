@@ -27,7 +27,7 @@ namespace tweedledum {
 class mcst_gate final : public gate_base {
 public:
 #pragma region Constants
-	constexpr static auto max_num_qubits = 3u;
+	constexpr static auto max_num_io = 3u;
 #pragma endregion
 
 #pragma region Constructors
@@ -36,7 +36,7 @@ public:
 	    , target_(0)
 	    , qid_slots_({target, io_invalid, io_invalid})
 	{
-		assert(is_single_qubit());
+		assert(!is_double_qubit());
 	}
 
 	mcst_gate(gate_base const& op, io_id control, io_id target)
@@ -114,7 +114,7 @@ public:
 
 	bool is_control(io_id qid) const
 	{
-		for (auto i = 0u; i < max_num_qubits; ++i) {
+		for (auto i = 0u; i < max_num_io; ++i) {
 			if (qid_slots_[i] == qid && i != target_) {
 				return true;
 			}
@@ -142,7 +142,7 @@ public:
 		if (is_single_qubit()) {
 			return;
 		}
-		for (auto slot = 0u; slot < max_num_qubits; ++slot) {
+		for (auto slot = 0u; slot < max_num_io; ++slot) {
 			if (slot == target_ || qid_slots_[slot] == io_invalid) {
 				continue;
 			}
@@ -167,7 +167,7 @@ private:
 	/*! \brief indicates the slot which holds the qid of the target. */
 	uint8_t target_;
 	/*! \brief an array which hold the qids' of the qubits this gate is acting upon */
-	std::array<io_id, max_num_qubits> qid_slots_;
+	std::array<io_id, max_num_io> qid_slots_;
 };
 
 } // namespace tweedledum

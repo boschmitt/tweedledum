@@ -246,9 +246,7 @@ Network gray_synth(uint32_t num_qubits, parity_terms const& parities, gray_synth
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<io_id> qubits(num_qubits);
-	std::iota(qubits.begin(), qubits.end(), 0u);
-	gray_synth(network, qubits, parities, params);
+	gray_synth(network, network.rewire_map(), parities, params);
 	return network;
 }
 

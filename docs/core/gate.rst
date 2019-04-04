@@ -21,7 +21,7 @@ A gate must expose the following compile-time constants:
 
 .. code-block:: c++
 
-   static constexpr uint32_t max_num_qubits;
+   static constexpr uint32_t max_num_io;
    static constexpr uint32_t network_max_num_qubits;
 
 The struct ``is_gate_type`` can be used to check at compile time whether a given type contains all

@@ -18,11 +18,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Write simple network into qpic", "[qpic][template]",
                            (gg_network, netlist), (mcmt_gate, mcst_gate))
 {
 	TestType network;
-	network.add_qubit();
-	network.add_qubit();
-	network.add_qubit();
-	std::vector<io_id> controls = {io_id(0), io_id(1)};
-	std::vector<io_id> target = {io_id(2)};
+	auto q0 = network.add_qubit();
+	auto q1 = network.add_qubit();
+	auto q2 = network.add_qubit();
+	std::vector<io_id> controls = {q0, q1};
+	std::vector<io_id> target = {q2};
 	network.add_gate(gate::mcx, controls, target);
 	CHECK(network.size() == 7);
 	CHECK(network.num_qubits() == 3);

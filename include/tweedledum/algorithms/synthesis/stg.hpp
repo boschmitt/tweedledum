@@ -58,7 +58,7 @@ struct stg_from_exact_esop {
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (mask & 1) {
-					controls.emplace_back(io_id(qubits[v], !(bits & 1)));
+					controls.emplace_back((bits & 1) ? qubits[v] : !qubits[v]);
 				}
 				bits >>= 1;
 				mask >>= 1;
@@ -94,7 +94,7 @@ struct stg_from_pkrm {
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (mask & 1) {
-					controls.emplace_back(io_id(qubits[v], !(bits & 1)));
+					controls.emplace_back((bits & 1) ? qubits[v] : !qubits[v]);
 				}
 				bits >>= 1;
 				mask >>= 1;

@@ -63,7 +63,7 @@ inline std::vector<io_id> to_qubit_vector(IntType bits, std::vector<io_id> const
 	auto index = 0u;
 	while (bits) {
 		if (bits & 1) {
-			ret.push_back(qubits.at(index));
+			ret.emplace_back(qubits.at(index), true);
 		}
 		bits >>= 1;
 		++index;
@@ -286,10 +286,7 @@ Network tbs(std::vector<uint32_t> permutation, tbs_params params = {})
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-
-	std::vector<io_id> qubits(num_qubits);
-	std::iota(qubits.begin(), qubits.end(), 0u);
-	tbs(network, qubits, permutation, params);
+	tbs(network, network.rewire_map(), permutation, params);
 	return network;
 }
 

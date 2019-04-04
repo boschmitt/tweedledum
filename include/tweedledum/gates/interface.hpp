@@ -12,7 +12,7 @@ namespace tweedledum {
 class gate {
 public:
 #pragma region Constants
-	constexpr static uint32_t max_num_qubits;
+	constexpr static uint32_t max_num_io;
 	constexpr static uint32_t network_max_num_qubits;
 #pragma endregion
 

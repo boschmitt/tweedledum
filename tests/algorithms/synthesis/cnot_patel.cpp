@@ -58,7 +58,11 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 			}
 			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
 		});
-		matrix.permute_rows(network.rewire_map());
+		std::vector<uint32_t> rows_permutation;
+		for (auto io_id : network.rewire_map()) {
+			rows_permutation.push_back(io_id.index());
+		}
+		matrix.permute_rows(rows_permutation);
 
 		// Check if network realizes original matrix
 		for (auto row_index = 0u; row_index < matrix.num_rows(); ++row_index) {

@@ -122,7 +122,7 @@ void write_quil(Network const& network, std::ostream& os)
 				if (control.is_complemented()) {
 					os << fmt::format("X {}\n", control.index());
 				}
-				controls.push_back(control.index()); 
+				controls.emplace_back(control.id()); 
 			});
 			gate.foreach_target([&](auto target) {
 				targets.push_back(target);

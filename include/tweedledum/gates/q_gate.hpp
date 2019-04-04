@@ -28,7 +28,7 @@ namespace tweedledum {
 class q_gate final : public gate_base {
 public:
 #pragma region Constants
-	constexpr static auto max_num_qubits = 3u;
+	constexpr static auto max_num_io = 3u;
 #pragma endregion
 
 #pragma region Constructors
@@ -188,7 +188,7 @@ private:
 	uint8_t control0_;
 	uint8_t control1_;
 	/*! \brief an array which hold the qids' of the qubits this gate is acting upon */
-	std::array<io_id, max_num_qubits> qids_;
+	std::array<io_id, max_num_io> qids_;
 };
 
 } // namespace tweedledum

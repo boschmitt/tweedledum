@@ -85,7 +85,7 @@ inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const&
 
 	std::vector<io_id> base;
 	for (auto element : kitty::min_base_inplace(tt)) {
-		base.push_back(element);
+		base.emplace_back(element, true);
 	}
 	return std::make_pair(kitty::shrink_to(tt, base.size()), base);
 }
@@ -129,10 +129,10 @@ Network dbs(std::vector<uint32_t> permutation, STGSynthesisFn&& stg_synth, dbs_p
 		const auto [left, right] = detail::decompose(permutation, i);
 
 		auto [tt_l, vars_l] = detail::control_function_abs(num_qubits, left);
-		vars_l.push_back(i);
+		vars_l.emplace_back(i, true);
 
 		auto [tt_r, vars_r] = detail::control_function_abs(num_qubits, right);
-		vars_r.push_back(i);
+		vars_r.emplace_back(i, true);
 
 		// TODO merge middle gates
 		if (!kitty::is_const0(tt_l)) {

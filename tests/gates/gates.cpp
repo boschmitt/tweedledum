@@ -11,14 +11,13 @@
 // #include <tweedledum/gates/q_gate.hpp>
 #include <tweedledum/networks/io_id.hpp>
 
+using namespace tweedledum;
 TEMPLATE_TEST_CASE("Common functionality for all gate kinds", "[gates][template]",
-                   tweedledum::mcst_gate, tweedledum::mcmt_gate)
+                   mcst_gate, mcmt_gate)
 {
-	using namespace tweedledum;
-
-	io_id q0(0);
-	io_id q1(1);
-	io_id q2(2);
+	io_id q0(0, true);
+	io_id q1(1, true);
+	io_id q2(2, true);
 
 	SECTION("Create a hadamard gate") {
 		TestType gate(gate::hadamard, q0);

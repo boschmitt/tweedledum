@@ -172,9 +172,7 @@ Network linear_synth(uint32_t num_qubits, parity_terms const& parities,
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<io_id> qubits(num_qubits);
-	std::iota(qubits.begin(), qubits.end(), 0u);
-	linear_synth(network, qubits, parities, params);
+	linear_synth(network, network.rewire_map(), parities, params);
 	return network;
 }
 

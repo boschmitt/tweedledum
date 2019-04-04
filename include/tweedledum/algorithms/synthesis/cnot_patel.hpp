@@ -259,9 +259,7 @@ Network cnot_patel(Matrix const& matrix, cnot_patel_params params = {})
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<io_id> qubits(num_qubits);
-	std::iota(qubits.begin(), qubits.end(), 0u);
-	cnot_patel(network, qubits, matrix, params);
+	cnot_patel(network, network.rewire_map(), matrix, params);
 	return network;
 }
 

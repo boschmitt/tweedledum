@@ -24,8 +24,8 @@ template<class NetworkDest, class NetworkSrc, class RewriteFn>
 void rewrite_network(NetworkDest& dest, NetworkSrc const& src, RewriteFn&& fn, uint32_t ancillae = 0)
 {
 	assert(dest.size() == 0);
-	src.foreach_qubit([&](std::string const& qlabel) {
-		dest.add_qubit(qlabel);
+	src.foreach_qubit([&](std::string const& label) {
+		dest.add_qubit(label);
 	});
 	for (auto i = 0u; i < ancillae; ++i) {
 		dest.add_qubit();

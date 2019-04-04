@@ -10,79 +10,90 @@
 
 namespace tweedledum {
 
-/* \brief Simple class to hold a qubit indentifier ``qid`` */
+/* \brief Simple class to hold a i/o indentifier ``id``
+ *
+ *  In tweedledum an I/O can be either a classical bit (cbit) or a quantum bit (qubit).
+ */
 class io_id {
 public:
-
 #pragma region Types and constructors
-	explicit io_id() = default;
-
-	constexpr io_id(uint32_t index)
-	    : literal_(index << 1)
+	constexpr io_id(uint32_t index, bool is_qubit)
+	    : data_((index << 2) | (is_qubit ? 1 : 0))
 	{}
 
-	explicit io_id(uint32_t index, bool complemented)
-	    : literal_((index << 1) | (complemented ? 1 : 0))
+	constexpr io_id(uint32_t index, bool is_qubit, bool is_complemented)
+	    : data_((index << 2) | (is_complemented ? 2 : 0) | (is_qubit ? 1 : 0))
 	{}
 #pragma endregion
 
 #pragma region Properties
-	auto index() const
+	uint32_t index() const
 	{
-		return literal_ >> 1;
+		return (data_ >> 2);
 	}
 
-	auto is_complemented() const
+	uint32_t literal() const
 	{
-		return (literal_ & 1) == 1;
+		return (data_ >> 1);
 	}
 
-	auto literal() const
+	/*! \brief Guarantee the return of an uncomplemented id */ 
+	io_id id() const
 	{
-		return literal_;
+		return io_id(index(), is_qubit());
+	}
+
+	bool is_complemented() const
+	{
+		return (data_ & 2) == 2;
+	}
+
+	bool is_qubit() const
+	{
+		return (data_ & 1) == 1;
 	}
 #pragma endregion
 	
 #pragma region Modifiers
 	void complement()
 	{
-		literal_ ^= 1;
+		data_ ^= 2;
 	}
 #pragma endregion
 
 #pragma region Overloads
 	operator uint32_t() const
 	{
-		return (literal_ >> 1);
+		return (data_ >> 2);
 	}
 
 	io_id operator!() const
 	{
-		io_id c_;
-		c_.literal_ = literal_ ^ 1;
-		return c_;
+		io_id complemented(*this);
+		complemented.data_ ^= 2;
+		return complemented;
 	}
 
 	bool operator<(io_id other) const
 	{
-		return literal_ < other.literal_;
+		return data_ < other.data_;
 	}
 
 	bool operator==(io_id other) const
 	{
-		return literal_ == other.literal_;
+		return data_ == other.data_;
 	}
 
 	bool operator!=(io_id other) const
 	{
-		return literal_ != other.literal_;
+		return data_ != other.data_;
 	}
 #pragma endregion
 
 private:
-	uint32_t literal_ = std::numeric_limits<uint32_t>::max();
+	uint32_t data_;
 };
 
-constexpr auto io_invalid = io_id(std::numeric_limits<uint32_t>::max());
+constexpr auto io_invalid = io_id(std::numeric_limits<uint32_t>::max(), true, true);
 
 } // namespace tweedledum
