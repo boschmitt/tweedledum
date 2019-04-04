@@ -19,12 +19,13 @@ namespace detail {
 
 class fancy_string_builder {
 public:
-	fancy_string_builder(uint32_t num_qubits)
-	    : occupancy_(num_qubits, 0)
-	    , lines_(3 * num_qubits, "     ")
+	fancy_string_builder(std::vector<io_id> const& io)
+	    : io_(io)
+	    , occupancy_(io.size(), 0)
+	    , lines_(3 * io.size(), "     ")
 	{
-		for (auto i = 0u; i < num_qubits; ++i) {
-			lines_[(3 * i) + 1].replace(0, 5, "|0>──");
+		for (auto id : io_) {
+			lines_[(3 * id.index()) + 1].replace(0, 5, id.is_qubit()? "|0>──" : " 0 ══" );
 		}
 	}
 
@@ -61,7 +62,7 @@ public:
 		for (auto i = min + 1; i < max; ++i) {
 			occupancy_[i] = 1;
 			lines_[(3 * i)] += "  │  ";
-			lines_[(3 * i) + 1] += "──┼──";
+			lines_[(3 * i) + 1] += io_[i].is_qubit() ? "──┼──" : "══╪══";
 			lines_[(3 * i) + 2] += "  │  ";
 		}
 		new_column();
@@ -88,7 +89,7 @@ public:
 		for (auto i = min + 1; i < max; ++i) {
 			occupancy_[i] = 1;
 			lines_[(3 * i)] += "  │  ";
-			lines_[(3 * i) + 1] += "──┼──";
+			lines_[(3 * i) + 1] += io_[i].is_qubit() ? "──┼──" : "══╪══";
 			lines_[(3 * i) + 2] += "  │  ";
 		}
 		new_column();
@@ -127,7 +128,7 @@ public:
 			}
 			occupancy_[i] = 1;
 			lines_[(3 * i)] += "  │  ";
-			lines_[(3 * i) + 1] += "──┼──";
+			lines_[(3 * i) + 1] += io_[i].is_qubit() ? "──┼──" : "══╪══";
 			lines_[(3 * i) + 2] += "  │  ";
 		}
 		new_column();
@@ -148,7 +149,7 @@ private:
 		for (auto i = 0u; i < occupancy_.size(); ++i) {
 			if (occupancy_[i] == 0) {
 				lines_[(3 * i)] += "     ";
-				lines_[(3 * i) + 1] += "─────";
+				lines_[(3 * i) + 1] += io_[i].is_qubit() ? "─────" : "═════";
 				lines_[(3 * i) + 2] += "     ";
 			}
 			occupancy_[i] = 0;
@@ -166,6 +167,7 @@ private:
 	}
 
 private:
+	std::vector<io_id> io_;
 	std::vector<uint8_t> occupancy_;
 	std::vector<std::string> lines_;
 };
@@ -368,10 +370,10 @@ void write_unicode(Network const& network, bool fancy = true, std::ostream& os =
 
 	std::string unicode_str;
 	if (fancy) {
-		detail::fancy_string_builder builder(network.num_qubits());
+		detail::fancy_string_builder builder(network.rewire_map());
 		unicode_str = detail::to_unicode_str(network, builder);
 	} else {
-		detail::string_builder builder(network.num_qubits());
+		detail::string_builder builder(network.num_io());
 		unicode_str = detail::to_unicode_str(network, builder);
 	}
 	os << unicode_str;
