@@ -102,7 +102,7 @@ inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const&
    .. code-block:: c++
 
       std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-      auto network = dbs<netlist<mcst_gate>>(permutation, stg_from_spectrum());
+      auto network = dbs<netlist<io3_gate>>(permutation, stg_from_spectrum());
 
    \endverbatim
  *

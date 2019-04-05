@@ -7,14 +7,14 @@
 #include <tweedledum/algorithms/synthesis/cnot_patel.hpp>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <tweedledum/utils/bit_matrix_rm.hpp>
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
-                           (gg_network, netlist), (mcmt_gate, mcst_gate))
+                           (gg_network, netlist), (mcmt_gate, io3_gate))
 {
 	std::vector<uint32_t> rows = {0b000011, 0b011001, 0b010010, 0b111111, 0b111011, 0b011100};
 	bit_matrix_rm matrix(6, rows);

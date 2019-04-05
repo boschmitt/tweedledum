@@ -6,14 +6,13 @@
 #include <catch.hpp>
 #include <tweedledum/gates/gate_base.hpp>
 #include <tweedledum/gates/gate_set.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
-// #include <tweedledum/gates/q_gate.hpp>
 #include <tweedledum/networks/io_id.hpp>
 
 using namespace tweedledum;
 TEMPLATE_TEST_CASE("Common functionality for all gate kinds", "[gates][template]",
-                   mcst_gate, mcmt_gate)
+                   io3_gate, mcmt_gate)
 {
 	io_id q0(0, true);
 	io_id q1(1, true);

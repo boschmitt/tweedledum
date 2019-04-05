@@ -7,7 +7,7 @@
 #include <tweedledum/gates/gate_base.hpp>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/io_id.hpp>
 #include <tweedledum/networks/netlist.hpp>
@@ -15,7 +15,7 @@
 using namespace tweedledum;
 
 TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[networks][template]",
-                           (gg_network, netlist), (mcst_gate, mcmt_gate))
+                           (gg_network, netlist), (io3_gate, mcmt_gate))
 {
 	TestType network;
 	SECTION("An empty network")

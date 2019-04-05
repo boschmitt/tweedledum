@@ -6,7 +6,7 @@
 #include "tweedledum/algorithms/mapping/zdd_map.hpp"
 
 #include "tweedledum/gates/gate_set.hpp"
-#include "tweedledum/gates/mcst_gate.hpp"
+#include "tweedledum/gates/io3_gate.hpp"
 #include "tweedledum/gates/mcmt_gate.hpp"
 #include "tweedledum/io/write_unicode.hpp"
 #include "tweedledum/networks/gg_network.hpp"
@@ -58,7 +58,7 @@ bool check_map(Network const& orignal, mapping_view<Network> const& mapped)
 }
 
 TEMPLATE_PRODUCT_TEST_CASE("Test for ZDD mapper", "[zdd_map][template]", (gg_network),
-                           (mcmt_gate, mcst_gate))
+                           (mcmt_gate, io3_gate))
 {
 	TestType network;
 	auto q0 = network.add_qubit();

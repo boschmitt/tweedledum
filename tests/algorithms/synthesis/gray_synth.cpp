@@ -7,7 +7,7 @@
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <tweedledum/utils/angle.hpp>
@@ -15,7 +15,7 @@
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
-                           (gg_network, netlist), (mcmt_gate, mcst_gate))
+                           (gg_network, netlist), (mcmt_gate, io3_gate))
 {
 	SECTION("Check simple example from Amy paper")
 	{

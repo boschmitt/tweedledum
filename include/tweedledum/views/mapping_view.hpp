@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../traits.hpp"
-#include "../gates/mcst_gate.hpp"
+#include "../gates/io3_gate.hpp"
 #include "../utils/device.hpp"
 
 #include <optional>
@@ -122,7 +122,7 @@ public:
 	void add_swap(uint32_t phy_a, uint32_t phy_b)
 	{
 		assert(coupling_matrix_.at(phy_a, phy_b));
-		if constexpr (std::is_same_v<typename Network::gate_type, mcst_gate>) {
+		if constexpr (std::is_same_v<typename Network::gate_type, io3_gate>) {
 			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
 			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_b), phy_id_map_.at(phy_a)));
 			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));

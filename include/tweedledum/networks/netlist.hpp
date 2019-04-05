@@ -348,7 +348,7 @@ public:
 	void foreach_gate(Fn&& fn, uint32_t start = 0) const
 	{
 		foreach_element_if(storage_->nodes.cbegin() + start, storage_->nodes.cend(),
-		                   [](auto const& node) { return node.gate.is_unitary_gate(); },
+		                   [](auto const& node) { return node.gate.is_gate(); },
 		                   fn);
 	}
 

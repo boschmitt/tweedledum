@@ -267,7 +267,7 @@ void tbs(Network& network, std::vector<io_id> const& qubits, std::vector<uint32_
    .. code-block:: c++
 
       std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-      auto network = tbs<netlist<mcst_gate>>(permutation);
+      auto network = tbs<netlist<io3_gate>>(permutation);
 
    \endverbatim
  *

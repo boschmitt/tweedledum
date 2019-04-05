@@ -5,7 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/mcst_gate.hpp"
+#include "../../gates/io3_gate.hpp"
 #include "../../io/quil.hpp"
 #include "../../io/write_unicode.hpp"
 #include "../../networks/netlist.hpp"

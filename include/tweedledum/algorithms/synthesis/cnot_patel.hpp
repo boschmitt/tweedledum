@@ -236,7 +236,7 @@ void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const
       parameters.allow_rewiring = false;
       parameters.best_partition_size = false;
       parameters.partition_size = 2u;
-      auto network = cnot_patel<netlist<mcst_gate>>(matrix, parameters);
+      auto network = cnot_patel<netlist<io3_gate>>(matrix, parameters);
 
    \endverbatim
  *

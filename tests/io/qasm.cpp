@@ -7,7 +7,7 @@
 #include <sstream>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/io/qasm.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
@@ -15,7 +15,7 @@
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Write simple network into qasm", "[qasm][template]",
-                           (gg_network, netlist), (mcmt_gate, mcst_gate))
+                           (gg_network, netlist), (mcmt_gate, io3_gate))
 {
 	TestType network;
 	auto q0 = network.add_qubit();
