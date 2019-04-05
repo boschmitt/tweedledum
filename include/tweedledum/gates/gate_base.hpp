@@ -56,6 +56,25 @@ public:
 		return detail::gates_info[static_cast<uint8_t>(operation_)].adjoint;
 	}
 
+	/*! \brief Returns true if this gate is the operation ``operation``. */
+	constexpr bool is(gate_set op) const
+	{
+		return operation() == op;
+	}
+
+	template<typename... OPs>
+	constexpr bool is_one_of(gate_set op) const
+	{
+		return is(op);
+	}
+
+	/*! \brief Returns true if this gate is one of the operations ``{op0, op1, .. , opN}``. */
+	template<typename... OPs>
+	constexpr bool is_one_of(gate_set op0, OPs... opN) const
+	{
+		return is(op0) || is_one_of(opN...);
+	}
+
 	/*! \brief Returns true if this is a meta gate. */
 	constexpr bool is_meta() const
 	{
@@ -109,25 +128,6 @@ public:
 	constexpr bool is_z_rotation() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis == 'z';
-	}
-
-	/*! \brief Returns true if this gate is the operation ``operation``. */
-	constexpr bool is(gate_set operation) const
-	{
-		return operation_ == operation;
-	}
-
-	template<typename... OPs>
-	bool is_one_of(gate_set operation) const
-	{
-		return is(operation);
-	}
-
-	/*! \brief Returns true if this gate is one of the operations ``{op0, op1, .. , opN}``. */
-	template<typename... OPs>
-	bool is_one_of(gate_set op0, OPs... opN) const
-	{
-		return is(op0) || is_one_of(opN...);
 	}
 
 	/*! \brief Returns the operation. (see ``gate_set``) */
