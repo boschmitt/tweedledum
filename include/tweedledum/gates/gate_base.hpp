@@ -122,6 +122,12 @@ public:
 	{
 		return operation_;
 	}
+
+	/*! \brief Return gate symbol. (see ``gate_set``) */
+	std::string symbol() const
+	{
+		return detail::gates_info[static_cast<uint8_t>(operation_)].symbol;
+	}
 #pragma endregion
 
 #pragma region Angle information

@@ -4,45 +4,40 @@
 | Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #ifndef GATE
-#define GATE(X, Y, Z, W)
+#define GATE(X, Y, Z, V, W)
 #endif
 
 /* Meta gates */
-GATE(undefined, undefined, '-', "Undefined")
-GATE(unknown,   undefined, '-', "Unknown")
-GATE(input,   undefined, '-', "Input")
-GATE(output,  undefined, '-', "Output")
-
-// GATE(c_input,   undefined, '-', "Cbit input")
-// GATE(c_output,  undefined, '-', "Cbit output")
-// GATE(q_input,   undefined, '-', "Qubit input ")
-// GATE(q_output,  undefined, '-', "Qubit output")
+GATE(undefined, undefined, '-', "-", "Undefined")
+GATE(unknown,   undefined, '-', "-", "Unknown")
+GATE(input,     undefined, '-', "-", "Input")
+GATE(output,    undefined, '-', "-", "Output")
 
 /* Single-qubit unitary gates */
-GATE(identity, identity, '-', "Identity")
-GATE(u3,       u3,       '-', "Parameterizable single-qubit gate")
-GATE(hadamard, hadamard, '-', "Hadamard")
+GATE(identity, identity, '-', "I", "Identity")
+GATE(u3,       u3,       '-', "U3", "Parameterizable single-qubit gate")
+GATE(hadamard, hadamard, '-', "H", "Hadamard")
 // Arbitrary rotations
-GATE(rotation_x, rotation_x, 'x', "Arbitrary rotation X")
-GATE(rotation_y, rotation_y, 'y', "Arbitrary rotation Y")
-GATE(rotation_z, rotation_z, 'z', "Arbitrary rotation Z")
+GATE(rotation_x, rotation_x, 'x', "Rx", "Arbitrary rotation X")
+GATE(rotation_y, rotation_y, 'y', "Ry", "Arbitrary rotation Y")
+GATE(rotation_z, rotation_z, 'z', "Rz", "Arbitrary rotation Z")
 // Other rotations
-GATE(pauli_x, pauli_x, 'x', "Pauli-X (aka NOT gate)")
-GATE(pauli_y, pauli_x, 'y', "Pauli-Y")
+GATE(pauli_x, pauli_x, 'x', "X", "Pauli-X (aka NOT gate)")
+GATE(pauli_y, pauli_x, 'y', "Y", "Pauli-Y")
 // Phase shifts
-GATE(t,            t_dagger,     'z', "T")
-GATE(phase,        phase_dagger, 'z', "Phase (P) (aka Sqrt(Z))")
-GATE(pauli_z,      pauli_z,      'z', "Pauli-Z (Z)")
-GATE(phase_dagger, phase,        'z', "Conjugate transpose of Phase")
-GATE(t_dagger,     t,            'z', "Conjugate transpose of T")
+GATE(t,            t_dagger,     'z', "T", "T")
+GATE(phase,        phase_dagger, 'z', "P", "Phase (P) (aka Sqrt(Z))")
+GATE(pauli_z,      pauli_z,      'z', "Z", "Pauli-Z (Z)")
+GATE(phase_dagger, phase,        'z', "P†", "Conjugate transpose of Phase")
+GATE(t_dagger,     t,            'z', "T†", "Conjugate transpose of T")
 
 /* Double-qubit unitary gates */
-GATE(cx, cx, 'x', "Control Not")
-GATE(cz, cz, 'z', "Control Pauli-Z")
-GATE(swap, swap, '-', "Swap gate")
+GATE(cx,   cx,   'x', "CX",   "Control Not")
+GATE(cz,   cz,   'z', "CZ",   "Control Pauli-Z")
+GATE(swap, swap, '-', "SWAP", "Swap gate")
 
 /* Multiple-qubit unitary gates */
-GATE(mcx, mcx, 'x', "Multiple Control Not (aka Toffoli)")
-GATE(mcz, mcz, 'z', "Multiple Control Pauli-Z")
+GATE(mcx, mcx, 'x', "TOF", "Multiple Control Not (aka Toffoli)")
+GATE(mcz, mcz, 'z', "MCZ", "Multiple Control Pauli-Z")
 
 #undef GATE
