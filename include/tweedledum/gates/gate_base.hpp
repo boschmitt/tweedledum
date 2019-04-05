@@ -24,7 +24,7 @@ public:
 	    , phi_(angles::zero)
 	    , lambda_(angles::zero)
 	{
-		assert(!(is_single_qubit() && is_unitary_gate()));
+		assert(!(is_single_qubit() && is_gate()));
 	}
 
 	constexpr gate_base(gate_set operation, angle theta, angle phi, angle lambda)
@@ -63,21 +63,34 @@ public:
 	}
 
 	/*! \brief Returns true if this gate is a quantum unitary operation. */
-	constexpr bool is_unitary_gate() const
+	constexpr bool is_gate() const
 	{
-		return (operation_ >= gate_set::identity && operation_ <= gate_set::mcz);
+		return (!is_meta());
 	}
 
-	/*! \brief Returns true if this gate acts on a single qubit. */
-	constexpr bool is_single_qubit() const
+	/*! \brief Returns true if this gate acts on one I/Os. */
+	constexpr bool is_one_io() const
 	{
 		return (operation_ >= gate_set::input && operation_ <= gate_set::t_dagger);
 	}
 
-	/*! \brief Returns true if this gate acts on two qubits. */
+	/*! \brief Returns true if this gate acts on two I/Os. */
+	constexpr bool is_two_io() const
+	{
+		return is_one_of(gate_set::cx, gate_set::cz, gate_set::swap, gate_set::measurement);
+	}
+
+	/*! \brief Returns true if this gate acts on a single qubit. */
+	// TODO: Is MEASUREMENT single-qubit? It acts on two I/Os, but only one qubit.
+	constexpr bool is_single_qubit() const
+	{
+		return (operation_ >= gate_set::identity && operation_ <= gate_set::t_dagger);
+	}
+
+	/*! \brief Returns true if this gate acts on two _qubits_. */
 	constexpr bool is_double_qubit() const
 	{
-		return (operation_ >= gate_set::cx && operation_ <= gate_set::swap);
+		return is_one_of(gate_set::cx, gate_set::cz, gate_set::swap);
 	}
 
 	/*! \brief Returns true if this gate is a rotation around x axis. */
@@ -177,6 +190,9 @@ constexpr gate_base swap(gate_set::swap);
 /* Multiple-qubit unitary gates */
 constexpr gate_base mcx(gate_set::mcx, angles::one, angles::zero, angles::one);
 constexpr gate_base mcz(gate_set::mcz, angles::zero, angles::zero, angles::one);
+
+/* Single-qubit, single-cbit gate */
+constexpr gate_base measurement(gate_set::measurement);
 
 } // namespace gate
 

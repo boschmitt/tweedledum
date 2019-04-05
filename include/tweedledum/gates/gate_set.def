@@ -40,4 +40,6 @@ GATE(swap, swap, '-', "SWAP", "Swap gate")
 GATE(mcx, mcx, 'x', "TOF", "Multiple Control Not (aka Toffoli)")
 GATE(mcz, mcz, 'z', "MCZ", "Multiple Control Pauli-Z")
 
+/* Single-qubit, single-cbit gate */
+GATE(measurement, undefined, '-', "M", "Measurement")
 #undef GATE
