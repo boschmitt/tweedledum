@@ -93,6 +93,11 @@ public:
 		auto label = fmt::format("c{}", num_cbits());
 		return add_cbit(label);
 	}
+
+	std::string io_label(io_id id) const
+	{
+		return labels_->to_label(id);
+	}
 #pragma endregion
 
 #pragma region Structural properties
