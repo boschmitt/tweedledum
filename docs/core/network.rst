@@ -70,5 +70,5 @@ Node iterators
 ~~~~~~~~~~~~~~
 
 .. doxygenclass:: tweedledum::network
-   :members: foreach_cqubit, foreach_cinput, foreach_coutput, foreach_cgate, foreach_cnode
+   :members: foreach_qubit, foreach_input, foreach_output, foreach_gate, foreach_node
    :no-link:

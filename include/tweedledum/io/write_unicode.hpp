@@ -19,16 +19,17 @@ namespace detail {
 
 class fancy_string_builder {
 public:
-	fancy_string_builder(uint32_t num_qubits)
-	    : occupancy_(num_qubits, 0)
-	    , lines_(3 * num_qubits, "     ")
+	fancy_string_builder(std::vector<io_id> const& io)
+	    : io_(io)
+	    , occupancy_(io.size(), 0)
+	    , lines_(3 * io.size(), "     ")
 	{
-		for (auto i = 0u; i < num_qubits; ++i) {
-			lines_[(3 * i) + 1].replace(0, 5, "|0>──");
+		for (auto id : io_) {
+			lines_[(3 * id.index()) + 1].replace(0, 5, id.is_qubit()? "|0>──" : " 0 ══" );
 		}
 	}
 
-	void add_gate(std::string const& op, qubit_id target)
+	void add_gate(std::string const& op, io_id target)
 	{
 		if (occupancy_[target] != 0) {
 			new_column();
@@ -40,7 +41,7 @@ public:
 		lines_[(3 * target) + 2] += "└───┘";
 	}
 
-	void add_gate(std::string const& op, qubit_id control, qubit_id target)
+	void add_gate(std::string const& op, io_id control, io_id target)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -61,13 +62,13 @@ public:
 		for (auto i = min + 1; i < max; ++i) {
 			occupancy_[i] = 1;
 			lines_[(3 * i)] += "  │  ";
-			lines_[(3 * i) + 1] += "──┼──";
+			lines_[(3 * i) + 1] += io_[i].is_qubit() ? "──┼──" : "══╪══";
 			lines_[(3 * i) + 2] += "  │  ";
 		}
 		new_column();
 	}
 
-	void add_swap(qubit_id q0, qubit_id q1)
+	void add_swap(io_id q0, io_id q1)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -88,14 +89,44 @@ public:
 		for (auto i = min + 1; i < max; ++i) {
 			occupancy_[i] = 1;
 			lines_[(3 * i)] += "  │  ";
-			lines_[(3 * i) + 1] += "──┼──";
+			lines_[(3 * i) + 1] += io_[i].is_qubit() ? "──┼──" : "══╪══";
 			lines_[(3 * i) + 2] += "  │  ";
 		}
 		new_column();
 	}
 
-	void add_gate(std::string const& op, std::vector<qubit_id> controls,
-	              std::vector<qubit_id> targets)
+	void add_measurement(io_id qubit, io_id cbit)
+	{
+		if (!is_last_column_empty()) {
+			new_column();
+		}
+		if (cbit.is_qubit()) {
+			std::swap(qubit, cbit);
+		}
+		occupancy_[qubit] = 1;
+		occupancy_[cbit] = 1;
+
+		lines_[(3 * qubit)] += qubit < cbit ? "┌───┐" : "┌─╨─┐";
+		lines_[(3 * qubit) + 1] += "┤ M ├";
+		lines_[(3 * qubit) + 2] += qubit < cbit ? "└─╥─┘" : "└───┘";
+
+		lines_[(3 * cbit)] += qubit < cbit ? "  ║  " : "     ";
+		lines_[(3 * cbit) + 1] += "══■══";
+		lines_[(3 * cbit) + 2] += qubit < cbit ? "     " : "  ║  ";
+
+		auto const min = std::min(qubit.index(), cbit.index());
+		auto const max = std::max(qubit.index(), cbit.index());
+		for (auto i = min + 1; i < max; ++i) {
+			occupancy_[i] = 1;
+			lines_[(3 * i)] += "  ║  ";
+			lines_[(3 * i) + 1] += io_[i].is_qubit() ? "──╫──" : "══╬══";
+			lines_[(3 * i) + 2] += "  ║  ";
+		}
+		new_column();
+	}
+
+	void add_gate(std::string const& op, std::vector<io_id> controls,
+	              std::vector<io_id> targets)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -127,7 +158,7 @@ public:
 			}
 			occupancy_[i] = 1;
 			lines_[(3 * i)] += "  │  ";
-			lines_[(3 * i) + 1] += "──┼──";
+			lines_[(3 * i) + 1] += io_[i].is_qubit() ? "──┼──" : "══╪══";
 			lines_[(3 * i) + 2] += "  │  ";
 		}
 		new_column();
@@ -148,7 +179,7 @@ private:
 		for (auto i = 0u; i < occupancy_.size(); ++i) {
 			if (occupancy_[i] == 0) {
 				lines_[(3 * i)] += "     ";
-				lines_[(3 * i) + 1] += "─────";
+				lines_[(3 * i) + 1] += io_[i].is_qubit() ? "─────" : "═════";
 				lines_[(3 * i) + 2] += "     ";
 			}
 			occupancy_[i] = 0;
@@ -166,6 +197,7 @@ private:
 	}
 
 private:
+	std::vector<io_id> io_;
 	std::vector<uint8_t> occupancy_;
 	std::vector<std::string> lines_;
 };
@@ -176,13 +208,13 @@ public:
 	    : lines_(num_qubits, "―")
 	{ }
 
-	void add_gate(std::string const& op, qubit_id target)
+	void add_gate(std::string const& op, io_id target)
 	{
 		lines_[target] += op == "X" ? "⊕" : op;
 		new_column();
 	}
 
-	void add_gate(std::string const& op, qubit_id control, qubit_id target)
+	void add_gate(std::string const& op, io_id control, io_id target)
 	{
 		if (control.is_complemented()) {
 			lines_[control] += "○";
@@ -193,15 +225,22 @@ public:
 		new_column();
 	}
 
-	void add_swap(qubit_id q0, qubit_id q1)
+	void add_swap(io_id q0, io_id q1)
+	{
+		lines_[q0] += "M";
+		lines_[q1] += "■";
+		new_column();
+	}
+
+	void add_measurement(io_id q0, io_id q1)
 	{
 		lines_[q0] += "╳";
 		lines_[q1] += "╳";
 		new_column();
 	}
 
-	void add_gate(std::string const& op, std::vector<qubit_id> controls,
-	              std::vector<qubit_id> targets)
+	void add_gate(std::string const& op, std::vector<io_id> controls,
+	              std::vector<io_id> targets)
 	{
 		for (auto qid : controls) {
 			if (qid.is_complemented()) {
@@ -245,7 +284,7 @@ private:
 template<typename Network, typename Builder>
 auto to_unicode_str(Network const& network, Builder builder)
 {
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
@@ -297,7 +336,7 @@ auto to_unicode_str(Network const& network, Builder builder)
 			break;
 
 		case gate_set::swap: {
-			std::vector<qubit_id> qids;
+			std::vector<io_id> qids;
 			gate.foreach_target([&](auto qid) {
 				qids.push_back(qid);
 			});
@@ -314,8 +353,8 @@ auto to_unicode_str(Network const& network, Builder builder)
 			break;
 
 		case gate_set::mcx: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) { controls.push_back(control); });
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_gate("X", controls, targets);
@@ -330,12 +369,22 @@ auto to_unicode_str(Network const& network, Builder builder)
 			break;
 
 		case gate_set::mcz: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) { controls.push_back(control); });
 			gate.foreach_target([&](auto target) { targets.push_back(target); });
 			builder.add_gate("Z", controls, targets);
 		} break;
+
+		case gate_set::measurement: {
+			std::vector<io_id> qids;
+			gate.foreach_target([&](auto qid) {
+				qids.push_back(qid);
+			});
+			builder.add_measurement(qids.at(0), qids.at(1));
+			
+		} break;
+		
 		}
 		return true;
 	});
@@ -352,7 +401,7 @@ auto to_unicode_str(Network const& network, Builder builder)
  * - `foreach_target`
  *
  * **Required network functions:**
- * - `foreach_cgate`
+ * - `foreach_gate`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -368,10 +417,10 @@ void write_unicode(Network const& network, bool fancy = true, std::ostream& os =
 
 	std::string unicode_str;
 	if (fancy) {
-		detail::fancy_string_builder builder(network.num_qubits());
+		detail::fancy_string_builder builder(network.rewire_map());
 		unicode_str = detail::to_unicode_str(network, builder);
 	} else {
-		detail::string_builder builder(network.num_qubits());
+		detail::string_builder builder(network.num_io());
 		unicode_str = detail::to_unicode_str(network, builder);
 	}
 	os << unicode_str;
@@ -385,7 +434,7 @@ void write_unicode(Network const& network, bool fancy = true, std::ostream& os =
  * - `foreach_target`
  *
  * **Required network functions:**
- * - `foreach_cgate`
+ * - `foreach_gate`
  * - `num_qubits`
  *
  * \param network A quantum network

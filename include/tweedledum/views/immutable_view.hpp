@@ -38,9 +38,9 @@ public:
 	auto add_qubit() = delete;
 	auto add_qubit(std::string const&) = delete;
 	auto& add_gate(gate_type const& gate) = delete;
-	auto& add_gate(gate_base op, qubit_id target) = delete;
-	auto& add_gate(gate_base op, qubit_id control, qubit_id target) = delete;
-	auto& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets) = delete;
+	auto& add_gate(gate_base op, io_id target) = delete;
+	auto& add_gate(gate_base op, io_id control, io_id target) = delete;
+	auto& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets) = delete;
 	auto& add_gate(gate_base op, std::string const& qlabel_target) = delete;
 	auto& add_gate(gate_base op, std::string const& qlabel_control,
 	               std::string const& qlabel_target) = delete;

@@ -8,4 +8,4 @@ Algorithm
 
 .. doxygenfunction:: tweedledum::diagonal_synth(std::vector<double> const&)
 
-.. doxygenfunction:: tweedledum::diagonal_synth(Circuit&, std::vector<qubit_id> const&, std::vector<double> const&)
+.. doxygenfunction:: tweedledum::diagonal_synth(Circuit&, std::vector<io_id> const&, std::vector<double> const&)

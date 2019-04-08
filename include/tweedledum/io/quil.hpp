@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../gates/gate_set.hpp"
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -25,8 +25,8 @@ namespace tweedledum {
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -35,7 +35,7 @@ namespace tweedledum {
 template<typename Network>
 void write_quil(Network const& network, std::ostream& os)
 {
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
@@ -106,7 +106,7 @@ void write_quil(Network const& network, std::ostream& os)
                         break;
 		
 		case gate_set::swap: {
-			std::vector<qubit_id> targets;
+			std::vector<io_id> targets;
 			gate.foreach_target([&](auto target) {
 				targets.push_back(target);
 			});
@@ -116,13 +116,13 @@ void write_quil(Network const& network, std::ostream& os)
 		} break;
 
 		case gate_set::mcx: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) {
 				if (control.is_complemented()) {
 					os << fmt::format("X {}\n", control.index());
 				}
-				controls.push_back(control.index()); 
+				controls.emplace_back(control.id()); 
 			});
 			gate.foreach_target([&](auto target) {
 				targets.push_back(target);
@@ -175,8 +175,8 @@ void write_quil(Network const& network, std::ostream& os)
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network

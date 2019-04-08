@@ -108,10 +108,10 @@ After you create the circuit, it is necessary to add qubits to it.
 
 .. code-block:: c++
 
-  qubit_id q1 = network.add_qubit("x1");
-  qubit_id q2 = network.add_qubit("x2");
-  qubit_id q3 = network.add_qubit("x3");
-  qubit_id qf = network.add_qubit("F");
+  io_id q1 = network.add_qubit("x1");
+  io_id q2 = network.add_qubit("x2");
+  io_id q3 = network.add_qubit("x3");
+  io_id qf = network.add_qubit("F");
 
 Note: Naming the qubits is optional. ()
 

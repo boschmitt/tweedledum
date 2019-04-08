@@ -5,7 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/mcst_gate.hpp"
+#include "../../gates/io3_gate.hpp"
 #include "../../io/quil.hpp"
 #include "../../io/write_unicode.hpp"
 #include "../../networks/netlist.hpp"
@@ -56,17 +56,25 @@ namespace detail
 template<typename Network>
 class find_maximal_partitions_impl {
 public:
-	find_maximal_partitions_impl(Network const& circ, device const& arch, zdd_map_params const& ps, zdd_map_stats& st)
-	    : network_(circ)
+	find_maximal_partitions_impl(Network const& network, device const& arch, zdd_map_params const& ps, zdd_map_stats& st)
+	    : network_(network)
 	    , arch_(arch)
             , params_(ps)
             , stats_(st)
-	    , zdd_(circ.num_qubits() * arch.num_vertices, 21)
-	    , from_(circ.num_qubits())
+	    , zdd_(network.num_qubits() * arch.num_vertices, 21)
+	    , from_(network.num_qubits())
 	    , to_(arch.num_vertices)
             , edge_perm_(arch.num_vertices, 0)
+	    , id_virtual_map_(network.num_io(), io_invalid)
 	{
 		std::iota(edge_perm_.begin(), edge_perm_.end(), 0);
+		uint32_t i = 0;
+		network.foreach_io([&](io_id id) {
+			if (id.is_qubit()) {
+				id_virtual_map_.at(id.index()) = io_id(i++, true);
+				phy_id_map_.push_back(id);
+			}
+		});
 	}
 
 	mapping_view<Network> run()
@@ -112,18 +120,19 @@ public:
 		tm = tm.zero();
 		stopwatch timer(tm);
 		mapping_view mapped_ntk(network_, arch_, true);
+		// return mapped_ntk;
 		mapped_ntk.set_virtual_phy_map(current_mapping);
         	uint32_t count_2q = 0;
         	uint32_t index_counter = partition_start; // Start at first 2q gate in partition
-        	network_.foreach_cgate([&](auto const& node) {
+        	network_.foreach_gate([&](auto const& node) {
 			auto const& gate = node.gate;
 			if (!gate.is_double_qubit()) {
-				mapped_ntk.add_gate(gate, gate.target());
+				mapped_ntk.add_gate(gate, id_virtual_map_.at(gate.target()));
 				return;
 			}
 			if (index_of_swap.empty()) {
 				// No swaps needed for circuit b/c zero items in index_of_swap
-				mapped_ntk.add_gate(gate, gate.control(), gate.target());
+				mapped_ntk.add_gate(gate, id_virtual_map_.at(gate.control()), id_virtual_map_.at(gate.target()));
 				return;
 			}
 			// If 2q gate is one that needs swap, and its in the correct partition range, add it!
@@ -132,13 +141,15 @@ public:
 				while (count_2q == index_of_swap[index_counter]) {
 					// Insert as many swaps that are needed in a particular spot
 					mapped_ntk.add_swap(swaps_[index_counter].first, swaps_[index_counter].second);
+					// mapped_ntk.add_swap(phy_id_map_.at(swaps_[index_counter].first), phy_id_map_.at(swaps_[index_counter].second));
 					index_counter++;
 				}
 				// Insert gate
-				mapped_ntk.add_gate(gate, gate.control(), gate.target());
+				mapped_ntk.add_gate(gate, id_virtual_map_.at(gate.control()), id_virtual_map_.at(gate.target()));
 			} else {
 				// Insert gate with fixed qubits
-				mapped_ntk.add_gate(gate, gate.control(), gate.target());
+				mapped_ntk.add_gate(gate, id_virtual_map_.at(gate.control()), id_virtual_map_.at(gate.target()));
+				// mapped_ntk.add_gate(gate, gate.control(), gate.target());
 			}
 			count_2q++;
         	});
@@ -257,12 +268,12 @@ private:
 
 		depth_view depth_nkt(network_);
 		// Below is where we look for maps!
-		depth_nkt.foreach_cgate([&](auto const& n, auto node_index) {
+		depth_nkt.foreach_gate([&](auto const& n, auto node_index) {
 			if (!n.gate.is_double_qubit()) {
 				return;
 			}
-			uint32_t c = n.gate.control(); 
-			uint32_t t = n.gate.target();
+			uint32_t c = id_virtual_map_.at(n.gate.control()); 
+			uint32_t t = id_virtual_map_.at(n.gate.target());
 			if (m == zdd_.bot()) {
 				/* first gate */
 				m = map(c, t);
@@ -305,11 +316,13 @@ private:
 					// Determine depth and number of maps_
 					// Move on to next possible swap
 					auto m_prime = m;
-					network_.foreach_cgate([&](auto const& nn) {
+					network_.foreach_gate([&](auto const& nn) {
 						if (!nn.gate.is_double_qubit()) {
 							return true;
 						}
-						auto m_next_prime = map(nn.gate.control(), nn.gate.target());
+						uint32_t cc = id_virtual_map_.at(nn.gate.control()); 
+						uint32_t tt = id_virtual_map_.at(nn.gate.target());
+						auto m_next_prime = map(cc, tt);
 						auto mp_prime = zdd_.nonsupersets(zdd_.join(m_prime, m_next_prime), bad_);
 						if (mp_prime == zdd_.bot()){
 							depth_count[i] = depth_nkt.level(nn) - depth_nkt.level(n);
@@ -450,6 +463,10 @@ private:
 	std::vector<uint32_t> map_start_;
 	// holds the size of each map
 	std::vector<uint32_t> map_coverage_;
+
+	// Qubit normalization
+	std::vector<io_id> id_virtual_map_;
+	std::vector<io_id> phy_id_map_;
 };
 
 } // namespace detail

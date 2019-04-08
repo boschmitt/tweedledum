@@ -10,6 +10,7 @@
 #include "../utils/node_map.hpp"
 #include "immutable_view.hpp"
 
+#include <array>
 #include <cstdint>
 #include <fmt/format.h>
 #include <iostream>
@@ -27,9 +28,9 @@ namespace tweedledum {
  * **Required gate functions:**
  *
  * **Required network functions:**
- * - `foreach_cgate`
- * - `foreach_cinput`
- * - `foreach_coutput`
+ * - `foreach_gate`
+ * - `foreach_input`
+ * - `foreach_output`
  */
 template<typename Network>
 class pathsum_view : public immutable_view<Network> {
@@ -45,12 +46,15 @@ public:
 	    : immutable_view<Network>(network)
 	    , pathsum_to_node_()
 	    , node_to_pathsum_(network)
-	    , num_path_vars_(network.num_qubits() + 1)
-	    , qubit_state_(this->num_qubits())
+	    , num_path_vars_(network.num_io() + 1)
+	    , qubit_state_(network.num_io())
 	    , phy_virtual_map_(network.num_qubits(), 0)
 	    , ignore_single_qubit_(ignore_single_qubit)
 	{
 		std::iota(phy_virtual_map_.begin(), phy_virtual_map_.end(), 0);
+		network.foreach_qubit([&](io_id id) {
+			virtual_id_map_.emplace_back(id);
+		});
 		compute_pathsums();
 	}
 
@@ -65,14 +69,17 @@ public:
 	    : immutable_view<Network>(network)
 	    , pathsum_to_node_()
 	    , node_to_pathsum_(network)
-	    , num_path_vars_(network.num_qubits() + 1)
-	    , qubit_state_(this->num_qubits())
+	    , num_path_vars_(network.num_io() + 1)
+	    , qubit_state_(network.num_io())
 	    , phy_virtual_map_(network.num_qubits(), 0)
 	    , ignore_single_qubit_(ignore_single_qubit)
 	{
 		for (uint32_t i = 0; i < virtual_phy_map.size(); ++i) {
 			phy_virtual_map_[virtual_phy_map[i]] = i;
 		}
+		network.foreach_qubit([&](io_id id) {
+			virtual_id_map_.push_back(id);
+		});
 		compute_pathsums();
 	}
 
@@ -83,7 +90,7 @@ public:
 	}
 
 private:
-	void map_pathsum_to_node(qubit_id qid, node_type const& node, uint32_t node_index)
+	void map_pathsum_to_node(io_id qid, node_type const& node, uint32_t node_index)
 	{
 		const std::vector<uint32_t> node_list = {node_index};
 		auto map_element = pathsum_to_node_.emplace(
@@ -97,14 +104,19 @@ private:
 	void compute_pathsums()
 	{
 		// Initialize qubit_state_ with initial path literals
-		this->foreach_cinput([&](auto& node, auto node_index) {
-			const auto qid = node.gate.target();
-			const auto path_literal = ((phy_virtual_map_.at(qid) + 1) << 1);
-			qubit_state_.at(qid).emplace(path_literal);
-			map_pathsum_to_node(qid, node, node_index);
-			// std::cout << fmt::format("Qubit {} : {} \n", node_index, path_literal);
+		uint32_t i = 0;
+		this->foreach_input([&](auto& node, auto node_index) {
+			const auto id = node.gate.target();
+			uint32_t path_literal;
+			if (id.is_qubit()) {
+				path_literal = (((virtual_id_map_.at(phy_virtual_map_.at(i++))) + 1) << 1);
+			} else {
+				path_literal = ((id.index() + 1) << 1);
+			}
+			qubit_state_.at(id.index()).emplace(path_literal);
+			map_pathsum_to_node(id, node, node_index);
 		});
-		this->foreach_cgate([&](auto const& node, auto node_index) {
+		this->foreach_gate([&](auto const& node, auto node_index) {
 			// If is a Z rotation save the current state of the qubit
 			if (node.gate.is_z_rotation() && !ignore_single_qubit_) {
 				auto qid = node.gate.target();
@@ -136,6 +148,14 @@ private:
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
 			}
+			if (node.gate.is(gate_set::swap)) {
+				std::array<io_id, 2> targets = {io_invalid, io_invalid};
+				uint32_t i = 0;
+				node.gate.foreach_target([&](auto qid) {
+					targets[i++] = qid;
+				});
+				std::swap(qubit_state_[targets[0]], qubit_state_[targets[1]]);
+			}
 			// In case of hadamard gate a new path variable
 			if (node.gate.is(gate_set::hadamard) && !ignore_single_qubit_) {
 				auto qid = node.gate.target();
@@ -144,7 +164,7 @@ private:
 				map_pathsum_to_node(qid, node, node_index);
 			}
 		});
-		this->foreach_coutput([&](auto& node, auto node_index) {
+		this->foreach_output([&](auto& node, auto node_index) {
 			node.gate.foreach_target([&](auto qid) {
 				auto map_element = pathsum_to_node_.find(qubit_state_[qid]);
 				assert(map_element != pathsum_to_node_.end());
@@ -160,6 +180,7 @@ private:
 	uint32_t num_path_vars_;
 	std::vector<esop_type> qubit_state_;
 	std::vector<uint32_t> phy_virtual_map_;
+	std::vector<io_id> virtual_id_map_;
 	bool ignore_single_qubit_;
 };
 

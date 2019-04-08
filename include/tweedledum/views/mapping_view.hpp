@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../traits.hpp"
-#include "../gates/mcst_gate.hpp"
+#include "../gates/io3_gate.hpp"
 #include "../utils/device.hpp"
 
 #include <optional>
@@ -35,6 +35,7 @@ public:
 	 */
 	explicit mapping_view(Network const& network, device const& arch, bool allow_partial = false)
 	    : Network()
+	    , init_virtual_phy_map_(arch.num_vertices)
 	    , virtual_phy_map_(arch.num_vertices)
 	    , coupling_matrix_(arch.get_coupling_matrix())
 	    , allow_partial_(allow_partial)
@@ -43,18 +44,24 @@ public:
 		assert(this->num_qubits() <= arch.num_vertices);
 		std::iota(init_virtual_phy_map_.begin(), init_virtual_phy_map_.end(), 0u);
 		std::iota(virtual_phy_map_.begin(), virtual_phy_map_.end(), 0u);
-		for (auto i = 0u; i < network.num_qubits(); ++i) {
-			this->add_qubit();
-		}
+		network.foreach_io([&](io_id id, std::string const& label) {
+			if (id.is_qubit()) {
+				phy_id_map_.push_back(id);
+				this->add_qubit(label);
+			} else {
+				this->add_cbit(label);
+			}
+		});
 	}
 
 #pragma region Add gates(qids)
-	node_type& add_gate(gate_base op, qubit_id target)
+	node_type& add_gate(gate_base op, io_id target)
 	{
-		return this->emplace_gate(gate_type(op, virtual_phy_map_.at(target)));
+		auto const phy_target = virtual_phy_map_.at(target);
+		return this->emplace_gate(gate_type(op, io_id(phy_target, true)));
 	}
 
-	std::optional<node_type> add_gate(gate_base op, qubit_id control, qubit_id target)
+	std::optional<node_type> add_gate(gate_base op, io_id control, io_id target)
 	{
 		auto const phy_control = virtual_phy_map_.at(control);
 		auto const phy_target = virtual_phy_map_.at(target);
@@ -65,7 +72,7 @@ public:
 				return std::nullopt;
 			}
 		}
-		return this->emplace_gate(gate_type(op, phy_control, phy_target));
+		return this->emplace_gate(gate_type(op, phy_id_map_.at(phy_control), phy_id_map_.at(phy_target)));
 	}
 #pragma endregion
 
@@ -115,12 +122,12 @@ public:
 	void add_swap(uint32_t phy_a, uint32_t phy_b)
 	{
 		assert(coupling_matrix_.at(phy_a, phy_b));
-		if constexpr (std::is_same_v<typename Network::gate_type, mcst_gate>) {
-			this->emplace_gate(gate_type(gate::cx, qubit_id(phy_a), qubit_id(phy_b)));
-			this->emplace_gate(gate_type(gate::cx, qubit_id(phy_b), qubit_id(phy_a)));
-			this->emplace_gate(gate_type(gate::cx, qubit_id(phy_a), qubit_id(phy_b)));
+		if constexpr (std::is_same_v<typename Network::gate_type, io3_gate>) {
+			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
+			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_b), phy_id_map_.at(phy_a)));
+			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
 		} else {
-			this->emplace_gate(gate_type(gate::swap, qubit_id(phy_a), qubit_id(phy_b)));
+			this->emplace_gate(gate_type(gate::swap, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
 		}
 		auto it_a = std::find(virtual_phy_map_.begin(), virtual_phy_map_.end(), phy_a);
 		auto it_b = std::find(virtual_phy_map_.begin(), virtual_phy_map_.end(), phy_b);
@@ -129,8 +136,8 @@ public:
 #pragma endregion
 
 #pragma region Deleted methods
-	node_type& add_gate(gate_base op, std::vector<qubit_id> controls,
-	                    std::vector<qubit_id> targets) = delete;
+	node_type& add_gate(gate_base op, std::vector<io_id> controls,
+	                    std::vector<io_id> targets) = delete;
 	node_type& add_gate(gate_base op, std::string const& qlabel_target) = delete;
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
 	                    std::string const& qlabel_target) = delete;
@@ -139,6 +146,7 @@ public:
 #pragma endregion
 
 private:
+	std::vector<io_id> phy_id_map_;
 	std::vector<uint32_t> init_virtual_phy_map_;
 	std::vector<uint32_t> virtual_phy_map_;
 	bit_matrix_rm<> coupling_matrix_;
