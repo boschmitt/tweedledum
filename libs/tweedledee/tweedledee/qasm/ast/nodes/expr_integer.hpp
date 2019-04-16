@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
@@ -17,10 +18,9 @@ namespace qasm {
 class expr_integer final : public ast_node {
 
 public:
-	static std::unique_ptr<expr_integer> build(uint32_t location, int32_t value)
+	static expr_integer* create(ast_context* ctx, uint32_t location, int32_t value)
 	{
-		auto result = std::unique_ptr<expr_integer>(new expr_integer(location, value));
-		return result;
+		return new (*ctx) expr_integer(location, value);
 	}
 
 	int32_t evaluate() const

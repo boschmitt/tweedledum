@@ -8,15 +8,18 @@
 #endif
 
 // Nodes
-AST_NODE(program)
+AST_NODE(list_gops)
+AST_NODE(list_ids)
 
 // Declarations
+AST_NODE(decl_program)
 AST_NODE(decl_register)
 AST_NODE(decl_param)
 AST_NODE(decl_gate)
 AST_NODE(decl_opaque)
 
 // Statements
+AST_NODE(stmt_barrier)
 AST_NODE(stmt_cnot)
 AST_NODE(stmt_unitary)
 AST_NODE(stmt_gate)
@@ -28,6 +31,7 @@ AST_NODE(stmt_if)
 AST_NODE(expr_decl_ref)
 AST_NODE(expr_reg_idx_ref)
 AST_NODE(expr_integer)
+AST_NODE(expr_pi)
 AST_NODE(expr_real)
 AST_NODE(expr_binary_op)
 AST_NODE(expr_unary_op)

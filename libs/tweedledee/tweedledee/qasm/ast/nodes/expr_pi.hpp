@@ -15,38 +15,31 @@
 namespace tweedledee {
 namespace qasm {
 
-class stmt_gate
-    : public ast_node
-    , public ast_node_container<stmt_gate, ast_node> {
+class expr_pi final : public ast_node {
 public:
-	class builder {
-	public:
-		explicit builder(ast_context* ctx, uint32_t location)
-		    : statement_(new (*ctx) stmt_gate(location))
-		{}
+	static expr_pi* create(ast_context* ctx, uint32_t location)
+	{
+		return new (*ctx) expr_pi(location);
+	}
 
-		void add_child(ast_node* child)
-		{
-			statement_->add_child(child);
-		}
+	double evaluate() const
+	{
+		return M_PI;
+	}
 
-		stmt_gate* finish()
-		{
-			return statement_;
-		}
-
-	private:
-		stmt_gate* statement_;
-	};
+	double value() const
+	{
+		return M_PI;
+	}
 
 private:
-	stmt_gate(uint32_t location)
+	expr_pi(uint32_t location)
 	    : ast_node(location)
 	{}
 
 	ast_node_kinds do_get_kind() const override
 	{
-		return ast_node_kinds::stmt_gate;
+		return ast_node_kinds::expr_pi;
 	}
 };
 

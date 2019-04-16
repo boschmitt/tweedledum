@@ -8,6 +8,7 @@
 #include "ast_node_kinds.hpp"
 #include "detail/intrusive_list.hpp"
 
+#include <array>
 #include <memory>
 
 namespace tweedledee {
@@ -26,7 +27,7 @@ public:
 		return do_get_kind();
 	}
 
-	const ast_node& parent() const
+	ast_node const& parent() const
 	{
 		return *parent_;
 	}
@@ -41,6 +42,8 @@ protected:
 	    : location_(location)
 	{}
 
+	uint32_t config_bits_ = 0;
+
 private:
 	virtual ast_node_kinds do_get_kind() const = 0;
 
@@ -51,7 +54,7 @@ private:
 
 private:
 	uint32_t location_;
-	const ast_node* parent_;
+	ast_node const* parent_;
 
 	template<typename T>
 	friend struct detail::intrusive_list_access;
@@ -60,25 +63,41 @@ private:
 };
 
 // Helper class for nodes that are containers. i.e not leafs
-template<class Derived, typename T>
+template<typename Derived, typename T>
 class ast_node_container {
 public:
-	using iterator = typename detail::intrusive_list<T>::const_iterator;
+	using iterator = typename detail::intrusive_list<T>::iterator;
+	using const_iterator = typename detail::intrusive_list<T>::const_iterator;
 
-	iterator begin() const
+	iterator begin()
 	{
 		return children_.begin();
 	}
 
-	iterator end() const
+	iterator end()
 	{
 		return children_.end();
 	}
 
-protected:
-	void add_child(std::unique_ptr<T> ptr)
+	const_iterator begin() const
 	{
-		children_.push_back(static_cast<Derived*>(this), std::move(ptr));
+		return children_.begin();
+	}
+
+	const_iterator end() const
+	{
+		return children_.end();
+	}
+
+	size_t num_children() const
+	{
+		return children_.size();
+	}
+
+protected:
+	void add_child(T* ptr)
+	{
+		children_.push_back(static_cast<Derived*>(this), ptr);
 	}
 
 	~ast_node_container() = default;

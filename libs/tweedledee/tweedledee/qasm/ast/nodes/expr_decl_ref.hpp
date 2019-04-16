@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
@@ -18,10 +19,9 @@ namespace qasm {
 class expr_decl_ref final : public ast_node {
 
 public:
-	static std::unique_ptr<expr_decl_ref> build(std::uint32_t location, ast_node* decl)
+	static expr_decl_ref* build(ast_context* ctx, uint32_t location, ast_node* decl)
 	{
-		auto result = std::unique_ptr<expr_decl_ref>(new expr_decl_ref(location, decl));
-		return result;
+		return new (*ctx) expr_decl_ref(location, decl);
 	}
 
 	ast_node* declaration() const

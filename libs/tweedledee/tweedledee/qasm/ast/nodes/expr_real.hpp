@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
@@ -16,10 +17,9 @@ namespace qasm {
 
 class expr_real final : public ast_node {
 public:
-	static std::unique_ptr<expr_real> build(std::uint32_t location, double value)
+	static expr_real* create(ast_context* ctx, uint32_t location, double value)
 	{
-		auto result = std::unique_ptr<expr_real>(new expr_real(location, value));
-		return result;
+		return new (*ctx) expr_real(location, value);
 	}
 
 	double evaluate() const
@@ -33,7 +33,7 @@ public:
 	}
 
 private:
-	expr_real(std::uint32_t location, double value)
+	expr_real(uint32_t location, double value)
 	    : ast_node(location)
 	    , value_(value)
 	{}

@@ -10,69 +10,56 @@
 #include "../ast_node_kinds.hpp"
 
 #include <memory>
-#include <ostream>
 #include <string>
 
+// A `stmt_if` node has two children.
+// The children objects are in order:
 namespace tweedledee {
 namespace qasm {
 
-enum class unary_ops {
-	unknown = 0,
-	sin = 1,
-	cos = 2,
-	tan = 4,
-	exp = 8,
-	ln = 16,
-	sqrt = 32,
-	minus = 64,
-	plus = 128,
-};
-
-//
-class expr_unary_op
+class stmt_if
     : public ast_node
-    , public ast_node_container<expr_unary_op, ast_node> {
+    , public ast_node_container<stmt_if, ast_node> {
 public:
 	class builder {
 	public:
-		explicit builder(ast_context* ctx, uint32_t location, unary_ops op)
-		    : expression_(new (*ctx) expr_unary_op(location, op))
+		explicit builder(ast_context* ctx, uint32_t location)
+		    : statement_(new (*ctx) stmt_if(location))
 		{}
 
 		void add_child(ast_node* child)
 		{
-			expression_->add_child(child);
+			statement_->add_child(child);
 		}
 
-		expr_unary_op* finish()
+		stmt_if* finish()
 		{
-			return expression_;
+			return statement_;
 		}
 
 	private:
-		expr_unary_op* expression_;
+		stmt_if* statement_;
 	};
 
-	unary_ops op() const
+	ast_node& expression()
 	{
-		return static_cast<unary_ops>(this->config_bits_);
+		return *(this->begin());
 	}
 
-	bool is(unary_ops op) const
+	ast_node& quantum_op()
 	{
-		return this->config_bits_ == static_cast<uint32_t>(op);
+		auto iter = this->begin();
+		return *(++iter);
 	}
 
 private:
-	expr_unary_op(uint32_t location, unary_ops op)
+	stmt_if(uint32_t location)
 	    : ast_node(location)
-	{
-		this->config_bits_ = static_cast<uint32_t>(op);
-	}
+	{}
 
 	ast_node_kinds do_get_kind() const override
 	{
-		return ast_node_kinds::expr_unary_op;
+		return ast_node_kinds::stmt_if;
 	}
 };
 

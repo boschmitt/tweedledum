@@ -11,7 +11,7 @@
 namespace tweedledee {
 namespace qasm {
 
-class program;
+class decl_program;
 
 namespace detail {
 
@@ -20,7 +20,7 @@ namespace detail {
 // ties the data to the specific list implementation
 template<typename T>
 class intrusive_list_node {
-	std::unique_ptr<T> next_;
+	T* next_ = nullptr;
 
 	void do_on_insert(const T* parent)
 	{
@@ -37,15 +37,15 @@ struct intrusive_list_access {
 	static T* next(const U& obj)
 	{
 		static_assert(std::is_base_of<U, T>::value, "must be a base");
-		return static_cast<T*>(obj.next_.get());
+		return static_cast<T*>(obj.next_);
 	}
 
 	template<typename U>
-	static T* next(U& obj, std::unique_ptr<T> node)
+	static T* next(U& obj, T* node)
 	{
 		static_assert(std::is_base_of<U, T>::value, "must be a base");
-		obj.next_ = std::move(node);
-		return static_cast<T*>(obj.next_.get());
+		obj.next_ = node;
+		return static_cast<T*>(obj.next_);
 	}
 
 	template<typename U, typename V>
@@ -115,19 +115,23 @@ private:
 template<typename T>
 class intrusive_list {
 public:
-	intrusive_list() = default;
+	intrusive_list()
+	    : size_(0)
+	    , first_(nullptr)
+	    , last_(nullptr)
+	{}
 
 	template<typename Dummy = T,
-	         typename = typename std::enable_if<std::is_same<Dummy, program>::value>::type>
-	void push_back(std::unique_ptr<T> obj)
+	         typename = typename std::enable_if<std::is_same<Dummy, decl_program>::value>::type>
+	void push_back(T* obj)
 	{
-		push_back_impl(std::move(obj));
+		push_back_impl(obj);
 	}
 
-	template<typename U, typename = typename std::enable_if<!std::is_same<T, program>::value, U>::type>
-	void push_back(const U* parent, std::unique_ptr<T> obj)
+	template<typename U, typename = typename std::enable_if<!std::is_same<T, decl_program>::value, U>::type>
+	void push_back(const U* parent, T* obj)
 	{
-		push_back_impl(std::move(obj));
+		push_back_impl(obj);
 		intrusive_list_access<T>::on_insert(*last_, parent);
 	}
 
@@ -136,12 +140,17 @@ public:
 		return first_ == nullptr;
 	}
 
+	size_t size() const
+	{
+		return size_;
+	}
+
 	using iterator = intrusive_list_iterator<T>;
 	using const_iterator = intrusive_list_iterator<const T>;
 
 	iterator begin()
 	{
-		return iterator(first_.get());
+		return iterator(first_);
 	}
 
 	iterator end()
@@ -151,7 +160,7 @@ public:
 
 	const_iterator begin() const
 	{
-		return const_iterator(first_.get());
+		return const_iterator(first_);
 	}
 
 	const_iterator end() const
@@ -160,47 +169,22 @@ public:
 	}
 
 private:
-	void push_back_impl(std::unique_ptr<T> obj)
+	void push_back_impl(T* obj)
 	{
 		if (last_ != nullptr) {
-			auto ptr = intrusive_list_access<T>::next(*last_, std::move(obj));
+			auto ptr = intrusive_list_access<T>::next(*last_, obj);
 			last_ = ptr;
 		} else {
-			first_ = std::move(obj);
-			last_ = first_.get();
+			first_ = obj;
+			last_ = first_;
 		}
-	}
-
-	std::unique_ptr<T> first_;
-	T* last_ = nullptr;
-};
-
-template<typename T>
-class iteratable_intrusive_list {
-public:
-	iteratable_intrusive_list(const intrusive_list<T>& list)
-	    : list_(list)
-	{}
-
-	bool empty() const
-	{
-		return list_.empty();
-	}
-
-	using iterator = typename intrusive_list<T>::const_iterator;
-
-	iterator begin() const
-	{
-		return list_.begin();
-	}
-
-	iterator end() const
-	{
-		return list_.end();
+		++size_;
 	}
 
 private:
-	const intrusive_list<T>& list_;
+	size_t size_;
+	T* first_;
+	T* last_;
 };
 
 } // namespace detail

@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
@@ -14,37 +15,49 @@
 namespace tweedledee {
 namespace qasm {
 
+// A `stmt_cnot` node has two children.
+// The children objects are in order:
+//
+// * A quantum argument for control.
+//
+// * A quantum argument for target.
 class stmt_cnot
     : public ast_node
     , public ast_node_container<stmt_cnot, ast_node> {
 public:
 	class builder {
 	public:
-		explicit builder(std::uint32_t location)
-		    : statement_(new stmt_cnot(location))
+		explicit builder(ast_context* ctx, uint32_t location)
+		    : statement_(new (*ctx) stmt_cnot(location))
 		{}
 
-		void add_child(std::unique_ptr<ast_node> child)
+		void add_child(ast_node* child)
 		{
-			statement_->add_child(std::move(child));
+			statement_->add_child(child);
 		}
 
-		stmt_cnot& get()
+		stmt_cnot* finish()
 		{
-			return *statement_;
-		}
-
-		std::unique_ptr<stmt_cnot> finish()
-		{
-			return std::move(statement_);
+			return statement_;
 		}
 
 	private:
-		std::unique_ptr<stmt_cnot> statement_;
+		stmt_cnot* statement_;
 	};
 
+	ast_node& control()
+	{
+		return *(this->begin());
+	}
+
+	ast_node& target()
+	{
+		auto iter = this->begin();
+		return *(++iter);
+	}
+
 private:
-	stmt_cnot(std::uint32_t location)
+	stmt_cnot(uint32_t location)
 	    : ast_node(location)
 	{}
 

@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
@@ -14,34 +15,56 @@
 namespace tweedledee {
 namespace qasm {
 
+// A `decl_gate` node has three childs, one of which optional.
+// The children objects are in order:
 //
+// * A `list_ids *` for the parameter list.
+//    Present if and only if has_parameters().
+//
+// * A "list_ids *" for the qubit argument list. (At least one qubit argument is required)
+//    Always present.
+//
+// * A "list_gops *" for the body.
+//    Always present.
 class decl_gate
     : public ast_node
     , public ast_node_container<decl_gate, ast_node> {
+private:
+	//Configure bits
+	enum {
+		has_params_ = 0
+	};
+
 public:
 	class builder {
 	public:
-		explicit builder(std::uint32_t location, std::string_view identifier)
-		    : statement_(new decl_gate(location, identifier))
+		explicit builder(ast_context* ctx, uint32_t location, std::string_view identifier)
+		    : statement_(new (*ctx) decl_gate(location, identifier))
 		{}
 
-		void add_child(std::unique_ptr<ast_node> child)
+		void add_parameters(ast_node* parameters)
 		{
-			statement_->add_child(std::move(child));
+			statement_->config_bits_ |= (1 << has_params_);
+			statement_->add_child(parameters);
 		}
 
-		decl_gate& get()
+		void add_arguments(ast_node* arguments)
 		{
-			return *statement_;
+			statement_->add_child(arguments);
 		}
 
-		std::unique_ptr<decl_gate> finish()
+		void add_body(ast_node* ops)
 		{
-			return std::move(statement_);
+			statement_->add_child(ops);
+		}
+
+		decl_gate* finish()
+		{
+			return statement_;
 		}
 
 	private:
-		std::unique_ptr<decl_gate> statement_;
+		decl_gate* statement_;
 	};
 
 	std::string_view identifier() const
@@ -49,8 +72,37 @@ public:
 		return identifier_;
 	}
 
+	bool has_parameters() const
+	{
+		return ((this->config_bits_ >> has_params_) & 1) == 1;
+	}
+
+	ast_node& parameters()
+	{
+		return *(this->begin());
+	}
+
+	// FIXME: this is hacky, implement random access iterator
+	ast_node& arguments()
+	{
+		auto iter = this->begin();
+		if (has_parameters()) {
+			++iter;
+		}
+		return *iter;
+	}
+
+	ast_node& body()
+	{
+		auto iter = this->begin();
+		if (has_parameters()) {
+			++iter;
+		}
+		return *(++iter);
+	}
+
 private:
-	decl_gate(std::uint32_t location, std::string_view identifier)
+	decl_gate(uint32_t location, std::string_view identifier)
 	    : ast_node(location)
 	    , identifier_(identifier)
 	{}

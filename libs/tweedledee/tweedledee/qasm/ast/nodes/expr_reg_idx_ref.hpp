@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
@@ -21,31 +22,26 @@ class expr_reg_idx_ref
 public:
 	class builder {
 	public:
-		explicit builder(std::uint32_t location)
-		    : statement_(new expr_reg_idx_ref(location))
+		explicit builder(ast_context* ctx, uint32_t location)
+		    : statement_(new (*ctx) expr_reg_idx_ref(location))
 		{}
 
-		void add_child(std::unique_ptr<ast_node> child)
+		void add_child(ast_node* child)
 		{
-			statement_->add_child(std::move(child));
+			statement_->add_child(child);
 		}
 
-		expr_reg_idx_ref& get()
+		expr_reg_idx_ref* finish()
 		{
-			return *statement_;
-		}
-
-		std::unique_ptr<expr_reg_idx_ref> finish()
-		{
-			return std::move(statement_);
+			return statement_;
 		}
 
 	private:
-		std::unique_ptr<expr_reg_idx_ref> statement_;
+		expr_reg_idx_ref* statement_;
 	};
 
 private:
-	expr_reg_idx_ref(std::uint32_t location)
+	expr_reg_idx_ref(uint32_t location)
 	    : ast_node(location)
 	{}
 

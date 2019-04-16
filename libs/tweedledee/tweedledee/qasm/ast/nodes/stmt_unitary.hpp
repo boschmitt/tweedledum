@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
@@ -14,37 +15,52 @@
 namespace tweedledee {
 namespace qasm {
 
+// A `stmt_unitary` node has three children.
+// The children objects are in order:
 class stmt_unitary
     : public ast_node
     , public ast_node_container<stmt_unitary, ast_node> {
 public:
 	class builder {
 	public:
-		explicit builder(std::uint32_t location)
-		    : statement_(new stmt_unitary(location))
+		explicit builder(ast_context* ctx, uint32_t location)
+		    : statement_(new (*ctx) stmt_unitary(location))
 		{}
 
-		void add_child(std::unique_ptr<ast_node> child)
+		void add_child(ast_node* child)
 		{
-			statement_->add_child(std::move(child));
+			statement_->add_child(child);
 		}
 
-		stmt_unitary& get()
+		stmt_unitary* finish()
 		{
-			return *statement_;
-		}
-
-		std::unique_ptr<stmt_unitary> finish()
-		{
-			return std::move(statement_);
+			return statement_;
 		}
 
 	private:
-		std::unique_ptr<stmt_unitary> statement_;
+		stmt_unitary* statement_;
 	};
 
+	ast_node& theta()
+	{
+		return *(this->begin());
+	}
+
+	ast_node& phi()
+	{
+		auto iter = this->begin();
+		return *(++iter);
+	}
+
+	ast_node& lambda()
+	{
+		auto iter = this->begin();
+		++iter;
+		return *(++iter);
+	}
+
 private:
-	stmt_unitary(std::uint32_t location)
+	stmt_unitary(uint32_t location)
 	    : ast_node(location)
 	{}
 
