@@ -5,7 +5,8 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-static_assert(false, "file netowks/interface.hpp cannot be included, it's only used for documentation");
+static_assert(false,
+              "file netowks/interface.hpp cannot be included, it's only used for documentation");
 
 namespace tweedledum {
 
@@ -48,16 +49,27 @@ public:
 #pragma endregion
 
 #pragma region I / O and ancillae qubits
-	/*! \brief Creates a labeled qubit in the network and returns its ``qubit_id``
+	/*! \brief Creates a labeled qubit in the network and returns its ``io_id``
 	 */
-	qubit_id add_qubit(std::string const& qlabel);
+	io_id add_qubit(std::string const& qlabel);
 
-	/*! \brief Creates a unlabeled qubit in the network and returns its ``qubit_id``
-	 * 
-	 * Since all qubits in a network must be labeled, this function will create
-	 * a generic label with the form: qN, where N is the ``qubit_id``.
+	/*! \brief Creates a unlabeled qubit in the network and returns its ``io_id``
+	 *
+	 * Since all I/Os in a network must be labeled, this function will create
+	 * a generic label with the form: qN, where N is the ``io_id``.
 	 */
-	qubit_id add_qubit();
+	io_id add_qubit();
+
+	/*! \brief Creates a labeled cbit (classical bit) in the network and returns its ``io_id``
+	 */
+	io_id add_cbit(std::string const& label);
+
+	/*! \brief Creates a unlabeled cbit (classical bit) in the network and returns its ``io_id``
+	 *
+	 * Since all I/Os in a network must be labeled, this function will create
+	 * a generic label with the form: cN, where N is the ``io_id``.
+	 */
+	io_id add_cbit();
 #pragma endregion
 
 #pragma region Structural properties
@@ -66,6 +78,9 @@ public:
 
 	/*! \brief Returns the number of qubits. */
 	uint32_t num_qubits() const;
+
+	/*! \brief Returns the number of classical bits. */
+	uint32_t num_cbits() const;
 
 	/*! \brief Returns the number of gates, i.e., nodes that hold unitary operations */
 	uint32_t num_gates() const;
@@ -82,19 +97,19 @@ public:
 	 */
 	auto node_to_index(node const& node) const;
 #pragma endregion
- 
+
 #pragma region Add gates(qids)
 	/*! \brief Add a gate to the network. */
 	node_type& add_gate(gate_type const& gate);
 
-	/*! \brief Add an one-qubit gate to the network using qubit_id. */
-	node_type& add_gate(gate_base op, qubit_id target);
+	/*! \brief Add an one-qubit gate to the network using io_id. */
+	node_type& add_gate(gate_base op, io_id target);
 
 	/*! \brief Add a controlled single-target gate to the network using qubit_ids. */
-	node_type& add_gate(gate_base op, qubit_id control, qubit_id target);
+	node_type& add_gate(gate_base op, io_id control, io_id target);
 
 	/*! \brief Add a multiple-controlled multiple-target gate to the network using qubit_ids */
-	node_type& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets);
+	node_type& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets);
 #pragma endregion
 
 #pragma region Add gates(qlabels)
@@ -103,11 +118,11 @@ public:
 
 	/*! \brief Add a controlled single-target gate to the network using qubit labels (`qlabel`). */
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
-	               std::string const& qlabel_target);
+	                    std::string const& qlabel_target);
 
 	/*! \brief Add a multiple-controlled multiple-target gate to the network qubit labels (`qlabel`). */
 	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
-	               std::vector<std::string> const& qlabels_target);
+	                    std::vector<std::string> const& qlabels_target);
 #pragma endregion
 
 #pragma region Rewiring
@@ -138,7 +153,7 @@ public:
 	 * - ``void(uint32_t qid, string const& qlabel)``
 	 */
 	template<typename Fn>
-	void foreach_cqubit(Fn&& fn) const;
+	void foreach_qubit(Fn&& fn) const;
 
 	/*! \brief Calls ``fn`` on every input node in the network.
 	 *
@@ -147,7 +162,7 @@ public:
 	 * - ``void(node_type const& node, uint32_t node_index)``
 	 */
 	template<typename Fn>
-	void foreach_cinput(Fn&& fn) const;
+	void foreach_input(Fn&& fn) const;
 
 	/*! \brief Calls ``fn`` on every output node in the network.
 	 *
@@ -156,7 +171,7 @@ public:
 	 * - ``void(node_type const& node, uint32_t node_index)``
 	 */
 	template<typename Fn>
-	void foreach_coutput(Fn&& fn) cons;
+	void foreach_output(Fn&& fn) cons;
 
 	/*! \brief Calls ``fn`` on every unitrary gate node in the network.
 	 *
@@ -165,13 +180,13 @@ public:
 	 * - ``void(node_type const& node, uint32_t node_index)``
 	 * - ``bool(node_type const& node)``
 	 * - ``bool(node_type const& node, uint32_t node_index)``
-	 * 
+	 *
 	 * The paramater ``start`` is a index to a starting point.
 	 *
 	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
 	 */
 	template<typename Fn>
-	void foreach_cgate(Fn&& fn, uint32_t start = 0u) const;
+	void foreach_gate(Fn&& fn, uint32_t start = 0u) const;
 
 	/*! \brief Calls ``fn`` on every node in the network.
 	 *
@@ -184,7 +199,7 @@ public:
 	 * If ``fn`` returns a ``bool``, then it can interrupt the iteration by returning ``false``.
 	 */
 	template<typename Fn>
-	void foreach_cnode(Fn&& fn) const;
+	void foreach_node(Fn&& fn) const;
 #pragma endregion
 
 #pragma region Const node iterators
@@ -193,7 +208,7 @@ public:
 	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
 	 * - ``void(node_ptr const&)``
 	 * - ``void(node_ptr const&, uint32_t)``
-	 * 
+	 *
 	 * If ``fn`` has two parameters, the second parameter is an index starting
 	 * from 0 and incremented in every iteration.
 	 */

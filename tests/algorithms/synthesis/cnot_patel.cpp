@@ -7,14 +7,14 @@
 #include <tweedledum/algorithms/synthesis/cnot_patel.hpp>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <tweedledum/utils/bit_matrix_rm.hpp>
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
-                           (gg_network, netlist), (mcmt_gate, mcst_gate))
+                           (gg_network, netlist), (mcmt_gate, io3_gate))
 {
 	std::vector<uint32_t> rows = {0b000011, 0b011001, 0b010010, 0b111111, 0b111011, 0b011100};
 	bit_matrix_rm matrix(6, rows);
@@ -30,7 +30,7 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_cnode([&](auto const& node) {
+		network.foreach_node([&](auto const& node) {
 			if (!node.gate.is(gate_set::cx)) {
 				return;
 			}
@@ -52,13 +52,17 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_cnode([&](auto const& node) {
+		network.foreach_node([&](auto const& node) {
 			if (!node.gate.is(gate_set::cx)) {
 				return;
 			}
 			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
 		});
-		matrix.permute_rows(network.rewire_map());
+		std::vector<uint32_t> rows_permutation;
+		for (auto io_id : network.rewire_map()) {
+			rows_permutation.push_back(io_id.index());
+		}
+		matrix.permute_rows(rows_permutation);
 
 		// Check if network realizes original matrix
 		for (auto row_index = 0u; row_index < matrix.num_rows(); ++row_index) {

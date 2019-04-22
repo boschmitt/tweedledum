@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/qubit.hpp"
+#include "../../networks/io_id.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "gray_synth.hpp"
 
@@ -48,7 +48,7 @@ inline void fast_hadamard_transform(std::vector<double>& s)
  * \param angles Angles for diagonal matrix elements
  */
 template<class Circuit>
-void diagonal_synth(Circuit& circ, std::vector<qubit_id> const& qubits,
+void diagonal_synth(Circuit& circ, std::vector<io_id> const& qubits,
                     std::vector<double> const& angles)
 {
 	/* there are 2^n - 1 angles */
@@ -104,9 +104,7 @@ Circuit diagonal_synth(std::vector<double> const& angles)
 	for (auto i = 0u; i < num_qubits; ++i) {
 		circ.add_qubit();
 	}
-	std::vector<qubit_id> qubits(num_qubits);
-	std::iota(qubits.begin(), qubits.end(), 0u);
-	diagonal_synth(circ, qubits, angles);
+	diagonal_synth(circ, circ.rewire_map(), angles);
 	return circ;
 }
 

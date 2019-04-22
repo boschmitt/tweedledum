@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../gates/gate_set.hpp"
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -26,7 +26,7 @@ namespace tweedledum {
  * - `op`
  * 
  * **Required network functions:**
- * - `foreach_cnode`
+ * - `foreach_node`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -39,9 +39,11 @@ void write_qasm(Network const& network, std::ostream& os)
 	os << "OPENQASM 2.0;\n";
 	os << "include \"qelib1.inc\";\n";
 	os << fmt::format("qreg q[{}];\n", network.num_qubits());
-	os << fmt::format("creg c[{}];\n", network.num_qubits());
+	if (network.num_cbits()) {
+		os << fmt::format("creg c[{}];\n", network.num_cbits());
+	}
 
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
@@ -108,7 +110,7 @@ void write_qasm(Network const& network, std::ostream& os)
 			break;
 
 		case gate_set::swap: {
-			std::vector<qubit_id> targets;
+			std::vector<io_id> targets;
 			gate.foreach_target([&](auto target) {
 				targets.push_back(target);
 			});
@@ -118,13 +120,13 @@ void write_qasm(Network const& network, std::ostream& os)
 		} break;
 
 		case gate_set::mcx: {
-			std::vector<qubit_id> controls;
-			std::vector<qubit_id> targets;
+			std::vector<io_id> controls;
+			std::vector<io_id> targets;
 			gate.foreach_control([&](auto control) {
 				if (control.is_complemented()) {
 					os << fmt::format("x q[{}];\n", control.index());
 				}
-				controls.push_back(control.index()); 
+				controls.push_back(control.id()); 
 			});
 			gate.foreach_target([&](auto target) {
 				targets.push_back(target);
@@ -180,7 +182,7 @@ void write_qasm(Network const& network, std::ostream& os)
  * 
  * **Required network functions:**
  * - `num_qubits`
- * - `foreach_cnode`
+ * - `foreach_node`
  *
  * \param network A quantum network
  * \param filename Filename

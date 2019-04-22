@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/qubit.hpp"
+#include "../../networks/io_id.hpp"
 #include "../../networks/netlist.hpp"
 
 #include <cmath>
@@ -57,13 +57,13 @@ namespace detail {
 
 // TODO: maybe take it out from here (put it in 'utils')
 template<class IntType>
-inline std::vector<qubit_id> to_qubit_vector(IntType bits, std::vector<qubit_id> const& qubits)
+inline std::vector<io_id> to_qubit_vector(IntType bits, std::vector<io_id> const& qubits)
 {
-	std::vector<qubit_id> ret;
+	std::vector<io_id> ret;
 	auto index = 0u;
 	while (bits) {
 		if (bits & 1) {
-			ret.push_back(qubits.at(index));
+			ret.emplace_back(qubits.at(index), true);
 		}
 		bits >>= 1;
 		++index;
@@ -93,7 +93,7 @@ inline void update_permutation_inv(std::vector<uint32_t>& permutation, uint32_t 
 }
 
 template<typename Network>
-void tbs_unidirectional(Network& network, std::vector<qubit_id> const& qubits,
+void tbs_unidirectional(Network& network, std::vector<io_id> const& qubits,
                         std::vector<uint32_t>& permutation)
 {
 	std::vector<std::pair<uint32_t, uint32_t>> gates;
@@ -124,7 +124,7 @@ void tbs_unidirectional(Network& network, std::vector<qubit_id> const& qubits,
 }
 
 template<typename Network>
-void tbs_bidirectional(Network& network, std::vector<qubit_id> const& qubits,
+void tbs_bidirectional(Network& network, std::vector<io_id> const& qubits,
                        std::vector<uint32_t>& permutation)
 {
 	std::list<std::pair<uint32_t, uint32_t>> gates;
@@ -172,7 +172,7 @@ void tbs_bidirectional(Network& network, std::vector<qubit_id> const& qubits,
 }
 
 template<typename Network>
-void tbs_multidirectional(Network& network, std::vector<qubit_id> const& qubits,
+void tbs_multidirectional(Network& network, std::vector<io_id> const& qubits,
                           std::vector<uint32_t>& permutation, tbs_params params = {})
 {
 	std::list<std::pair<uint32_t, uint32_t>> gates;
@@ -239,7 +239,7 @@ void tbs_multidirectional(Network& network, std::vector<qubit_id> const& qubits,
  * \param params Parameters (see ``tbs_params``)
  */
 template<typename Network>
-void tbs(Network& network, std::vector<qubit_id> const& qubits, std::vector<uint32_t> permutation,
+void tbs(Network& network, std::vector<io_id> const& qubits, std::vector<uint32_t> permutation,
          tbs_params params = {})
 {
 	assert(network.num_qubits() >= qubits.size());
@@ -267,7 +267,7 @@ void tbs(Network& network, std::vector<qubit_id> const& qubits, std::vector<uint
    .. code-block:: c++
 
       std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-      auto network = tbs<netlist<mcst_gate>>(permutation);
+      auto network = tbs<netlist<io3_gate>>(permutation);
 
    \endverbatim
  *
@@ -286,10 +286,7 @@ Network tbs(std::vector<uint32_t> permutation, tbs_params params = {})
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-
-	std::vector<qubit_id> qubits(num_qubits);
-	std::iota(qubits.begin(), qubits.end(), 0u);
-	tbs(network, qubits, permutation, params);
+	tbs(network, network.rewire_map(), permutation, params);
 	return network;
 }
 

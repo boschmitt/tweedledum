@@ -7,7 +7,7 @@
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <tweedledum/utils/angle.hpp>
@@ -15,7 +15,7 @@
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
-                           (gg_network, netlist), (mcmt_gate, mcst_gate))
+                           (gg_network, netlist), (mcmt_gate, io3_gate))
 {
 	SECTION("Check simple example from Amy paper")
 	{
@@ -32,7 +32,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
 		auto rewire_map = network.rewire_map();
-		network.foreach_cnode([&](auto const& node) {
+		network.foreach_node([&](auto const& node) {
 			if (node.gate.is(gate_set::cx)) {
 				id_matrix.row(node.gate.target()) ^= id_matrix.row(
 				    node.gate.control());

@@ -7,7 +7,7 @@
 
 #include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
-#include "../../networks/qubit.hpp"
+#include "../../networks/io_id.hpp"
 #include "../generic/rewrite.hpp"
 
 #include <cstdint>
@@ -20,8 +20,8 @@ namespace detail {
 // Barenco, A., Bennett, C.H., Cleve, R., DiVincenzo, D.P., Margolus, N., Shor, P., Sleator, T., Smolin,
 // J.A. and Weinfurter, H., 1995. Elementary gates for quantum computation. Physical review A, 52(5), p.3457.
 template<class Network>
-void toffoli_barenco_decomposition(Network& network, std::vector<qubit_id> const& controls,
-                                   qubit_id target, uint32_t controls_threshold)
+void toffoli_barenco_decomposition(Network& network, std::vector<io_id> const& controls,
+                                   io_id target, uint32_t controls_threshold)
 {
 	const auto num_controls = controls.size();
 	assert(num_controls >= 2);
@@ -31,8 +31,8 @@ void toffoli_barenco_decomposition(Network& network, std::vector<qubit_id> const
 		return;
 	}
 
-	std::vector<qubit_id> workspace;
-	network.foreach_cqubit([&](qubit_id qid) {
+	std::vector<io_id> workspace;
+	network.foreach_qubit([&](io_id qid) {
 		if (qid == target) {
 			return;
 		}
@@ -84,8 +84,8 @@ void toffoli_barenco_decomposition(Network& network, std::vector<qubit_id> const
 	// Not enough qubits in the workspace, extra decomposition step
 	// Lemma 7.3: For any n ≥ 5, and m ∈ {2, ... , n − 3} a (n−2)-toffoli gate can be simulated
 	// by a network consisting of two m-toffoli gates and two (n−m−1)-toffoli gates
-	std::vector<qubit_id> controls0;
-	std::vector<qubit_id> controls1;
+	std::vector<io_id> controls0;
+	std::vector<io_id> controls1;
 	for (auto i = 0u; i < (num_controls >> 1); ++i) {
 		controls0.push_back(controls[i]);
 	}
@@ -120,8 +120,8 @@ struct barenco_params {
  *
  * **Required network functions:**
  * - `add_gate`
- * - `foreach_cqubit`
- * - `foreach_cgate`
+ * - `foreach_qubit`
+ * - `foreach_gate`
  * - `rewire`
  * - `rewire_map`
  * 
@@ -150,8 +150,8 @@ Network barenco_decomposition(Network const& src, barenco_params params = {})
 				break;
 
 			default:
-				std::vector<qubit_id> controls;
-				std::vector<qubit_id> targets;
+				std::vector<io_id> controls;
+				std::vector<io_id> targets;
 				gate.foreach_control([&](auto control) { controls.push_back(control); });
 				gate.foreach_target([&](auto target) { targets.push_back(target); });
 				for (auto i = 1u; i < targets.size(); ++i) {
@@ -170,7 +170,7 @@ Network barenco_decomposition(Network const& src, barenco_params params = {})
 	};
 
 	auto num_ancillae = 0u;
-	src.foreach_cgate([&](auto const& node) {
+	src.foreach_gate([&](auto const& node) {
 		if (node.gate.is(gate_set::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == src.num_qubits()) {
 			num_ancillae = 1u;

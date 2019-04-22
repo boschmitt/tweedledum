@@ -29,7 +29,7 @@ struct device {
 	/*! \brief Number of qubits. */
 	uint32_t num_vertices;
 
-	device(uint32_t num_qubits)
+	device(uint32_t num_qubits = 0)
 	    : num_vertices(num_qubits)
 	{}
 

@@ -5,7 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../qubit.hpp"
+#include "../io_id.hpp"
 
 #include <array>
 #include <cstdint>
@@ -115,7 +115,7 @@ struct regular_node {
 	using pointer_type = detail::node_pointer<PointerFieldSize>;
 
 	GateType gate;
-	std::array<std::vector<pointer_type>, GateType::max_num_qubits> children;
+	std::array<std::vector<pointer_type>, GateType::max_num_io> children;
 	mutable std::array<cauint32_t, DataSize> data;
 
 	regular_node(GateType const& gate_)
@@ -135,7 +135,7 @@ struct uniform_node {
 	using pointer_type = detail::node_pointer<PointerFieldSize>;
 
 	GateType gate;
-	std::array<pointer_type, GateType::max_num_qubits> children;
+	std::array<pointer_type, GateType::max_num_io> children;
 	mutable std::array<cauint32_t, DataSize> data;
 
 	uniform_node(GateType const& gate_)
@@ -153,64 +153,68 @@ struct uniform_node {
 template<typename NodeType>
 struct storage {
 	storage()
+	    : num_qubits(0)
 	{
 		nodes.reserve(1024u);
 	}
 
 	storage(uint32_t size)
+	    : num_qubits(0)
 	{
 		nodes.reserve(size);
 	}
 
+	uint32_t num_qubits;
 	std::vector<uint32_t> inputs;
 	std::vector<NodeType> nodes;
 	std::vector<NodeType> outputs;
-	std::vector<uint32_t> rewiring_map;
+	std::vector<io_id> rewiring_map;
+	// std::vector<uint32_t> rewiring_map;
 };
 
 /*! \brief 
  */
-class qlabels_map {
+class labels_map {
 public:
-	auto map(qubit_id qid, std::string const& qlabel)
+	void map(io_id id, std::string const& label)
 	{
-		qlabel_to_qid_.emplace(qlabel, qid);
-		qid_to_qlabel_.emplace_back(qlabel);
+		label_to_id_.emplace(label, id);
+		id_to_label_.emplace_back(label, id);
 	}
 
-	auto to_qid(std::string const& qlabel) const
+	io_id to_id(std::string const& label) const
 	{
-		return qlabel_to_qid_.at(qlabel);
+		return label_to_id_.at(label);
 	}
 
-	auto to_qlabel(qubit_id qid) const
+	std::string to_label(io_id id) const
 	{
-		return qid_to_qlabel_.at(qid);
+		return id_to_label_.at(id).first;
 	}
 
 	auto cbegin() const
 	{
-		return qid_to_qlabel_.cbegin();
+		return id_to_label_.cbegin();
 	}
 
 	auto cend() const
 	{
-		return qid_to_qlabel_.cend();
+		return id_to_label_.cend();
 	}
 
 	auto begin()
 	{
-		return qid_to_qlabel_.begin();
+		return id_to_label_.begin();
 	}
 
 	auto end()
 	{
-		return qid_to_qlabel_.end();
+		return id_to_label_.end();
 	}
 
 private:
-	std::unordered_map<std::string, qubit_id> qlabel_to_qid_;
-	std::vector<std::string> qid_to_qlabel_;
+	std::unordered_map<std::string, io_id> label_to_id_;
+	std::vector<std::pair<std::string, io_id>> id_to_label_;
 };
 
 } // namespace tweedledum

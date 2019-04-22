@@ -23,7 +23,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Synthesize phase circuits", "[esop_phase_synth][temp
 			kitty::create_random(func);
 			const auto network = esop_phase_synth<TestType>(func);
 			std::vector<kitty::cube> cubes;
-			network.foreach_cgate([&](auto& node) {
+			network.foreach_gate([&](auto& node) {
 				CHECK(node.gate.is(gate_set::mcz));
 				uint32_t bits = 0u;
 				node.gate.foreach_control([&](auto qubit) { bits |= 1 << qubit; });

@@ -25,8 +25,8 @@ namespace tweedledum {
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cgate`
- * - `foreach_cqubit`
+ * - `foreach_gate`
+ * - `foreach_qubit`
  *
  * \param network Network
  * \param os Output stream
@@ -34,7 +34,7 @@ namespace tweedledum {
 template<typename Network>
 void write_projectq(Network const& network, std::ostream& os = std::cout)
 {
-	network.foreach_cgate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 
 		std::string controls;
@@ -147,8 +147,8 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cgate`
- * - `foreach_cqubit`
+ * - `foreach_gate`
+ * - `foreach_qubit`
  *
  * \param network Network
  * \param filename Filename

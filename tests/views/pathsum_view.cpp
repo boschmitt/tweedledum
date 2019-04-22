@@ -5,14 +5,14 @@
 *------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/mcst_gate.hpp>
+#include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/netlist.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/views/pathsum_view.hpp>
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Simple pathsum view", "[pathsum_view][template]",
-                           (gg_network, netlist), (mcmt_gate, mcst_gate))
+                           (gg_network, netlist), (mcmt_gate, io3_gate))
 {
 	TestType network;
 	const auto a = network.add_qubit();

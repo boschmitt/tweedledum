@@ -23,8 +23,8 @@ namespace tweedledum {
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network
@@ -37,17 +37,21 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 	if (color_marked_gates) {
 		os << "DEFINE mark color=red:style=thick\n";
 	}
-	network.foreach_cqubit([&](auto id, auto const& name) {
-		os << fmt::format("q{} W {} {}\n", id, name, name);
+	network.foreach_io([&](auto id, auto const& name) {
+		if (id.is_qubit()) {
+			os << fmt::format("id{} W {} {}\n", id, name, name);
+		} else {
+			os << fmt::format("id{} W {} {} cwire\n", id, name, name);
+		}
 	});
 
-	network.foreach_cgate([&](auto& node) {
+	network.foreach_gate([&](auto& node) {
 		auto prefix = "";
 		if (node.gate.is(gate_set::mcx)) {
 			prefix = "+";
 		}
 		node.gate.foreach_target([&](auto qubit) {
-			os << fmt::format("{}q{} ", prefix, qubit);
+			os << fmt::format("{}id{} ", prefix, qubit);
 		});
 		switch (node.gate.operation()) {
 		case gate_set::pauli_x:
@@ -103,7 +107,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			break;
 		}
 		node.gate.foreach_control([&](auto qubit) {
-			os << fmt::format(" {}q{}", qubit.is_complemented() ? "-" : "", qubit); 
+			os << fmt::format(" {}id{}", qubit.is_complemented() ? "-" : "", qubit); 
 		});
 		os << '\n';
 	});
@@ -117,8 +121,8 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
  * - `op`
  *
  * **Required network functions:**
- * - `foreach_cnode`
- * - `foreach_cqubit`
+ * - `foreach_node`
+ * - `foreach_qubit`
  * - `num_qubits`
  *
  * \param network A quantum network

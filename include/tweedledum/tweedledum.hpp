@@ -14,7 +14,7 @@
 #include "algorithms/synthesis/tbs.hpp"
 #include "gates/gate_set.hpp"
 #include "gates/mcmt_gate.hpp"
-#include "gates/mcst_gate.hpp"
+#include "gates/io3_gate.hpp"
 #include "gates/gate_base.hpp"
 #include "io/qasm.hpp"
 #include "io/quil.hpp"

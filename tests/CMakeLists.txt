@@ -32,6 +32,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_projectq.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_qpic.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/networks.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/networks/io_id.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/utils/angle.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/views/pathsum_view.cpp"
   )

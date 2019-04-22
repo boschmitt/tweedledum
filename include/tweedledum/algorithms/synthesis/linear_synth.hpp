@@ -7,7 +7,7 @@
 
 #include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
-#include "../../networks/qubit.hpp"
+#include "../../networks/io_id.hpp"
 #include "../../utils/parity_terms.hpp"
 
 #include <algorithm>
@@ -23,7 +23,7 @@ namespace tweedledum {
 namespace detail {
 
 template<class Network>
-void linear_synth_binary(Network& network, std::vector<qubit_id> const& qubits, parity_terms parities)
+void linear_synth_binary(Network& network, std::vector<io_id> const& qubits, parity_terms parities)
 {
 	const auto num_qubits = qubits.size();
 
@@ -66,7 +66,7 @@ void linear_synth_binary(Network& network, std::vector<qubit_id> const& qubits, 
 }
 
 template<class Network>
-void linear_synth_gray(Network& network, std::vector<qubit_id> const& qubits, parity_terms parities)
+void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parity_terms parities)
 {
 	const auto num_qubits = qubits.size();
 
@@ -134,7 +134,7 @@ struct linear_synth_params {
  *                 See `linear_synth_params` for details.
  */
 template<class Network>
-void linear_synth(Network& network, std::vector<qubit_id> const& qubits,
+void linear_synth(Network& network, std::vector<io_id> const& qubits,
                   parity_terms const& parities, linear_synth_params params = {})
 {
 	assert(qubits.size() <= 6);
@@ -172,9 +172,7 @@ Network linear_synth(uint32_t num_qubits, parity_terms const& parities,
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	std::vector<qubit_id> qubits(num_qubits);
-	std::iota(qubits.begin(), qubits.end(), 0u);
-	linear_synth(network, qubits, parities, params);
+	linear_synth(network, network.rewire_map(), parities, params);
 	return network;
 }
 

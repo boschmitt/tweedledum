@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/qubit.hpp"
+#include "../networks/io_id.hpp"
 #include "gate_base.hpp"
 #include "gate_set.hpp"
 
@@ -27,33 +27,38 @@ namespace tweedledum {
 class mcmt_gate final : public gate_base {
 public:
 #pragma region Constants
-	constexpr static auto max_num_qubits = 32u;
-	constexpr static auto network_max_num_qubits = 32u;
+	constexpr static auto max_num_io = 32u;
+	constexpr static auto network_max_num_io = 32u;
 #pragma endregion
 
 #pragma region Constructors
-	mcmt_gate(gate_base const& op, qubit_id target)
+	mcmt_gate(gate_base const& op, io_id target)
 	    : gate_base(op)
-	    , controls_(0)
+	    , is_qubit_(0)
 	    , polarity_(0)
+	    , controls_(0)
 	    , targets_(0)
 	{
-		assert(is_single_qubit());
-		assert(target <= network_max_num_qubits);
+		assert(!is_double_qubit());
+		assert(target <= network_max_num_io);
+		is_qubit_ |= (target.is_qubit() << target);
 		targets_ |= (1 << target);
 	}
 
-	mcmt_gate(gate_base const& op, qubit_id control, qubit_id target)
+	mcmt_gate(gate_base const& op, io_id control, io_id target)
 	    : gate_base(op)
-	    , controls_(0)
+	    , is_qubit_(0)
 	    , polarity_(0)
+	    , controls_(0)
 	    , targets_(0)
 	{
 		assert(is_double_qubit());
-		assert(control <= network_max_num_qubits);
-		assert(target <= network_max_num_qubits);
+		assert(control <= network_max_num_io);
+		assert(target <= network_max_num_io);
 		assert(control != target);
 
+		is_qubit_ |= (control.is_qubit() << control);
+		is_qubit_ |= (target.is_qubit() << target);
 		targets_ |= (1 << target);
 		if (is(gate_set::swap)) {
 			targets_ |= (1 << control);
@@ -64,23 +69,26 @@ public:
 		}
 	}
 
-	mcmt_gate(gate_base const& op, std::vector<qubit_id> const& controls,
-	          std::vector<qubit_id> const& target)
+	mcmt_gate(gate_base const& op, std::vector<io_id> const& controls,
+	          std::vector<io_id> const& target)
 	    : gate_base(op)
-	    , controls_(0)
+	    , is_qubit_(0)
 	    , polarity_(0)
+	    , controls_(0)
 	    , targets_(0)
 	{
-		assert(controls.size() <= max_num_qubits);
-		assert(target.size() > 0 && target.size() <= max_num_qubits);
+		assert(controls.size() <= max_num_io);
+		assert(target.size() > 0 && target.size() <= max_num_io);
 		for (auto control : controls) {
-			assert(control <= network_max_num_qubits);
+			assert(control <= network_max_num_io);
 			controls_ |= (1u << control);
-			polarity_ |= (control.is_complemented() << control.index());
+			polarity_ |= (control.is_complemented() << control);
+			is_qubit_ |= (control.is_qubit() << control);
 		}
 		for (auto target : target) {
-			assert(target <= network_max_num_qubits);
+			assert(target <= network_max_num_io);
 			targets_ |= (1u << target);
+			is_qubit_ |= (target.is_qubit() << target);
 		}
 		assert((targets_ & controls_) == 0u);
 	}
@@ -97,28 +105,30 @@ public:
 		return __builtin_popcount(targets_);
 	}
 
-	qubit_id target() const
+	io_id target() const
 	{
 		if (num_targets() > 1) {
-			return qid_invalid;
+			return io_invalid;
 		}
-		return __builtin_ctz(targets_);
+		const uint32_t idx = __builtin_ctz(targets_);
+		return io_id(idx, (is_qubit_ >> idx) & 1);
 	}
 
-	qubit_id control() const
+	io_id control() const
 	{
 		if (!is_one_of(gate_set::cx, gate_set::cz)) {
-			return qid_invalid;
+			return io_invalid;
 		}
-		return qubit_id(__builtin_ctz(controls_), polarity_);
+		const uint32_t idx = __builtin_ctz(controls_);
+		return io_id(idx, (is_qubit_ >> idx) & 1, (polarity_ >> idx) & 1);
 	}
 
-	bool is_control(qubit_id qid) const
+	bool is_control(io_id qid) const
 	{
 		return (controls_ & (1u << qid.index()));
 	}
 
-	uint32_t qubit_slot(qubit_id qid) const
+	uint32_t qubit_slot(io_id qid) const
 	{
 		return qid.index();
 	}
@@ -128,9 +138,12 @@ public:
 	template<typename Fn>
 	void foreach_control(Fn&& fn) const
 	{
-		for (auto i = controls_, id = 0u, p = polarity_; i; i >>= 1, ++id, p >>= 1) {
-			if (i & 1) {
-				fn(qubit_id(id, (p & 1)));
+		uint32_t c = controls_;
+		uint32_t q = is_qubit_;
+		uint32_t p = polarity_;
+		for (uint32_t idx = 0u; c; c >>= 1, q >>= 1, p >>= 1, ++idx) {
+			if (c & 1) {
+				fn(io_id(idx, (q & 1), (p & 1)));
 			}
 		}
 	}
@@ -138,20 +151,24 @@ public:
 	template<typename Fn>
 	void foreach_target(Fn&& fn) const
 	{
-		for (auto i = targets_, id = 0u; i; i >>= 1, ++id) {
-			if (i & 1) {
-				fn(qubit_id(id, 0));
+		uint32_t t = targets_;
+		uint32_t q = is_qubit_;
+		for (uint32_t idx = 0u; t; t >>= 1, q >>= 1, ++idx) {
+			if (t & 1) {
+				fn(io_id(idx, (q & 1)));
 			}
 		}
 	}
 #pragma endregion
 
 private:
-	/*! \brief bitmap which indicates which qubits in the network are the controls. */
-	uint32_t controls_;
+	/*! \brief bitmap which indicates which i/o in the network are the qubits. */
+	uint32_t is_qubit_;
 	/*! \brief bitmap which indicates the controls' polarities. */
 	uint32_t polarity_;
-	/*! \brief bitmap which indicates which qubits in the network are the targets. */
+	/*! \brief bitmap which indicates which i/o in the network are the controls. */
+	uint32_t controls_;
+	/*! \brief bitmap which indicates which i/o in the network are the targets. */
 	uint32_t targets_;
 };
 

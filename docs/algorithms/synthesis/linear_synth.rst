@@ -14,4 +14,4 @@ Algorithm
 
 .. doxygenfunction:: tweedledum::linear_synth(uint32_t, parity_terms const&, linear_synth_params)
 
-.. doxygenfunction:: tweedledum::linear_synth(Network&, std::vector<qubit_id> const&, parity_terms const&, linear_synth_params)
+.. doxygenfunction:: tweedledum::linear_synth(Network&, std::vector<io_id> const&, parity_terms const&, linear_synth_params)

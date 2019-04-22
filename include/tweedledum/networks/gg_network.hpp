@@ -8,7 +8,7 @@
 #include "../gates/gate_base.hpp"
 #include "../utils/foreach.hpp"
 #include "detail/storage.hpp"
-#include "qubit.hpp"
+#include "io_id.hpp"
 
 #include <array>
 #include <fmt/format.h>
@@ -43,18 +43,18 @@ public:
 
 	gg_network()
 	    : storage_(std::make_shared<storage_type>())
-	    , qlabels_(std::make_shared<qlabels_map>())
+	    , labels_(std::make_shared<labels_map>())
 	{}
 #pragma endregion
 
 #pragma region I / O and ancillae qubits
 private:
-	qubit_id create_qubit()
+	io_id create_io(bool is_qubit)
 	{
-		qubit_id qid(storage_->inputs.size());
+		io_id id(storage_->inputs.size(), is_qubit);
 		uint32_t index = storage_->nodes.size();
-		gate_type input(gate_base(gate_set::input), qid);
-		gate_type output(gate_base(gate_set::output), qid);
+		gate_type input(gate_base(gate_set::input), id);
+		gate_type output(gate_base(gate_set::output), id);
 
 		storage_->nodes.emplace_back(input);
 		storage_->inputs.emplace_back(index);
@@ -62,22 +62,41 @@ private:
 		auto& output_node = storage_->outputs.emplace_back(output);
 		output_node.children[0] = index;
 
-		storage_->rewiring_map.push_back(qid);
-		return qid;
+		storage_->rewiring_map.push_back(id);
+		return id;
 	}
 
 public:
-	qubit_id add_qubit(std::string const& qlabel)
+	io_id add_qubit(std::string const& label)
 	{
-		auto qid = create_qubit();
-		qlabels_->map(qid, qlabel);
+		auto qid = create_io(true);
+		labels_->map(qid, label);
+		storage_->num_qubits += 1;
 		return qid;
 	}
 
-	qubit_id add_qubit()
+	io_id add_qubit()
 	{
-		auto qlabel = fmt::format("q{}", storage_->inputs.size());
+		auto qlabel = fmt::format("q{}", num_qubits());
 		return add_qubit(qlabel);
+	}
+
+	io_id add_cbit(std::string const& label)
+	{
+		auto qid = create_io(false);
+		labels_->map(qid, label);
+		return qid;
+	}
+
+	io_id add_cbit()
+	{
+		auto label = fmt::format("c{}", num_cbits());
+		return add_cbit(label);
+	}
+
+	std::string io_label(io_id id) const
+	{
+		return labels_->to_label(id);
 	}
 #pragma endregion
 
@@ -87,9 +106,19 @@ public:
 		return (storage_->nodes.size() + storage_->outputs.size());
 	}
 
-	uint32_t num_qubits() const
+	uint32_t num_io() const
 	{
 		return (storage_->inputs.size());
+	}
+
+	uint32_t num_qubits() const
+	{
+		return (storage_->num_qubits);
+	}
+
+	uint32_t num_cbits() const
+	{
+		return (storage_->inputs.size() - num_qubits());
 	}
 
 	uint32_t num_gates() const
@@ -114,9 +143,9 @@ public:
 	}
 #pragma endregion
 
-#pragma region Add gates(qid)
+#pragma region Add gates(id)
 private:
-	void connect_node(qubit_id qid, uint32_t node_index)
+	void connect_node(io_id qid, uint32_t node_index)
 	{
 		auto& node = storage_->nodes.at(node_index);
 		auto& output = storage_->outputs.at(qid.index());
@@ -141,57 +170,59 @@ public:
 		return node;
 	}
 
-	node_type& add_gate(gate_base op, qubit_id target)
+	node_type& add_gate(gate_base op, io_id target)
 	{
 		return emplace_gate(gate_type(op, storage_->rewiring_map.at(target)));
 	}
 
-	node_type& add_gate(gate_base op, qubit_id control, qubit_id target)
+	node_type& add_gate(gate_base op, io_id control, io_id target)
 	{
-		const qubit_id control_(storage_->rewiring_map.at(control), control.is_complemented());
+		const io_id control_ = control.is_complemented() ?
+		                           !storage_->rewiring_map.at(control) :
+		                           storage_->rewiring_map.at(control);
 		return emplace_gate(gate_type(op, control_, storage_->rewiring_map.at(target)));
 	}
 
-	node_type& add_gate(gate_base op, std::vector<qubit_id> controls, std::vector<qubit_id> targets)
+	node_type& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets)
 	{
 		std::transform(controls.begin(), controls.end(), controls.begin(),
-		               [&](qubit_id qid) -> qubit_id {
-			               return qubit_id(storage_->rewiring_map.at(qid),
-			                               qid.is_complemented());
+		               [&](io_id id) -> io_id {
+				       const io_id real_id = storage_->rewiring_map.at(id);
+			               return id.is_complemented() ? !real_id : real_id;
 		               });
 		std::transform(targets.begin(), targets.end(), targets.begin(),
-		               [&](qubit_id qid) -> qubit_id {
+		               [&](io_id qid) -> io_id {
 			               return storage_->rewiring_map.at(qid);
 		               });
 		return emplace_gate(gate_type(op, controls, targets));
 	}
 #pragma endregion
 
-#pragma region Add gates(qlabels)
+#pragma region Add gates(labels)
 	node_type& add_gate(gate_base op, std::string const& qlabel_target)
 	{
-		auto qid_target = qlabels_->to_qid(qlabel_target);
+		auto qid_target = labels_->to_id(qlabel_target);
 		return add_gate(op, qid_target);
 	}
 
 	node_type& add_gate(gate_base op, std::string const& qlabel_control,
 	                    std::string const& qlabel_target)
 	{
-		auto qid_control = qlabels_->to_qid(qlabel_control);
-		auto qid_target = qlabels_->to_qid(qlabel_target);
+		auto qid_control = labels_->to_id(qlabel_control);
+		auto qid_target = labels_->to_id(qlabel_target);
 		return add_gate(op, qid_control, qid_target);
 	}
 
 	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
 	                    std::vector<std::string> const& qlabels_target)
 	{
-		std::vector<qubit_id> controls;
+		std::vector<io_id> controls;
 		for (auto& control : qlabels_control) {
-			controls.push_back(qlabels_->to_qid(control));
+			controls.push_back(labels_->to_id(control));
 		}
-		std::vector<qubit_id> targets;
+		std::vector<io_id> targets;
 		for (auto& target : qlabels_target) {
-			targets.push_back(qlabels_->to_qid(target));
+			targets.push_back(labels_->to_id(target));
 		}
 		return add_gate(op, controls, targets);
 	}
@@ -199,39 +230,112 @@ public:
 
 #pragma region Const iterators
 	template<typename Fn>
-	qubit_id foreach_cqubit(Fn&& fn) const
+	io_id foreach_io(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, qubit_id> ||
-			      std::is_invocable_r_v<bool, Fn, qubit_id> ||
+		static_assert(std::is_invocable_r_v<void, Fn, io_id> ||
+			      std::is_invocable_r_v<bool, Fn, io_id> ||
 		              std::is_invocable_r_v<void, Fn, std::string const&> || 
-			      std::is_invocable_r_v<void, Fn, qubit_id, std::string const&>);
+			      std::is_invocable_r_v<void, Fn, io_id, std::string const&>);
 		// clang-format on
-		if constexpr (std::is_invocable_r_v<bool, Fn, qubit_id>) {
-			for (auto qid = 0u; qid < num_qubits(); ++qid) {
-				if (!fn(qubit_id(qid))) {
-					return qid;
+		if constexpr (std::is_invocable_r_v<bool, Fn, io_id>) {
+			for (auto const& [_, id] : *labels_) {
+				if (!fn(id)) {
+					return id;
 				}
 			}
-		} else if constexpr (std::is_invocable_r_v<void, Fn, qubit_id>) {
-			for (auto qid = 0u; qid < num_qubits(); ++qid) {
-				fn(qubit_id(qid));
+		} else if constexpr (std::is_invocable_r_v<void, Fn, io_id>) {
+			for (auto const& [_, id] : *labels_) {
+				fn(id);
 			}
 		} else if constexpr (std::is_invocable_r_v<void, Fn, std::string const&>) {
-			for (auto const& qlabel : *qlabels_) {
-				fn(qlabel);
+			for (auto const& [label, _] : *labels_) {
+				fn(label);
 			}
 		} else {
-			auto qid = 0u;
-			for (auto const& qlabel : *qlabels_) {
-				fn(qubit_id(qid++), qlabel);
+			for (auto const& [label, id] : *labels_) {
+				fn(id, label);
 			}
 		}
-		return qid_invalid;
+		return io_invalid;
 	}
 
 	template<typename Fn>
-	void foreach_cinput(Fn&& fn) const
+	io_id foreach_qubit(Fn&& fn) const
+	{
+		// clang-format off
+		static_assert(std::is_invocable_r_v<void, Fn, io_id> ||
+			      std::is_invocable_r_v<bool, Fn, io_id> ||
+		              std::is_invocable_r_v<void, Fn, std::string const&> || 
+			      std::is_invocable_r_v<void, Fn, io_id, std::string const&>);
+		// clang-format on
+		if constexpr (std::is_invocable_r_v<bool, Fn, io_id>) {
+			for (auto const& [_, id] : *labels_) {
+				if (id.is_qubit() && !fn(id)) {
+					return id;
+				}
+			}
+		} else if constexpr (std::is_invocable_r_v<void, Fn, io_id>) {
+			for (auto const& [_, id] : *labels_) {
+				if (id.is_qubit()) {
+					fn(id);
+				}
+			}
+		} else if constexpr (std::is_invocable_r_v<void, Fn, std::string const&>) {
+			for (auto const& [label, id] : *labels_) {
+				if (id.is_qubit()) {
+					fn(label);
+				}
+			}
+		} else {
+			for (auto const& [label, id] : *labels_) {
+				if (id.is_qubit()) {
+					fn(id, label);
+				}
+			}
+		}
+		return io_invalid;
+	}
+
+	template<typename Fn>
+	io_id foreach_cbit(Fn&& fn) const
+	{
+		// clang-format off
+		static_assert(std::is_invocable_r_v<void, Fn, io_id> ||
+			      std::is_invocable_r_v<bool, Fn, io_id> ||
+		              std::is_invocable_r_v<void, Fn, std::string const&> || 
+			      std::is_invocable_r_v<void, Fn, io_id, std::string const&>);
+		// clang-format on
+		if constexpr (std::is_invocable_r_v<bool, Fn, io_id>) {
+			for (auto const& [_, id] : *labels_) {
+				if (!id.is_qubit() && !fn(id)) {
+					return id;
+				}
+			}
+		} else if constexpr (std::is_invocable_r_v<void, Fn, io_id>) {
+			for (auto const& [_, id] : *labels_) {
+				if (!id.is_qubit()) {
+					fn(id);
+				}
+			}
+		} else if constexpr (std::is_invocable_r_v<void, Fn, std::string const&>) {
+			for (auto const& [label, id] : *labels_) {
+				if (!id.is_qubit()) {
+					fn(label);
+				}
+			}
+		} else {
+			for (auto const& [label, id] : *labels_) {
+				if (!id.is_qubit()) {
+					fn(id, label);
+				}
+			}
+		}
+		return io_invalid;
+	}
+
+	template<typename Fn>
+	void foreach_input(Fn&& fn) const
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&, uint32_t> ||
@@ -247,7 +351,7 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_coutput(Fn&& fn) const
+	void foreach_output(Fn&& fn) const
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&, uint32_t> ||
@@ -264,15 +368,15 @@ public:
 	}
 
 	template<typename Fn>
-	void foreach_cgate(Fn&& fn, uint32_t start = 0) const
+	void foreach_gate(Fn&& fn, uint32_t start = 0) const
 	{
 		foreach_element_if(storage_->nodes.cbegin() + start, storage_->nodes.cend(),
-		                   [](auto const& node) { return node.gate.is_unitary_gate(); },
+		                   [](auto const& node) { return node.gate.is_gate(); },
 		                   fn);
 	}
 
 	template<typename Fn>
-	void foreach_cnode(Fn&& fn) const
+	void foreach_node(Fn&& fn) const
 	{
 		foreach_element(storage_->nodes.cbegin(), storage_->nodes.cend(), fn);
 		foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn,
@@ -301,7 +405,7 @@ public:
 #pragma endregion
 
 #pragma region Rewiring
-	void rewire(std::vector<uint32_t> const& rewiring_map)
+	void rewire(std::vector<io_id> const& rewiring_map)
 	{
 		storage_->rewiring_map = rewiring_map;
 	}
@@ -341,7 +445,7 @@ public:
 
 private:
 	std::shared_ptr<storage_type> storage_;
-	std::shared_ptr<qlabels_map> qlabels_;
+	std::shared_ptr<labels_map> labels_;
 };
 
 } // namespace tweedledum
