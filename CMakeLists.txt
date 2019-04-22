@@ -23,6 +23,7 @@ endif()
 # =============================================================================
 option(TWEEDLEDUM_DOCS "Build documentation" OFF)
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
+option(TWEEDLEDUM_EXPERIMENTS "Build experiments" OFF)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
 
 # Libs
@@ -45,6 +46,12 @@ endif()
 # =============================================================================
 if(TWEEDLEDUM_EXAMPLES)
   add_subdirectory(examples)
+endif()
+
+# Experiments
+# =============================================================================
+if(TWEEDLEDUM_EXPERIMENTS)
+  add_subdirectory(experiments)
 endif()
 
 # Tests

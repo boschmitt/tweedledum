@@ -10,3 +10,4 @@ docs/.venv
 docs/_build
 docs/doxyxml
 examples/*
+experiments/*/
