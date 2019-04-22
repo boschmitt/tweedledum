@@ -122,13 +122,7 @@ public:
 	void add_swap(uint32_t phy_a, uint32_t phy_b)
 	{
 		assert(coupling_matrix_.at(phy_a, phy_b));
-		if constexpr (std::is_same_v<typename Network::gate_type, io3_gate>) {
-			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
-			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_b), phy_id_map_.at(phy_a)));
-			this->emplace_gate(gate_type(gate::cx, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
-		} else {
-			this->emplace_gate(gate_type(gate::swap, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
-		}
+		this->emplace_gate(gate_type(gate::swap, phy_id_map_.at(phy_a), phy_id_map_.at(phy_b)));
 		auto it_a = std::find(virtual_phy_map_.begin(), virtual_phy_map_.end(), phy_a);
 		auto it_b = std::find(virtual_phy_map_.begin(), virtual_phy_map_.end(), phy_b);
 		std::swap(*it_a, *it_b);
