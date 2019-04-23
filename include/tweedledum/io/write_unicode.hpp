@@ -238,9 +238,20 @@ auto to_unicode_str(Network const& network, Builder builder)
 			gate.foreach_target([&](auto qid) { builder.add_gate("x", qid); });
 			break;
 
-		case gate_set::rotation_y:
-			gate.foreach_target([&](auto qid) { builder.add_gate("y", qid); });
-			break;
+		case gate_set::rotation_y: 
+		{
+			std::vector<qubit_id> controls;
+			std::vector<qubit_id> targets;
+			gate.foreach_control([&](auto control) { controls.push_back(control); });
+			gate.foreach_target([&](auto target) { targets.push_back(target); });
+			if (controls.empty()) {
+				gate.foreach_target([&](auto qid) { builder.add_gate("y", qid); });
+			} else {
+				builder.add_gate("y", controls, targets);
+			}
+		} break;
+			// gate.foreach_target([&](auto qid) { builder.add_gate("y", qid); });
+			// break;
 
 		case gate_set::rotation_z:
 			gate.foreach_target([&](auto qid) { builder.add_gate("z", qid); });
