@@ -9,6 +9,9 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstdint>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+#include <iostream>
 #include <numeric>
 #include <optional>
 #include <utility>
@@ -115,6 +118,41 @@ public:
 		lhs.denominator_ = lhs.denominator_ * rhs.denominator_;
 		lhs.normalize();
 		return lhs;
+	}
+
+	friend angle operator*(angle lhs, int32_t const& rhs)
+	{
+		if (lhs.is_numerically_defined()) {
+			lhs.denominator_ = 0;
+			lhs.numerical_ = lhs.numeric_value() * rhs;
+			return lhs;
+		}
+		lhs.numerator_ = (lhs.numerator_ * rhs);
+		lhs.normalize();
+		return lhs;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, angle const& angle)
+	{
+		if (angle.is_numerically_defined()) {
+			os << fmt::format("{:.17f}", angle.numerical_);
+		} else {
+			switch (angle.numerator_) {
+			case 1:
+				break;
+			case -1:
+				os << '-';
+				break;
+			default:
+				os << angle.numerator_ << '*';
+				break;
+			}
+			os <<  "pi";
+			if (angle.denominator_ != 1) {
+				os <<  "/" << angle.denominator_;
+			}
+		}
+		return os;
 	}
 #pragma endregion
 

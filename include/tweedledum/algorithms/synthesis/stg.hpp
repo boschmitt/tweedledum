@@ -6,12 +6,10 @@
 #pragma once
 
 #include "../../networks/io_id.hpp"
+#include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "gray_synth.hpp"
 #include "linear_synth.hpp"
-
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include <cstdint>
 #include <iostream>
@@ -177,7 +175,8 @@ struct stg_from_spectrum {
 		gate_function &= xt;
 
 		parity_terms parities;
-		const float nom = M_PI / (1 << gate_function.num_vars());
+		// An angle type create like this is implicitly multiplied by pi
+		const angle nom(1, (1 << gate_function.num_vars()));
 		const auto spectrum = kitty::rademacher_walsh_spectrum(gate_function);
 		for (auto i = 1u; i < spectrum.size(); ++i) {
 			if (spectrum[i] == 0) {
