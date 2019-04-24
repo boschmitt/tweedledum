@@ -64,6 +64,7 @@ public:
 	{
 		auto search = term_to_angle_.find(term);
 		if (search != term_to_angle_.end()) {
+			term_to_angle_.erase(search);
 			return search->second;
 		} else {
 			return angle(0.0);
