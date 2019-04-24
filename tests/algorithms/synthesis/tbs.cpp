@@ -5,6 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <cstdint>
+#include <tweedledum/algorithms/simulation/simulate_classically.hpp>
 #include <tweedledum/algorithms/synthesis/tbs.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
@@ -19,23 +20,26 @@ TEMPLATE_PRODUCT_TEST_CASE("Transformation based synthesis", "[tbs][template]",
 	SECTION("Synthesize PRIME(3) - unidirectional TBS")
 	{
 		const auto network = tbs<TestType>(permutation);
-		CHECK(network.num_gates() == 4u);
-		CHECK(network.num_qubits() == 3u);
+		for (auto i = 0u; i < permutation.size(); ++i) {
+			CHECK(simulate_classically(network, i) == permutation[i]);
+		}
 	}
 	SECTION("Synthesize PRIME(3) - bidirectional TBS")
 	{
 		const auto network = tbs<TestType>(permutation);
 		tbs_params params;
 		params.behavior = tbs_params::behavior::bidirectional;
-		CHECK(network.num_gates() == 4u);
-		CHECK(network.num_qubits() == 3u);
+		for (auto i = 0u; i < permutation.size(); ++i) {
+			CHECK(simulate_classically(network, i) == permutation[i]);
+		}
 	}
 	SECTION("Synthesize PRIME(3) - multi-directional TBS")
 	{
 		const auto network = tbs<TestType>(permutation);
 		tbs_params params;
 		params.behavior = tbs_params::behavior::multidirectional;
-		CHECK(network.num_gates() == 4u);
-		CHECK(network.num_qubits() == 3u);
+		for (auto i = 0u; i < permutation.size(); ++i) {
+			CHECK(simulate_classically(network, i) == permutation[i]);
+		}
 	}
 }
