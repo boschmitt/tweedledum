@@ -37,6 +37,13 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/views/pathsum_view.cpp"
   )
 
+if(TWEEDLEDUM_BLAS)
+  set(tweedledum_tests_files
+    "${tweedledum_tests_files}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/zyz.cpp"
+    )
+endif()
+
 add_executable(run_tests "${tweedledum_tests_files}")
 target_link_libraries(run_tests tweedledum)
 add_dependencies(tweedledum_tests run_tests)
