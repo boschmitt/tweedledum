@@ -5,7 +5,7 @@ script:
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DTWEEDLEDUM_TESTS=ON ..
   - make run_tests
-  - ./test/run_tests
+  - ./tests/run_tests
 
 matrix:
   include:
