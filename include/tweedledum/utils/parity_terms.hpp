@@ -50,7 +50,7 @@ public:
 	 */
 	void add_term(uint32_t term, angle rotation_angle)
 	{
-		assert(rotation_angle != 0.0);
+		assert(rotation_angle != angles::zero);
 		auto search = term_to_angle_.find(term);
 		if (search != term_to_angle_.end()) {
 			search->second += rotation_angle;
@@ -67,7 +67,7 @@ public:
 			term_to_angle_.erase(search);
 			return search->second;
 		} else {
-			return angle(0.0);
+			return angles::zero;
 		}
 	}
 #pragma endregion
