@@ -50,7 +50,7 @@ public:
 	 */
 	void add_term(uint32_t term, angle rotation_angle)
 	{
-		assert(rotation_angle != 0.0);
+		assert(rotation_angle != angles::zero);
 		auto search = term_to_angle_.find(term);
 		if (search != term_to_angle_.end()) {
 			search->second += rotation_angle;
@@ -62,11 +62,13 @@ public:
 	/*! \brief Extract parity term. */
 	auto extract_term(uint32_t term)
 	{
-		auto node_handle = term_to_angle_.extract(term);
-		if (node_handle.empty()) {
-			return angle(0.0);
+		auto search = term_to_angle_.find(term);
+		if (search != term_to_angle_.end()) {
+			term_to_angle_.erase(search);
+			return search->second;
+		} else {
+			return angles::zero;
 		}
-		return node_handle.mapped();
 	}
 #pragma endregion
 
