@@ -3,7 +3,7 @@ language: cpp
 script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DTWEEDLEDUM_TESTS=ON ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DTWEEDLEDUM_TESTS=ON -DTWEEDLEDUM_BLAS=ON ..
   - make run_tests
 
 matrix:
