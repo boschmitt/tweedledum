@@ -23,3 +23,19 @@ if (NOT TARGET kitty)
 endif()
 
 add_subdirectory(cudd)
+
+add_library(qmdd
+ qmdd/qmdd/QASMscanner.cpp
+ qmdd/qmdd/QASMsimulator.cpp
+ qmdd/qmdd/QASMtoken.cpp
+ qmdd/qmdd/QMDDcircuit.cpp
+ qmdd/qmdd/QMDDcomplexD.cpp
+ qmdd/qmdd/QMDDpackage.cpp
+ qmdd/qmdd/QMDDreorder.cpp
+ qmdd/qmdd/Simulator.cpp
+ qmdd/qmdd/qcost.cpp
+ qmdd/qmdd/textFileUtilities.cpp
+ qmdd/qmdd/timing.cpp)
+target_include_directories(qmdd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/qmdd/qmdd)
+target_include_directories(qmdd PUBLIC /usr/local/Cellar/mpfr/4.0.2/include)
+target_include_directories(qmdd PUBLIC /usr/local/Cellar/gmp/6.1.2_2/include)

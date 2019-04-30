@@ -23,6 +23,7 @@
 #include <cudd/cudd.h>
 #include <cudd/cuddInt.h>
 #include <cplusplus/cuddObj.hh>
+#include <QMDDpackage.h>
 
 #include <typeinfo>
 
@@ -139,6 +140,13 @@ DdNode *f, uint32_t num_vars)
 
 } /* end of extract_gates function */
 
+template<class Network>
+void multiplex_decomposition (Network &net , 
+std::vector< std::vector<std::pair<double , std::vector<int32_t>>> > gates)
+{
+    QMDDedge x;
+} /* end of multiplex_decomposition function */
+
 } // namespace detail end
 //**************************************************************
 
@@ -224,10 +232,10 @@ void qsp_add(Network& network)//, const std::string &tt_str, qsp_params params =
     std::vector< std::vector<std::pair<double , std::vector<int32_t>>> > gates (mgr.ReadSize());
     std::vector<int32_t> controls;
     detail::extract_gates(visited1 , node_ones , gates , controls , f_add , mgr.ReadSize());
-    
+    detail::multiplex_decomposition(network,gates);
     add_gates_to_network(network,gates);
 
-char x = 'A'+1;
+    char x = 'A'+1;
     std::cout<<x<<std::endl;
 	
 }
