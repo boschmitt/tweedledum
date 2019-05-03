@@ -141,7 +141,6 @@ public:
 				while (count_2q == index_of_swap[index_counter]) {
 					// Insert as many swaps that are needed in a particular spot
 					mapped_ntk.add_swap(swaps_[index_counter].first, swaps_[index_counter].second);
-					// mapped_ntk.add_swap(phy_id_map_.at(swaps_[index_counter].first), phy_id_map_.at(swaps_[index_counter].second));
 					index_counter++;
 				}
 				// Insert gate
@@ -149,7 +148,6 @@ public:
 			} else {
 				// Insert gate with fixed qubits
 				mapped_ntk.add_gate(gate, gate.control(), gate.target());
-				// mapped_ntk.add_gate(gate, gate.control(), gate.target());
 			}
 			count_2q++;
         	});
