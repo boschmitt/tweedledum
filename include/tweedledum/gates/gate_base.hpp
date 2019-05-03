@@ -176,6 +176,7 @@ namespace gate {
 constexpr gate_base identity(gate_set::identity, angles::zero, angles::zero, angles::zero);
 constexpr gate_base hadamard(gate_set::hadamard, angles::one_half, angles::zero, angles::one);
 constexpr gate_base pauli_x(gate_set::pauli_x, angles::one, angles::zero, angles::one);
+constexpr gate_base pauli_y(gate_set::pauli_y, angles::one, angles::one_half, angles::one_half);
 constexpr gate_base t(gate_set::t, angles::zero, angles::zero, angles::one_quarter);
 constexpr gate_base phase(gate_set::phase, angles::zero, angles::zero, angles::one_half);
 constexpr gate_base pauli_z(gate_set::pauli_z, angles::zero, angles::zero, angles::one);
