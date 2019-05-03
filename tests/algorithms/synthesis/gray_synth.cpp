@@ -19,7 +19,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 {
 	SECTION("Check simple example from Amy paper")
 	{
-		parity_terms parities;
+		parity_terms<uint32_t> parities;
 		parities.add_term(0b0110, angles::one_eighth);
 		parities.add_term(0b0001, angles::one_eighth);
 		parities.add_term(0b1001, angles::one_eighth);

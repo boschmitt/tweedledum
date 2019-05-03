@@ -46,7 +46,7 @@ class gray_synth_ftor {
 
 public:
 	gray_synth_ftor(Network& network, std::vector<io_id> const& qubits,
-	                parity_terms const& parities, gray_synth_params params)
+	                parity_terms<uint32_t> const& parities, gray_synth_params params)
 	    : network_(network)
 	    , qubits_(qubits)
 	    , parities_(parities)
@@ -187,7 +187,7 @@ private:
 private:
 	Network& network_;
 	std::vector<io_id> qubits_;
-	parity_terms parities_;
+	parity_terms<uint32_t> parities_;
 	matrix_type parity_matrix_;
 	std::vector<state_type> state_stack_;
 	gray_synth_params parameters_;
@@ -209,7 +209,7 @@ private:
  */
 template<class Network>
 void gray_synth(Network& network, std::vector<io_id> const& qubits,
-                parity_terms const& parities, gray_synth_params params = {})
+                parity_terms<uint32_t> const& parities, gray_synth_params params = {})
 {
 	assert(qubits.size() <= 32u);
 	if (parities.num_terms() == 0u) {
@@ -239,7 +239,7 @@ void gray_synth(Network& network, std::vector<io_id> const& qubits,
  * \algreturns {CNOT, Rz} network
  */
 template<class Network>
-Network gray_synth(uint32_t num_qubits, parity_terms const& parities, gray_synth_params params = {})
+Network gray_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities, gray_synth_params params = {})
 {
 	assert(num_qubits <= 32);
 	Network network;
