@@ -132,6 +132,23 @@ public:
 	{
 		return qid.index();
 	}
+
+	bool is_adjoint(mcmt_gate const& other) const
+	{
+		if (this->adjoint() != other.operation()) {
+			return false;
+		}
+		if (controls_ != other.controls_ || polarity_ != other.polarity_
+		    || targets_ != other.targets_) {
+			return false;
+		}
+		if (this->is_one_of(gate_set::rotation_x, gate_set::rotation_y, gate_set::rotation_z)) {
+			if (this->rotation_angle() + other.rotation_angle() != 0.0) {
+				return false;
+			}
+		}
+		return true;
+	}
 #pragma endregion
 
 #pragma region Const iterators

@@ -160,6 +160,28 @@ public:
 		assert(0);
 		std::abort();
 	}
+
+	// TODO: double check
+	bool is_adjoint(io3_gate const& other) const
+	{
+		if (this->adjoint() != other.operation()) {
+			return false;
+		}
+		if (data_ != other.data_) {
+			return false;
+		}
+		for (uint32_t i = 0; i < max_num_io; ++i) {
+			if (ids_[i] != other.ids_[i]) {
+				return false;
+			}
+		}
+		if (this->is_one_of(gate_set::rotation_x, gate_set::rotation_y, gate_set::rotation_z)) {
+			if (this->rotation_angle() + other.rotation_angle() != angles::zero) {
+				return false;
+			}
+		}
+		return true;
+	}
 #pragma endregion
 
 #pragma region Const iterators
@@ -225,14 +247,20 @@ private:
 	}
 
 private:
-	uint32_t unused_ : 20;
-	/*! \brief indicates the slot which holds the qid of the target. */
-	uint32_t num_controls_ : 2;
-	uint32_t num_targets_  : 2;
-	uint32_t control0_ : 2;
-	uint32_t control1_ : 2;
-	uint32_t target0_  : 2;
-	uint32_t target1_  : 2;
+	union {
+		uint32_t data_;
+		struct {
+			uint32_t unused_ : 20;
+			/*! \brief indicates the slot which holds the qid of the target. */
+			uint32_t num_controls_ : 2;
+			uint32_t num_targets_ : 2;
+			uint32_t control0_ : 2;
+			uint32_t control1_ : 2;
+			uint32_t target0_ : 2;
+			uint32_t target1_ : 2;
+		};
+	};
+
 	/*! \brief an array which hold the qids' of the qubits this gate is acting upon */
 	std::array<io_id, max_num_io> ids_;
 };
