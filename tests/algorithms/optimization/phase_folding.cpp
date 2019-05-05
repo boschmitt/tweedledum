@@ -4,7 +4,7 @@
 | Author(s): Bruno Schmitt, Mathias Soeken, Fereshte Mozafari
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
-#include <tweedledum/algorithms/optimization/rotation_merging.hpp>
+#include <tweedledum/algorithms/optimization/phase_folding.hpp>
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
@@ -31,7 +31,7 @@ bool check_optimized(Network const& orignal, Network const& optimized)
 	return num_ok == orignal_sums.num_io();
 }
 
-TEMPLATE_PRODUCT_TEST_CASE("Rotation merging", "[rotation_merging][template]",
+TEMPLATE_PRODUCT_TEST_CASE("Rotation merging", "[phase_folding][template]",
                            (gg_network, netlist), (mcmt_gate, io3_gate))
 {
 	TestType network;
@@ -60,6 +60,6 @@ TEMPLATE_PRODUCT_TEST_CASE("Rotation merging", "[rotation_merging][template]",
 
 	network.add_gate(gate::t, "x2");
 
-	auto opt_network = rotation_merging(network);
+	auto opt_network = phase_folding(network);
 	CHECK(check_optimized(network, opt_network));
 }

@@ -5,6 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../identify_rz.hpp"
 #include "../../networks/io_id.hpp"
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
@@ -17,12 +18,17 @@
 
 namespace tweedledum {
 
+struct rotation_merging_params
+{
+        bool use_generic_rx = false;
+};
+
 /*! \brief TODO
  *
  * **Required network functions:**
  */
 template<typename NetworkSrc, typename NetworkDest>
-void rotation_merging(NetworkSrc const& src, NetworkDest& dest)
+void phase_folding(NetworkSrc const& src, NetworkDest& dest, rotation_merging_params params = {})
 {
 	using term_type = typename pathsum_view<NetworkSrc>::esop_type;
 	parity_terms<term_type> parities;
@@ -36,6 +42,15 @@ void rotation_merging(NetworkSrc const& src, NetworkDest& dest)
 		}
 		auto term = pathsums.get_pathsum(node);
 		parities.add_term(term, node.gate.rotation_angle());
+		// auto b = parities.num_terms();
+		// angle a = parities.extract_term(term);
+		// angle b = angle(2, 1); 
+		// if (a == b) {
+		// 	std::cout << "eureka!\n";
+		// 	std::cout << a << " " << b << "\n\n";
+		// 	return;
+		// } 
+		// parities.add_term(term, a);
 	});
 
 	src.foreach_gate([&](auto const& node) {
@@ -44,10 +59,14 @@ void rotation_merging(NetworkSrc const& src, NetworkDest& dest)
 		}
 		dest.emplace_gate(node.gate);
 		auto angle = parities.extract_term(pathsums.get_pathsum(node));
-		if (angle != angles::zero) {
-			dest.add_gate(gate_base(gate_set::rotation_z, angle), node.gate.target());
+		if (angle == angles::zero) {
+			return;
 		}
+		dest.add_gate(gate_base(gate_set::rotation_z, angle), node.gate.target());
 	});
+	if (params.use_generic_rx == false) {
+		dest = identify_rz(dest);
+	}
 }
 
 /*! \brief TODO
@@ -55,7 +74,7 @@ void rotation_merging(NetworkSrc const& src, NetworkDest& dest)
  * **Required network functions:**
  */
 template<typename Network>
-Network rotation_merging(Network const& src)
+Network phase_folding(Network const& src, rotation_merging_params params = {})
 {
 	Network dest;
 	src.foreach_io([&](io_id io, std::string const& label) {
@@ -65,7 +84,7 @@ Network rotation_merging(Network const& src)
 			dest.add_cbit(label);
 		}
 	});
-	rotation_merging(src, dest);
+	phase_folding(src, dest, params);
 	return dest;
 }
 
