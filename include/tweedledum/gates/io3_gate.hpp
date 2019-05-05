@@ -91,6 +91,7 @@ public:
 			target1_ = invalid_value;
 			ids_ = {controls[0], controls[1], targets[0]};
 			std::sort(ids_.begin(), ids_.end());
+			assert(ids_[0] != ids_[1] && ids_[1] != ids_[2] && "The I/Os must be different");
 			target0_ = std::distance(ids_.begin(), std::find(ids_.begin(), ids_.end(), targets[0]));
 			switch (target0_) {
 			case 0u:
