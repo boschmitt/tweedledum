@@ -18,7 +18,7 @@
 
 namespace tweedledum {
 
-struct rotation_merging_params
+struct phase_folding_params
 {
         bool use_generic_rx = false;
 };
@@ -28,7 +28,7 @@ struct rotation_merging_params
  * **Required network functions:**
  */
 template<typename NetworkSrc, typename NetworkDest>
-void phase_folding(NetworkSrc const& src, NetworkDest& dest, rotation_merging_params params = {})
+void phase_folding(NetworkSrc const& src, NetworkDest& dest, phase_folding_params params = {})
 {
 	using term_type = typename pathsum_view<NetworkSrc>::esop_type;
 	parity_terms<term_type> parities;
@@ -74,7 +74,7 @@ void phase_folding(NetworkSrc const& src, NetworkDest& dest, rotation_merging_pa
  * **Required network functions:**
  */
 template<typename Network>
-Network phase_folding(Network const& src, rotation_merging_params params = {})
+Network phase_folding(Network const& src, phase_folding_params params = {})
 {
 	Network dest;
 	src.foreach_io([&](io_id io, std::string const& label) {
