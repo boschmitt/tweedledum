@@ -75,6 +75,11 @@ struct node_pointer<0> {
 	{
 		return data == other.data;
 	}
+
+	bool operator!=(node_pointer const& other) const
+	{
+		return data != other.data;
+	}
 };
 
 } // namespace detail
