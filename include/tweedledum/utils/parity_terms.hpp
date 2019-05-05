@@ -60,7 +60,7 @@ public:
 	}
 
 	/*! \brief Extract parity term. */
-	auto extract_term(Term term)
+	angle extract_term(Term term)
 	{
 		auto search = term_to_angle_.find(term);
 		if (search != term_to_angle_.end()) {

@@ -128,7 +128,7 @@ public:
 #pragma endregion
 
 #pragma region Nodes
-	auto& get_node(node_ptr_type node_ptr) const
+	node_type& get_node(node_ptr_type node_ptr) const
 	{
 		return storage_->nodes[node_ptr.index];
 	}
