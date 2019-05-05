@@ -332,7 +332,7 @@ auto to_unicode_str(Network const& network, Builder builder)
 			break;
 
 		case gate_set::t_dagger:
-			gate.foreach_target([&](auto qid) { builder.add_gate("⊥", qid); });
+			gate.foreach_target([&](auto qid) { builder.add_gate("┴", qid); });
 			break;
 
 		case gate_set::swap: {
