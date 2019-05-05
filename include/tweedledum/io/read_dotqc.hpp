@@ -29,8 +29,9 @@ struct identify_gate {
 			return gate::phase;
 
 		case 'T':
-			if (gate_label.size() == 2 && gate_label[1] == '*')
+			if (gate_label.size() == 2 && gate_label[1] == '*') {
 				return gate::t_dagger;
+			}
 			return gate::t;
 
 		case 'X':
@@ -40,6 +41,10 @@ struct identify_gate {
 			return gate::pauli_y;
 
 		case 'Z':
+			// This will be a ugly hack (:
+			if (gate_label.size() == 2 && gate_label[1] == 'd') {
+				return gate_base(gate_set::undefined);
+			}
 			return gate::pauli_z;
 
 		default:
@@ -101,6 +106,27 @@ public:
 				gate = gate::mcz;
 			}
 			break;
+
+		// Hack to handle 'Zd' gate
+		case gate_set::undefined:
+			network_.add_gate(gate::t_dagger, controls[0]);
+			network_.add_gate(gate::t_dagger, controls[1]);
+			network_.add_gate(gate::t_dagger, targets[0]);
+
+			network_.add_gate(gate::cx, controls[0], controls[1]);
+			network_.add_gate(gate::cx, controls[1], targets[0]);
+			network_.add_gate(gate::cx, targets[0], controls[0]);
+
+			network_.add_gate(gate::t, controls[0]);
+			network_.add_gate(gate::t, controls[1]);
+			network_.add_gate(gate::t_dagger, targets[0]);
+
+			network_.add_gate(gate::cx, controls[1], controls[0]);
+			network_.add_gate(gate::t, controls[0]);
+			network_.add_gate(gate::cx, controls[1], targets[0]);
+			network_.add_gate(gate::cx, targets[0], controls[0]);
+			network_.add_gate(gate::cx, controls[0], controls[1]);
+			return;
 
 		default:
 			break;
