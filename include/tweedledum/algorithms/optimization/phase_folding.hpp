@@ -42,15 +42,6 @@ void phase_folding(NetworkSrc const& src, NetworkDest& dest, phase_folding_param
 		}
 		auto term = pathsums.get_pathsum(node);
 		parities.add_term(term, node.gate.rotation_angle());
-		// auto b = parities.num_terms();
-		// angle a = parities.extract_term(term);
-		// angle b = angle(2, 1); 
-		// if (a == b) {
-		// 	std::cout << "eureka!\n";
-		// 	std::cout << a << " " << b << "\n\n";
-		// 	return;
-		// } 
-		// parities.add_term(term, a);
 	});
 
 	src.foreach_gate([&](auto const& node) {
