@@ -50,10 +50,10 @@ void rewrite_network(NetworkDest& dest, NetworkSrc const& src, RewriteFn&& fn, u
  * - `rewire`
  * - `rewire_map`
  */
-template<class NetworkDest, class NetworkSrc, class RewriteFn>
-NetworkDest rewrite_network(NetworkSrc const& src, RewriteFn&& fn, uint32_t ancillae = 0)
+template<class Network, class RewriteFn>
+Network rewrite_network(Network const& src, RewriteFn&& fn, uint32_t ancillae = 0)
 {
-	NetworkDest dest;
+	Network dest;
 	src.foreach_qubit([&](std::string const& qlabel) {
 		dest.add_qubit(qlabel);
 	});
@@ -63,7 +63,7 @@ NetworkDest rewrite_network(NetworkSrc const& src, RewriteFn&& fn, uint32_t anci
 
 	src.foreach_gate([&](auto const& node) {
 		if (!fn(dest, node.gate)) {
-			dest.add_gate(node.gate);
+			dest.emplace_gate(node.gate);
 		}
 	});
 	dest.rewire(src.rewire_map());
