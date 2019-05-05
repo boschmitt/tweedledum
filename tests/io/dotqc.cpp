@@ -8,7 +8,7 @@
 #include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/io/read_dotqc.hpp>
+#include <tweedledum/io/dotqc.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/io_id.hpp>
 #include <tweedledum/networks/netlist.hpp>
