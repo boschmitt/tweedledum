@@ -20,12 +20,12 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 	SECTION("Check simple example from Amy paper")
 	{
 		parity_terms<uint32_t> parities;
-		parities.add_term(0b0110, angles::one_eighth);
-		parities.add_term(0b0001, angles::one_eighth);
-		parities.add_term(0b1001, angles::one_eighth);
-		parities.add_term(0b0111, angles::one_eighth);
-		parities.add_term(0b1011, angles::one_eighth);
-		parities.add_term(0b0011, angles::one_eighth);
+		parities.add_term(0b0110, angles::pi_quarter);
+		parities.add_term(0b0001, angles::pi_quarter);
+		parities.add_term(0b1001, angles::pi_quarter);
+		parities.add_term(0b0111, angles::pi_quarter);
+		parities.add_term(0b1011, angles::pi_quarter);
+		parities.add_term(0b0011, angles::pi_quarter);
 
 		auto network = gray_synth<TestType>(4, parities);
 		bit_matrix_rm id_matrix(4, 4);

@@ -43,8 +43,8 @@ public:
 		assert(is_one_of(gate_set::rotation_x, gate_set::rotation_z));
 		if (operation == gate_set::rotation_x) {
 			theta_ = rotation_angle;
-			phi_ = -angles::one_half;
-			lambda_ = angles::one_half;
+			phi_ = -angles::pi_half;
+			lambda_ = angles::pi_half;
 		}
 	}
 #pragma endregion
@@ -174,23 +174,23 @@ namespace gate {
 
 /* Single-qubit gates */
 constexpr gate_base identity(gate_set::identity, angles::zero, angles::zero, angles::zero);
-constexpr gate_base hadamard(gate_set::hadamard, angles::one_half, angles::zero, angles::one);
-constexpr gate_base pauli_x(gate_set::pauli_x, angles::one, angles::zero, angles::one);
-constexpr gate_base pauli_y(gate_set::pauli_y, angles::one, angles::one_half, angles::one_half);
-constexpr gate_base t(gate_set::t, angles::zero, angles::zero, angles::one_quarter);
-constexpr gate_base phase(gate_set::phase, angles::zero, angles::zero, angles::one_half);
-constexpr gate_base pauli_z(gate_set::pauli_z, angles::zero, angles::zero, angles::one);
-constexpr gate_base phase_dagger(gate_set::phase_dagger, angles::zero, angles::zero, -angles::one_half);
-constexpr gate_base t_dagger(gate_set::t_dagger, angles::zero, angles::zero, -angles::one_quarter);
+constexpr gate_base hadamard(gate_set::hadamard, angles::pi_half, angles::zero, angles::pi);
+constexpr gate_base pauli_x(gate_set::pauli_x, angles::pi, angles::zero, angles::pi);
+constexpr gate_base pauli_y(gate_set::pauli_y, angles::pi, angles::pi_half, angles::pi_half);
+constexpr gate_base t(gate_set::t, angles::zero, angles::zero, angles::pi_quarter);
+constexpr gate_base phase(gate_set::phase, angles::zero, angles::zero, angles::pi_half);
+constexpr gate_base pauli_z(gate_set::pauli_z, angles::zero, angles::zero, angles::pi);
+constexpr gate_base phase_dagger(gate_set::phase_dagger, angles::zero, angles::zero, -angles::pi_half);
+constexpr gate_base t_dagger(gate_set::t_dagger, angles::zero, angles::zero, -angles::pi_quarter);
 
 /* Double-qubit unitary gates */
-constexpr gate_base cx(gate_set::cx, angles::one, angles::zero, angles::one);
-constexpr gate_base cz(gate_set::cz, angles::zero, angles::zero, angles::one);
+constexpr gate_base cx(gate_set::cx, angles::pi, angles::zero, angles::pi);
+constexpr gate_base cz(gate_set::cz, angles::zero, angles::zero, angles::pi);
 constexpr gate_base swap(gate_set::swap);
 
 /* Multiple-qubit unitary gates */
-constexpr gate_base mcx(gate_set::mcx, angles::one, angles::zero, angles::one);
-constexpr gate_base mcz(gate_set::mcz, angles::zero, angles::zero, angles::one);
+constexpr gate_base mcx(gate_set::mcx, angles::pi, angles::zero, angles::pi);
+constexpr gate_base mcz(gate_set::mcz, angles::zero, angles::zero, angles::pi);
 
 /* Single-qubit, single-cbit gate */
 constexpr gate_base measurement(gate_set::measurement);
