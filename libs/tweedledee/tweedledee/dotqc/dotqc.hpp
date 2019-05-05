@@ -49,13 +49,15 @@ struct identify_gate_kind {
 
 		case 'S':
 		case 'P':
-			if (gate_label.size() == 2 && gate_label[1] == '*')
+			if (gate_label.size() == 2 && gate_label[1] == '*') {
 				return gate_kinds::phase_dagger;
+			}
 			return gate_kinds::phase;
 
 		case 'T':
-			if (gate_label.size() == 2 && gate_label[1] == '*')
+			if (gate_label.size() == 2 && gate_label[1] == '*') {
 				return gate_kinds::t_dagger;
+			}
 			return gate_kinds::t;
 
 		case 'X':
@@ -143,6 +145,9 @@ inline void dotqc_read(std::istream& buffer, dotqc_reader<GateKind>& reader, Fn&
 			for (auto& label : outputs) {
 				reader.on_output(label);
 			}
+		} else {
+			// Ignore unknown directive line.
+			std::getline(buffer, line);
 		}
 	}
 
