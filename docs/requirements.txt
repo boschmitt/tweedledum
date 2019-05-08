@@ -1,4 +1,4 @@
 breathe
-sphinx
+sphinx==2.0.1
 sphinx_rtd_theme
 sphinxcontrib-bibtex
