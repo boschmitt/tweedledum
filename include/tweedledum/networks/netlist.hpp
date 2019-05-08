@@ -35,6 +35,11 @@ public:
 	    : storage_(std::make_shared<storage_type>())
 	    , labels_(std::make_shared<labels_map>())
 	{}
+
+	explicit netlist(std::string_view name)
+	    : storage_(std::make_shared<storage_type>(name))
+	    , labels_(std::make_shared<labels_map>())
+	{}
 #pragma endregion
 
 #pragma region I / O and ancillae qubits
@@ -84,6 +89,18 @@ public:
 	std::string io_label(io_id id) const
 	{
 		return labels_->to_label(id);
+	}
+#pragma endregion
+
+#pragma region Properties
+	std::string_view name() const
+	{
+		return storage_->name;
+	}
+
+	uint32_t gate_set() const 
+	{
+		return storage_->gate_set;
 	}
 #pragma endregion
 
@@ -144,7 +161,9 @@ public:
 	template<typename... Args>
 	node_type& emplace_gate(Args&&... args)
 	{
-		return storage_->nodes.emplace_back(std::forward<Args>(args)...);
+		node_type& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
+		storage_->gate_set |= (1 << static_cast<uint32_t>(node.gate.operation()));
+		return node;
 	}
 
 	node_type& add_gate(gate_base op, io_id target)

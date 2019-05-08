@@ -15,6 +15,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace tweedledum {
@@ -43,6 +44,11 @@ public:
 
 	gg_network()
 	    : storage_(std::make_shared<storage_type>())
+	    , labels_(std::make_shared<labels_map>())
+	{}
+
+	explicit gg_network(std::string_view name)
+	    : storage_(std::make_shared<storage_type>(name))
 	    , labels_(std::make_shared<labels_map>())
 	{}
 #pragma endregion
@@ -97,6 +103,18 @@ public:
 	std::string io_label(io_id id) const
 	{
 		return labels_->to_label(id);
+	}
+#pragma endregion
+
+#pragma region Properties
+	std::string_view name() const
+	{
+		return storage_->name;
+	}
+
+	uint32_t gate_set() const 
+	{
+		return storage_->gate_set;
 	}
 #pragma endregion
 
@@ -163,10 +181,11 @@ public:
 	template<typename... Args>
 	node_type& emplace_gate(Args&&... args)
 	{
-		auto node_index = storage_->nodes.size();
-		auto& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
-		node.gate.foreach_control([&](auto qid) { connect_node(qid, node_index); });
-		node.gate.foreach_target([&](auto qid) { connect_node(qid, node_index); });
+		uint32_t node_index = storage_->nodes.size();
+		node_type& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
+		storage_->gate_set |= (1 << static_cast<uint32_t>(node.gate.operation()));
+		node.gate.foreach_control([&](io_id id) { connect_node(id, node_index); });
+		node.gate.foreach_target([&](io_id id) { connect_node(id, node_index); });
 		return node;
 	}
 
