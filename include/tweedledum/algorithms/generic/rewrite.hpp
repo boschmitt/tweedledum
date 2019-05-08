@@ -5,69 +5,49 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "shallow_duplicate.hpp"
+
 #include <cassert>
 
 namespace tweedledum {
 
 /*! \brief Generic rewrite function.
  *
- * Useful when rewriting into a different network format. Gate type must be the same though
- * 
- * **Required network functions:**
- * - `add_gate`
- * - `foreach_qubit`
- * - `foreach_gate`
- * - `rewire`
- * - `rewire_map`
+ * This function requires a template parameter that cannot be inferred. Useful when duplicate into a
+ * different network type. Gate type must be the same though.
  */
-template<class NetworkDest, class NetworkSrc, class RewriteFn>
-void rewrite_network(NetworkDest& dest, NetworkSrc const& src, RewriteFn&& fn, uint32_t ancillae = 0)
+template<class NewNetwork, class Network, class RewriteFn>
+NewNetwork rewrite_network(Network const& network, RewriteFn&& fn, uint32_t ancillae = 0)
 {
-	assert(dest.size() == 0);
-	src.foreach_qubit([&](std::string const& label) {
-		dest.add_qubit(label);
-	});
-	for (auto i = 0u; i < ancillae; ++i) {
-		dest.add_qubit();
+	static_assert(std::is_same_v<typename Network::gate_type, typename NewNetwork::gate_type>);
+
+	NewNetwork result = shallow_duplicate<NewNetwork>(network);
+	for (uint32_t i = 0u; i < ancillae; ++i) {
+		result.add_qubit();
 	}
-	src.foreach_gate([&](auto const& node) {
-		if (!fn(dest, node.gate)) {
-			if constexpr (std::is_same_v<typename NetworkSrc::gate_type,
-			                             typename NetworkDest::gate_type>) {
-				dest.emplace_gate(node.gate);
-			}
+	network.foreach_gate([&](auto const& node) {
+		if (!fn(result, node.gate)) {
+			result.emplace_gate(node.gate);
 		}
 	});
-	dest.rewire(src.rewire_map());
+	result.rewire(network.rewire_map());
 }
 
-/*! \brief Generic rewrite function.
- *
- * **Required network functions:**
- * - `add_gate`
- * - `foreach_qubit`
- * - `foreach_gate`
- * - `rewire`
- * - `rewire_map`
- */
-template<class NetworkDest, class NetworkSrc, class RewriteFn>
-NetworkDest rewrite_network(NetworkSrc const& src, RewriteFn&& fn, uint32_t ancillae = 0)
+/*! \brief Generic rewrite function. */
+template<class Network, class RewriteFn>
+Network rewrite_network(Network const& network, RewriteFn&& fn, uint32_t ancillae = 0)
 {
-	NetworkDest dest;
-	src.foreach_qubit([&](std::string const& qlabel) {
-		dest.add_qubit(qlabel);
-	});
+	Network result = shallow_duplicate(network);
 	for (auto i = 0u; i < ancillae; ++i) {
-		dest.add_qubit();
+		result.add_qubit();
 	}
-
-	src.foreach_gate([&](auto const& node) {
-		if (!fn(dest, node.gate)) {
-			dest.add_gate(node.gate);
+	network.foreach_gate([&](auto const& node) {
+		if (!fn(result, node.gate)) {
+			result.emplace_gate(node.gate);
 		}
 	});
-	dest.rewire(src.rewire_map());
-	return dest;
+	result.rewire(network.rewire_map());
+	return result;
 }
 
 } // namespace tweedledum

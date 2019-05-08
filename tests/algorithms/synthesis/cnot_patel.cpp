@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/cnot_patel.hpp>
-#include <tweedledum/gates/gate_set.hpp>
+#include <tweedledum/gates/gate_lib.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
@@ -31,7 +31,7 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
 		network.foreach_node([&](auto const& node) {
-			if (!node.gate.is(gate_set::cx)) {
+			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
 			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
@@ -53,7 +53,7 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
 		network.foreach_node([&](auto const& node) {
-			if (!node.gate.is(gate_set::cx)) {
+			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
 			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
