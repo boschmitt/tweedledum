@@ -14,7 +14,7 @@ namespace tweedledum {
  *
  * **Required network functions:**
  * - `add_gate`
- * - `foreach_cgate`
+ * - `foreach_gate`
  * - `foreach_child`
  * - `get_node`
  * - `visited`
