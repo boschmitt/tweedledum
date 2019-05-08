@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_set.hpp"
+#include "../../gates/gate_lib.hpp"
 #include "../../gates/gate_base.hpp"
 #include "../../networks/io_id.hpp"
 #include "../../utils/parity_terms.hpp"
@@ -35,7 +35,7 @@ void linear_synth_binary(Network& network, std::vector<io_id> const& qubits, par
 		qubits_states.emplace_back((1u << i));
 		auto rotation_angle = parities.extract_term(qubits_states[i]);
 		if (rotation_angle != 0.0) {
-			network.add_gate(gate_base(gate_set::rotation_z, rotation_angle), qubits[i]);
+			network.add_gate(gate_base(gate_lib::rotation_z, rotation_angle), qubits[i]);
 		}
 	}
 
@@ -51,7 +51,7 @@ void linear_synth_binary(Network& network, std::vector<io_id> const& qubits, par
 				network.add_gate(gate::cx, qubits[j], qubits[first_num]);
 				auto rotation_angle = parities.extract_term(qubits_states[first_num]);
 				if (rotation_angle != 0.0) {
-					network.add_gate(gate_base(gate_set::rotation_z,
+					network.add_gate(gate_base(gate_lib::rotation_z,
 					                           rotation_angle),
 					                 qubits[first_num]);
 				}
@@ -84,7 +84,7 @@ void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parit
 		qubits_states.emplace_back((1u << i));
 		auto rotation_angle = parities.extract_term(qubits_states[i]);
 		if (rotation_angle != 0.0) {
-			network.add_gate(gate_base(gate_set::rotation_z, rotation_angle), qubits[i]);
+			network.add_gate(gate_base(gate_lib::rotation_z, rotation_angle), qubits[i]);
 		}
 	}
 
@@ -97,7 +97,7 @@ void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parit
 			network.add_gate(gate::cx, qubits[temp], qubits[i]);
 			auto rotation_angle = parities.extract_term(qubits_states[i]);
 			if (rotation_angle != 0.0) {
-				network.add_gate(gate_base(gate_set::rotation_z, rotation_angle),
+				network.add_gate(gate_base(gate_lib::rotation_z, rotation_angle),
 				                 qubits[i]);
 			}
 		}
@@ -106,7 +106,7 @@ void linear_synth_gray(Network& network, std::vector<io_id> const& qubits, parit
 		network.add_gate(gate::cx, qubits[temp], qubits[i]);
 		auto rotation_angle = parities.extract_term(qubits_states[i]);
 		if (rotation_angle != 0.0) {
-			network.add_gate(gate_base(gate_set::rotation_z, rotation_angle), qubits[i]);
+			network.add_gate(gate_base(gate_lib::rotation_z, rotation_angle), qubits[i]);
 		}
 	}
 }

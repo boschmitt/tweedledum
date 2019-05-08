@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../gates/gate_base.hpp"
-#include "../gates/gate_set.hpp"
+#include "../gates/gate_lib.hpp"
 #include "../networks/io_id.hpp"
 
 #include <cassert>
@@ -43,7 +43,7 @@ struct identify_gate {
 		case 'Z':
 			// This will be a ugly hack (:
 			if (gate_label.size() == 2 && gate_label[1] == 'd') {
-				return gate_base(gate_set::undefined);
+				return gate_base(gate_lib::undefined);
 			}
 			return gate::pauli_z;
 
@@ -53,7 +53,7 @@ struct identify_gate {
 		if (gate_label == "tof") {
 			return gate::cx;
 		}
-		return gate_base(gate_set::unknown);
+		return gate_base(gate_lib::unknown);
 	}
 };
 
@@ -91,7 +91,7 @@ public:
 	             std::vector<std::string> const& targets)
 	{
 		switch (gate.operation()) {
-		case gate_set::pauli_x:
+		case gate_lib::pauli_x:
 			if (controls.size() == 1) {
 				gate = gate::cx;
 			} else if (controls.size() >= 2) {
@@ -99,7 +99,7 @@ public:
 			}
 			break;
 
-		case gate_set::pauli_z:
+		case gate_lib::pauli_z:
 			if (controls.size() == 1) {
 				gate = gate::cz;
 			} else if (controls.size() >= 2) {
@@ -108,7 +108,7 @@ public:
 			break;
 
 		// Hack to handle 'Zd' gate
-		case gate_set::undefined:
+		case gate_lib::undefined:
 			network_.add_gate(gate::t_dagger, controls[0]);
 			network_.add_gate(gate::t_dagger, controls[1]);
 			network_.add_gate(gate::t_dagger, targets[0]);
@@ -168,41 +168,41 @@ void write_dotqc(Network const& network, std::ostream& os)
 	os << fmt::format("\nBEGIN\n\n");
 	network.foreach_gate([&](auto& node) {
 		switch (node.gate.operation()) {
-		case gate_set::pauli_x:
+		case gate_lib::pauli_x:
 			os << 'X';
 			break;
 
-		case gate_set::cx:
+		case gate_lib::cx:
 			os << "tof";
 			break;
 
-		case gate_set::mcx:
+		case gate_lib::mcx:
 			os << "tof";
 			break;
 
-		case gate_set::pauli_z:
-		case gate_set::cz:
-		case gate_set::mcz:
+		case gate_lib::pauli_z:
+		case gate_lib::cz:
+		case gate_lib::mcz:
 			os << 'Z';
 			break;
 
-		case gate_set::hadamard:
+		case gate_lib::hadamard:
 			os << 'H';
 			break;
 
-		case gate_set::phase:
+		case gate_lib::phase:
 			os << "S";
 			break;
 
-		case gate_set::phase_dagger:
+		case gate_lib::phase_dagger:
 			os << "S*";
 			break;
 
-		case gate_set::t:
+		case gate_lib::t:
 			os << "T";
 			break;
 
-		case gate_set::t_dagger:
+		case gate_lib::t_dagger:
 			os << "T*";
 			break;
 

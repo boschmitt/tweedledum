@@ -7,7 +7,7 @@
 
 #include "../networks/io_id.hpp"
 #include "gate_base.hpp"
-#include "gate_set.hpp"
+#include "gate_lib.hpp"
 
 #include <algorithm>
 #include <array>
@@ -72,20 +72,20 @@ public:
 			if (targets.size() == 1) {
 				init_one_io(targets[0]);
 			} else if (targets.size() == 2) {
-				assert(is_one_of(gate_set::swap, gate_set::measurement));
+				assert(is_one_of(gate_lib::swap, gate_lib::measurement));
 				init_two_io(targets[0], targets[1]);
 			}
 			break;
 
 		case 1u:
 			assert(targets.size() == 1 && "This gate operation cannot have morew than one target");
-			assert(is_one_of(gate_set::cx, gate_set::cz));
+			assert(is_one_of(gate_lib::cx, gate_lib::cz));
 			init_two_io(controls[0], targets[0]);
 			break;
 
 		case 2u:
 			assert(targets.size() == 1 && "This gate operation cannot have morew than one target");
-			assert(is_one_of(gate_set::mcx, gate_set::mcz));
+			assert(is_one_of(gate_lib::mcx, gate_lib::mcz));
 			num_controls_ = 2;
 			num_targets_ = 1;
 			target1_ = invalid_value;
@@ -175,7 +175,7 @@ public:
 				return false;
 			}
 		}
-		if (this->is_one_of(gate_set::rotation_x, gate_set::rotation_y, gate_set::rotation_z)) {
+		if (this->is_one_of(gate_lib::rotation_x, gate_lib::rotation_y, gate_lib::rotation_z)) {
 			if (this->rotation_angle() + other.rotation_angle() != angles::zero) {
 				return false;
 			}
@@ -235,12 +235,12 @@ private:
 			control0_ = 1;
 			target0_ = 0;
 		}
-		if (is_one_of(gate_set::swap, gate_set::measurement)) {
+		if (is_one_of(gate_lib::swap, gate_lib::measurement)) {
 			target1_ = control0_;
 			control0_ = invalid_value;
 			num_controls_ = 0;
 			num_targets_ = 2;
-			if (is(gate_set::measurement)) {
+			if (is(gate_lib::measurement)) {
 				assert(!id1.is_qubit() && "In a measurement gate the second I/O must be a cbit");
 			}
 		}

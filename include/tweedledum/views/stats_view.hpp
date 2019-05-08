@@ -5,7 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../gates/gate_set.hpp"
+#include "../gates/gate_lib.hpp"
 #include "../traits.hpp"
 #include "immutable_view.hpp"
 
@@ -37,7 +37,7 @@ public:
 		compute_statistics();
 	}
 
-	uint32_t num_gates(gate_set operation)
+	uint32_t num_gates(gate_lib operation)
 	{
 		const auto op = static_cast<uint32_t>(operation);
 		return num_gates_per_op[op];
@@ -53,7 +53,7 @@ private:
 	}
 
 private:
-	static constexpr auto num_defined_ops = static_cast<uint32_t>(gate_set::num_defined_ops);
+	static constexpr auto num_defined_ops = static_cast<uint32_t>(gate_lib::num_defined_ops);
 	std::array<uint32_t, num_defined_ops> num_gates_per_op;
 };
 

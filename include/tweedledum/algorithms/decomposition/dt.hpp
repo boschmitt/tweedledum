@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../../gates/gate_base.hpp"
-#include "../../gates/gate_set.hpp"
+#include "../../gates/gate_lib.hpp"
 #include "../../networks/io_id.hpp"
 #include "../generic/rewrite.hpp"
 #include "gates/database.hpp"
@@ -55,7 +55,7 @@ template<typename Network>
 Network dt_decomposition(Network const& src, dt_params params = {})
 {
 	auto gate_rewriter = [&](auto& dest, auto const& gate) {
-		if (gate.is(gate_set::mcx)) {
+		if (gate.is(gate_lib::mcx)) {
 			std::array<io_id, 4> controls = {io_invalid, io_invalid, io_invalid, io_invalid};
 			auto* p = controls.data();
 			std::vector<io_id> targets;
@@ -133,7 +133,7 @@ Network dt_decomposition(Network const& src, dt_params params = {})
 				break;
 			}
 			return true;
-		} else if (gate.is(gate_set::mcz)) {
+		} else if (gate.is(gate_lib::mcz)) {
 			if (gate.num_controls() == 2) {
 				std::array<io_id, 2> controls = {io_invalid, io_invalid};
 				auto* p = controls.data();
@@ -155,16 +155,14 @@ Network dt_decomposition(Network const& src, dt_params params = {})
 
 	auto num_ancillae = 0u;
 	src.foreach_gate([&](auto const& node) {
-		if (node.gate.is(gate_set::mcx) && node.gate.num_controls() > 2
+		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == src.num_qubits()) {
 			num_ancillae = 1u;
 			return false;
 		}
 		return true;
 	});
-	Network dest;
-	rewrite_network(dest, src, gate_rewriter, num_ancillae);
-	return dest;
+	return rewrite_network(src, gate_rewriter, num_ancillae);
 }
 
 } // namespace tweedledum

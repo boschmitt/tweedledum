@@ -53,7 +53,7 @@ void phase_folding(NetworkSrc const& src, NetworkDest& dest, phase_folding_param
 		if (angle == angles::zero) {
 			return;
 		}
-		dest.add_gate(gate_base(gate_set::rotation_z, angle), node.gate.target());
+		dest.add_gate(gate_base(gate_lib::rotation_z, angle), node.gate.target());
 	});
 	if (params.use_generic_rx == false) {
 		dest = identify_rz(dest);

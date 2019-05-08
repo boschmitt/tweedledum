@@ -39,7 +39,7 @@ public:
 		cnf_builder_.add_variables(num_virtual_qubits() * num_physical_qubits());
 		qubits_constraints();
 		network_.foreach_gate([&](auto const& node) {
-			if (!node.gate.is(gate_set::cx)) {
+			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
 			uint32_t control = io_qid_map_.at(node.gate.control());

@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/gray_synth.hpp>
-#include <tweedledum/gates/gate_set.hpp>
+#include <tweedledum/gates/gate_lib.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
@@ -33,7 +33,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 
 		auto rewire_map = network.rewire_map();
 		network.foreach_node([&](auto const& node) {
-			if (node.gate.is(gate_set::cx)) {
+			if (node.gate.is(gate_lib::cx)) {
 				id_matrix.row(node.gate.target()) ^= id_matrix.row(
 				    node.gate.control());
 			}

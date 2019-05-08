@@ -43,8 +43,8 @@ private:
 	{
 		io_id id(storage_->inputs.size(), is_qubit);
 		uint32_t index = storage_->nodes.size();
-		gate_type input(gate_base(gate_set::input), id);
-		gate_type output(gate_base(gate_set::output), id);
+		gate_type input(gate_base(gate_lib::input), id);
+		gate_type output(gate_base(gate_lib::output), id);
 
 		storage_->nodes.emplace_back(input);
 		storage_->inputs.emplace_back(index);
@@ -132,7 +132,7 @@ public:
 
 	uint32_t node_to_index(node_type const& node) const
 	{
-		if (node.gate.is(gate_set::output)) {
+		if (node.gate.is(gate_lib::output)) {
 			auto index = &node - storage_->outputs.data();
 			return static_cast<uint32_t>(index + storage_->nodes.size());
 		}

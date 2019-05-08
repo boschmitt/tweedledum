@@ -23,7 +23,7 @@ template<typename Network>
 Network identify_rz(Network const& src)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
-		if (!gate.is(gate_set::rotation_z)) {
+		if (!gate.is(gate_lib::rotation_z)) {
 			return false;
 		}
 		angle rotation_angle = gate.rotation_angle();

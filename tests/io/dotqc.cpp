@@ -5,7 +5,7 @@
 *------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <sstream>
-#include <tweedledum/gates/gate_set.hpp>
+#include <tweedledum/gates/gate_lib.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/io/dotqc.hpp>
