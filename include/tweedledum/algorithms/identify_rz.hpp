@@ -20,7 +20,7 @@ namespace tweedledum {
  * **Required network functions:**
  */
 template<typename Network>
-Network identify_rz(Network const& src)
+Network identify_rz(Network const& network)
 {
 	auto gate_rewriter = [](auto& dest, auto const& gate) {
 		if (!gate.is(gate_lib::rotation_z)) {
@@ -74,7 +74,7 @@ Network identify_rz(Network const& src)
 		assert(amount == 0);
 		return true;
 	};
-	return rewrite_network(src, gate_rewriter);
+	return rewrite_network(network, gate_rewriter);
 }
 
 } // namespace tweedledum

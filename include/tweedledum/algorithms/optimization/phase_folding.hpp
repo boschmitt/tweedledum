@@ -5,11 +5,11 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../identify_rz.hpp"
 #include "../../networks/io_id.hpp"
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "../../views/pathsum_view.hpp"
+#include "../identify_rz.hpp"
 
 #include <cstdint>
 #include <fmt/format.h>
@@ -18,25 +18,24 @@
 
 namespace tweedledum {
 
-struct phase_folding_params
-{
-        bool use_generic_rx = false;
+struct phase_folding_params {
+	bool use_generic_rx = false;
 };
 
 /*! \brief TODO
  *
  * **Required network functions:**
  */
-template<typename NetworkSrc, typename NetworkDest>
-void phase_folding(NetworkSrc const& src, NetworkDest& dest, phase_folding_params params = {})
+template<typename Network>
+Network phase_folding(Network const& network, phase_folding_params params = {})
 {
-	using term_type = typename pathsum_view<NetworkSrc>::esop_type;
+	using term_type = typename pathsum_view<Network>::esop_type;
+	Network result = shallow_duplicate(network);
 	parity_terms<term_type> parities;
 
-	pathsum_view pathsums(src);
-	// Go thought the networ and merge angles of rotations being
-	// applied to the same pathsum
-	src.foreach_gate([&](auto const& node) {
+	pathsum_view pathsums(network);
+	// Go thought the networ and merge angles of rotations being applied to the same pathsum.
+	network.foreach_gate([&](auto const& node) {
 		if (!node.gate.is_z_rotation()) {
 			return;
 		}
@@ -44,39 +43,22 @@ void phase_folding(NetworkSrc const& src, NetworkDest& dest, phase_folding_param
 		parities.add_term(term, node.gate.rotation_angle());
 	});
 
-	src.foreach_gate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		if (node.gate.is_z_rotation()) {
 			return;
 		}
-		dest.emplace_gate(node.gate);
+		result.emplace_gate(node.gate);
 		auto angle = parities.extract_term(pathsums.get_pathsum(node));
 		if (angle == angles::zero) {
 			return;
 		}
-		dest.add_gate(gate_base(gate_lib::rotation_z, angle), node.gate.target());
+		result.add_gate(gate_base(gate_lib::rotation_z, angle), node.gate.target());
 	});
 	if (params.use_generic_rx == false) {
-		dest = identify_rz(dest);
+		result = identify_rz(result);
 	}
-}
-
-/*! \brief TODO
- *
- * **Required network functions:**
- */
-template<typename Network>
-Network phase_folding(Network const& src, phase_folding_params params = {})
-{
-	Network dest;
-	src.foreach_io([&](io_id io, std::string const& label) {
-		if (io.is_qubit()) {
-			dest.add_qubit(label);
-		} else {
-			dest.add_cbit(label);
-		}
-	});
-	phase_folding(src, dest, params);
-	return dest;
+	result.rewire(network.rewire_map());
+	return result;
 }
 
 } // namespace tweedledum

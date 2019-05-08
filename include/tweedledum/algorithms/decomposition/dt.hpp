@@ -52,7 +52,7 @@ struct dt_params {
  * \algreturns A network
  */
 template<typename Network>
-Network dt_decomposition(Network const& src, dt_params params = {})
+Network dt_decomposition(Network const& network, dt_params params = {})
 {
 	auto gate_rewriter = [&](auto& dest, auto const& gate) {
 		if (gate.is(gate_lib::mcx)) {
@@ -154,15 +154,15 @@ Network dt_decomposition(Network const& src, dt_params params = {})
 	};
 
 	auto num_ancillae = 0u;
-	src.foreach_gate([&](auto const& node) {
+	network.foreach_gate([&](auto const& node) {
 		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
-		    && node.gate.num_controls() + 1 == src.num_qubits()) {
+		    && node.gate.num_controls() + 1 == network.num_qubits()) {
 			num_ancillae = 1u;
 			return false;
 		}
 		return true;
 	});
-	return rewrite_network(src, gate_rewriter, num_ancillae);
+	return rewrite_network(network, gate_rewriter, num_ancillae);
 }
 
 } // namespace tweedledum
