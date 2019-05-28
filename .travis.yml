@@ -48,20 +48,19 @@ matrix:
     osx_image: xcode10.2
     compiler: clang
     before_install:
-      - brew upgrade
+      - brew update
       - brew install llvm
     env: COMPILER=/usr/local/opt/llvm/bin/clang++
   - os: osx
     osx_image: xcode10.2
     compiler: gcc
     before_install:
-      - brew upgrade
-      - brew install gcc
+      - brew upgrade gcc
     env: COMPILER=/usr/local/opt/gcc/bin/g++-9
   - os: osx
     osx_image: xcode10.2
     compiler: gcc
     before_install:
-      - brew upgrade
+      - brew update
       - brew install gcc@7
     env: COMPILER=/usr/local/opt/gcc@7/bin/g++-7
