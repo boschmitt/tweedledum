@@ -1,5 +1,4 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt
 # CMake build : tweedledum library tests
 add_compile_options(
   -fno-rtti
