@@ -34,15 +34,6 @@ void read_qasm_from_file(std::string const& path)
  *
  * An overloaded variant exists that writes the network into a file.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- * 
- * **Required network functions:**
- * - `foreach_node`
- * - `num_qubits`
- *
  * \param network A quantum network
  * \param os Output stream
  */
@@ -57,8 +48,8 @@ void write_qasm(Network const& network, std::ostream& os)
 		os << fmt::format("creg c[{}];\n", network.num_cbits());
 	}
 
-	network.foreach_gate([&](auto const& node) {
-		auto const& gate = node.gate;
+	network.foreach_gate([&](auto const& vertex) {
+		auto const& gate = vertex.gate;
 		switch (gate.operation()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
@@ -190,15 +181,6 @@ void write_qasm(Network const& network, std::ostream& os)
 }
 
 /*! \brief Writes network in OPENQASM 2.0 format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- * 
- * **Required network functions:**
- * - `num_qubits`
- * - `foreach_node`
  *
  * \param network A quantum network
  * \param filename Filename

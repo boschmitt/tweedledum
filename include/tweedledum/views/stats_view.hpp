@@ -16,11 +16,6 @@
 namespace tweedledum {
 
 /*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- * 
  */
 template<typename Network>
 class stats_view : public immutable_view<Network> {

@@ -32,10 +32,10 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
 		auto rewire_map = network.rewire_map();
-		network.foreach_node([&](auto const& node) {
-			if (node.gate.is(gate_lib::cx)) {
-				id_matrix.row(node.gate.target()) ^= id_matrix.row(
-				    node.gate.control());
+		network.foreach_vertex([&](auto const& vertex) {
+			if (vertex.gate.is(gate_lib::cx)) {
+				id_matrix.row(vertex.gate.target()) ^= id_matrix.row(
+				    vertex.gate.control());
 			}
 		});
 	}

@@ -19,23 +19,14 @@ namespace tweedledum {
  *
  * An overloaded variant exists that writes the network into a file.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_gate`
- * - `foreach_qubit`
- *
  * \param network Network
  * \param os Output stream
  */
 template<typename Network>
 void write_projectq(Network const& network, std::ostream& os = std::cout)
 {
-	network.foreach_gate([&](auto const& node) {
-		auto const& gate = node.gate;
+	network.foreach_gate([&](auto const& vertex) {
+		auto const& gate = vertex.gate;
 
 		std::string controls;
 		std::string negative_controls;
@@ -140,15 +131,6 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 }
 
 /*! \brief Writes network in ProjecQ format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_gate`
- * - `foreach_qubit`
  *
  * \param network Network
  * \param filename Filename

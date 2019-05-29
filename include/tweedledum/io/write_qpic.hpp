@@ -17,16 +17,6 @@ namespace tweedledum {
  *
  * An overloaded variant exists that writes the network into a file.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
- *
  * \param network A quantum network
  * \param os Output stream
  * \param color_marked_gates Flag to draw marked nodes in red
@@ -37,7 +27,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 	if (color_marked_gates) {
 		os << "DEFINE mark color=red:style=thick\n";
 	}
-	network.foreach_io([&](auto id, auto const& name) {
+	network.foreach_io([&](io_id id, auto const& name) {
 		if (id.is_qubit()) {
 			os << fmt::format("id{} W {} {}\n", id, name, name);
 		} else {
@@ -45,15 +35,15 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 		}
 	});
 
-	network.foreach_gate([&](auto& node) {
+	network.foreach_gate([&](auto const& vertex) {
 		auto prefix = "";
-		if (node.gate.is(gate_lib::mcx)) {
+		if (vertex.gate.is(gate_lib::mcx)) {
 			prefix = "+";
 		}
-		node.gate.foreach_target([&](auto qubit) {
+		vertex.gate.foreach_target([&](auto qubit) {
 			os << fmt::format("{}id{} ", prefix, qubit);
 		});
-		switch (node.gate.operation()) {
+		switch (vertex.gate.operation()) {
 		case gate_lib::pauli_x:
 			os << 'N';
 			break;
@@ -106,7 +96,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 		default:
 			break;
 		}
-		node.gate.foreach_control([&](auto qubit) {
+		vertex.gate.foreach_control([&](auto qubit) {
 			os << fmt::format(" {}id{}", qubit.is_complemented() ? "-" : "", qubit); 
 		});
 		os << '\n';
@@ -114,16 +104,6 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 }
 
 /*! \brief Writes network in qpic format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
  *
  * \param network A quantum network
  * \param filename Filename

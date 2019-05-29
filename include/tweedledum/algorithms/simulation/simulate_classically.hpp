@@ -15,13 +15,6 @@ namespace tweedledum {
 
 /*! \brief Simulate a quantum circuit that has only classical gates.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- *
- * **Required network functions:**
- * - `foreach_gate`
- * 
  * \algtype simulation
  * \algexpects A Toffoli network
  * \algreturns The simulated pattern

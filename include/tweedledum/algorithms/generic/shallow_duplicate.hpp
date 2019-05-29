@@ -16,12 +16,6 @@ namespace tweedledum {
  * This function requires a template parameter that cannot be inferred. Useful when duplicate into a
  * different network type.
  * 
- * **Required network functions:**
- * - `add_cbit`
- * - `add_qubit`
- * - `foreach_io`
- * - `name`
- *
  * \param original The original network.
  * \param name The name of the new network (default: same as the original).
  */
@@ -40,12 +34,6 @@ Network shallow_duplicate(NetworkOriginal const& original, std::string_view name
 }
 
 /*! \brief Creates a new network with same I/O's as the original.
- *
- * **Required network functions:**
- * - `add_cbit`
- * - `add_qubit`
- * - `foreach_io`
- * - `name`
  *
  * \param original The original network.
  * \param name The name of the new network (default: same as the original).

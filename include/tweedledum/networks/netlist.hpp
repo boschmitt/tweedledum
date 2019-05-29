@@ -20,16 +20,16 @@
 
 namespace tweedledum {
 
-/*! \brief 
+/*! \brief Netlist representation of a quantum circuit.
  */
 template<typename GateType>
 class netlist {
 public:
 #pragma region Types and constructors
 	using gate_type = GateType;
-	using node_type = wrapper_node<gate_type, 1>;
-	using node_ptr_type = typename node_type::pointer_type;
-	using storage_type = storage<node_type>;
+	using vertex_type = wrapper_vertex<gate_type, 1>;
+	using link_type = typename vertex_type::link_type;
+	using storage_type = storage<vertex_type>;
 
 	netlist()
 	    : storage_(std::make_shared<storage_type>())
@@ -47,11 +47,11 @@ private:
 	auto create_io(bool is_qubit)
 	{
 		io_id id(storage_->inputs.size(), is_qubit);
-		uint32_t index = storage_->nodes.size();
+		uint32_t index = storage_->vertices.size();
 		gate_type input(gate_base(gate_lib::input), id);
 		gate_type output(gate_base(gate_lib::output), id);
 
-		storage_->nodes.emplace_back(input);
+		storage_->vertices.emplace_back(input);
 		storage_->inputs.emplace_back(index);
 		storage_->outputs.emplace_back(output);
 		storage_->rewiring_map.push_back(id);
@@ -59,30 +59,30 @@ private:
 	}
 
 public:
-	io_id add_qubit(std::string const& qlabel)
+	io_id add_qubit(std::string const& label)
 	{
-		auto qid = create_io(true);
-		labels_->map(qid, qlabel);
+		io_id id = create_io(true);
+		labels_->map(id, label);
 		storage_->num_qubits += 1;
-		return qid;
+		return id;
 	}
 
 	io_id add_qubit()
 	{
-		auto qlabel = fmt::format("q{}", num_qubits());
-		return add_qubit(qlabel);
+		std::string label = fmt::format("q{}", num_qubits());
+		return add_qubit(label);
 	}
 
 	io_id add_cbit(std::string const& label)
 	{
-		auto qid = create_io(false);
-		labels_->map(qid, label);
-		return qid;
+		io_id id = create_io(false);
+		labels_->map(id, label);
+		return id;
 	}
 
 	io_id add_cbit()
 	{
-		auto label = fmt::format("c{}", num_cbits());
+		std::string label = fmt::format("c{}", num_cbits());
 		return add_cbit(label);
 	}
 
@@ -107,7 +107,7 @@ public:
 #pragma region Structural properties
 	uint32_t size() const
 	{
-		return (storage_->nodes.size() + storage_->outputs.size());
+		return (storage_->vertices.size() + storage_->outputs.size());
 	}
 
 	uint32_t num_io() const
@@ -127,51 +127,46 @@ public:
 
 	uint32_t num_gates() const
 	{
-		return (storage_->nodes.size() - storage_->inputs.size());
+		return (storage_->vertices.size() - storage_->inputs.size());
 	}
 #pragma endregion
 
-#pragma region Nodes
-	node_type& get_node(node_ptr_type node_ptr) const
+#pragma region Vertices
+	vertex_type& vertex(link_type link) const
 	{
-		return storage_->nodes[node_ptr.index];
+		return storage_->vertices[link];
 	}
 
-	node_type& get_input(io_id qid) const
+	vertex_type& vertex(uint32_t index) const
 	{
-		return storage_->nodes[storage_->inputs.at(qid.index())];
+		return storage_->vertices[index];
 	}
 
-	node_type& get_output(io_id qid) const
+	uint32_t index(vertex_type const& vertex) const
 	{
-		return storage_->outputs.at(qid.index());
-	}
-
-	uint32_t node_to_index(node_type const& node) const
-	{
-		if (node.gate.is(gate_lib::output)) {
-			auto index = &node - storage_->outputs.data();
-			return static_cast<uint32_t>(index + storage_->nodes.size());
+		if (vertex.gate.is(gate_lib::output)) {
+			auto index = &vertex - storage_->outputs.data();
+			return static_cast<uint32_t>(index + storage_->vertices.size());
 		}
-		return static_cast<uint32_t>(&node - storage_->nodes.data());
+		return static_cast<uint32_t>(&vertex - storage_->vertices.data());
 	}
 #pragma endregion
 
 #pragma region Add gates(ids)
 	template<typename... Args>
-	node_type& emplace_gate(Args&&... args)
+	vertex_type& emplace_gate(Args&&... args)
 	{
-		node_type& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
-		storage_->gate_set |= (1 << static_cast<uint32_t>(node.gate.operation()));
-		return node;
+		vertex_type& vertex = storage_->vertices.emplace_back(std::forward<Args>(args)...);
+		storage_->gate_set |= (1 << static_cast<uint32_t>(vertex.gate.operation()));
+		return vertex;
 	}
 
-	node_type& add_gate(gate_base op, io_id target)
+	vertex_type& add_gate(gate_base op, io_id target)
 	{
 		return emplace_gate(gate_type(op, storage_->rewiring_map.at(target)));
 	}
 
-	node_type& add_gate(gate_base op, io_id control, io_id target)
+	vertex_type& add_gate(gate_base op, io_id control, io_id target)
 	{
 		const io_id control_ = control.is_complemented() ?
 		                           !storage_->rewiring_map.at(control) :
@@ -179,7 +174,7 @@ public:
 		return emplace_gate(gate_type(op, control_, storage_->rewiring_map.at(target)));
 	}
 
-	node_type& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets)
+	vertex_type& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets)
 	{
 		std::transform(controls.begin(), controls.end(), controls.begin(),
 		               [&](io_id id) -> io_id {
@@ -187,37 +182,37 @@ public:
 			               return id.is_complemented() ? !real_id : real_id;
 		               });
 		std::transform(targets.begin(), targets.end(), targets.begin(),
-		               [&](io_id qid) -> io_id {
-			               return storage_->rewiring_map.at(qid);
+		               [&](io_id id) -> io_id {
+			               return storage_->rewiring_map.at(id);
 		               });
 		return emplace_gate(gate_type(op, controls, targets));
 	}
 #pragma endregion
 
 #pragma region Add gates(labels)
-	node_type& add_gate(gate_base op, std::string const& qlabel_target)
+	vertex_type& add_gate(gate_base op, std::string const& label_target)
 	{
-		auto qid_target = labels_->to_id(qlabel_target);
+		auto qid_target = labels_->to_id(label_target);
 		return add_gate(op, qid_target);
 	}
 
-	node_type& add_gate(gate_base op, std::string const& qlabel_control,
-	                    std::string const& qlabel_target)
+	vertex_type& add_gate(gate_base op, std::string const& label_control,
+	                    std::string const& label_target)
 	{
-		auto qid_control = labels_->to_id(qlabel_control);
-		auto qid_target = labels_->to_id(qlabel_target);
+		auto qid_control = labels_->to_id(label_control);
+		auto qid_target = labels_->to_id(label_target);
 		return add_gate(op, qid_control, qid_target);
 	}
 
-	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
-	                    std::vector<std::string> const& qlabels_target)
+	vertex_type& add_gate(gate_base op, std::vector<std::string> const& labels_control,
+	                    std::vector<std::string> const& labels_target)
 	{
 		std::vector<io_id> controls;
-		for (auto& control : qlabels_control) {
+		for (auto& control : labels_control) {
 			controls.push_back(labels_->to_id(control));
 		}
 		std::vector<io_id> targets;
-		for (auto& target : qlabels_target) {
+		for (auto& target : labels_target) {
 			targets.push_back(labels_->to_id(target));
 		}
 		return add_gate(op, controls, targets);
@@ -334,14 +329,14 @@ public:
 	void foreach_input(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_type const&, uint32_t> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&>);
+		static_assert(std::is_invocable_r_v<void, Fn, vertex_type const&, uint32_t> ||
+		              std::is_invocable_r_v<void, Fn, vertex_type const&>);
 		// clang-format on
-		for (auto node_index : storage_->inputs) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, uint32_t>) {
-				fn(storage_->nodes[node_index], node_index);
+		for (uint32_t index : storage_->inputs) {
+			if constexpr (std::is_invocable_r_v<void, Fn, vertex_type const&, uint32_t>) {
+				fn(storage_->vertices[index], index);
 			} else {
-				fn(storage_->nodes[node_index]);
+				fn(storage_->vertices[index]);
 			}
 		}
 	}
@@ -350,15 +345,15 @@ public:
 	void foreach_output(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_type const&, uint32_t> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&>);
+		static_assert(std::is_invocable_r_v<void, Fn, vertex_type const&, uint32_t> ||
+		              std::is_invocable_r_v<void, Fn, vertex_type const&>);
 		// clang-format on
-		uint32_t node_index = storage_->nodes.size();
-		for (auto const& node : storage_->outputs) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, uint32_t>) {
-				fn(node, node_index++);
+		uint32_t index = storage_->vertices.size();
+		for (vertex_type const& vertex : storage_->outputs) {
+			if constexpr (std::is_invocable_r_v<void, Fn, vertex_type const&, uint32_t>) {
+				fn(vertex, index++);
 			} else {
-				fn(node);
+				fn(vertex);
 			}
 		}
 	}
@@ -366,17 +361,17 @@ public:
 	template<typename Fn>
 	void foreach_gate(Fn&& fn, uint32_t start = 0) const
 	{
-		foreach_element_if(storage_->nodes.cbegin() + start, storage_->nodes.cend(),
-		                   [](auto const& node) { return node.gate.is_gate(); },
+		foreach_element_if(storage_->vertices.cbegin() + start, storage_->vertices.cend(),
+		                   [](auto const& vertex) { return vertex.gate.is_gate(); },
 		                   fn);
 	}
 
 	template<typename Fn>
-	void foreach_node(Fn&& fn) const
+	void foreach_vertex(Fn&& fn) const
 	{
-		foreach_element(storage_->nodes.cbegin(), storage_->nodes.cend(), fn);
+		foreach_element(storage_->vertices.cbegin(), storage_->vertices.cend(), fn);
 		foreach_element(storage_->outputs.cbegin(), storage_->outputs.cend(), fn,
-		                storage_->nodes.size());
+		                storage_->vertices.size());
 	}
 #pragma endregion
 
@@ -402,20 +397,20 @@ public:
 #pragma region Visited flags
 	void clear_visited() const
 	{
-		std::for_each(storage_->nodes.begin(), storage_->nodes.end(),
-		              [](auto& node) { node.data[0].w = 0; });
+		std::for_each(storage_->vertices.begin(), storage_->vertices.end(),
+		              [](vertex_type& vertex) { vertex.data[0] = 0; });
 		std::for_each(storage_->outputs.begin(), storage_->outputs.end(),
-		              [](auto& node) { node.data[0].w = 0; });
+		              [](vertex_type& vertex) { vertex.data[0] = 0; });
 	}
 
-	auto visited(node_type const& node) const
+	auto visited(vertex_type const& vertex) const
 	{
-		return node.data[0].w;
+		return vertex.data[0];
 	}
 
-	void set_visited(node_type const& node, uint32_t value) const
+	void set_visited(vertex_type const& vertex, uint32_t value) const
 	{
-		node.data[0].w = value;
+		vertex.data[0] = value;
 	}
 #pragma endregion
 

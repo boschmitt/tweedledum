@@ -470,11 +470,6 @@ private:
 } // namespace detail
 
 /*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- *
  */
 template<typename Network>
 mapping_view<Network> zdd_map(Network& network, device const& arch, zdd_map_params const& ps = {},

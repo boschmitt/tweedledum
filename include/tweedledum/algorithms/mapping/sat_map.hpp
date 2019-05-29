@@ -181,11 +181,6 @@ std::vector<uint32_t> map_without_swaps(Network const& network, device const& de
 #pragma endregion
 
 /*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- *
  */
 template<typename Network>
 mapping_view<Network> sat_map(Network const& network, device const& device)

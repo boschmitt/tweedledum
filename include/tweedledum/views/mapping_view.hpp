@@ -15,18 +15,13 @@
 namespace tweedledum {
 
 /*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- * 
  */
 template<typename Network>
 class mapping_view : public Network {
 public:
 	using gate_type = typename Network::gate_type;
-	using node_type = typename Network::node_type;
-	using node_ptr_type = typename Network::node_ptr_type;
+	using vertex_type = typename Network::vertex_type;
+	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
 	/*! \brief Default constructor.
@@ -60,13 +55,13 @@ public:
 	}
 
 #pragma region Add gates(qids)
-	node_type& add_gate(gate_base op, io_id target)
+	vertex_type& add_gate(gate_base op, io_id target)
 	{
 		auto const phy_target = v_phy_qid_map_.at(target);
 		return this->emplace_gate(gate_type(op, io_id(phy_target, true)));
 	}
 
-	std::optional<node_type> add_gate(gate_base op, io_id control, io_id target)
+	std::optional<vertex_type> add_gate(gate_base op, io_id control, io_id target)
 	{
 		auto const phy_control = v_phy_qid_map_.at(io_qid_map_.at(control));
 		auto const phy_target = v_phy_qid_map_.at(io_qid_map_.at(target));
@@ -135,12 +130,12 @@ public:
 #pragma endregion
 
 #pragma region Deleted methods
-	node_type& add_gate(gate_base op, std::vector<io_id> controls,
+	vertex_type& add_gate(gate_base op, std::vector<io_id> controls,
 	                    std::vector<io_id> targets) = delete;
-	node_type& add_gate(gate_base op, std::string const& qlabel_target) = delete;
-	node_type& add_gate(gate_base op, std::string const& qlabel_control,
+	vertex_type& add_gate(gate_base op, std::string const& qlabel_target) = delete;
+	vertex_type& add_gate(gate_base op, std::string const& qlabel_control,
 	                    std::string const& qlabel_target) = delete;
-	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
+	vertex_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
 	                    std::vector<std::string> const& qlabels_target) = delete;
 #pragma endregion
 

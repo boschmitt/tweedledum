@@ -113,18 +113,6 @@ struct barenco_params {
  * into Toffoli gates with at most ``controls_threshold`` controls. This may introduce one
  * additional helper qubit called ancilla.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `num_controls`
- *
- * **Required network functions:**
- * - `add_gate`
- * - `foreach_qubit`
- * - `foreach_gate`
- * - `rewire`
- * - `rewire_map`
- * 
  * \algtype decomposition
  * \algexpects A network
  * \algreturns A network
@@ -170,9 +158,9 @@ Network barenco_decomposition(Network const& network, barenco_params params = {}
 	};
 
 	auto num_ancillae = 0u;
-	network.foreach_gate([&](auto const& node) {
-		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
-		    && node.gate.num_controls() + 1 == network.num_qubits()) {
+	network.foreach_gate([&](auto const& vertex) {
+		if (vertex.gate.is(gate_lib::mcx) && vertex.gate.num_controls() > 2
+		    && vertex.gate.num_controls() + 1 == network.num_qubits()) {
 			num_ancillae = 1u;
 			return false;
 		}

@@ -6,7 +6,7 @@
 #pragma once
 
 #include "../traits.hpp"
-#include "../utils/node_map.hpp"
+#include "../utils/vertex_map.hpp"
 #include "immutable_view.hpp"
 
 #include <vector>
@@ -18,24 +18,13 @@ namespace tweedledum {
  * This view computes the level of each node and also the depth of the network. It implements the
  * network interface methods `get_level` and `depth`. The levels are computed at construction and
  * can be recomputed by calling the `update` method.
- *
- * **Required gate functions:**
- * - `is`
- *
- * **Required network functions:**
- * - `clear_visited`
- * - `foreach_child`
- * - `foreach_output`
- * - `get_node`
- * - `set_visited`
- * - `visited`
  */
 template<typename Network>
 class depth_view : public immutable_view<Network> {
 public:
 	using gate_type = typename Network::gate_type;
-	using node_type = typename Network::node_type;
-	using node_ptr_type = typename Network::node_ptr_type;
+	using vertex_type = typename Network::vertex_type;
+	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
 	/*! \brief Default constructor.
@@ -56,7 +45,7 @@ public:
 	}
 
 	/*! \brief Returns the level of a node. */
-	uint32_t level(node_type const& node) const
+	uint32_t level(vertex_type const& node) const
 	{
 		return levels_[node];
 	}
@@ -69,7 +58,7 @@ public:
 	}
 
 private:
-	auto compute_levels(node_type const& node)
+	auto compute_levels(vertex_type const& node)
 	{
 		if (this->visited(node)) {
 			return levels_[node];
@@ -81,7 +70,7 @@ private:
 
 		uint32_t level = 0u;
 		this->foreach_child(node, [&](auto child_index) {
-			level = std::max(level, compute_levels(this->get_node(child_index)));
+			level = std::max(level, compute_levels(this->vertex(child_index)));
 		});
 
 		this->set_visited(node, 1u);
@@ -97,7 +86,7 @@ private:
 	}
 
 private:
-	node_map<uint32_t, Network> levels_;
+	vertex_map<uint32_t, Network> levels_;
 	uint32_t depth_;
 };
 

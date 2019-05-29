@@ -23,8 +23,6 @@ struct phase_folding_params {
 };
 
 /*! \brief TODO
- *
- * **Required network functions:**
  */
 template<typename Network>
 Network phase_folding(Network const& network, phase_folding_params params = {})

@@ -35,18 +35,6 @@ struct dt_params {
 
    \endverbatim
  * 
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `num_controls`
- *
- * **Required network functions:**
- * - `add_gate`
- * - `foreach_qubit`
- * - `foreach_gate`
- * - `rewire`
- * - `rewire_map`
- * 
  * \algtype decomposition
  * \algexpects A network
  * \algreturns A network

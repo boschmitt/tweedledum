@@ -16,8 +16,6 @@
 namespace tweedledum {
 
 /*! \brief This algorithm try to give identity to generic Rz gates. 
- *
- * **Required network functions:**
  */
 template<typename Network>
 Network identify_rz(Network const& network)

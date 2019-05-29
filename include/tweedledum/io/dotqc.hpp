@@ -142,16 +142,6 @@ private:
  *
  * An overloaded variant exists that writes the network into a file.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
- *
  * \param network A quantum network
  * \param os Output stream
  */
@@ -166,8 +156,8 @@ void write_dotqc(Network const& network, std::ostream& os)
 		}
 	});
 	os << fmt::format("\nBEGIN\n\n");
-	network.foreach_gate([&](auto& node) {
-		switch (node.gate.operation()) {
+	network.foreach_gate([&](auto const& vertex) {
+		switch (vertex.gate.operation()) {
 		case gate_lib::pauli_x:
 			os << 'X';
 			break;
@@ -209,25 +199,15 @@ void write_dotqc(Network const& network, std::ostream& os)
 		default:
 			break;
 		}
-		node.gate.foreach_control([&](auto qubit) {
+		vertex.gate.foreach_control([&](auto qubit) {
 			os << fmt::format(" {}", network.io_label(qubit)); 
 		});
-		os << fmt::format(" {}\n", network.io_label(node.gate.target()));
+		os << fmt::format(" {}\n", network.io_label(vertex.gate.target()));
 	});
 	os << fmt::format("\nEND\n");
 }
 
 /*! \brief Writes network in dotQC format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
  *
  * \param network A quantum network
  * \param filename Filename
