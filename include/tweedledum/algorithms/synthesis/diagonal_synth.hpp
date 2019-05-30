@@ -104,7 +104,7 @@ Circuit diagonal_synth(std::vector<double> const& angles)
 	for (auto i = 0u; i < num_qubits; ++i) {
 		circ.add_qubit();
 	}
-	diagonal_synth(circ, circ.rewire_map(), angles);
+	diagonal_synth(circ, circ.wiring_map(), angles);
 	return circ;
 }
 

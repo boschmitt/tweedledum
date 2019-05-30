@@ -17,7 +17,7 @@
 namespace tweedledum {
 namespace detail {
 
-/*! \brief Use to 'point' to a vertex
+/*! \brief Use to 'point' to a node
  *
  * Users may define their own `link` structure, which may hold more information than just an index
  *
@@ -65,18 +65,18 @@ struct wrapper_vertex {
 };
 
 template<typename GateType, int DataSize = 0, typename LinkType = detail::link>
-struct vertex {
+struct node {
 	using link_type = LinkType;
 
 	GateType gate;
 	std::array<link_type, GateType::max_num_io> children;
 	mutable std::array<uint32_t, DataSize> data;
 
-	vertex(GateType const& gate_)
+	node(GateType const& gate_)
 	    : gate(gate_)
 	{}
 
-	bool operator==(vertex const& other) const
+	bool operator==(node const& other) const
 	{
 		return gate == other.gate;
 	}
@@ -89,16 +89,16 @@ struct storage {
 	    , num_qubits(0)
 	    , gate_set(0)
 	{
-		vertices.reserve(1024u);
+		nodes.reserve(1024u);
 	}
 
 	std::string name;
 	uint32_t num_qubits;
 	uint32_t gate_set;
 	std::vector<uint32_t> inputs;
-	std::vector<VertexType> vertices;
+	std::vector<VertexType> nodes;
 	std::vector<VertexType> outputs;
-	std::vector<io_id> rewiring_map;
+	std::vector<io_id> wiring_map;
 };
 
 class labels_map {

@@ -30,7 +30,7 @@ NewNetwork rewrite_network(Network const& network, RewriteFn&& fn, uint32_t anci
 			result.emplace_gate(node.gate);
 		}
 	});
-	result.rewire(network.rewire_map());
+	result.rewire(network.wiring_map());
 }
 
 /*! \brief Generic rewrite function. */
@@ -46,7 +46,7 @@ Network rewrite_network(Network const& network, RewriteFn&& fn, uint32_t ancilla
 			result.emplace_gate(node.gate);
 		}
 	});
-	result.rewire(network.rewire_map());
+	result.rewire(network.wiring_map());
 	return result;
 }
 

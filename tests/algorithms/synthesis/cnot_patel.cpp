@@ -30,11 +30,11 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_vertex([&](auto const& vertex) {
-			if (!vertex.gate.is(gate_lib::cx)) {
+		network.foreach_vertex([&](auto const& node) {
+			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
-			id_matrix.row(vertex.gate.target()) ^= id_matrix.row(vertex.gate.control());
+			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
 		});
 		// Check if network realizes original matrix
 		for (auto row_index = 0u; row_index < matrix.num_rows(); ++row_index) {
@@ -52,14 +52,14 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_vertex([&](auto const& vertex) {
-			if (!vertex.gate.is(gate_lib::cx)) {
+		network.foreach_vertex([&](auto const& node) {
+			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
-			id_matrix.row(vertex.gate.target()) ^= id_matrix.row(vertex.gate.control());
+			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
 		});
 		std::vector<uint32_t> rows_permutation;
-		for (auto io_id : network.rewire_map()) {
+		for (auto io_id : network.wiring_map()) {
 			rows_permutation.push_back(io_id.index());
 		}
 		matrix.permute_rows(rows_permutation);

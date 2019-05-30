@@ -48,8 +48,8 @@ void write_qasm(Network const& network, std::ostream& os)
 		os << fmt::format("creg c[{}];\n", network.num_cbits());
 	}
 
-	network.foreach_gate([&](auto const& vertex) {
-		auto const& gate = vertex.gate;
+	network.foreach_gate([&](auto const& node) {
+		auto const& gate = node.gate;
 		switch (gate.operation()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";

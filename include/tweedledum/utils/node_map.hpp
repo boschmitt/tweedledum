@@ -15,28 +15,28 @@
 
 namespace tweedledum {
 
-/*! \brief Associative container for network vertices
+/*! \brief Associative container for network nodes
  *
- * This container helps to store values associated to vertices in a network.  The
+ * This container helps to store values associated to nodes in a network.  The
  * container is initialized with a network to derive the size according to the
- * number of vertices. The container can be accessed via vertices, or indirectly
- * via `link_type`, from which the corresponding vertex is derived.
+ * number of nodes. The container can be accessed via nodes, or indirectly
+ * via `link_type`, from which the corresponding node is derived.
  *
  * The implementation uses a vector as underlying data_ structure which is
- * indexed by the vertex's index.
+ * indexed by the node's index.
  *
  */
 template<class T, class Network>
-class vertex_map {
+class node_map {
 public:
-	using vertex_type = typename Network::vertex_type;
+	using node_type = typename Network::node_type;
 	using link_type = typename Network::link_type;
 	using reference = typename std::vector<T>::reference;
 	using const_reference = typename std::vector<T>::const_reference;
 
 public:
 	/*! \brief Default constructor. */
-	explicit vertex_map(Network const& network)
+	explicit node_map(Network const& network)
 	    : network_(network)
 	    , data_(std::make_shared<std::vector<T>>(network.size()))
 	{}
@@ -45,33 +45,33 @@ public:
 	 *
 	 * Initializes all values in the container to `init_value`.
 	 */
-	vertex_map(Network const& network, T const& init_value)
+	node_map(Network const& network, T const& init_value)
 	    : network_(network)
 	    , data_(std::make_shared<std::vector<T>>(network.size(), init_value))
 	{}
 
-	/*! \brief Mutable access to value by vertex. */
-	reference operator[](vertex_type const& vertex)
+	/*! \brief Mutable access to value by node. */
+	reference operator[](node_type const& node)
 	{
-		assert(network_.index(vertex) < data_->size() && "index out of bounds");
-		return (*data_)[network_.index(vertex)];
+		assert(network_.index(node) < data_->size() && "index out of bounds");
+		return (*data_)[network_.index(node)];
 	}
 
-	/*! \brief Constant access to value by vertex. */
-	const_reference operator[](vertex_type const& vertex) const
+	/*! \brief Constant access to value by node. */
+	const_reference operator[](node_type const& node) const
 	{
-		assert(network_.index(vertex) < data_->size() && "index out of bounds");
-		return (*data_)[network_.index(vertex)];
+		assert(network_.index(node) < data_->size() && "index out of bounds");
+		return (*data_)[network_.index(node)];
 	}
 
 	/*! \brief Mutable access to value by `link_type`.
 	 *
-	 * This method derives the vertex from the `link_type`.  If the vertex and `link_type` type
+	 * This method derives the node from the `link_type`.  If the node and `link_type` type
 	 * are the same in the network implementation, this method is disabled.
 	 */
 	template<typename _Ntk = Network,
 	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::link_type,
-		                                             typename _Ntk::vertex_type>>>
+		                                             typename _Ntk::node_type>>>
 	reference operator[](link_type const& f)
 	{
 		assert(network_.node_to_index(network_.get_node(f)) < data_->size()
@@ -81,12 +81,12 @@ public:
 
 	/*! \brief Constant access to value by `link_type`.
 	 *
-	 * This method derives the vertex from the `link_type`.  If the vertex and `link_type` type
+	 * This method derives the node from the `link_type`.  If the node and `link_type` type
 	 * are the same in the network implementation, this method is disabled.
 	 */
 	template<typename _Ntk = Network,
 	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::link_type,
-		                                             typename _Ntk::vertex_type>>>
+		                                             typename _Ntk::node_type>>>
 	const_reference operator[](link_type const& f) const
 	{
 		assert(network_.node_to_index(network_.get_node(f)) < data_->size()
@@ -110,7 +110,7 @@ public:
 
 	/*! \brief Resizes the map.
 	 *
-	 * This function should be called, if the vertex_map's size needs to
+	 * This function should be called, if the node_map's size needs to
 	 * be changed without clearing its data.
 	 *
 	 * \param init_value Initialization value after resize

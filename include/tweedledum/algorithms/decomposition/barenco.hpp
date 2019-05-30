@@ -158,9 +158,9 @@ Network barenco_decomposition(Network const& network, barenco_params params = {}
 	};
 
 	auto num_ancillae = 0u;
-	network.foreach_gate([&](auto const& vertex) {
-		if (vertex.gate.is(gate_lib::mcx) && vertex.gate.num_controls() > 2
-		    && vertex.gate.num_controls() + 1 == network.num_qubits()) {
+	network.foreach_gate([&](auto const& node) {
+		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
+		    && node.gate.num_controls() + 1 == network.num_qubits()) {
 			num_ancillae = 1u;
 			return false;
 		}

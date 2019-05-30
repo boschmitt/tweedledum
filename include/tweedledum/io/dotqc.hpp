@@ -156,8 +156,8 @@ void write_dotqc(Network const& network, std::ostream& os)
 		}
 	});
 	os << fmt::format("\nBEGIN\n\n");
-	network.foreach_gate([&](auto const& vertex) {
-		switch (vertex.gate.operation()) {
+	network.foreach_gate([&](auto const& node) {
+		switch (node.gate.operation()) {
 		case gate_lib::pauli_x:
 			os << 'X';
 			break;
@@ -199,10 +199,10 @@ void write_dotqc(Network const& network, std::ostream& os)
 		default:
 			break;
 		}
-		vertex.gate.foreach_control([&](auto qubit) {
+		node.gate.foreach_control([&](auto qubit) {
 			os << fmt::format(" {}", network.io_label(qubit)); 
 		});
-		os << fmt::format(" {}\n", network.io_label(vertex.gate.target()));
+		os << fmt::format(" {}\n", network.io_label(node.gate.target()));
 	});
 	os << fmt::format("\nEND\n");
 }

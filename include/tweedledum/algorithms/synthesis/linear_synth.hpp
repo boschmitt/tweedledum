@@ -172,7 +172,7 @@ Network linear_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	linear_synth(network, network.rewire_map(), parities, params);
+	linear_synth(network, network.wiring_map(), parities, params);
 	return network;
 }
 

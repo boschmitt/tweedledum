@@ -26,7 +26,7 @@ NewNetwork rewrite_network(Network const& network)
 		}
 		result.emplace_gate(node.gate);
 	});
-	return result.rewire(network.rewire_map());
+	return result.rewire(network.wiring_map());
 }
 
 /*! \brief Generic function to remove marked gates. */
@@ -40,7 +40,7 @@ Network remove_marked(Network const& network)
 		}
 		result.emplace_gate(node.gate);
 	});
-	result.rewire(network.rewire_map());
+	result.rewire(network.wiring_map());
 	return result;
 }
 

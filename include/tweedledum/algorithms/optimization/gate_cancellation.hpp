@@ -19,27 +19,27 @@ Network gate_cancellation(Network const& network)
 	using link_type = typename Network::link_type;
 	uint32_t num_deletions = 0u;
 	network.clear_visited();
-	network.foreach_gate([&](auto const& vertex) {
+	network.foreach_gate([&](auto const& node) {
 		std::vector<link_type> children;
 		bool do_remove = false;
-		network.foreach_child(vertex, [&](auto child_index) {
+		network.foreach_child(node, [&](auto child_index) {
 			if (!children.empty() && children.back() != child_index) {
 				do_remove = false;
 				return false;
 			}
 			children.push_back(child_index);
-			auto& child = network.vertex(child_index);
+			auto& child = network.node(child_index);
 			if (network.visited(child)) {
 				return true;
 			}
-			if (vertex.gate.is_adjoint(child.gate)) {
+			if (node.gate.is_adjoint(child.gate)) {
 				do_remove = true;
 			}
 			return true;
 		});
 		if (do_remove) {
-			network.set_visited(vertex, 1);
-			network.set_visited(network.vertex(children.back()), 1);
+			network.set_visited(node, 1);
+			network.set_visited(network.node(children.back()), 1);
 			num_deletions += 2;
 			return;
 		}

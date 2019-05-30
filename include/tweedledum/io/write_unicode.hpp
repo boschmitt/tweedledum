@@ -417,7 +417,7 @@ void write_unicode(Network const& network, bool fancy = true, std::ostream& os =
 
 	std::string unicode_str;
 	if (fancy) {
-		detail::fancy_string_builder builder(network.rewire_map());
+		detail::fancy_string_builder builder(network.wiring_map());
 		unicode_str = detail::to_unicode_str(network, builder);
 	} else {
 		detail::string_builder builder(network.num_io());

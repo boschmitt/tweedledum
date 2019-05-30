@@ -7,7 +7,7 @@
 
 #include "../traits.hpp"
 #include "../utils/hash.hpp"
-#include "../utils/vertex_map.hpp"
+#include "../utils/node_map.hpp"
 #include "immutable_view.hpp"
 
 #include <array>
@@ -29,7 +29,7 @@ template<typename Network>
 class pathsum_view : public immutable_view<Network> {
 public:
 	using gate_type = typename Network::gate_type;
-	using vertex_type = typename Network::vertex_type;
+	using node_type = typename Network::node_type;
 	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
@@ -77,13 +77,13 @@ public:
 	}
 
 	/*! \brief Returns the path equations of a node. */
-	auto& get_pathsum(vertex_type const& node) const
+	auto& get_pathsum(node_type const& node) const
 	{
 		return node_to_pathsum_[node]->first;
 	}
 
 private:
-	void map_pathsum_to_node(io_id qid, vertex_type const& node, uint32_t node_index)
+	void map_pathsum_to_node(io_id qid, node_type const& node, uint32_t node_index)
 	{
 		const std::vector<uint32_t> node_list = {node_index};
 		auto map_element = pathsum_to_node_.emplace(
@@ -169,7 +169,7 @@ private:
 
 private:
 	std::unordered_map<esop_type, std::vector<uint32_t>> pathsum_to_node_;
-	vertex_map<std::unordered_map<esop_type, std::vector<uint32_t>>::iterator, Network> node_to_pathsum_;
+	node_map<std::unordered_map<esop_type, std::vector<uint32_t>>::iterator, Network> node_to_pathsum_;
 	uint32_t num_path_vars_;
 	std::vector<esop_type> qubit_state_;
 	std::vector<uint32_t> phy_virtual_map_;

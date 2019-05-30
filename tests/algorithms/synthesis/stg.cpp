@@ -23,7 +23,7 @@ inline auto circuit_and_map(uint32_t qubits)
 	for (auto i = 0u; i < qubits; ++i) {
 		network.add_qubit();
 	}
-	return std::make_pair(network, network.rewire_map());
+	return std::make_pair(network, network.wiring_map());
 }
 
 } // namespace tweedledum::detail

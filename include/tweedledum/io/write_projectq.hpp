@@ -25,8 +25,8 @@ namespace tweedledum {
 template<typename Network>
 void write_projectq(Network const& network, std::ostream& os = std::cout)
 {
-	network.foreach_gate([&](auto const& vertex) {
-		auto const& gate = vertex.gate;
+	network.foreach_gate([&](auto const& node) {
+		auto const& gate = node.gate;
 
 		std::string controls;
 		std::string negative_controls;

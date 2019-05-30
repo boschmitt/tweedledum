@@ -20,7 +20,7 @@ template<typename Network>
 class mapping_view : public Network {
 public:
 	using gate_type = typename Network::gate_type;
-	using vertex_type = typename Network::vertex_type;
+	using node_type = typename Network::node_type;
 	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
@@ -31,13 +31,13 @@ public:
 	explicit mapping_view(Network const& network, device const& arch, bool allow_partial = false)
 	    : Network()
 	    , io_qid_map_(network.num_io(), io_invalid)
-	    , init_v_phy_qid_map_(arch.num_vertices)
-	    , v_phy_qid_map_(arch.num_vertices)
+	    , init_v_phy_qid_map_(arch.num_nodes)
+	    , v_phy_qid_map_(arch.num_nodes)
 	    , coupling_matrix_(arch.get_coupling_matrix())
 	    , allow_partial_(allow_partial)
 	    , is_partial_(false)
 	{
-		assert(this->num_qubits() <= arch.num_vertices);
+		assert(this->num_qubits() <= arch.num_nodes);
 		std::iota(init_v_phy_qid_map_.begin(), init_v_phy_qid_map_.end(), 0u);
 		std::iota(v_phy_qid_map_.begin(), v_phy_qid_map_.end(), 0u);
 		network.foreach_io([&](io_id io, std::string const& label) {
@@ -49,19 +49,19 @@ public:
 				this->add_cbit(label);
 			}
 		});
-		for (uint32_t i = this->num_qubits(); i < arch.num_vertices; ++i) {
+		for (uint32_t i = this->num_qubits(); i < arch.num_nodes; ++i) {
 			qid_io_map_.push_back(this->add_qubit());
 		}
 	}
 
 #pragma region Add gates(qids)
-	vertex_type& add_gate(gate_base op, io_id target)
+	node_type& add_gate(gate_base op, io_id target)
 	{
 		auto const phy_target = v_phy_qid_map_.at(target);
 		return this->emplace_gate(gate_type(op, io_id(phy_target, true)));
 	}
 
-	std::optional<vertex_type> add_gate(gate_base op, io_id control, io_id target)
+	std::optional<node_type> add_gate(gate_base op, io_id control, io_id target)
 	{
 		auto const phy_control = v_phy_qid_map_.at(io_qid_map_.at(control));
 		auto const phy_target = v_phy_qid_map_.at(io_qid_map_.at(target));
@@ -130,12 +130,12 @@ public:
 #pragma endregion
 
 #pragma region Deleted methods
-	vertex_type& add_gate(gate_base op, std::vector<io_id> controls,
+	node_type& add_gate(gate_base op, std::vector<io_id> controls,
 	                    std::vector<io_id> targets) = delete;
-	vertex_type& add_gate(gate_base op, std::string const& qlabel_target) = delete;
-	vertex_type& add_gate(gate_base op, std::string const& qlabel_control,
+	node_type& add_gate(gate_base op, std::string const& qlabel_target) = delete;
+	node_type& add_gate(gate_base op, std::string const& qlabel_control,
 	                    std::string const& qlabel_target) = delete;
-	vertex_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
+	node_type& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
 	                    std::vector<std::string> const& qlabels_target) = delete;
 #pragma endregion
 

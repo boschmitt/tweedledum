@@ -24,7 +24,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 1);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::t));
 	}
 	SECTION("S gate (phase)")
@@ -33,7 +33,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 1);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::phase));
 	}
 	SECTION("Pauli Z gate")
@@ -42,7 +42,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 1);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::pauli_z));
 	}
 	SECTION("T† gate (Conjugate transpose)- negative rotation")
@@ -51,7 +51,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 1);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::t_dagger));
 	}
 	SECTION("S† gate (Conjugate transpose) - negative rotation")
@@ -60,7 +60,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 1);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::phase_dagger));
 	}
 	SECTION("T† gate (Conjugate transpose)- positive rotation")
@@ -70,7 +70,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 1);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::t_dagger));
 	}
 	SECTION("S† gate (Conjugate transpose) - positive rotation")
@@ -80,7 +80,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 1);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::phase_dagger));
 	}
 	SECTION("P + T")
@@ -89,9 +89,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 2);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::phase));
-		node = result.vertex(2u);
+		node = result.node(2u);
 		CHECK(node.gate.is(gate_lib::t));
 	}
 	SECTION("Z + T")
@@ -100,9 +100,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Try to identify Rz", "[identify_rz][template]",
 		TestType result = identify_rz(network);
 		CHECK(result.num_qubits() == 1);
 		CHECK(result.num_gates() == 2);
-		auto& node = result.vertex(1u);
+		auto& node = result.node(1u);
 		CHECK(node.gate.is(gate_lib::pauli_z));
-		node = result.vertex(2u);
+		node = result.node(2u);
 		CHECK(node.gate.is(gate_lib::t));
 	}
 }

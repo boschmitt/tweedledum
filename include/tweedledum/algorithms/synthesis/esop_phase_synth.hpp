@@ -69,7 +69,7 @@ Network esop_phase_synth(kitty::dynamic_truth_table const& function)
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	esop_phase_synth(network, network.rewire_map(), function);
+	esop_phase_synth(network, network.wiring_map(), function);
 	return network;
 }
 

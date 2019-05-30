@@ -23,7 +23,7 @@ template<typename Network>
 class immutable_view : public Network {
 public:
 	using gate_type = typename Network::gate_type;
-	using vertex_type = typename Network::vertex_type;
+	using node_type = typename Network::node_type;
 	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 

@@ -31,11 +31,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 		bit_matrix_rm id_matrix(4, 4);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		auto rewire_map = network.rewire_map();
-		network.foreach_vertex([&](auto const& vertex) {
-			if (vertex.gate.is(gate_lib::cx)) {
-				id_matrix.row(vertex.gate.target()) ^= id_matrix.row(
-				    vertex.gate.control());
+		auto wiring_map = network.wiring_map();
+		network.foreach_vertex([&](auto const& node) {
+			if (node.gate.is(gate_lib::cx)) {
+				id_matrix.row(node.gate.target()) ^= id_matrix.row(
+				    node.gate.control());
 			}
 		});
 	}

@@ -58,7 +58,7 @@ public:
 		network_.foreach_io([&](io_id io) {
 			mapping.push_back(io);
 		});
-		for (uint32_t i = mapping.size(); i < device_.num_vertices; ++i) {
+		for (uint32_t i = mapping.size(); i < device_.num_nodes; ++i) {
 			mapping.push_back(i);
 		}
 
@@ -78,7 +78,7 @@ public:
 private:
 	uint32_t num_physical_qubits() const
 	{
-		return device_.num_vertices;
+		return device_.num_nodes;
 	}
 
 	uint32_t num_virtual_qubits() const

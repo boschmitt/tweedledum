@@ -35,15 +35,15 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 		}
 	});
 
-	network.foreach_gate([&](auto const& vertex) {
+	network.foreach_gate([&](auto const& node) {
 		auto prefix = "";
-		if (vertex.gate.is(gate_lib::mcx)) {
+		if (node.gate.is(gate_lib::mcx)) {
 			prefix = "+";
 		}
-		vertex.gate.foreach_target([&](auto qubit) {
+		node.gate.foreach_target([&](auto qubit) {
 			os << fmt::format("{}id{} ", prefix, qubit);
 		});
-		switch (vertex.gate.operation()) {
+		switch (node.gate.operation()) {
 		case gate_lib::pauli_x:
 			os << 'N';
 			break;
@@ -96,7 +96,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 		default:
 			break;
 		}
-		vertex.gate.foreach_control([&](auto qubit) {
+		node.gate.foreach_control([&](auto qubit) {
 			os << fmt::format(" {}id{}", qubit.is_complemented() ? "-" : "", qubit); 
 		});
 		os << '\n';

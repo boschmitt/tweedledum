@@ -55,7 +55,7 @@ Network phase_folding(Network const& network, phase_folding_params params = {})
 	if (params.use_generic_rx == false) {
 		result = identify_rz(result);
 	}
-	result.rewire(network.rewire_map());
+	result.rewire(network.wiring_map());
 	return result;
 }
 

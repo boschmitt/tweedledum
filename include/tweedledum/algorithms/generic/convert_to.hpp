@@ -20,7 +20,7 @@ NewNetwork convert_to(Network const& network)
 	network.foreach_gate([&](auto const& node) {
 		result.emplace_gate(node.gate);
 	});
-	result.rewire(network.rewire_map());
+	result.rewire(network.wiring_map());
 	return result;
 }
 
