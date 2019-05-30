@@ -57,8 +57,10 @@ private:
 	void reset()
 	{
 		node_layer_.reset(0);
-		layer_nodes_.resize(1);
-		layer_nodes_.at(0).clear();
+		layer_nodes_.clear();
+		if (this->num_io() > 0) {
+			layer_nodes_.resize(1);
+		}
 		this->clear_values();
 	}
 
