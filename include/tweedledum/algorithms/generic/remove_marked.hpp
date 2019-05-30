@@ -20,7 +20,7 @@ NewNetwork rewrite_network(Network const& network)
 
 	NewNetwork result = shallow_duplicate<NewNetwork>(network);
 	network.foreach_gate([&](auto const& node) {
-		if (network.visited(node)) {
+		if (network.value(node)) {
 			return;
 		}
 		result.emplace_gate(node.gate);
@@ -34,7 +34,7 @@ Network remove_marked(Network const& network)
 {
 	Network result = shallow_duplicate(network);
 	network.foreach_gate([&](auto const& node) {
-		if (network.visited(node)) {
+		if (network.value(node)) {
 			return;
 		}
 		result.emplace_gate(node.gate);

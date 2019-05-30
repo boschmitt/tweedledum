@@ -19,8 +19,7 @@
 
 namespace tweedledum {
 
-/*! \brief Netlist representation of a quantum circuit.
- */
+/*! \brief Netlist representation of a quantum circuit. */
 template<typename GateType>
 class netlist {
 public:
@@ -394,8 +393,8 @@ public:
 	}
 #pragma endregion
 
-#pragma region Visited flags
-	void clear_visited() const
+#pragma region Custom node values
+	void clear_values() const
 	{
 		std::for_each(storage_->nodes.begin(), storage_->nodes.end(),
 		              [](node_type& node) { node.data[0] = 0; });
@@ -403,14 +402,25 @@ public:
 		              [](node_type& node) { node.data[0] = 0; });
 	}
 
-	auto visited(node_type const& node) const
+	uint32_t value(node_type const& node) const
 	{
 		return node.data[0];
 	}
 
-	void set_visited(node_type const& node, uint32_t value) const
+	void set_value(node_type const& node, uint32_t value)
 	{
 		node.data[0] = value;
+	}
+
+	uint32_t incr_value(node_type const& node) const
+	{
+		node.data[0] += 1;
+	}
+
+	uint32_t decr_value(node_type const& node) const
+	{
+		assert(node.data[0] > 0);
+		node.data[0] -= 1;
 	}
 #pragma endregion
 
