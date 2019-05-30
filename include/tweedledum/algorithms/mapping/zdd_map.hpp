@@ -11,7 +11,7 @@
 #include "../../utils/dd/zdd.hpp"
 #include "../../utils/device.hpp"
 #include "../../utils/stopwatch.hpp"
-#include "../../views/depth_view.hpp"
+#include "../../views/layers_view.hpp"
 #include "../../views/pathsum_view.hpp"
 #include "../../views/mapping_view.hpp"
 
@@ -263,7 +263,7 @@ private:
 		// Counts double-qubit gates
 		uint32_t count_2q = 0;
 
-		depth_view depth_nkt(network_);
+		layers_view depth_nkt(network_);
 		// Below is where we look for maps!
 		depth_nkt.foreach_gate([&](auto const& n, auto node_index) {
 			if (!n.gate.is_double_qubit()) {
@@ -322,7 +322,7 @@ private:
 						auto m_next_prime = map(cc, tt);
 						auto mp_prime = zdd_.nonsupersets(zdd_.join(m_prime, m_next_prime), bad_);
 						if (mp_prime == zdd_.bot()){
-							depth_count[i] = depth_nkt.level(nn) - depth_nkt.level(n);
+							depth_count[i] = depth_nkt.layer(nn) - depth_nkt.layer(n);
 							return false;
 						} 
 						m_prime = mp_prime;
