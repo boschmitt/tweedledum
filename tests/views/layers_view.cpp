@@ -18,6 +18,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][template]",
 	{
 		layers_view layered_ntk(network);
 		CHECK(layered_ntk.depth() == 0u);
+		CHECK(layered_ntk.num_layers() == 0u);
 	}
 	const io_id q0 = network.add_qubit();
 	const io_id q1 = network.add_qubit();
@@ -25,14 +26,16 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][template]",
 	SECTION("With qubits, but no gates")
 	{
 		layers_view layered_ntk(network);
-		CHECK(layered_ntk.depth() == 2u);
+		CHECK(layered_ntk.depth() == 0u);
+		CHECK(layered_ntk.num_layers() == 2u);
 	}
 	SECTION("One layer of gates")
 	{
 		network.add_gate(gate::hadamard, q0);
 		network.add_gate(gate::cx, q1, q2);
 		layers_view layered_ntk(network);
-		CHECK(layered_ntk.depth() == 3u);
+		CHECK(layered_ntk.depth() == 1u);
+		CHECK(layered_ntk.num_layers() == 3u);
 	}
 	SECTION("Two layer of gates")
 	{
@@ -41,6 +44,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][template]",
 		network.add_gate(gate::cx, q2, q1);
 		network.add_gate(gate::hadamard, q0);
 		layers_view layered_ntk(network);
-		CHECK(layered_ntk.depth() == 4u);
+		CHECK(layered_ntk.depth() == 2u);
+		CHECK(layered_ntk.num_layers() == 4u);
 	}
 }

@@ -52,11 +52,11 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
 	os << "\t{\n";
 	os << "\t\tnode [shape = plaintext];\n";
 	os << "\t\tedge [style = invis];\n";
-	for (auto level = network_view.depth() + 1; level-- > 0;) {
+	for (auto level = network_view.num_layers() + 1; level-- > 0;) {
 		os << fmt::format("\t\tLevel{} [label = \"\"];\n", level);
 	}
 	os << "\t\t";
-	for (auto level = network_view.depth() + 1; level-- > 0;) {
+	for (auto level = network_view.num_layers() + 1; level-- > 0;) {
 		os << fmt::format("Level{}{}", level, level != 0 ? " -> " : ";");
 	}
 	os << "\n\t}\n";
@@ -64,7 +64,7 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
 	os << "\t{\n";
 	os << "\t\trank = same;\n";
 	os << "\t\tnode[shape = cds, style = filled];\n";
-	os << fmt::format("\t\tLevel{};\n", network_view.depth());
+	os << fmt::format("\t\tLevel{};\n", network_view.num_layers());
 	network_view.foreach_output([&](auto const& node, auto index) {
 		io_id output_id = node.gate.target();
 		os << fmt::format("\t\tNode{} [label = \"{}\", xlabel = \"{}\", fillcolor = {}];\n",
@@ -73,7 +73,7 @@ void write_dot(Network const& dag_network, std::ostream& os = std::cout)
 	});
 	os << "\t}\n";
 
-	for (auto level = network_view.depth(); level-- > 1;) {
+	for (auto level = network_view.num_layers(); level-- > 1;) {
 		os << "\t{\n";
 		os << "\t\trank = same;\n";
 		os << fmt::format("\t\tLevel{};\n", level);

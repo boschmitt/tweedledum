@@ -15,6 +15,8 @@ namespace tweedledum {
 /*! \brief Implements the network interface methods `layer(node)`, `layer(layer_index)` and `depth`.
  *
  * The layers are computed at construction and can be recomputed by calling the `update` method.
+ * 
+ * NOTE: The 0th and the last layers correspond to the input and output nodes, respectively.
  */
 template<typename Network>
 class layers_view : public immutable_view<Network> {
@@ -31,7 +33,16 @@ public:
 		update();
 	}
 
+	// NOTE: the depth of a quantum circuit is the number layers with gates.
 	uint32_t depth() const
+	{
+		// Since the adition of a qubit (or cbit) adds an input and an output node to the
+		// network, the number of layers must never be 1.
+		assert(layer_nodes_.size() == 0 || layer_nodes_.size() >= 2);
+		return layer_nodes_.empty() ? 0u : layer_nodes_.size() - 2;
+	}
+
+	uint32_t num_layers() const
 	{
 		return layer_nodes_.size();
 	}
