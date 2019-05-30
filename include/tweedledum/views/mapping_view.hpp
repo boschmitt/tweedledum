@@ -13,8 +13,6 @@
 
 namespace tweedledum {
 
-/*! \brief
- */
 template<typename Network>
 class mapping_view : public Network {
 public:
@@ -23,10 +21,6 @@ public:
 	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
-	/*! \brief Default constructor.
-	 *
-	 * Constructs mapping view on a network.
-	 */
 	explicit mapping_view(Network const& network, device const& arch, bool allow_partial = false)
 	    : Network()
 	    , io_qid_map_(network.num_io(), io_invalid)

@@ -13,8 +13,6 @@
 
 namespace tweedledum::detail {
 
-/*! \brief 
- */
 template<typename Network>
 void cccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
 {

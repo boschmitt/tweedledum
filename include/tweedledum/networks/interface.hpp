@@ -4,8 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-static_assert(false,
-              "file netowks/interface.hpp cannot be included, it's only used for documentation");
+static_assert(false, "This file cannot be included, it's only used for documentation");
 
 namespace tweedledum {
 
@@ -252,17 +251,6 @@ public:
 	void rewire(std::vector<std::pair<uint32_t, uint32_t>> const& transpositions);
 
 	std::vector<io_id> wiring_map() const;
-#pragma endregion
-
-#pragma region Visited flags
-	/*! \brief Reset all visited values to 0. */
-	void clear_visited();
-
-	/*! \brief Returns the visited value of a node. */
-	auto visited(node_type const& node) const;
-
-	/*! \brief Sets the visited value of a node. */
-	void set_visited(node_type const& node, uint32_t value);
 #pragma endregion
 
 #pragma region Custom node values

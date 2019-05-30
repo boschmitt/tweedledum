@@ -140,7 +140,7 @@ Network dt_decomposition(Network const& network, dt_params params = {})
 		return false;
 	};
 
-	auto num_ancillae = 0u;
+	uint32_t num_ancillae = 0u;
 	network.foreach_gate([&](auto const& node) {
 		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == network.num_qubits()) {
