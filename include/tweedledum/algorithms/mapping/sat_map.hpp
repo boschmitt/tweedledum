@@ -7,7 +7,6 @@
 #include "../../utils/device.hpp"
 #include "../../utils/sat/cardinality.hpp"
 #include "../../utils/sat/solver.hpp"
-#include "../../utils/stopwatch.hpp"
 #include "../../views/mapping_view.hpp"
 
 namespace tweedledum {
