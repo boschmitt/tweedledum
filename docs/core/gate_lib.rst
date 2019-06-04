@@ -1,5 +1,5 @@
-The Standard Gate Set
-=====================
+The Standard Gate Library
+=========================
 
 Below is a summary of the key gates used in tweedledum
 

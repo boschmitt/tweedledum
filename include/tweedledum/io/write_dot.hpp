@@ -35,7 +35,7 @@ namespace tweedledum {
  * - `foreach_input`
  * - `foreach_output`
  *
- * \param network Network
+ * \param dag_network Network
  * \param os Output stream
  */
 template<typename Network>

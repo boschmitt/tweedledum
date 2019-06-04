@@ -156,15 +156,35 @@ public:
 #pragma endregion
 
 #pragma region Const iterators
+	/*! \brief Calls ``fn`` on every I/O in the network.
+	 *
+	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
+	 * - ``void(io_id id)``
+	 * - ``void(string const& label)``
+	 * - ``void(io_id id, string const& label)``
+	 */
+	template<typename Fn>
+	void foreach_io(Fn&& fn) const;
+
 	/*! \brief Calls ``fn`` on every qubit in the network.
 	 *
 	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
-	 * - ``void(uint32_t qid)``
-	 * - ``void(string const& qlabel)``
-	 * - ``void(uint32_t qid, string const& qlabel)``
+	 * - ``void(io_id id)``
+	 * - ``void(string const& label)``
+	 * - ``void(io_id id, string const& label)``
 	 */
 	template<typename Fn>
 	void foreach_qubit(Fn&& fn) const;
+
+	/*! \brief Calls ``fn`` on every classical bit (cbit) in the network.
+	 *
+	 * The paramater ``fn`` is any callable that must have one of the following three signatures.
+	 * - ``void(io_id id)``
+	 * - ``void(string const& label)``
+	 * - ``void(io_id id, string const& label)``
+	 */
+	template<typename Fn>
+	void foreach_cbit(Fn&& fn) const;
 
 	/*! \brief Calls ``fn`` on every input node in the network.
 	 *

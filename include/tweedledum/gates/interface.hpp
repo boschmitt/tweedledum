@@ -35,7 +35,7 @@ public:
 	/*! \brief Construct a gate using vectors
 	 *
 	 * \param unitary_op the operation (must be unitary operation).
-	 * \param control qubit(s) identifier of the control(s).
+	 * \param controls qubit(s) identifier of the control(s).
 	 * \param targets qubit identifier of the target.
 	 */
 	gate(gate_base const& unitary_op, std::vector<io_id> const& controls,
