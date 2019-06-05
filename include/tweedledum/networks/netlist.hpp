@@ -414,13 +414,13 @@ public:
 
 	uint32_t incr_value(node_type const& node) const
 	{
-		node.data[0] += 1;
+		return ++node.data[0];
 	}
 
 	uint32_t decr_value(node_type const& node) const
 	{
 		assert(node.data[0] > 0);
-		node.data[0] -= 1;
+		return --node.data[0];
 	}
 #pragma endregion
 
