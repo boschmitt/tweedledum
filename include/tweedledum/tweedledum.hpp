@@ -2,6 +2,7 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
+#pragma once
 
 #include "algorithms/decomposition/barenco.hpp"
 #include "algorithms/decomposition/dt.hpp"
