@@ -289,4 +289,4 @@ Network tbs(std::vector<uint32_t> permutation, tbs_params params = {})
 	return network;
 }
 
-}; // namespace tweedledum
+} // namespace tweedledum

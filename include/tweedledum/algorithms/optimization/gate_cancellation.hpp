@@ -27,7 +27,7 @@ Network gate_cancellation(Network const& network)
 				return false;
 			}
 			children.push_back(child_index);
-			auto& child = network.node(child_index);
+			auto& child = network.get_node(child_index);
 			if (network.value(child)) {
 				return true;
 			}
@@ -38,7 +38,7 @@ Network gate_cancellation(Network const& network)
 		});
 		if (do_remove) {
 			network.set_value(node, 1);
-			network.set_value(network.node(children.back()), 1);
+			network.set_value(network.get_node(children.back()), 1);
 			num_deletions += 2;
 			return;
 		}

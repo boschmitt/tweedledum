@@ -88,7 +88,7 @@ private:
 
 		uint32_t level = 0u;
 		this->foreach_child(node, [&](auto child_index) {
-			level = std::max(level, compute_layers(this->node(child_index)));
+			level = std::max(level, compute_layers(this->get_node(child_index)));
 		});
 		level += 1;
 		if (level == layer_nodes_.size()) { 

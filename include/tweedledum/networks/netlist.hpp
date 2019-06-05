@@ -131,12 +131,12 @@ public:
 #pragma endregion
 
 #pragma region Nodes
-	node_type& node(link_type link) const
+	node_type& get_node(link_type link) const
 	{
 		return storage_->nodes[link];
 	}
 
-	node_type& node(uint32_t index) const
+	node_type& get_node(uint32_t index) const
 	{
 		return storage_->nodes[index];
 	}

@@ -110,10 +110,11 @@ public:
 
 #pragma region Nodes
 	/*! \brief Get the node a `link` is pointing to. */
-	node_type& node(link_type link) const;
+	// NOTE: must be 'get_node', otherwise GCC complains...
+	node_type& get_node(link_type link) const;
 
 	/*! \brief Get the node at `index`. */
-	node_type& node(uint32_t index) const;
+	node_type& get_node(uint32_t index) const;
 
 	/*! \brief Returns the index of a node.
 	 *
