@@ -231,7 +231,6 @@ void write_dotqc(Network const& network, std::ostream& os)
  *
  * \param network A quantum network
  * \param filename Filename
- * \param color_marked_gates Flag to draw marked nodes in red
  */
 template<typename Network>
 void write_dotqc(Network const& network, std::string const& filename)
