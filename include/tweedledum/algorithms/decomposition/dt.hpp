@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -34,18 +33,6 @@ struct dt_params {
    and given in :cite:`AAM13`
 
    \endverbatim
- * 
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `num_controls`
- *
- * **Required network functions:**
- * - `add_gate`
- * - `foreach_qubit`
- * - `foreach_gate`
- * - `rewire`
- * - `rewire_map`
  * 
  * \algtype decomposition
  * \algexpects A network
@@ -153,7 +140,7 @@ Network dt_decomposition(Network const& network, dt_params params = {})
 		return false;
 	};
 
-	auto num_ancillae = 0u;
+	uint32_t num_ancillae = 0u;
 	network.foreach_gate([&](auto const& node) {
 		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
 		    && node.gate.num_controls() + 1 == network.num_qubits()) {

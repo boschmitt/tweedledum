@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Kate Smith
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -18,16 +17,6 @@ namespace tweedledum {
 /*! \brief Writes network in quil format into output stream
  *
  * An overloaded variant exists that writes the network into a file.
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
  *
  * \param network A quantum network
  * \param os Output stream
@@ -163,16 +152,6 @@ void write_quil(Network const& network, std::ostream& os)
 }
 
 /*! \brief Writes network in quil format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
  *
  * \param network A quantum network
  * \param filename Filename

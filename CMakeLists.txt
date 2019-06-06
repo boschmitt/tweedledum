@@ -1,5 +1,4 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt
 # CMake build : tweedledum library
 cmake_minimum_required(VERSION 3.8)
 project(tweedledum LANGUAGES CXX)

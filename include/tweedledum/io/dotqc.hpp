@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -142,16 +141,6 @@ private:
  *
  * An overloaded variant exists that writes the network into a file.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
- *
  * \param network A quantum network
  * \param os Output stream
  */
@@ -166,7 +155,7 @@ void write_dotqc(Network const& network, std::ostream& os)
 		}
 	});
 	os << fmt::format("\nBEGIN\n\n");
-	network.foreach_gate([&](auto& node) {
+	network.foreach_gate([&](auto const& node) {
 		switch (node.gate.operation()) {
 		case gate_lib::pauli_x:
 			os << 'X';
@@ -218,16 +207,6 @@ void write_dotqc(Network const& network, std::ostream& os)
 }
 
 /*! \brief Writes network in dotQC format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
  *
  * \param network A quantum network
  * \param filename Filename

@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken, Fereshte Mozafari
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/synthesis/cnot_patel.hpp>
@@ -30,7 +29,7 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_node([&](auto const& node) {
+		network.foreach_vertex([&](auto const& node) {
 			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
@@ -52,14 +51,14 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_node([&](auto const& node) {
+		network.foreach_vertex([&](auto const& node) {
 			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
 			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
 		});
 		std::vector<uint32_t> rows_permutation;
-		for (auto io_id : network.rewire_map()) {
+		for (auto io_id : network.wiring_map()) {
 			rows_permutation.push_back(io_id.index());
 		}
 		matrix.permute_rows(rows_permutation);

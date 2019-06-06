@@ -1,5 +1,4 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt
 
 if (NOT TARGET easy)
   add_library(easy INTERFACE)

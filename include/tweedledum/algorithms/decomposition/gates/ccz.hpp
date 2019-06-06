@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -11,8 +10,7 @@
 
 namespace tweedledum::detail {
 
-/*! \brief 
- *                                                           ┌───┐
+/*                                                           ┌───┐
  *  ──────────────●───────────────────●─────────●─────────●──┤ T ├
  *                │                   │         │         │  └───┘
  *                │                   │       ┌─┴─┐┌───┐┌─┴─┐┌───┐
@@ -21,6 +19,9 @@ namespace tweedledum::detail {
  *    ┌─┴─┐┌───┐┌─┴─┐┌───┐┌─┴─┐┌───┐┌─┴─┐                    ┌───┐
  *  ──┤ X ├┤ ┴ ├┤ X ├┤ T ├┤ X ├┤ ┴ ├┤ X ├────────────────────┤ T ├
  *    └───┘└───┘└───┘└───┘└───┘└───┘└───┘                    └───┘
+ *
+ * NOTE: Important normalization: if only one control is complemented, it must be x. This means
+ * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
 void ccz_(Network& network, io_id x, io_id y, io_id z)
@@ -43,9 +44,7 @@ void ccz_(Network& network, io_id x, io_id y, io_id z)
 	network.add_gate(x.is_complemented() ? gate::t_dagger : gate::t, y);
 }
 
-/*! \brief Important normalization: if only one negated, it must be x
- * because of normalization: y complemented => x complemented
- * better T gate parallelization at the expense of an extra CNOT gate
+/* Better T gate parallelization at the expense of an extra CNOT gate.
  * 
  *   ┌───┐          ┌───┐┌───┐┌───┐┌───┐     ┌───┐     
  * ──┤ T ├──●───────┤ X ├┤ ┴ ├┤ X ├┤ ┴ ├─────┤ X ├──●──
@@ -56,6 +55,9 @@ void ccz_(Network& network, io_id x, io_id y, io_id z)
  *   ┌───┐     ┌─┴─┐  │  ┌───┐          ┌─┴─┐  │       
  * ──┤ T ├─────┤ X ├──●──┤ T ├──────────┤ X ├──●───────
  *   └───┘     └───┘     └───┘          └───┘          
+ *
+ * NOTE: Important normalization: if only one control is complemented, it must be x. This means
+ * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
 void ccz_tpar(Network& network, io_id x, io_id y, io_id z)
@@ -81,8 +83,6 @@ void ccz_tpar(Network& network, io_id x, io_id y, io_id z)
 	network.add_gate(gate::cx, x.id(), y.id());
 }
 
-/*! \brief 
- */
 template<typename Network>
 void ccz(Network& network, io_id x, io_id y, io_id z, bool use_t_par)
 {

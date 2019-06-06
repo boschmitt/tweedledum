@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Fereshte Mozafari
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -259,7 +258,7 @@ Network cnot_patel(Matrix const& matrix, cnot_patel_params params = {})
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	cnot_patel(network, network.rewire_map(), matrix, params);
+	cnot_patel(network, network.wiring_map(), matrix, params);
 	return network;
 }
 

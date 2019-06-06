@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -16,11 +15,6 @@
 namespace tweedledum {
 
 /*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- * 
  */
 template<typename Network>
 class stats_view : public immutable_view<Network> {

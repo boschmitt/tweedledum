@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -17,145 +16,72 @@
 namespace tweedledum {
 namespace detail {
 
-/*! \brief 
+/*! \brief Use to 'point' to a node
+ *
+ * Users may define their own `link` structure, which may hold more information than just an index
+ *
+ * NOTE:  When casted to `uint32_t`, this type should return a valid index within the vector
+ * holding the vertecies of the graph
  */
-template<int PointerFieldSize = 0>
-struct node_pointer {
+struct link {
+	static constexpr auto max = std::numeric_limits<uint32_t>::max();
+
+	link()
+	    : index(max)
+	{}
+
+	explicit link(uint32_t index)
+	    : index(index)
+	{}
+
+	operator uint32_t() const
+	{
+		return index;
+	}
+
 private:
-	static constexpr auto length = sizeof(uint32_t) * 8;
-
-public:
-	static constexpr auto max = std::numeric_limits<uint32_t>::max();
-
-	node_pointer()
-	    : data(max)
-	{}
-
-	node_pointer(uint32_t data)
-	    : data(data)
-	{}
-
-	node_pointer(uint32_t index, uint32_t weight)
-	    : weight(weight)
-	    , index(index)
-	{}
-
-	union {
-		uint32_t data;
-		struct {
-			uint32_t weight : PointerFieldSize;
-			uint32_t index : length - PointerFieldSize;
-		};
-	};
-
-	bool operator==(node_pointer const& other) const
-	{
-		return data == other.data;
-	}
-};
-
-template<>
-struct node_pointer<0> {
-	static constexpr auto max = std::numeric_limits<uint32_t>::max();
-
-	node_pointer()
-	    : data(max)
-	{}
-
-	node_pointer(uint32_t data)
-	    : data(data)
-	{}
-
-	union {
-		uint32_t data;
-		uint32_t index;
-	};
-
-	bool operator==(node_pointer const& other) const
-	{
-		return data == other.data;
-	}
-
-	bool operator!=(node_pointer const& other) const
-	{
-		return data != other.data;
-	}
+	uint32_t index;
 };
 
 } // namespace detail
 
-union cauint32_t {
-	uint32_t w = 0;
-	struct {
-		uint32_t b0 : 8;
-		uint32_t b1 : 8;
-		uint32_t b2 : 8;
-		uint32_t b3 : 8;
-	};
-};
-
-/*! \brief 
- */
-template<typename GateType, int DataSize = 0>
-struct wrapper_node {
-	using pointer_type = detail::node_pointer<0>;
+// NOTE:  This is used to wrap `gates` in the `netlist` represention of a quantum circuit.
+template<typename GateType, int DataSize = 0, typename LinkType = detail::link>
+struct wrapper_vertex {
+	using link_type = LinkType;
 
 	GateType gate;
-	mutable std::array<cauint32_t, DataSize> data;
+	mutable std::array<uint32_t, DataSize> data;
 
-	wrapper_node(GateType const& gate_)
+	wrapper_vertex(GateType const& gate_)
 	    : gate(gate_)
 	{}
 
-	bool operator==(wrapper_node const& other) const
+	bool operator==(wrapper_vertex const& other) const
 	{
 		return gate == other.gate;
 	}
 };
 
-/*! \brief 
- */
-template<typename GateType, int PointerFieldSize = 0, int DataSize = 0>
-struct regular_node {
-	using pointer_type = detail::node_pointer<PointerFieldSize>;
+template<typename GateType, int DataSize = 0, typename LinkType = detail::link>
+struct node {
+	using link_type = LinkType;
 
 	GateType gate;
-	std::array<std::vector<pointer_type>, GateType::max_num_io> children;
-	mutable std::array<cauint32_t, DataSize> data;
+	std::array<link_type, GateType::max_num_io> children;
+	mutable std::array<uint32_t, DataSize> data;
 
-	regular_node(GateType const& gate_)
+	node(GateType const& gate_)
 	    : gate(gate_)
 	{}
 
-	bool operator==(regular_node const& other) const
+	bool operator==(node const& other) const
 	{
 		return gate == other.gate;
 	}
 };
 
-/*! \brief 
- */
-template<typename GateType, int PointerFieldSize = 0, int DataSize = 0>
-struct uniform_node {
-	using pointer_type = detail::node_pointer<PointerFieldSize>;
-
-	GateType gate;
-	std::array<pointer_type, GateType::max_num_io> children;
-	mutable std::array<cauint32_t, DataSize> data;
-
-	uniform_node(GateType const& gate_)
-	    : gate(gate_)
-	{}
-
-	bool operator==(uniform_node const& other) const
-	{
-		return gate == other.gate;
-	}
-};
-
-/*! \brief 
- */
-template<typename NodeType>
+template<typename VertexType>
 struct storage {
 	storage(std::string_view name_ = {})
 	    : name(name_)
@@ -169,13 +95,11 @@ struct storage {
 	uint32_t num_qubits;
 	uint32_t gate_set;
 	std::vector<uint32_t> inputs;
-	std::vector<NodeType> nodes;
-	std::vector<NodeType> outputs;
-	std::vector<io_id> rewiring_map;
+	std::vector<VertexType> nodes;
+	std::vector<VertexType> outputs;
+	std::vector<io_id> wiring_map;
 };
 
-/*! \brief 
- */
 class labels_map {
 public:
 	void map(io_id id, std::string const& label)

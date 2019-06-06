@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Fereshte Mozafari
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -246,7 +245,7 @@ Network gray_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities, 
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	gray_synth(network, network.rewire_map(), parities, params);
+	gray_synth(network, network.wiring_map(), parities, params);
 	return network;
 }
 

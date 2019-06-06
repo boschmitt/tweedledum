@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -16,8 +15,6 @@
 namespace tweedledum {
 
 /*! \brief This algorithm try to give identity to generic Rz gates. 
- *
- * **Required network functions:**
  */
 template<typename Network>
 Network identify_rz(Network const& network)

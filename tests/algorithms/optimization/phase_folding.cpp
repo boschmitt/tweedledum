@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken, Fereshte Mozafari
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/optimization/phase_folding.hpp>

@@ -1,14 +1,12 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
 #include "../../utils/device.hpp"
 #include "../../utils/sat/cardinality.hpp"
 #include "../../utils/sat/solver.hpp"
-#include "../../utils/stopwatch.hpp"
 #include "../../views/mapping_view.hpp"
 
 namespace tweedledum {
@@ -58,7 +56,7 @@ public:
 		network_.foreach_io([&](io_id io) {
 			mapping.push_back(io);
 		});
-		for (uint32_t i = mapping.size(); i < device_.num_vertices; ++i) {
+		for (uint32_t i = mapping.size(); i < device_.num_nodes; ++i) {
 			mapping.push_back(i);
 		}
 
@@ -78,7 +76,7 @@ public:
 private:
 	uint32_t num_physical_qubits() const
 	{
-		return device_.num_vertices;
+		return device_.num_nodes;
 	}
 
 	uint32_t num_virtual_qubits() const
@@ -181,11 +179,6 @@ std::vector<uint32_t> map_without_swaps(Network const& network, device const& de
 #pragma endregion
 
 /*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- *
  */
 template<typename Network>
 mapping_view<Network> sat_map(Network const& network, device const& device)

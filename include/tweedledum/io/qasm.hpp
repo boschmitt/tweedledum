@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -33,15 +32,6 @@ void read_qasm_from_file(std::string const& path)
 /*! \brief Writes network in OPENQASM 2.0 format into output stream
  *
  * An overloaded variant exists that writes the network into a file.
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- * 
- * **Required network functions:**
- * - `foreach_node`
- * - `num_qubits`
  *
  * \param network A quantum network
  * \param os Output stream
@@ -190,15 +180,6 @@ void write_qasm(Network const& network, std::ostream& os)
 }
 
 /*! \brief Writes network in OPENQASM 2.0 format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- * 
- * **Required network functions:**
- * - `num_qubits`
- * - `foreach_node`
  *
  * \param network A quantum network
  * \param filename Filename

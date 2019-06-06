@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -17,16 +16,6 @@ namespace tweedledum {
  *
  * An overloaded variant exists that writes the network into a file.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
- *
  * \param network A quantum network
  * \param os Output stream
  * \param color_marked_gates Flag to draw marked nodes in red
@@ -37,7 +26,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 	if (color_marked_gates) {
 		os << "DEFINE mark color=red:style=thick\n";
 	}
-	network.foreach_io([&](auto id, auto const& name) {
+	network.foreach_io([&](io_id id, auto const& name) {
 		if (id.is_qubit()) {
 			os << fmt::format("id{} W {} {}\n", id, name, name);
 		} else {
@@ -45,7 +34,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 		}
 	});
 
-	network.foreach_gate([&](auto& node) {
+	network.foreach_gate([&](auto const& node) {
 		auto prefix = "";
 		if (node.gate.is(gate_lib::mcx)) {
 			prefix = "+";
@@ -114,16 +103,6 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 }
 
 /*! \brief Writes network in qpic format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_node`
- * - `foreach_qubit`
- * - `num_qubits`
  *
  * \param network A quantum network
  * \param filename Filename

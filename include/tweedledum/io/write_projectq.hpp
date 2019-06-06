@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken, Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -18,15 +17,6 @@ namespace tweedledum {
 /*! \brief Writes network in ProjecQ format into output stream
  *
  * An overloaded variant exists that writes the network into a file.
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_gate`
- * - `foreach_qubit`
  *
  * \param network Network
  * \param os Output stream
@@ -140,15 +130,6 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 }
 
 /*! \brief Writes network in ProjecQ format into a file
- *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `op`
- *
- * **Required network functions:**
- * - `foreach_gate`
- * - `foreach_qubit`
  *
  * \param network Network
  * \param filename Filename

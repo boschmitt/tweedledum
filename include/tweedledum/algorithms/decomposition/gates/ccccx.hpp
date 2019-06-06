@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -14,8 +13,6 @@
 
 namespace tweedledum::detail {
 
-/*! \brief 
- */
 template<typename Network>
 void ccccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
 {

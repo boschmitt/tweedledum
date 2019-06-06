@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
+#pragma once 
+
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -201,8 +202,6 @@ public:
 		size_t padded_size = size + alignment - 1;
 		if (padded_size > SizeThreshold) {
 			void* new_chunk = allocator_.allocate(padded_size, 0);
-			// We own the new chunk and don't want anyone reading anyting other than
-			// pieces returned from this method.  So poison the whole chunk.
 			custom_sized_chunks_.push_back(std::make_pair(new_chunk, padded_size));
 
 			uintptr_t aligned_address = align_address(new_chunk, alignment);
@@ -222,7 +221,7 @@ public:
 	using allocator_base<bump_allocator_imp>::allocate;
 
 	// This Bump allocator nevers free its storage;
-	void deallocate(void const* /* ptr */, size_t /* size */)
+	void deallocate(void const*, size_t)
 	{}
 	using allocator_base<bump_allocator_imp>::deallocate;
 

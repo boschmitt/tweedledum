@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -24,20 +23,13 @@ namespace tweedledum {
  *
  * It implements the network interface methods `get_pathsum`.  The pathsums are computed at
  * construction. The network must be on basis {CX, Rz, H}
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- * - `foreach_gate`
- * - `foreach_input`
- * - `foreach_output`
  */
 template<typename Network>
 class pathsum_view : public immutable_view<Network> {
 public:
 	using gate_type = typename Network::gate_type;
 	using node_type = typename Network::node_type;
-	using node_ptr_type = typename Network::node_ptr_type;
+	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
 	using esop_type = std::set<uint32_t>;

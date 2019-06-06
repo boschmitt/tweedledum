@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -286,8 +285,8 @@ Network tbs(std::vector<uint32_t> permutation, tbs_params params = {})
 	for (auto i = 0u; i < num_qubits; ++i) {
 		network.add_qubit();
 	}
-	tbs(network, network.rewire_map(), permutation, params);
+	tbs(network, network.wiring_map(), permutation, params);
 	return network;
 }
 
-}; // namespace tweedledum
+} // namespace tweedledum

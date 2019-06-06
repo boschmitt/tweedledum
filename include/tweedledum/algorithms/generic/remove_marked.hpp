@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -21,12 +20,12 @@ NewNetwork rewrite_network(Network const& network)
 
 	NewNetwork result = shallow_duplicate<NewNetwork>(network);
 	network.foreach_gate([&](auto const& node) {
-		if (network.visited(node)) {
+		if (network.value(node)) {
 			return;
 		}
 		result.emplace_gate(node.gate);
 	});
-	return result.rewire(network.rewire_map());
+	return result.rewire(network.wiring_map());
 }
 
 /*! \brief Generic function to remove marked gates. */
@@ -35,12 +34,12 @@ Network remove_marked(Network const& network)
 {
 	Network result = shallow_duplicate(network);
 	network.foreach_gate([&](auto const& node) {
-		if (network.visited(node)) {
+		if (network.value(node)) {
 			return;
 		}
 		result.emplace_gate(node.gate);
 	});
-	result.rewire(network.rewire_map());
+	result.rewire(network.wiring_map());
 	return result;
 }
 

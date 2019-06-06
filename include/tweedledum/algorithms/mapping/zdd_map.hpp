@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken, Kate Smith
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -12,7 +11,7 @@
 #include "../../utils/dd/zdd.hpp"
 #include "../../utils/device.hpp"
 #include "../../utils/stopwatch.hpp"
-#include "../../views/depth_view.hpp"
+#include "../../views/layers_view.hpp"
 #include "../../views/pathsum_view.hpp"
 #include "../../views/mapping_view.hpp"
 
@@ -61,10 +60,10 @@ public:
 	    , arch_(arch)
             , params_(ps)
             , stats_(st)
-	    , zdd_(network.num_qubits() * arch.num_vertices, 21)
+	    , zdd_(network.num_qubits() * arch.num_nodes, 21)
 	    , from_(network.num_qubits())
-	    , to_(arch.num_vertices)
-            , edge_perm_(arch.num_vertices, 0)
+	    , to_(arch.num_nodes)
+            , edge_perm_(arch.num_nodes, 0)
 	    , id_virtual_map_(network.num_io(), io_invalid)
 	{
 		std::iota(edge_perm_.begin(), edge_perm_.end(), 0);
@@ -165,14 +164,14 @@ public:
 private:
 	auto index(uint32_t v, uint32_t p) const
 	{
-		return v * arch_.num_vertices + p;
+		return v * arch_.num_nodes + p;
 	}
 
 	void init_from()
 	{
 		for (auto v = 0u; v < network_.num_qubits(); ++v) {
 			auto set = zdd_.bot();
-			for (int p = arch_.num_vertices - 1; p >= 0; --p) {
+			for (int p = arch_.num_nodes - 1; p >= 0; --p) {
 				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
 			}
 			from_[v] = set;
@@ -182,7 +181,7 @@ private:
 
 	void init_to()
 	{
-		for (auto p = 0u; p < arch_.num_vertices; ++p) {
+		for (auto p = 0u; p < arch_.num_nodes; ++p) {
 			auto set = zdd_.bot();
 			for (int v = network_.num_qubits() - 1; v >= 0; --v) {
 				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
@@ -208,7 +207,7 @@ private:
 		for (int v = network_.num_qubits() - 1; v >= 0; --v) {
 			bad_ = zdd_.union_(bad_, zdd_.choose(from_[v], 2));
 		}
-		for (int p = arch_.num_vertices - 1; p >= 0; --p) {
+		for (int p = arch_.num_nodes - 1; p >= 0; --p) {
 			bad_ = zdd_.union_(bad_, zdd_.choose(to_[p], 2));
 		}
 		zdd_.ref(bad_);
@@ -264,7 +263,7 @@ private:
 		// Counts double-qubit gates
 		uint32_t count_2q = 0;
 
-		depth_view depth_nkt(network_);
+		layers_view depth_nkt(network_);
 		// Below is where we look for maps!
 		depth_nkt.foreach_gate([&](auto const& n, auto node_index) {
 			if (!n.gate.is_double_qubit()) {
@@ -323,7 +322,7 @@ private:
 						auto m_next_prime = map(cc, tt);
 						auto mp_prime = zdd_.nonsupersets(zdd_.join(m_prime, m_next_prime), bad_);
 						if (mp_prime == zdd_.bot()){
-							depth_count[i] = depth_nkt.level(nn) - depth_nkt.level(n);
+							depth_count[i] = depth_nkt.layer(nn) - depth_nkt.layer(n);
 							return false;
 						} 
 						m_prime = mp_prime;
@@ -409,7 +408,7 @@ private:
 		auto univ_fam = zdd_swap_layers.tautology();
 		std::vector<zdd_base::node> edges_p;
 
-		std::vector<std::vector<uint8_t>> incidents(arch_.num_vertices);
+		std::vector<std::vector<uint8_t>> incidents(arch_.num_nodes);
 		for (auto i = 0u; i < arch_.edges.size(); ++i) {
 			incidents[arch_.edges[i].first].push_back(i);
 			incidents[arch_.edges[i].second].push_back(i);
@@ -470,11 +469,6 @@ private:
 } // namespace detail
 
 /*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- *
  */
 template<typename Network>
 mapping_view<Network> zdd_map(Network& network, device const& arch, zdd_map_params const& ps = {},

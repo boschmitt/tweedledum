@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken, Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -113,18 +112,6 @@ struct barenco_params {
  * into Toffoli gates with at most ``controls_threshold`` controls. This may introduce one
  * additional helper qubit called ancilla.
  *
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `num_controls`
- *
- * **Required network functions:**
- * - `add_gate`
- * - `foreach_qubit`
- * - `foreach_gate`
- * - `rewire`
- * - `rewire_map`
- * 
  * \algtype decomposition
  * \algexpects A network
  * \algreturns A network

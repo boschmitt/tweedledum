@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -14,35 +13,24 @@
 
 namespace tweedledum {
 
-/*! \brief
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- * 
- */
 template<typename Network>
 class mapping_view : public Network {
 public:
 	using gate_type = typename Network::gate_type;
 	using node_type = typename Network::node_type;
-	using node_ptr_type = typename Network::node_ptr_type;
+	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
-	/*! \brief Default constructor.
-	 *
-	 * Constructs mapping view on a network.
-	 */
 	explicit mapping_view(Network const& network, device const& arch, bool allow_partial = false)
 	    : Network()
 	    , io_qid_map_(network.num_io(), io_invalid)
-	    , init_v_phy_qid_map_(arch.num_vertices)
-	    , v_phy_qid_map_(arch.num_vertices)
+	    , init_v_phy_qid_map_(arch.num_nodes)
+	    , v_phy_qid_map_(arch.num_nodes)
 	    , coupling_matrix_(arch.get_coupling_matrix())
 	    , allow_partial_(allow_partial)
 	    , is_partial_(false)
 	{
-		assert(this->num_qubits() <= arch.num_vertices);
+		assert(this->num_qubits() <= arch.num_nodes);
 		std::iota(init_v_phy_qid_map_.begin(), init_v_phy_qid_map_.end(), 0u);
 		std::iota(v_phy_qid_map_.begin(), v_phy_qid_map_.end(), 0u);
 		network.foreach_io([&](io_id io, std::string const& label) {
@@ -54,7 +42,7 @@ public:
 				this->add_cbit(label);
 			}
 		});
-		for (uint32_t i = this->num_qubits(); i < arch.num_vertices; ++i) {
+		for (uint32_t i = this->num_qubits(); i < arch.num_nodes; ++i) {
 			qid_io_map_.push_back(this->add_qubit());
 		}
 	}

@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
+#pragma once
+
 #include "../base/source_manager.hpp"
 #include "ast/ast.hpp"
 #include "parser.hpp"

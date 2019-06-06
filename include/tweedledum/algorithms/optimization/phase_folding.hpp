@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -23,8 +22,6 @@ struct phase_folding_params {
 };
 
 /*! \brief TODO
- *
- * **Required network functions:**
  */
 template<typename Network>
 Network phase_folding(Network const& network, phase_folding_params params = {})
@@ -57,7 +54,7 @@ Network phase_folding(Network const& network, phase_folding_params params = {})
 	if (params.use_generic_rx == false) {
 		result = identify_rz(result);
 	}
-	result.rewire(network.rewire_map());
+	result.rewire(network.wiring_map());
 	return result;
 }
 

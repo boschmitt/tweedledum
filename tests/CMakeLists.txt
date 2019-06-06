@@ -1,5 +1,4 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt
 # CMake build : tweedledum library tests
 add_compile_options(
   -fno-rtti
@@ -38,6 +37,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/networks.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/io_id.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/utils/angle.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/views/layers_view.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/views/pathsum_view.cpp"
   )
 
