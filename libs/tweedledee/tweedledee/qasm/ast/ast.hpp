@@ -9,12 +9,14 @@
 #include "ast_node_kinds.hpp"
 
 // Nodes
+#include "nodes/expr_argument.hpp"
 #include "nodes/expr_decl_ref.hpp"
-#include "nodes/expr_reg_idx_ref.hpp"
 #include "nodes/decl_gate.hpp"
 #include "nodes/decl_param.hpp"
 #include "nodes/decl_register.hpp"
 #include "nodes/decl_program.hpp"
+#include "nodes/list_any.hpp"
+#include "nodes/list_exps.hpp"
 #include "nodes/list_gops.hpp"
 #include "nodes/list_ids.hpp"
 #include "nodes/stmt_barrier.hpp"

@@ -4,6 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include <cassert>
 #include <iterator>
 #include <memory>
 
@@ -79,12 +80,14 @@ public:
 
 	intrusive_list_iterator& operator++()
 	{
+		assert(current_ != nullptr && "Out-of-bounds iterator increment!");
 		current_ = intrusive_list_access<T>::next(*current_);
 		return *this;
 	}
 
 	intrusive_list_iterator operator++(int)
 	{
+		assert(current_ != nullptr && "Out-of-bounds iterator increment!");
 		auto tmp = *this;
 		++(*this);
 		return tmp;
