@@ -26,11 +26,13 @@ public:
 	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
-	explicit layers_view(Network& network)
+	explicit layers_view(Network const& network)
 	    : immutable_view<Network>(network)
 	    , node_layer_(network)
 	{
-		update();
+		if (this->num_io()) {
+			update();
+		}
 	}
 
 	// NOTE: the depth of a quantum circuit is the number layers with gates.
@@ -81,7 +83,7 @@ private:
 			return node_layer_[node];
 		}
 
-		if (node.gate.is_one_of(gate_lib::input)) {
+		if (node.gate.is(gate_lib::input)) {
 			layer_nodes_.at(0).push_back(this->index(node));
 			return node_layer_[node] = 0u;
 		}
@@ -102,7 +104,15 @@ private:
 	void compute_layers()
 	{
 		this->foreach_output([&](auto const& node) {
-			compute_layers(node);
+			this->foreach_child(node, [&](auto child_index) {
+				auto& child = this->get_node(child_index);
+				compute_layers(child);
+			});
+		});
+		layer_nodes_.emplace_back();
+		this->foreach_output([&](auto const& node) {
+			layer_nodes_.back().push_back(this->index(node));
+			node_layer_[node] = layer_nodes_.size() - 1;
 		});
 	}
 
