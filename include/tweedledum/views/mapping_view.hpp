@@ -4,11 +4,14 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../traits.hpp"
 #include "../gates/io3_gate.hpp"
+#include "../traits.hpp"
 #include "../utils/device.hpp"
 
+#include <algorithm>
+#include <cassert>
 #include <optional>
+#include <random>
 #include <vector>
 
 namespace tweedledum {
@@ -21,7 +24,8 @@ public:
 	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
-	explicit mapping_view(Network const& network, device const& arch, bool allow_partial = false)
+	explicit mapping_view(Network const& network, device const& arch,
+	                      bool allow_partial = false, bool random_initial_map = false)
 	    : Network()
 	    , io_qid_map_(network.num_io(), io_invalid)
 	    , init_v_phy_qid_map_(arch.num_nodes)
@@ -31,8 +35,13 @@ public:
 	    , is_partial_(false)
 	{
 		assert(this->num_qubits() <= arch.num_nodes);
-		std::iota(init_v_phy_qid_map_.begin(), init_v_phy_qid_map_.end(), 0u);
 		std::iota(v_phy_qid_map_.begin(), v_phy_qid_map_.end(), 0u);
+		if (random_initial_map) {
+			std::random_device rd;
+			std::mt19937 g(rd());
+			std::shuffle(v_phy_qid_map_.begin(), v_phy_qid_map_.end(), g);
+		}
+		init_v_phy_qid_map_ = v_phy_qid_map_;
 		network.foreach_io([&](io_id io, std::string const& label) {
 			if (io.is_qubit()) {
 				io_qid_map_.at(io.index()) = qid_io_map_.size();
@@ -76,9 +85,17 @@ public:
 		return is_partial_;
 	}
 
+	/*! \brief Returns the virtual qubit in which the io is mapped. */
+	uint32_t virtual_qubit(io_id io) const 
+	{
+		assert(io.is_qubit());
+		return io_qid_map_.at(io);
+	}
+
 	/*! \brief Set virtual mapping (virtual qubit -> physical qubit). */
 	void set_virtual_phy_map(std::vector<uint32_t> const& map)
 	{
+		assert(map.size() == v_phy_qid_map_.size());
 		if (this->num_gates() == 0) {
 			init_v_phy_qid_map_ = map;
 		}
@@ -88,6 +105,18 @@ public:
 	std::vector<uint32_t> init_virtual_phy_map() const
 	{
 		return init_v_phy_qid_map_;
+	}
+
+	std::vector<uint32_t> virtual_phy_map() const 
+	{
+		return v_phy_qid_map_;
+	}
+
+	/*! \brief Returns the physical qubit in which the virtual qubit `qubit` is mapped. */
+	uint32_t virtual_phy_map(io_id qubit) const 
+	{
+		assert(qubit.is_qubit());
+		return v_phy_qid_map_.at(io_qid_map_.at(qubit));
 	}
 
 	/*! \brief Set physical mapping (physical qubit -> virtual qubit). */
