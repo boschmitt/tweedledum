@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -50,7 +49,7 @@ template<class Network>
 void add_single_qubit_unitary(Network& net, io_id const& target, single_qubit_unitary const& mat)
 {
 	const auto [theta, phi, lambda] = zyz_decomposition(mat);
-	net.add_gate(gate_base(gate_set::u3, theta, phi, lambda), target);
+	net.add_gate(gate_base(gate_lib::u3, theta, phi, lambda), target);
 }
 
 } // namespace tweedledum
