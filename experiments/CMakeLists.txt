@@ -1,7 +1,5 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt
 add_compile_options(
-  -fno-rtti
   -W
   -Wall
   -pedantic)

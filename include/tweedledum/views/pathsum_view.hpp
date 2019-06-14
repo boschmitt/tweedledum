@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -24,20 +23,13 @@ namespace tweedledum {
  *
  * It implements the network interface methods `get_pathsum`.  The pathsums are computed at
  * construction. The network must be on basis {CX, Rz, H}
- *
- * **Required gate functions:**
- *
- * **Required network functions:**
- * - `foreach_gate`
- * - `foreach_input`
- * - `foreach_output`
  */
 template<typename Network>
 class pathsum_view : public immutable_view<Network> {
 public:
 	using gate_type = typename Network::gate_type;
 	using node_type = typename Network::node_type;
-	using node_ptr_type = typename Network::node_ptr_type;
+	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
 	using esop_type = std::set<uint32_t>;
@@ -125,7 +117,7 @@ private:
 				node_to_pathsum_[node] = map_element;
 				map_element->second.push_back(node_index);
 			}
-			if (node.gate.is(gate_set::pauli_x) && !ignore_single_qubit_) {
+			if (node.gate.is(gate_lib::pauli_x) && !ignore_single_qubit_) {
 				auto target_qid = node.gate.target();
 				auto search_it = qubit_state_[target_qid].find(1);
 				if (search_it != qubit_state_[target_qid].end()) {
@@ -135,7 +127,7 @@ private:
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
 			}
-			if (node.gate.is(gate_set::cx)) {
+			if (node.gate.is(gate_lib::cx)) {
 				auto target_qid = node.gate.target();
 				auto control_qid = node.gate.control();
 				for (auto term : qubit_state_[control_qid]) {
@@ -148,7 +140,7 @@ private:
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
 			}
-			if (node.gate.is(gate_set::swap)) {
+			if (node.gate.is(gate_lib::swap)) {
 				std::array<io_id, 2> targets = {io_invalid, io_invalid};
 				uint32_t i = 0;
 				node.gate.foreach_target([&](auto qid) {
@@ -157,7 +149,7 @@ private:
 				std::swap(qubit_state_[targets[0]], qubit_state_[targets[1]]);
 			}
 			// In case of hadamard gate a new path variable
-			if (node.gate.is(gate_set::hadamard) && !ignore_single_qubit_) {
+			if (node.gate.is(gate_lib::hadamard) && !ignore_single_qubit_) {
 				auto qid = node.gate.target();
 				qubit_state_[qid].clear();
 				qubit_state_[qid].emplace((num_path_vars_++ << 1));

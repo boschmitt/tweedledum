@@ -20,7 +20,7 @@ Welcome to tweedledum's documentation!
    :caption: Core Componetns
 
    core/architecture
-   core/gate_set
+   core/gate_lib
    core/gate
    core/network
    core/implementations

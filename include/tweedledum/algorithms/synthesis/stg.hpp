@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken, Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -174,7 +173,7 @@ struct stg_from_spectrum {
 		kitty::create_nth_var(xt, num_controls);
 		gate_function &= xt;
 
-		parity_terms parities;
+		parity_terms<uint32_t> parities;
 		// An angle type create like this is implicitly multiplied by pi
 		const angle nom(1, (1 << gate_function.num_vars()));
 		const auto spectrum = kitty::rademacher_walsh_spectrum(gate_function);

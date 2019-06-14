@@ -92,7 +92,7 @@ and gate type. The combination of those two elements is what defines a circuit
 in tweedledum. 
 
 To keep this tutorial simple, we shall use the combination ``netlist`` and
-``mcmt_gate``. Let’s instantiate an empty circuit.
+``io3_gate``. Let’s instantiate an empty circuit.
 
 .. code-block:: c++
 
@@ -101,7 +101,7 @@ To keep this tutorial simple, we shall use the combination ``netlist`` and
   int main(int argc, char** argv)
   {
       using namespace tweedledum;
-      netlist<mcst_gate> network;
+      netlist<io3_gate> network;
   }
 
 After you create the circuit, it is necessary to add qubits to it.
@@ -121,12 +121,12 @@ find more gates and circuits;
 
 .. code-block:: c++
 
-	network.add_gate(gate_set::pauli_x, "x3");
-	network.add_gate(gate_set::pauli_x, "F");
-	network.add_gate(gate_set::hadamard, q1);
-	network.add_gate(gate_set::hadamard, q2);
-	network.add_gate(gate_set::hadamard, q3);
-	network.add_gate(gate_set::hadamard, qf);
+	network.add_gate(gate::pauli_x, "x3");
+	network.add_gate(gate::pauli_x, "F");
+	network.add_gate(gate::hadamard, q1);
+	network.add_gate(gate::hadamard, q2);
+	network.add_gate(gate::hadamard, q3);
+	network.add_gate(gate::hadamard, qf);
 
 Synthesizing the Oracle
 -----------------------

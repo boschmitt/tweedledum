@@ -1,0 +1,38 @@
+/*-------------------------------------------------------------------------------------------------
+| This file is distributed under the MIT License.
+| See accompanying file /LICENSE for details.
+*------------------------------------------------------------------------------------------------*/
+#ifndef ASTNODE
+#define ASTNODE(X)
+#endif
+
+// Nodes
+ASTNODE(program)
+
+// Classical Addresses and Qubits
+ASTNODE(qubit)
+ASTNODE(cbit)
+ASTNODE(segment)
+
+// Declarations
+ASTNODE(decl_argument)
+ASTNODE(decl_gate)
+ASTNODE(decl_memory)
+ASTNODE(decl_parameter)
+ASTNODE(matrix)
+ASTNODE(matrix_row)
+ASTNODE(decl_circuit)
+
+// Statements
+ASTNODE(stmt_gate)
+ASTNODE(stmt_measure)
+ASTNODE(stmt_decl_reference)
+
+// Expressions
+ASTNODE(expr_binary_op)
+ASTNODE(expr_unary_op)
+ASTNODE(expr_sign)
+ASTNODE(expr_real)
+ASTNODE(expr_integer)
+
+#undef ASTNODE

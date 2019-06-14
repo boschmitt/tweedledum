@@ -11,7 +11,6 @@ source distribution. You will include following header within each source file t
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Your Name
 *------------------------------------------------------------------------------------------------*/
 ```
 ## I just have a question!!!

@@ -1,11 +1,10 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/gates/gate_base.hpp>
-#include <tweedledum/gates/gate_set.hpp>
+#include <tweedledum/gates/gate_lib.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>

@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken, Bruno Schmitt
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -20,21 +19,17 @@ namespace tweedledum {
  * This container helps to store values associated to nodes in a network.  The
  * container is initialized with a network to derive the size according to the
  * number of nodes. The container can be accessed via nodes, or indirectly
- * via node_ptr, from which the corresponding node is derived.
+ * via `link_type`, from which the corresponding node is derived.
  *
  * The implementation uses a vector as underlying data_ structure which is
  * indexed by the node's index.
  *
- * **Required network functions:**
- * - `size`
- * - `get_node`
- * - `node_to_index`
  */
 template<class T, class Network>
 class node_map {
 public:
 	using node_type = typename Network::node_type;
-	using node_ptr_type = typename Network::node_ptr_type;
+	using link_type = typename Network::link_type;
 	using reference = typename std::vector<T>::reference;
 	using const_reference = typename std::vector<T>::const_reference;
 
@@ -57,41 +52,41 @@ public:
 	/*! \brief Mutable access to value by node. */
 	reference operator[](node_type const& node)
 	{
-		assert(network_.node_to_index(node) < data_->size() && "index out of bounds");
-		return (*data_)[network_.node_to_index(node)];
+		assert(network_.index(node) < data_->size() && "index out of bounds");
+		return (*data_)[network_.index(node)];
 	}
 
 	/*! \brief Constant access to value by node. */
 	const_reference operator[](node_type const& node) const
 	{
-		assert(network_.node_to_index(node) < data_->size() && "index out of bounds");
-		return (*data_)[network_.node_to_index(node)];
+		assert(network_.index(node) < data_->size() && "index out of bounds");
+		return (*data_)[network_.index(node)];
 	}
 
-	/*! \brief Mutable access to value by node_ptr.
+	/*! \brief Mutable access to value by `link_type`.
 	 *
-	 * This method derives the node from the node_ptr.  If the node and node_ptr type
+	 * This method derives the node from the `link_type`.  If the node and `link_type` type
 	 * are the same in the network implementation, this method is disabled.
 	 */
 	template<typename _Ntk = Network,
-	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::node_ptr_type,
+	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::link_type,
 		                                             typename _Ntk::node_type>>>
-	reference operator[](node_ptr_type const& f)
+	reference operator[](link_type const& f)
 	{
 		assert(network_.node_to_index(network_.get_node(f)) < data_->size()
 		       && "index out of bounds");
 		return (*data_)[network_.node_to_index(network_.get_node(f))];
 	}
 
-	/*! \brief Constant access to value by node_ptr.
+	/*! \brief Constant access to value by `link_type`.
 	 *
-	 * This method derives the node from the node_ptr.  If the node and node_ptr type
+	 * This method derives the node from the `link_type`.  If the node and `link_type` type
 	 * are the same in the network implementation, this method is disabled.
 	 */
 	template<typename _Ntk = Network,
-	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::node_ptr_type,
+	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::link_type,
 		                                             typename _Ntk::node_type>>>
-	const_reference operator[](node_ptr_type const& f) const
+	const_reference operator[](link_type const& f) const
 	{
 		assert(network_.node_to_index(network_.get_node(f)) < data_->size()
 		       && "index out of bounds");

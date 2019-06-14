@@ -1,7 +1,6 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -60,7 +59,7 @@ void diagonal_synth(Circuit& circ, std::vector<io_id> const& qubits,
 	detail::fast_hadamard_transform(s);
 
 	const double factor = 1 << (qubits.size() - 1);
-	parity_terms parities;
+	parity_terms<uint32_t> parities;
 	for (uint32_t i = 1u; i < s.size(); ++i) {
 		if (s[i] == 0.0)
 			continue;
@@ -104,7 +103,7 @@ Circuit diagonal_synth(std::vector<double> const& angles)
 	for (auto i = 0u; i < num_qubits; ++i) {
 		circ.add_qubit();
 	}
-	diagonal_synth(circ, circ.rewire_map(), angles);
+	diagonal_synth(circ, circ.wiring_map(), angles);
 	return circ;
 }
 

@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #include "../utils/device.hpp"
 
@@ -56,8 +55,8 @@ inline device read_device(std::istream& in = std::cin)
 	std::string line;
 	std::getline(in, line);
 
-	const auto num_vertices = std::stoll(line);
-	device arch(num_vertices);
+	const auto num_nodes = std::stoll(line);
+	device arch(num_nodes);
 	while (std::getline(in, line)) {
 		left_trim(line);
 		if (line.empty()) {
@@ -74,9 +73,9 @@ inline device read_device(std::istream& in = std::cin)
 /*! \brief Parse a device coupling graph from a file
  *
  * The file format is rather simple: the first line has one unsigned integer n which gives the
- * number of vertices. Vertices are identified by numbers between 0 and (n - 1). All subsequent
- * lines are pairs of unsigned integers (vertices identifiers) representing undirected edges
- * between vertices.
+ * number of nodes. Nodes are identified by numbers between 0 and (n - 1). All subsequent
+ * lines are pairs of unsigned integers (nodes identifiers) representing undirected edges
+ * between nodes.
  * 
  * \param filename Filename string
  * \returns A device

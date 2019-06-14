@@ -1,5 +1,4 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt
 # CMake build : tweedledum library tests
 add_compile_options(
   -fno-rtti
@@ -18,6 +17,8 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/barenco.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/dt.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/zdd_map.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/gate_cancellation.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/phase_folding.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/dbs.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/diagonal_synth.cpp"
@@ -26,7 +27,9 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/linear_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/stg.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/tbs.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/identify_rz.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/gates/gates.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/io/dotqc.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/qasm.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/write_projectq.cpp"
@@ -34,6 +37,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/networks.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/io_id.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/utils/angle.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/views/layers_view.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/views/pathsum_view.cpp"
   )
 

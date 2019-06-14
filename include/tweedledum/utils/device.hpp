@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -27,10 +26,10 @@ struct device {
 	std::vector<edge_type> edges;
 
 	/*! \brief Number of qubits. */
-	uint32_t num_vertices;
+	uint32_t num_nodes;
 
 	device(uint32_t num_qubits = 0)
-	    : num_vertices(num_qubits)
+	    : num_nodes(num_qubits)
 	{}
 
 	/*! \brief Create a device for a path topology.
@@ -118,14 +117,14 @@ struct device {
 	}
 
 
-	/*! \brief Add an edge between two vertices
+	/*! \brief Add an edge between two nodes
 	 *
 	 * \param v Vertice identifier
 	 * \param w Vertice identifier
 	 */
 	void add_edge(uint32_t v, uint32_t w)
 	{
-		assert(v <= num_vertices && w <= num_vertices);
+		assert(v <= num_nodes && w <= num_nodes);
 		edge_type edge = {std::min(v, w), std::max(w, v)};
 		if (std::find(edges.begin(), edges.end(), edge) == edges.end()) {
 			edges.emplace_back(edge);
@@ -135,7 +134,7 @@ struct device {
 	/*! \brief Returns adjacency matrix of coupling graph. */
 	bit_matrix_rm<> get_coupling_matrix() const
 	{
-		bit_matrix_rm<> matrix(num_vertices, num_vertices);
+		bit_matrix_rm<> matrix(num_nodes, num_nodes);
 
 		for (auto const& [v, w] : edges) {
 			matrix.at(v, w) = true;
@@ -147,17 +146,17 @@ struct device {
 	/*! \brief Returns distance matrix of coupling graph. */
 	std::vector<std::vector<uint32_t>> get_distance_matrix() const
 	{
-		std::vector<std::vector<uint32_t>> matrix(num_vertices, std::vector<uint32_t>(num_vertices, num_vertices + 1));
+		std::vector<std::vector<uint32_t>> matrix(num_nodes, std::vector<uint32_t>(num_nodes, num_nodes + 1));
 		for (auto const& [v, w] : edges) {
 			matrix[v][w] = 1;
 			matrix[w][v] = 1;
 		}
-		for (auto v = 0u; v < num_vertices; ++v) {
+		for (auto v = 0u; v < num_nodes; ++v) {
 			matrix[v][v] = 0;
 		}
-		for (auto k = 0u; k < num_vertices; ++k) {
-			for (auto i = 0u; i < num_vertices; ++i) {
-				for (auto j = 0u; j < num_vertices; ++j) {
+		for (auto k = 0u; k < num_nodes; ++k) {
+			for (auto i = 0u; i < num_nodes; ++i) {
+				for (auto j = 0u; j < num_nodes; ++j) {
 					if (matrix[i][j] > matrix[i][k] + matrix[k][j]) {
 						matrix[i][j] = matrix[i][k] + matrix[k][j];
 					}

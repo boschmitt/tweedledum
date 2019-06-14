@@ -1,11 +1,10 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/gates/gate_base.hpp>
-#include <tweedledum/gates/gate_set.hpp>
+#include <tweedledum/gates/gate_lib.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/io_id.hpp>
@@ -20,7 +19,7 @@ TEMPLATE_TEST_CASE("Common functionality for all gate kinds", "[gates][template]
 
 	SECTION("Create a hadamard gate") {
 		TestType gate(gate::hadamard, q0);
-		CHECK(gate.operation() == gate_set::hadamard);
+		CHECK(gate.operation() == gate_lib::hadamard);
 		CHECK(gate.num_controls() == 0u);
 		CHECK(gate.num_targets() == 1u);
 		CHECK(gate.control() == io_invalid);
@@ -28,7 +27,7 @@ TEMPLATE_TEST_CASE("Common functionality for all gate kinds", "[gates][template]
 	}
 	SECTION("Create controlled gate") {
 		TestType gate(gate::cx, q0, q1);
-		CHECK(gate.operation() == gate_set::cx);
+		CHECK(gate.operation() == gate_lib::cx);
 		CHECK(gate.num_controls() == 1u);
 		CHECK(gate.num_targets() == 1u);
 		CHECK(gate.control() == q0);
@@ -38,7 +37,7 @@ TEMPLATE_TEST_CASE("Common functionality for all gate kinds", "[gates][template]
 		std::vector<io_id> controls = {q0};
 		std::vector<io_id> targets = {q1};
 		TestType gate(gate::cx, controls, targets);
-		CHECK(gate.operation() == gate_set::cx);
+		CHECK(gate.operation() == gate_lib::cx);
 		CHECK(gate.num_controls() == 1u);
 		CHECK(gate.num_targets() == 1u);
 		CHECK(gate.control() == q0);
@@ -48,7 +47,7 @@ TEMPLATE_TEST_CASE("Common functionality for all gate kinds", "[gates][template]
 		std::vector<io_id> controls = {q0, q1};
 		std::vector<io_id> targets = {q2};
 		TestType gate(gate::mcx, controls, targets);
-		CHECK(gate.operation() == gate_set::mcx);
+		CHECK(gate.operation() == gate_lib::mcx);
 		CHECK(gate.num_controls() == 2u);
 		CHECK(gate.num_targets() == 1u);
 		CHECK(gate.control() == io_invalid);

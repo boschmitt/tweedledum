@@ -1,13 +1,12 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #include <catch.hpp>
 #include <tweedledum/algorithms/simulation/simulate_classically.hpp>
 #include <tweedledum/algorithms/synthesis/dbs.hpp>
 #include <tweedledum/algorithms/synthesis/stg.hpp>
-#include <tweedledum/gates/gate_set.hpp>
+#include <tweedledum/gates/gate_lib.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/netlist.hpp>

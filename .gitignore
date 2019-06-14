@@ -10,4 +10,5 @@ docs/.venv
 docs/_build
 docs/doxyxml
 examples/*
+!examples/CMakeLists.txt
 experiments/*/

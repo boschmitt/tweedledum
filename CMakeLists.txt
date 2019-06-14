@@ -1,5 +1,4 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-# Author(s): Bruno Schmitt
 # CMake build : tweedledum library
 cmake_minimum_required(VERSION 3.8)
 project(tweedledum LANGUAGES CXX)
@@ -35,7 +34,7 @@ add_subdirectory(libs)
 # =============================================================================
 add_library(tweedledum INTERFACE)
 target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum INTERFACE easy fmt glucose kitty)
+target_link_libraries(tweedledum INTERFACE easy fmt glucose kitty rang tweedledee)
 if(TWEEDLEDUM_BLAS)
   target_link_libraries(tweedledum INTERFACE xtensor-blas)
 endif()

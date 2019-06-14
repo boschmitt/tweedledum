@@ -1,11 +1,10 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Mathias Soeken, Kate Smith
 *------------------------------------------------------------------------------------------------*/
 #include "tweedledum/algorithms/mapping/zdd_map.hpp"
 
-#include "tweedledum/gates/gate_set.hpp"
+#include "tweedledum/gates/gate_lib.hpp"
 #include "tweedledum/gates/io3_gate.hpp"
 #include "tweedledum/gates/mcmt_gate.hpp"
 #include "tweedledum/io/write_unicode.hpp"

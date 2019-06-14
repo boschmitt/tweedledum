@@ -1,236 +1,25 @@
 /*--------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt, Mathias Soeken
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
+#include "../../gates/gate_lib.hpp"
 #include "../../networks/io_id.hpp"
 #include "../generic/rewrite.hpp"
+#include "gates/database.hpp"
 
 #include <array>
 #include <iostream>
 #include <vector>
 
 namespace tweedledum {
-namespace detail {
 
-template<typename Network>
-void ccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
-{
-	const auto target = targets[0];
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
-	network.add_gate(gate::hadamard, target);
-
-	network.add_gate(gate::cx, controls[1].id(), target);
-	network.add_gate(controls[0].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].id(), target);
-	network.add_gate(gate::t, target);
-	network.add_gate(gate::cx, controls[1].id(), target);
-	network.add_gate(controls[1].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].id(), target);
-	network.add_gate(controls[0].is_complemented() && !controls[1].is_complemented()? gate::t_dagger : gate::t, target);
-	
-	network.add_gate(gate::cx, controls[0].id(), controls[1]);
-	network.add_gate(gate::t_dagger, controls[1]);
-	network.add_gate(gate::cx, controls[0].id(), controls[1]);
-	network.add_gate(controls[1].is_complemented() ? gate::t_dagger : gate::t, controls[0]);
-	network.add_gate(controls[0].is_complemented() ? gate::t_dagger : gate::t, controls[1]);
-
-	network.add_gate(gate::hadamard, target);
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
-}
-
-template<typename Network>
-void cccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
-{
-	const auto a = controls[0];
-	const auto b = controls[1];
-	const auto c = controls[2];
-	const auto target = targets[0];
-
-	// Find helper qubit
-	auto helper = network.foreach_qubit([&](io_id qid) -> bool {
-		if (qid == a || qid == b || qid == c) {
-			return true;
-		}
-		for (auto t : targets) {
-			if (qid == t) {
-				return true;
-			}
-		}
-		// will return the current qid
-		return false;
-	});
-	assert(helper != io_invalid);
-
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
-
-	// R1-TOF(a, b, helper)
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-
-	// S-R2-TOF(c, helper, target)
-	network.add_gate(gate::hadamard, target);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t, helper);
-
-	// R1-TOF^-1(a, b, helper)
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-
-	// S-R2-TOF^-1(c, helper, target)
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::hadamard, target);
-
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
-}
-
-template<typename Network>
-void ccccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
-{
-	const auto a = controls[0];
-	const auto b = controls[1];
-	const auto c = controls[2];
-	const auto d = controls[3];
-	const auto target = targets[0];
-
-	// Find helper qubit
-	auto helper = network.foreach_qubit([&](io_id qid) -> bool {
-		if (qid == a || qid == b || qid == c || qid == d) {
-			return true;
-		}
-		for (auto t : targets) {
-			if (qid == t) {
-				return true;
-			}
-		}
-		// will return the current qid
-		return false;
-	});
-	assert(helper != io_invalid);
-
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
-
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::hadamard, target);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::hadamard, target);
-
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
-}
-
-template<typename Network>
-void ccz(Network& network, std::array<io_id, 2> const& controls, io_id target)
-{
-	network.add_gate(gate::cx, controls[1].id(), target);
-	network.add_gate(controls[0].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].id(), target);
-	network.add_gate(gate::t, target);
-	network.add_gate(gate::cx, controls[1].id(), target);
-	network.add_gate(controls[1].is_complemented() ? gate::t : gate::t_dagger, target);
-	network.add_gate(gate::cx, controls[0].id(), target);
-	network.add_gate(controls[0].is_complemented() && !controls[1].is_complemented()? gate::t_dagger : gate::t, target);
-	
-	network.add_gate(gate::cx, controls[0].id(), controls[1]);
-	network.add_gate(gate::t_dagger, controls[1]);
-	network.add_gate(gate::cx, controls[0].id(), controls[1]);
-	network.add_gate(controls[1].is_complemented() ? gate::t_dagger : gate::t, controls[0]);
-	network.add_gate(controls[0].is_complemented() ? gate::t_dagger : gate::t, controls[1]);
-}
-
-} // namespace detail
+/*! \brief Parameters for `barenco_decomposition`. */
+struct dt_params {
+	bool use_t_par = false;
+};
 
 /*! \brief Direct Toffoli (DT) decomposition
  *
@@ -245,27 +34,15 @@ void ccz(Network& network, std::array<io_id, 2> const& controls, io_id target)
 
    \endverbatim
  * 
- * **Required gate functions:**
- * - `foreach_control`
- * - `foreach_target`
- * - `num_controls`
- *
- * **Required network functions:**
- * - `add_gate`
- * - `foreach_qubit`
- * - `foreach_gate`
- * - `rewire`
- * - `rewire_map`
- * 
  * \algtype decomposition
  * \algexpects A network
  * \algreturns A network
  */
 template<typename Network>
-Network dt_decomposition(Network const& src)
+Network dt_decomposition(Network const& network, dt_params params = {})
 {
-	auto gate_rewriter = [](auto& dest, auto const& gate) {
-		if (gate.is(gate_set::mcx)) {
+	auto gate_rewriter = [&](auto& dest, auto const& gate) {
+		if (gate.is(gate_lib::mcx)) {
 			std::array<io_id, 4> controls = {io_invalid, io_invalid, io_invalid, io_invalid};
 			auto* p = controls.data();
 			std::vector<io_id> targets;
@@ -300,7 +77,13 @@ Network dt_decomposition(Network const& src)
 				if (!controls[0].is_complemented() && controls[1].is_complemented()) {
 					std::swap(controls[0], controls[1]);
 				}
-				detail::ccx(dest, controls, targets);
+				for (auto i = 1u; i < targets.size(); ++i) {
+					dest.add_gate(gate::cx, targets[0], targets[i]);
+				}
+				detail::ccx(dest, controls[0], controls[1], targets[0], params.use_t_par);
+				for (auto i = 1u; i < targets.size(); ++i) {
+					dest.add_gate(gate::cx, targets[0], targets[i]);
+				}
 				break;
 
 			case 3u:
@@ -337,7 +120,7 @@ Network dt_decomposition(Network const& src)
 				break;
 			}
 			return true;
-		} else if (gate.is(gate_set::mcz)) {
+		} else if (gate.is(gate_lib::mcz)) {
 			if (gate.num_controls() == 2) {
 				std::array<io_id, 2> controls = {io_invalid, io_invalid};
 				auto* p = controls.data();
@@ -350,25 +133,23 @@ Network dt_decomposition(Network const& src)
 				if (!controls[0].is_complemented() && controls[1].is_complemented()) {
 					std::swap(controls[0], controls[1]);
 				}
-				detail::ccz(dest, controls, targets[0]);
+				detail::ccz(dest, controls[0], controls[1], targets[0], params.use_t_par);
 				return true;
 			}
 		}
 		return false;
 	};
 
-	auto num_ancillae = 0u;
-	src.foreach_gate([&](auto const& node) {
-		if (node.gate.is(gate_set::mcx) && node.gate.num_controls() > 2
-		    && node.gate.num_controls() + 1 == src.num_qubits()) {
+	uint32_t num_ancillae = 0u;
+	network.foreach_gate([&](auto const& node) {
+		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
+		    && node.gate.num_controls() + 1 == network.num_qubits()) {
 			num_ancillae = 1u;
 			return false;
 		}
 		return true;
 	});
-	Network dest;
-	rewrite_network(dest, src, gate_rewriter, num_ancillae);
-	return dest;
+	return rewrite_network(network, gate_rewriter, num_ancillae);
 }
 
 } // namespace tweedledum

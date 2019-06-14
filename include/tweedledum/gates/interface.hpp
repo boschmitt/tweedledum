@@ -1,7 +1,6 @@
 /*-------------------------------------------------------------------------------------------------
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
-| Author(s): Bruno Schmitt
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
@@ -35,7 +34,7 @@ public:
 	/*! \brief Construct a gate using vectors
 	 *
 	 * \param unitary_op the operation (must be unitary operation).
-	 * \param control qubit(s) identifier of the control(s).
+	 * \param controls qubit(s) identifier of the control(s).
 	 * \param targets qubit identifier of the target.
 	 */
 	gate(gate_base const& unitary_op, std::vector<io_id> const& controls,
@@ -72,6 +71,14 @@ public:
 	 * a unique qubit identifier within the circuit.
 	 */
 	uint32_t qubit_slot(io_id qid) const;
+
+	/*! \brief Check whether the this gate is adjoint of ``other`` gate.
+	 *
+	 * The conecept of _gate_ adjointness requires that gate operations to be
+	 * adjoint, and that both gates act on the same qubits in the same way, i.e.,
+	 * same controls and/or same targets.
+	 */
+	bool is_adjoint(gate const& other) const;
 #pragma endregion
 
 #pragma region Iterators
