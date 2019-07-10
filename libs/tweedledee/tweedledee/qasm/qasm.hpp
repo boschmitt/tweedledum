@@ -2,6 +2,8 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
+#pragma once
+
 #include "../base/source_manager.hpp"
 #include "../base/diagnostic.hpp"
 #include "ast/ast.hpp"
