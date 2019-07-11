@@ -135,7 +135,7 @@ private:
 			double f_score = compute_score(network, mapped_network, current_mapping, front_layer_);
 			score = f_score;
 
-			if (use_look_ahead_) {
+			if (!e_layer_.empty() && use_look_ahead_) {
 				double max_decay = std::max(qubits_decay_[swap_q0], qubits_decay_[swap_q1]);
 				double e_score = compute_score(network, mapped_network, current_mapping, e_layer_);
 				f_score = f_score / front_layer_.size();
@@ -179,7 +179,7 @@ private:
 		e_layer_.clear();
 		std::vector<uint32_t> tmp_e_layer = front_layer_;
 		while (!tmp_e_layer.empty()) {
-			std::vector<uint32_t> tmp;
+			std::vector<uint32_t> tmp = {};
 			for (auto node_index : tmp_e_layer) {
 				auto& node = network.get_node(node_index);
 				network.foreach_child(node, [&](auto child_index) {
@@ -193,7 +193,7 @@ private:
 					}
 					e_layer_.emplace_back(child_index);
 				});
-				if (e_layer_.size() == e_set_size_) {
+				if (e_layer_.size() >= e_set_size_) {
 					return;
 				}
 			}
