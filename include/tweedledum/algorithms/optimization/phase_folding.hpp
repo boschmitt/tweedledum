@@ -45,7 +45,8 @@ Network phase_folding(Network const& network, phase_folding_params params = {})
 			return;
 		}
 		result.emplace_gate(node.gate);
-		auto angle = parities.extract_term(pathsums.get_pathsum(node));
+		auto const term = pathsums.get_pathsum(node);
+		auto angle = parities.extract_term(term);
 		if (angle == angles::zero) {
 			return;
 		}
