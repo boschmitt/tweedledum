@@ -22,7 +22,7 @@ namespace tweedledum {
 /*! \brief This view computes the path sums of each node of the network.
  *
  * It implements the network interface methods `get_pathsum`.  The pathsums are computed at
- * construction. The network must be on basis {CX, Rz, H}
+ * construction. The network must be on basis {SWAP, CX, Rx, Rz, H}
  */
 template<typename Network>
 class pathsum_view : public immutable_view<Network> {
@@ -43,6 +43,13 @@ public:
 	    , phy_virtual_map_(network.num_qubits(), 0)
 	    , ignore_single_qubit_(ignore_single_qubit)
 	{
+		// This seems a bit ridiculous
+		// TODO: come up with a better way to check for allowed gates
+		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rotation_x,
+		                              gate_lib::rotation_z, gate_lib::phase,
+		                              gate_lib::phase_dagger, gate_lib::t,
+		                              gate_lib::t_dagger, gate_lib::pauli_z,
+		                              gate_lib::pauli_x, gate_lib::hadamard));
 		std::iota(phy_virtual_map_.begin(), phy_virtual_map_.end(), 0);
 		network.foreach_qubit([&](io_id id) {
 			virtual_id_map_.emplace_back(id);
@@ -66,6 +73,11 @@ public:
 	    , phy_virtual_map_(network.num_qubits(), 0)
 	    , ignore_single_qubit_(ignore_single_qubit)
 	{
+		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rotation_x,
+		                              gate_lib::rotation_z, gate_lib::phase,
+		                              gate_lib::phase_dagger, gate_lib::t,
+		                              gate_lib::t_dagger, gate_lib::pauli_z,
+		                              gate_lib::pauli_x, gate_lib::hadamard));
 		for (uint32_t i = 0; i < virtual_phy_map.size(); ++i) {
 			phy_virtual_map_[virtual_phy_map[i]] = i;
 		}
@@ -116,8 +128,7 @@ private:
 				assert(map_element != pathsum_to_node_.end());
 				node_to_pathsum_[node] = map_element;
 				map_element->second.push_back(node_index);
-			}
-			if (node.gate.is(gate_lib::pauli_x) && !ignore_single_qubit_) {
+			} else if (node.gate.is(gate_lib::pauli_x) && !ignore_single_qubit_) {
 				auto target_qid = node.gate.target();
 				auto search_it = qubit_state_[target_qid].find(1);
 				if (search_it != qubit_state_[target_qid].end()) {
@@ -126,8 +137,7 @@ private:
 					qubit_state_[target_qid].emplace(1);
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
-			}
-			if (node.gate.is(gate_lib::cx)) {
+			} else if (node.gate.is(gate_lib::cx)) {
 				auto target_qid = node.gate.target();
 				auto control_qid = node.gate.control();
 				for (auto term : qubit_state_[control_qid]) {
@@ -139,17 +149,15 @@ private:
 					qubit_state_[target_qid].emplace(term);
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
-			}
-			if (node.gate.is(gate_lib::swap)) {
+			} else if (node.gate.is(gate_lib::swap)) {
 				std::array<io_id, 2> targets = {io_invalid, io_invalid};
 				uint32_t i = 0;
 				node.gate.foreach_target([&](auto qid) {
 					targets[i++] = qid;
 				});
 				std::swap(qubit_state_[targets[0]], qubit_state_[targets[1]]);
-			}
-			// In case of hadamard gate a new path variable
-			if (node.gate.is(gate_lib::hadamard) && !ignore_single_qubit_) {
+			} else if (node.gate.is_one_of(gate_lib::hadamard, gate_lib::rotation_x) && !ignore_single_qubit_) {
+				// In case of hadamard gate a new path variable
 				auto qid = node.gate.target();
 				qubit_state_[qid].clear();
 				qubit_state_[qid].emplace((num_path_vars_++ << 1));

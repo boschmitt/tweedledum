@@ -63,8 +63,9 @@ public:
 	{
 		auto search = term_to_angle_.find(term);
 		if (search != term_to_angle_.end()) {
+			angle const result = search->second; 
 			term_to_angle_.erase(search);
-			return search->second;
+			return result;
 		} else {
 			return angles::zero;
 		}

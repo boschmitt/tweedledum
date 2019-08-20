@@ -26,11 +26,13 @@ public:
 	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
-	explicit layers_view(Network& network)
+	explicit layers_view(Network const& network)
 	    : immutable_view<Network>(network)
 	    , node_layer_(network)
 	{
-		update();
+		if (this->num_io()) {
+			update();
+		}
 	}
 
 	// NOTE: the depth of a quantum circuit is the number layers with gates.
@@ -75,34 +77,29 @@ private:
 		this->clear_values();
 	}
 
-	uint32_t compute_layers(node_type const& node)
-	{
-		if (this->value(node)) {
-			return node_layer_[node];
-		}
-
-		if (node.gate.is_one_of(gate_lib::input)) {
-			layer_nodes_.at(0).push_back(this->index(node));
-			return node_layer_[node] = 0u;
-		}
-
-		uint32_t level = 0u;
-		this->foreach_child(node, [&](auto child_index) {
-			level = std::max(level, compute_layers(this->get_node(child_index)));
-		});
-		level += 1;
-		if (level == layer_nodes_.size()) { 
-			layer_nodes_.emplace_back();
-		}
-		layer_nodes_.at(level).push_back(this->index(node));
-		this->set_value(node, 1u);
-		return node_layer_[node] = level;
-	}
-
 	void compute_layers()
 	{
+		this->foreach_input([&](auto const& node) {
+			layer_nodes_.at(0).push_back(this->index(node));
+			node_layer_[node] = 0u;
+		});
+		this->foreach_gate([&](auto const& node, auto node_index) {
+			uint32_t layer = 0u;
+			this->foreach_child(node, [&](auto child_index) {
+				auto& child = this->get_node(child_index);
+				layer = std::max(layer, node_layer_[child]);
+			});
+			layer += 1;
+			if (layer == layer_nodes_.size()) {
+				layer_nodes_.emplace_back();
+			}
+			node_layer_[node] = layer;
+			layer_nodes_.at(layer).push_back(node_index);
+		});
+		layer_nodes_.emplace_back();
 		this->foreach_output([&](auto const& node) {
-			compute_layers(node);
+			layer_nodes_.back().push_back(this->index(node));
+			node_layer_[node] = layer_nodes_.size() - 1;
 		});
 	}
 

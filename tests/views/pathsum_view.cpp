@@ -20,9 +20,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple pathsum view", "[pathsum_view][template]",
 	const auto d = network.add_qubit();
 
 	network.add_gate(gate::hadamard, a);
-	network.add_gate(gate::cz, a, b);
-	network.add_gate(gate::cz, b, c);
-	network.add_gate(gate::cz, b, d);
+	network.add_gate(gate::cx, a, b);
+	network.add_gate(gate::cx, b, c);
+	network.add_gate(gate::cx, b, d);
 	network.add_gate(gate::hadamard, d);
 
 	pathsum_view sums(network);

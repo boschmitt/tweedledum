@@ -47,7 +47,6 @@ public:
 			}
 			++pairs_[triangle_to_vector_idx(control, target)];
 		});
-		std::cout << fmt::format("Number of clauses: {}\n", cnf_builder_.num_clauses());
 	}
 
 	std::vector<uint32_t> decode(std::vector<sat::lbool_type> const& model)
@@ -168,10 +167,8 @@ std::vector<uint32_t> map_without_swaps(Network const& network, device const& de
 
 	sat::result result = solver.solve();
 	if (result) {
-		std::cout << fmt::format("Found mapping!\n");
 		return encoder.decode(result.model());
 	}
-	std::cout << fmt::format("Impossible to map without SWAPS\n");
 	return {};
 }
 

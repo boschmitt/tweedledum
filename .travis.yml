@@ -3,7 +3,7 @@ language: cpp
 script:
   - mkdir build
   - cd build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DTWEEDLEDUM_TESTS=ON ..
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER -DTWEEDLEDUM_TESTS=ON -DTWEEDLEDUM_BLAS=ON ..
   - make run_tests
   - ./tests/run_tests
 
@@ -19,6 +19,8 @@ matrix:
           - ubuntu-toolchain-r-test
         packages:
           - g++-7
+          - libblas-dev
+          - liblapack-dev
     env: COMPILER=g++-7
   - os: linux
     dist: trusty
@@ -30,6 +32,8 @@ matrix:
           - ubuntu-toolchain-r-test
         packages:
           - g++-8
+          - libblas-dev
+          - liblapack-dev
     env: COMPILER=g++-8
   - os: linux
     dist: trusty
@@ -43,6 +47,8 @@ matrix:
         packages:
           - clang-6.0
           - g++-7
+          - libblas-dev
+          - liblapack-dev
     env: COMPILER=clang++-6.0
   - os: osx
     osx_image: xcode10.2

@@ -101,6 +101,28 @@ public:
 	{
 		return storage_->gate_set;
 	}
+
+private:
+	template<typename... OPs>
+	uint32_t unpack_allowed_gates(gate_lib op) const
+	{
+		const uint32_t pos = static_cast<uint32_t>(op);
+		return (1 << pos);
+	}
+
+	template<typename... OPs>
+	uint32_t unpack_allowed_gates(gate_lib op0, OPs... opN) const
+	{
+		return unpack_allowed_gates(op0) | unpack_allowed_gates(opN...);
+	}
+
+public:
+	template<typename... OPs>
+	bool check_gate_set(OPs... opN) const
+	{
+		uint32_t allowed = unpack_allowed_gates(opN...);
+		return (storage_->gate_set & ~allowed) == 0;
+	}
 #pragma endregion
 
 #pragma region Structural properties
