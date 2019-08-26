@@ -9,8 +9,6 @@
 #include "ast_node_kinds.hpp"
 
 // Nodes
-#include "nodes/expr_argument.hpp"
-#include "nodes/expr_decl_ref.hpp"
 #include "nodes/decl_gate.hpp"
 #include "nodes/decl_param.hpp"
 #include "nodes/decl_register.hpp"
@@ -27,7 +25,9 @@
 #include "nodes/stmt_unitary.hpp"
 
 // Expression
+#include "nodes/expr_argument.hpp"
 #include "nodes/expr_binary_op.hpp"
+#include "nodes/expr_decl_ref.hpp"
 #include "nodes/expr_integer.hpp"
 #include "nodes/expr_pi.hpp"
 #include "nodes/expr_real.hpp"

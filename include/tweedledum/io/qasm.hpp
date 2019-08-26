@@ -21,11 +21,11 @@
 
 namespace tweedledee::qasm {
 
-template<typename Program>
-class tweedledum_visitor : public visitor_base<tweedledum_visitor<Program>> {
+template<typename Network>
+class tweedledum_visitor : public visitor_base<tweedledum_visitor<Network>> {
 public:
-	explicit tweedledum_visitor(Program& qprogram)
-	    : qprogram_(qprogram)
+	explicit tweedledum_visitor(Network& network)
+	    : network_(network)
 	{}
 
 	/* Containers */
@@ -52,11 +52,26 @@ public:
 		auto gate_id = static_cast<decl_gate*>(node->gate())->identifier();
 		auto arguments_list = visit_list_any(static_cast<list_any*>(node->arguments()));
 		if (gate_id == "cx") {
-			qprogram_.network_.add_gate(gate::cx, arguments_list[0], arguments_list[1]);
+			network_.add_gate(gate::cx, arguments_list[0], arguments_list[1]);
+		} else if (gate_id == "h") {
+			network_.add_gate(gate::hadamard, arguments_list[0]);
+		} else if (gate_id == "x") {
+			network_.add_gate(gate::pauli_x, arguments_list[0]);
+		} else if (gate_id == "y") {
+			network_.add_gate(gate::pauli_y, arguments_list[0]);
 		} else if (gate_id == "t") {
-			qprogram_.network_.add_gate(gate::t, arguments_list[0]);
+			network_.add_gate(gate::t, arguments_list[0]);
+		} else if (gate_id == "s") {
+			network_.add_gate(gate::phase, arguments_list[0]);
+		} else if (gate_id == "z") {
+			network_.add_gate(gate::pauli_z, arguments_list[0]);
+		} else if (gate_id == "sdg") {
+			network_.add_gate(gate::phase_dagger, arguments_list[0]);
 		} else if (gate_id == "tdg") {
-			qprogram_.network_.add_gate(gate::t_dagger, arguments_list[0]);
+			network_.add_gate(gate::t_dagger, arguments_list[0]);
+		} else {
+			fmt::print("Unrecognized gate: {}", gate_id);
+			assert(0);
 		}
 	}
 
@@ -75,17 +90,17 @@ public:
 		std::string_view register_name = node->identifier();
 		if (node->is_quantum()) {
 			for (uint32_t i = 0u; i < node->size(); ++i) {
-				qprogram_.network_.add_qubit(fmt::format("{}_{}", register_name, i));
+				network_.add_qubit(fmt::format("{}_{}", register_name, i));
 			}
 		} else {
 			for (uint32_t i = 0u; i < node->size(); ++i) {
-				qprogram_.network_.add_cbit(fmt::format("{}_{}", register_name, i));
+				network_.add_cbit(fmt::format("{}_{}", register_name, i));
 			}
 		}
 	}
 
 private:
-	Program& qprogram_;
+	Network& network_;
 };
 } // namespace tweedledee::qasm
 
@@ -93,18 +108,20 @@ namespace tweedledum {
 
 /*! \brief Reads OPENQASM 2.0 format
  */
-template<typename Program>
-void read_qasm_from_file(std::string const& path, Program& qprogram)
+template<typename Network>
+Network read_qasm_from_file(std::string const& path)
 {
 	using namespace tweedledee::qasm;
+	Network network;
 	auto program_ast = read_from_file(path);
 	if (program_ast) {
-		ast_printer printer;
-		printer.visit(*program_ast);
+		// ast_printer printer;
+		// printer.visit(*program_ast);
 
-		tweedledum_visitor program_builder(qprogram);
-		program_builder.visit(*program_ast);
+		tweedledum_visitor network_builder(network);
+		network_builder.visit(*program_ast);
 	}
+	return network;
 }
 
 /*! \brief Writes network in OPENQASM 2.0 format into output stream

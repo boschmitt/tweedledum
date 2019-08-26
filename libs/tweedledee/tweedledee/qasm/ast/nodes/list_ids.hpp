@@ -8,9 +8,6 @@
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
-#include <memory>
-#include <string>
-
 namespace tweedledee {
 namespace qasm {
 
