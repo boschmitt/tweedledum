@@ -6,13 +6,31 @@
 
 #include "../gates/gate_lib.hpp"
 #include "../networks/io_id.hpp"
+#include "../utils/angle.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
+#include <tweedledee/quil/ast/visitor.hpp>
+#include <tweedledee/quil/quil.hpp>
 
 namespace tweedledum {
+
+/*! \brief Reads OPENQASM 2.0 format
+ */
+template<typename Network>
+Network read_quil_from_file(std::string const& path)
+{
+	using namespace tweedledee::quil;
+	Network network;
+	auto program_ast = read_from_file(path);
+	if (program_ast) {
+		ast_printer printer;
+		printer.visit(*program_ast);
+	}
+	return network;
+}
 
 /*! \brief Writes network in quil format into output stream
  *

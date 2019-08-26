@@ -11,32 +11,32 @@
 namespace tweedledee {
 namespace quil {
 
-class expr_integer final : public ast_node {
-
+class expr_pi final : public ast_node {
 public:
-	static expr_integer* create(ast_context* ctx, uint32_t location, int32_t value)
+	static expr_pi* create(ast_context* ctx, uint32_t location)
 	{
-		return new (*ctx) expr_integer(location, value);
+		return new (*ctx) expr_pi(location);
 	}
 
-	int32_t evaluate() const
+	double evaluate() const
 	{
-		return value_;
+		return M_PI;
+	}
+
+	double value() const
+	{
+		return M_PI;
 	}
 
 private:
-	expr_integer(uint32_t location, int32_t value)
+	expr_pi(uint32_t location)
 	    : ast_node(location)
-	    , value_(value)
 	{}
 
 	ast_node_kinds do_get_kind() const override
 	{
-		return ast_node_kinds::expr_integer;
+		return ast_node_kinds::expr_pi;
 	}
-
-private:
-	int32_t value_;
 };
 
 } // namespace quil
