@@ -192,9 +192,7 @@ private:
 		auto slot = node.gate.qubit_slot(id);
 
 		assert(output.children[0] != link_type::max);
-		foreach_child(output, [&node, slot](link_type link) {
-			node.children[slot] = link;
-		});
+		node.children[slot] = output.children[0];
 		output.children[0] =  link_type(index);
 		return;
 	}
@@ -206,8 +204,12 @@ public:
 		uint32_t index = storage_->nodes.size();
 		node_type& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
 		storage_->gate_set |= (1 << static_cast<uint32_t>(node.gate.operation()));
-		node.gate.foreach_control([&](io_id id) { connect_vertex(id, index); });
-		node.gate.foreach_target([&](io_id id) { connect_vertex(id, index); });
+		node.gate.foreach_control([&](io_id id) {
+			connect_vertex(id, index); 
+		});
+		node.gate.foreach_target([&](io_id id) {
+			connect_vertex(id, index); 
+		});
 		return node;
 	}
 
