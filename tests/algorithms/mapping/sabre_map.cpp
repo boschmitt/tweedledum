@@ -57,7 +57,6 @@ bool check_map(Network const& orignal, mapping_view<Network> const& mapped)
 }
 
 // Some examples don't use the look-ahead because on them the perfomance while using it is really bad!
-// TODO: investigate!
 TEMPLATE_PRODUCT_TEST_CASE("Test for Sabre mapper", "[sabre_map][template]", (gg_network),
                            (mcmt_gate, io3_gate))
 {
@@ -168,7 +167,6 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for Sabre mapper", "[sabre_map][template]", (gg
 
 		device arch = device::ring(network.num_qubits());
 		sabre_map_params ps;
-		ps.use_look_ahead = false;
 		auto mapped_ntk = sabre_map(network, arch, ps);
 		CHECK(check_map(network, mapped_ntk));
 	}
@@ -189,7 +187,6 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for Sabre mapper", "[sabre_map][template]", (gg
 
 		device arch = device::ring(network.num_qubits());
 		sabre_map_params ps;
-		ps.use_look_ahead = false;
 		auto mapped_ntk = sabre_map(network, arch, ps);
 		CHECK(check_map(network, mapped_ntk));
 	}
@@ -222,7 +219,6 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for Sabre mapper", "[sabre_map][template]", (gg
 
 		device arch = device::path(network.num_qubits());
 		sabre_map_params ps;
-		ps.use_look_ahead = false;
 		auto mapped_ntk = sabre_map(network, arch, ps);
 		CHECK(check_map(network, mapped_ntk));
 	}
