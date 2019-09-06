@@ -18,7 +18,7 @@
 namespace tweedledum {
 
 struct phase_folding_params {
-	bool use_generic_rx = false;
+	bool use_generic_rz = false;
 };
 
 /*! \brief TODO
@@ -31,7 +31,7 @@ Network phase_folding(Network const& network, phase_folding_params params = {})
 	parity_terms<term_type> parities;
 
 	pathsum_view pathsums(network);
-	// Go thought the networ and merge angles of rotations being applied to the same pathsum.
+	// Go through the network and merge angles of rotations being applied to the same pathsum.
 	network.foreach_gate([&](auto const& node) {
 		if (!node.gate.is_z_rotation()) {
 			return;
@@ -45,13 +45,14 @@ Network phase_folding(Network const& network, phase_folding_params params = {})
 			return;
 		}
 		result.emplace_gate(node.gate);
-		auto angle = parities.extract_term(pathsums.get_pathsum(node));
+		auto const term = pathsums.get_pathsum(node);
+		auto angle = parities.extract_term(term);
 		if (angle == angles::zero) {
 			return;
 		}
 		result.add_gate(gate_base(gate_lib::rotation_z, angle), node.gate.target());
 	});
-	if (params.use_generic_rx == false) {
+	if (params.use_generic_rz == false) {
 		result = identify_rz(result);
 	}
 	result.rewire(network.wiring_map());

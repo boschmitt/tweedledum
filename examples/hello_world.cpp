@@ -3,9 +3,7 @@
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
 #include <iostream>
-#include <tweedledum/gates/gate_set.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
-#include <tweedledum/io/write_dot.hpp>
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 
@@ -27,5 +25,4 @@ int main(int argc, char** argv)
 
 	std::cout << "Hello world!\n";
 	write_unicode(network);
-	write_dot(network);
 }

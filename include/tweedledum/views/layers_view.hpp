@@ -77,37 +77,24 @@ private:
 		this->clear_values();
 	}
 
-	uint32_t compute_layers(node_type const& node)
-	{
-		if (this->value(node)) {
-			return node_layer_[node];
-		}
-
-		if (node.gate.is(gate_lib::input)) {
-			layer_nodes_.at(0).push_back(this->index(node));
-			return node_layer_[node] = 0u;
-		}
-
-		uint32_t level = 0u;
-		this->foreach_child(node, [&](auto child_index) {
-			level = std::max(level, compute_layers(this->get_node(child_index)));
-		});
-		level += 1;
-		if (level == layer_nodes_.size()) { 
-			layer_nodes_.emplace_back();
-		}
-		layer_nodes_.at(level).push_back(this->index(node));
-		this->set_value(node, 1u);
-		return node_layer_[node] = level;
-	}
-
 	void compute_layers()
 	{
-		this->foreach_output([&](auto const& node) {
+		this->foreach_input([&](auto const& node) {
+			layer_nodes_.at(0).push_back(this->index(node));
+			node_layer_[node] = 0u;
+		});
+		this->foreach_gate([&](auto const& node, auto node_index) {
+			uint32_t layer = 0u;
 			this->foreach_child(node, [&](auto child_index) {
 				auto& child = this->get_node(child_index);
-				compute_layers(child);
+				layer = std::max(layer, node_layer_[child]);
 			});
+			layer += 1;
+			if (layer == layer_nodes_.size()) {
+				layer_nodes_.emplace_back();
+			}
+			node_layer_[node] = layer;
+			layer_nodes_.at(layer).push_back(node_index);
 		});
 		layer_nodes_.emplace_back();
 		this->foreach_output([&](auto const& node) {
