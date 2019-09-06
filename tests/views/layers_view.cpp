@@ -28,6 +28,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][template]",
 		layers_view layered_ntk(network);
 		CHECK(layered_ntk.depth() == 0u);
 		CHECK(layered_ntk.num_layers() == 2u);
+		CHECK(layered_ntk.layer(0).size() == 3u);
+		CHECK(layered_ntk.layer(1).size() == 3u);
 	}
 	SECTION("One layer of gates")
 	{
@@ -36,6 +38,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][template]",
 		layers_view layered_ntk(network);
 		CHECK(layered_ntk.depth() == 1u);
 		CHECK(layered_ntk.num_layers() == 3u);
+		CHECK(layered_ntk.layer(0).size() == 3u);
+		CHECK(layered_ntk.layer(1).size() == 2u);
+		CHECK(layered_ntk.layer(2).size() == 3u);
 	}
 	SECTION("Two layer of gates")
 	{
@@ -46,5 +51,26 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][template]",
 		layers_view layered_ntk(network);
 		CHECK(layered_ntk.depth() == 2u);
 		CHECK(layered_ntk.num_layers() == 4u);
+		CHECK(layered_ntk.layer(0).size() == 3u);
+		CHECK(layered_ntk.layer(1).size() == 2u);
+		CHECK(layered_ntk.layer(2).size() == 2u);
+		CHECK(layered_ntk.layer(3).size() == 3u);
+	}
+	SECTION("All outputs are in the last layer")
+	{
+		const io_id q3 = network.add_qubit();
+		network.add_gate(gate::cx, q1, q2);
+		network.add_gate(gate::cx, q2, q3);
+		network.add_gate(gate::cx, q0, q3);
+		network.add_gate(gate::hadamard, q3);
+		layers_view layered_ntk(network);
+		CHECK(layered_ntk.depth() == 4u);
+		CHECK(layered_ntk.num_layers() == 6u);
+		CHECK(layered_ntk.layer(0).size() == 4u);
+		CHECK(layered_ntk.layer(1).size() == 1u);
+		CHECK(layered_ntk.layer(2).size() == 1u);
+		CHECK(layered_ntk.layer(3).size() == 1u);
+		CHECK(layered_ntk.layer(4).size() == 1u);
+		CHECK(layered_ntk.layer(5).size() == 4u);
 	}
 }

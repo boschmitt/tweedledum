@@ -16,6 +16,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_tests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/barenco.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/dt.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/sabre_map.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/zdd_map.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/gate_cancellation.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/phase_folding.cpp"

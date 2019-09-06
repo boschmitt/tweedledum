@@ -6,6 +6,7 @@
 
 #include "../gates/gate_base.hpp"
 #include "../gates/gate_lib.hpp"
+#include "../networks/io_id.hpp"
 
 #include <string>
 #include <vector>
