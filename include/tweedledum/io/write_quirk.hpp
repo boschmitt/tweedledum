@@ -153,29 +153,48 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 			gate.foreach_target([&](auto qid) { builder.add_gate("H", qid); });
 			break;
 
-		case gate_lib::pauli_x:
-			gate.foreach_target([&](auto qid) { builder.add_gate("X", qid); });
-			break;
+		case gate_lib::rotation_x: {
+			angle rotation_angle = gate.rotation_angle();
+			if (rotation_angle == angles::pi_quarter) {
+				symbol = "X^%C2%BC";
+			} else if (rotation_angle == -angles::pi_quarter) {
+				symbol = "X^-%C2%BC";
+			} else if (rotation_angle == angles::pi_half) {
+				symbol = "X^%C2%BD";
+			} else if (rotation_angle == -angles::pi_half) {
+				symbol = "X^-%C2%BD";
+			} else if (rotation_angle == angles::pi) {
+				symbol = "X";
+			} else {
+				std::cerr << "[w] unsupported gate type\n";
+				assert(0);
+			}
+			gate.foreach_target([&](auto qid) {
+				builder.add_gate(symbol, qid); 
+			});
+		} break;
 
-		case gate_lib::pauli_z:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Z", qid); });
-			break;
-
-		case gate_lib::phase:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Z^%C2%BD", qid); });
-			break;
-
-		case gate_lib::phase_dagger:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Z^-%C2%BD", qid); });
-			break;
-
-		case gate_lib::t:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Z^%C2%BC", qid); });
-			break;
-
-		case gate_lib::t_dagger:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Z^-%C2%BC", qid); });
-			break;
+		case gate_lib::rotation_z: {
+			angle rotation_angle = gate.rotation_angle();
+			std::string symbol;
+			if (rotation_angle == angles::pi_quarter) {
+				symbol = "Z^%C2%BC";
+			} else if (rotation_angle == -angles::pi_quarter) {
+				symbol = "Z^-%C2%BC";
+			} else if (rotation_angle == angles::pi_half) {
+				symbol = "Z^%C2%BD";
+			} else if (rotation_angle == -angles::pi_half) {
+				symbol = "Z^-%C2%BD";
+			} else if (rotation_angle == angles::pi) {
+				symbol = "Z";
+			} else {
+				std::cerr << "[w] unsupported gate type\n";
+				assert(0);
+			}
+			gate.foreach_target([&](auto qid) {
+				builder.add_gate(symbol, qid); 
+			});
+		} break;
 
 		case gate_lib::cx:
 			gate.foreach_control([&](auto qid_control) {

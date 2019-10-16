@@ -294,18 +294,6 @@ auto to_unicode_str(Network const& network, Builder builder)
 			gate.foreach_target([&](auto qid) { builder.add_gate("H", qid); });
 			break;
 
-		case gate_lib::pauli_x:
-			gate.foreach_target([&](auto qid) { builder.add_gate("X", qid); });
-			break;
-
-		case gate_lib::pauli_y:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Y", qid); });
-			break;
-
-		case gate_lib::pauli_z:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Z", qid); });
-			break;
-
 		case gate_lib::rotation_x:
 			gate.foreach_target([&](auto qid) { builder.add_gate("x", qid); });
 			break;
@@ -316,22 +304,6 @@ auto to_unicode_str(Network const& network, Builder builder)
 
 		case gate_lib::rotation_z:
 			gate.foreach_target([&](auto qid) { builder.add_gate("z", qid); });
-			break;
-
-		case gate_lib::phase:
-			gate.foreach_target([&](auto qid) { builder.add_gate("S", qid); });
-			break;
-
-		case gate_lib::phase_dagger:
-			gate.foreach_target([&](auto qid) { builder.add_gate("Ƨ", qid); });
-			break;
-
-		case gate_lib::t:
-			gate.foreach_target([&](auto qid) { builder.add_gate("T", qid); });
-			break;
-
-		case gate_lib::t_dagger:
-			gate.foreach_target([&](auto qid) { builder.add_gate("┴", qid); });
 			break;
 
 		case gate_lib::swap: {

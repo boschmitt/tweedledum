@@ -90,7 +90,7 @@ public:
 	             std::vector<std::string> const& targets)
 	{
 		switch (gate.operation()) {
-		case gate_lib::pauli_x:
+		case gate_lib::rotation_x:
 			if (controls.size() == 1) {
 				gate = gate::cx;
 			} else if (controls.size() >= 2) {
@@ -98,7 +98,7 @@ public:
 			}
 			break;
 
-		case gate_lib::pauli_z:
+		case gate_lib::rotation_z:
 			if (controls.size() == 1) {
 				gate = gate::cz;
 			} else if (controls.size() >= 2) {
@@ -156,20 +156,42 @@ void write_dotqc(Network const& network, std::ostream& os)
 	});
 	os << fmt::format("\nBEGIN\n\n");
 	network.foreach_gate([&](auto const& node) {
-		switch (node.gate.operation()) {
-		case gate_lib::pauli_x:
-			os << 'X';
-			break;
+		auto const& gate = node.gate;
+		switch (gate.operation()) {
+		case gate_lib::rotation_x: {
+			angle rotation_angle = gate.rotation_angle();
+			if (rotation_angle == angles::pi) {
+				os << "X"; 
+			} else {
+				std::cerr << "[w] unsupported gate type\n";
+				assert(0);
+			}
+		} break;
+
+		case gate_lib::rotation_z: {
+			angle rotation_angle = gate.rotation_angle();
+			std::string symbol;
+			if (rotation_angle == angles::pi_quarter) {
+				os << "T";
+			} else if (rotation_angle == -angles::pi_quarter) {
+				os << "T*";
+			} else if (rotation_angle == angles::pi_half) {
+				os << "S";
+			} else if (rotation_angle == -angles::pi_half) {
+				os << "S*";
+			} else if (rotation_angle == angles::pi) {
+				os << "Z";
+			} else {
+				std::cerr << "[w] unsupported gate type\n";
+				assert(0);
+			}
+		} break;
 
 		case gate_lib::cx:
-			os << "tof";
-			break;
-
 		case gate_lib::mcx:
 			os << "tof";
 			break;
 
-		case gate_lib::pauli_z:
 		case gate_lib::cz:
 		case gate_lib::mcz:
 			os << 'Z';
@@ -179,29 +201,13 @@ void write_dotqc(Network const& network, std::ostream& os)
 			os << 'H';
 			break;
 
-		case gate_lib::phase:
-			os << "S";
-			break;
-
-		case gate_lib::phase_dagger:
-			os << "S*";
-			break;
-
-		case gate_lib::t:
-			os << "T";
-			break;
-
-		case gate_lib::t_dagger:
-			os << "T*";
-			break;
-
 		default:
 			break;
 		}
-		node.gate.foreach_control([&](auto qubit) {
+		gate.foreach_control([&](auto qubit) {
 			os << fmt::format(" {}", network.io_label(qubit)); 
 		});
-		os << fmt::format(" {}\n", network.io_label(node.gate.target()));
+		os << fmt::format(" {}\n", network.io_label(gate.target()));
 	});
 	os << fmt::format("\nEND\n");
 }
