@@ -4,11 +4,11 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../generic/shallow_duplicate.hpp"
 #include "../../networks/io_id.hpp"
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "../../views/pathsum_view.hpp"
-#include "../identify_rz.hpp"
 
 #include <cstdint>
 #include <fmt/format.h>
@@ -17,14 +17,10 @@
 
 namespace tweedledum {
 
-struct phase_folding_params {
-	bool use_generic_rz = false;
-};
-
 /*! \brief TODO
  */
 template<typename Network>
-Network phase_folding(Network const& network, phase_folding_params params = {})
+Network phase_folding(Network const& network)
 {
 	using term_type = typename pathsum_view<Network>::esop_type;
 	Network result = shallow_duplicate(network);
@@ -52,9 +48,6 @@ Network phase_folding(Network const& network, phase_folding_params params = {})
 		}
 		result.add_gate(gate_base(gate_lib::rotation_z, angle), node.gate.target());
 	});
-	if (params.use_generic_rz == false) {
-		result = identify_rz(result);
-	}
 	result.rewire(network.wiring_map());
 	return result;
 }

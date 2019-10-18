@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../gates/gate_lib.hpp"
+#include "../utils/angle.hpp"
 
 #include <fmt/format.h>
 #include <fstream>
@@ -43,10 +44,6 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			os << fmt::format("{}id{} ", prefix, qubit);
 		});
 		switch (node.gate.operation()) {
-		case gate_lib::pauli_x:
-			os << 'N';
-			break;
-
 		case gate_lib::cx:
 			os << 'C';
 			break;
@@ -54,7 +51,6 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 		case gate_lib::mcx:
 			break;
 
-		case gate_lib::pauli_z:
 		case gate_lib::cz:
 		case gate_lib::mcz:
 			os << 'Z';
@@ -64,29 +60,31 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			os << 'H';
 			break;
 
-		case gate_lib::phase:
-			os << "G $P$";
-			break;
+		case gate_lib::rotation_x: {
+			angle rotation_angle = node.gate.rotation_angle();
+			if (rotation_angle == angles::pi) {
+				os << 'N';
+			} else {
+				os << "G $R_{x}$";
+			}
+		} break;
 
-		case gate_lib::phase_dagger:
-			os << "G $P^{\\dagger}$";
-			break;
-
-		case gate_lib::t:
-			os << "G $T$";
-			break;
-
-		case gate_lib::t_dagger:
-			os << "G $T^{\\dagger}$";
-			break;
-
-		case gate_lib::rotation_x:
-			os << "G $R_{x}$";
-			break;
-
-		case gate_lib::rotation_z:
-			os << "G $R_{z}$";
-			break;
+		case gate_lib::rotation_z: {
+			angle rotation_angle = node.gate.rotation_angle();
+			if (rotation_angle == angles::pi_quarter) {
+				os << "G $T$";
+			} else if (rotation_angle == -angles::pi_quarter) {
+				os << "G $T^{\\dagger}$";
+			} else if (rotation_angle == angles::pi_half) {
+				os << "G $S$";
+			} else if (rotation_angle == -angles::pi_half) {
+				os << "G $S^{\\dagger}$";
+			} else if (rotation_angle == angles::pi) {
+				os << 'Z';
+			} else {
+				os << "G $R_{z}$";
+			}
+		} break;
 
 		case gate_lib::swap:
 			os << "SWAP";

@@ -59,35 +59,18 @@ void write_qasm(Network const& network, std::ostream& os)
 			gate.foreach_target([&](auto target) { os << fmt::format("h q[{}];\n", target); });
 			break;
 
-		case gate_lib::pauli_x:
-			gate.foreach_target([&](auto target) { os << fmt::format("x q[{}];\n", target); });
-			break;
-
-		case gate_lib::pauli_z:
-			gate.foreach_target([&](auto target) { os << fmt::format("z q[{}];\n", target); });
-			break;
-
-		case gate_lib::phase:
-			gate.foreach_target([&](auto target) { os << fmt::format("s q[{}];\n", target); });
-			break;
-
-		case gate_lib::phase_dagger:
-			gate.foreach_target([&](auto target) { os << fmt::format("sdg q[{}];\n", target); });
-			break;
-
-		case gate_lib::t:
-			gate.foreach_target([&](auto target) { os << fmt::format("t q[{}];\n", target); });
-			break;
-
-		case gate_lib::t_dagger:
-			gate.foreach_target([&](auto target) { os << fmt::format("tdg q[{}];\n", target); });
-			break;
-
-		case gate_lib::rotation_z:
-			gate.foreach_target([&](auto target) {
-				os << fmt::format("rz({}) q[{}];\n", gate.rotation_angle(), target);
-			});
-			break;
+		case gate_lib::rotation_x: {
+			angle rotation_angle = gate.rotation_angle();
+			if (rotation_angle == angles::pi) {
+				gate.foreach_target([&](auto target) { 
+					os << fmt::format("x q[{}];\n", target); 
+				});
+			} else {
+				gate.foreach_target([&](auto target) { 
+					os << fmt::format("rx({}) q[{}];\n", gate.rotation_angle(), target);
+				});
+			}
+		} break;
 
 		case gate_lib::rotation_y:
 			gate.foreach_target([&](auto target) {
@@ -95,11 +78,29 @@ void write_qasm(Network const& network, std::ostream& os)
 			});
 			break;
 
-		case gate_lib::rotation_x:
+		case gate_lib::rotation_z: {
+			angle rotation_angle = gate.rotation_angle();
+			std::string symbol;
+			if (rotation_angle == angles::pi_quarter) {
+				symbol = "t";;
+			} else if (rotation_angle == -angles::pi_quarter) {
+				symbol = "tdg";
+			} else if (rotation_angle == angles::pi_half) {
+				symbol = "s";
+			} else if (rotation_angle == -angles::pi_half) {
+				symbol = "sdg";
+			} else if (rotation_angle == angles::pi) {
+				symbol = "z";
+			} else {
+				gate.foreach_target([&](auto target) {
+					os << fmt::format("rz({}) q[{}];\n", gate.rotation_angle(), target);
+				});
+				break;
+			}
 			gate.foreach_target([&](auto target) {
-				os << fmt::format("rx({}) q[{}];\n", gate.rotation_angle(), target);
+				os << fmt::format("{} q[{}];\n", symbol, target);
 			});
-			break;
+		} break;
 
 		case gate_lib::cx:
 			gate.foreach_control([&](auto control) {
