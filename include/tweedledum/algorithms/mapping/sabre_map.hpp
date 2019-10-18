@@ -7,6 +7,7 @@
 #include "../../utils/device.hpp"
 #include "../../views/mapping_view.hpp"
 #include "../generic/reverse.hpp"
+#include "initial_map.hpp"
 
 #include <set>
 #include <vector>
@@ -170,6 +171,8 @@ private:
 		                                     std::find(mapping.begin(), mapping.end(), q0));
 		uint32_t position_q1 = std::distance(mapping.begin(),
 		                                     std::find(mapping.begin(), mapping.end(), q1));
+		assert(position_q0 < mapping.size());
+		assert(position_q1 < mapping.size());
 		return {position_q0, position_q1};
 	}
 
@@ -239,7 +242,11 @@ mapping_view<Network> sabre_map(Network const& network, device const& device,
                                 sabre_map_params const& params = {})
 {
 	detail::sabre_mapper<Network> mapper(device, params);
-	mapping_view<Network> mapped_ntk = mapper.run(network);
+	auto init = sat_initial_map(network, device);
+	// auto init = sat_initial_map(reverse(static_cast<Network>(network)), device);
+	// fmt::print("{}\n", fmt::join(init, ", "));
+	mapping_view<Network> mapped_ntk = mapper.run(network, init);
+	// mapping_view<Network> mapped_ntk = mapper.run(network);
 	mapped_ntk = mapper.run(reverse(static_cast<Network>(network)), mapped_ntk.virtual_phy_map());
 	return mapped_ntk;
 }
