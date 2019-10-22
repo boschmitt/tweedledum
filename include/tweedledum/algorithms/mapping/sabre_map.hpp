@@ -7,7 +7,7 @@
 #include "../../utils/device.hpp"
 #include "../../views/mapping_view.hpp"
 #include "../generic/reverse.hpp"
-#include "initial_map.hpp"
+#include "sat_map.hpp"
 
 #include <set>
 #include <vector>
