@@ -28,7 +28,7 @@ option(TWEEDLEDUM_TESTS "Build tests" OFF)
 
 # Libs
 # =============================================================================
-add_subdirectory(libs)
+add_subdirectory(lib)
 
 # Library
 # =============================================================================
