@@ -173,8 +173,10 @@ private:
 	}
 
 private:
-	std::unordered_map<esop_type, std::vector<uint32_t>> pathsum_to_node_;
-	node_map<std::unordered_map<esop_type, std::vector<uint32_t>>::iterator, Network> node_to_pathsum_;
+	using esop_hash_type = std::unordered_map<esop_type, std::vector<uint32_t>, hash<esop_type>>;
+
+	esop_hash_type pathsum_to_node_;
+	node_map<typename esop_hash_type::iterator, Network> node_to_pathsum_;
 	uint32_t num_path_vars_;
 	std::vector<esop_type> qubit_state_;
 	std::vector<uint32_t> phy_virtual_map_;

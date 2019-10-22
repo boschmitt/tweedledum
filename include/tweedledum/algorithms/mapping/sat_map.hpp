@@ -5,9 +5,10 @@
 #pragma once
 
 #include "../../utils/device.hpp"
-#include "../../utils/sat/cardinality.hpp"
-#include "../../utils/sat/solver.hpp"
 #include "../../views/mapping_view.hpp"
+
+#include <bill/sat/cardinality.hpp>
+#include <bill/sat/solver.hpp>
 
 namespace tweedledum {
 
@@ -16,6 +17,8 @@ namespace detail {
 
 template<typename Network, typename Cnf>
 class map_cnf_encoder {
+	using lbool_type = bill::lbool_type;
+
 public:
 	map_cnf_encoder(Network const& network, device const& device, Cnf& cnf_builder)
 	    : network_(network)
@@ -49,7 +52,7 @@ public:
 		});
 	}
 
-	std::vector<uint32_t> decode(std::vector<sat::lbool_type> const& model)
+	std::vector<uint32_t> decode(std::vector<lbool_type> const& model)
 	{
 		std::vector<uint32_t> mapping;
 		network_.foreach_io([&](io_id io) {
@@ -62,8 +65,8 @@ public:
 		for (uint32_t v_qid = 0; v_qid < num_virtual_qubits(); ++v_qid) {
 			io_id v_id = qid_io_map_.at(v_qid);
 			for (uint32_t phy_qid = 0; phy_qid < num_physical_qubits(); ++phy_qid) {
-				sat::var_type var = virtual_physical_var(v_qid, phy_qid);
-				if (model.at(var) == sat::lbool_type::true_) {
+				bill::var_type var = virtual_physical_var(v_qid, phy_qid);
+				if (model.at(var) == lbool_type::true_) {
 					mapping.at(v_id.index()) = phy_qid;
 					break;
 				}
@@ -86,7 +89,7 @@ private:
 	void qubits_constraints()
 	{
 		// Condition 2:
-		std::vector<sat::var_type> variables;
+		std::vector<bill::var_type> variables;
 		for (auto v = 0u; v < num_virtual_qubits(); ++v) {
 			for (auto p = 0u; p < num_physical_qubits(); ++p) {
 				variables.emplace_back(virtual_physical_var(v, p));
@@ -114,16 +117,16 @@ private:
 	void gate_constraints(uint32_t c_v_qid, uint32_t t_v_qid)
 	{
 		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.get_coupling_matrix();
-		std::vector<sat::lit_type> clause;
+		std::vector<bill::lit_type> clause;
 		for (uint32_t t_phy_qid = 0; t_phy_qid < num_physical_qubits(); ++t_phy_qid) {
 			uint32_t t_v_phy_var = virtual_physical_var(t_v_qid, t_phy_qid);
-			clause.emplace_back(t_v_phy_var, sat::negative_polarity);
+			clause.emplace_back(t_v_phy_var, bill::negative_polarity);
 			for (uint32_t c_phy_qid = 0; c_phy_qid < num_physical_qubits(); ++c_phy_qid) {
 				if (c_phy_qid == t_phy_qid || !coupling_matrix.at(c_phy_qid, t_phy_qid)) {
 					continue;
 				}
 				uint32_t c_v_phy_var = virtual_physical_var(c_v_qid, c_phy_qid);
-				clause.emplace_back(c_v_phy_var, sat::positive_polarity);
+				clause.emplace_back(c_v_phy_var, bill::positive_polarity);
 			}
 			cnf_builder_.add_clause(clause);
 			clause.clear();
@@ -131,7 +134,7 @@ private:
 	}
 
 private:
-	sat::var_type virtual_physical_var(uint32_t virtual_id, uint32_t physical_id)
+	bill::var_type virtual_physical_var(uint32_t virtual_id, uint32_t physical_id)
 	{
 		return virtual_id * num_physical_qubits() + physical_id;
 	}
@@ -161,12 +164,13 @@ private:
 template<typename Network>
 std::vector<uint32_t> map_without_swaps(Network const& network, device const& device)
 {
-	sat::solver solver;
+	bill::solver solver;
 	map_cnf_encoder encoder(network, device, solver);
-	encoder.encode();
 
-	sat::result result = solver.solve();
-	if (result) {
+	encoder.encode();
+	solver.solve();
+	bill::result result = solver.get_result();
+	if (result.is_satisfiable()) {
 		return encoder.decode(result.model());
 	}
 	return {};

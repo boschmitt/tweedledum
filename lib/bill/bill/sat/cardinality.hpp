@@ -4,14 +4,11 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "types.hpp"
+#include "interface/types.hpp"
 
-#include <cstdint>
-#include <iostream>
-#include <numeric>
 #include <vector>
 
-namespace tweedledum::sat {
+namespace bill {
 
 template<typename Cnf>
 inline void at_least_one(std::vector<var_type> const& variables, Cnf& cnf_builder)
@@ -37,4 +34,4 @@ inline void at_most_one_pairwise(std::vector<var_type> const& variables, Cnf& cn
 	}
 }
 
-} // namespace tweedledum::sat
+} // namespace bill

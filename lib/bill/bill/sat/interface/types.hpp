@@ -4,22 +4,24 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <limits>
 
-namespace tweedledum::sat {
+namespace bill {
 
-/*! \brief Wrapper class to represent variables. 
+/*! \brief Wrapper class to represent variables.
  *
- * A variable is an element of a convinient set. They are often identified by symbols such as 
- * x1, x2, ..., xn; of course any other symbols can also be used, e.g. a, b, c. In code, however,
- * we use unsigned numerals 1, 2, 3, ..., n to stand for variables.
+ * A variable is an element of a convenient set.  They are often identified by symbols such as 
+ * x1, x2, ..., xn; of course, any other symbol can also be used, e.g., a, b, c.  In code, however,
+ * we use unsigned numerals 1, 2, 3, ..., n that stand for variables.
  * 
- * Because of its realation to literals (see below), using `uint32_t` to hold variables identifiers
+ * Because of its relation to literals (see below), using `uint32_t` to hold variable identifiers
  * limits the number of possibles variables to 2^31 - 1 = 2,147,483,647.
  */
 class var_type {
-	constexpr static uint32_t max_value =  (std::numeric_limits<uint32_t>::max() >> 1);
+	constexpr static uint32_t max_value = (std::numeric_limits<uint32_t>::max() >> 1);
+
 public:
 	constexpr var_type(uint32_t var)
 	    : data_(var)
@@ -53,18 +55,18 @@ private:
 	uint32_t data_;
 };
 
-/*! \brief Wrapper class to represent literals. 
+/*! \brief Wrapper class to represent literals.
  *
  * A literal is either a variable or the complement of a variable. In other words, if x1 is a
  * variable, both x1 and ~x1 are literals. If there are n possible variables in some problem, there
  * are 2n possible literals. We call x1 and ~x1 the positive polarity literal and negative polarity
  * literal of x1, respectively.
- * 
- * We also use unsigned numerals to represent literals (though we could have used singed numerals and
- * use the sign to represent each polarity). When using unsigned numerals, even numerals represent
- * positive polarity and odd numerals represent negative polarity. 
- * 
- * Using `uint32_t` to hold literals identifiers limits the number of possible literals to 
+ *
+ * We also use unsigned numerals to represent literals (though we could have used singed numerals
+ * and use the sign to represent each polarity). When using unsigned numerals, even numerals
+ * represent positive polarity and odd numerals represent negative polarity.
+ *
+ * Using `uint32_t` to hold literals identifiers limits the number of possible literals to
  * 2^32 - 1 = 4,294,967,295.
  */
 class lit_type {
@@ -75,13 +77,18 @@ public:
 	};
 
 	constexpr lit_type(var_type var, polarities polarity)
-	    : data_((var << 1) | ((polarity == polarities::positive)? 0 : 1))
+	    : data_((var << 1) | ((polarity == polarities::positive) ? 0 : 1))
 	{}
 
 #pragma region Properties
 	var_type variable() const
 	{
 		return (data_ >> 1);
+	}
+
+	polarities polarity() const
+	{
+		return polarities((data_ & 1) == 1);
 	}
 
 	bool is_complemented() const
@@ -128,7 +135,7 @@ private:
 constexpr auto positive_polarity = lit_type::polarities::positive;
 constexpr auto negative_polarity = lit_type::polarities::negative;
 
-/*! \brief Lifted Boolean wrapper class. 
+/*! \brief Lifted Boolean wrapper class.
  */
 enum class lbool_type : uint8_t {
 	true_,
@@ -136,4 +143,4 @@ enum class lbool_type : uint8_t {
 	undefined,
 };
 
-} // namespace tweedledum::sat
+} // namespace bill
