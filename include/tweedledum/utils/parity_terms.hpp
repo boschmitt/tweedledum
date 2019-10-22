@@ -5,6 +5,7 @@
 #pragma once
 
 #include "angle.hpp"
+#include "hash.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -73,7 +74,7 @@ public:
 #pragma endregion
 
 private:
-	std::unordered_map<Term, angle> term_to_angle_;
+	std::unordered_map<Term, angle, hash<Term>> term_to_angle_;
 };
 
 } // namespace tweedledum

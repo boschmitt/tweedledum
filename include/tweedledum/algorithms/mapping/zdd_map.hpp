@@ -8,14 +8,14 @@
 #include "../../io/quil.hpp"
 #include "../../io/write_unicode.hpp"
 #include "../../networks/netlist.hpp"
-#include "../../utils/dd/zdd.hpp"
 #include "../../utils/device.hpp"
 #include "../../utils/stopwatch.hpp"
 #include "../../views/layers_view.hpp"
-#include "../../views/pathsum_view.hpp"
 #include "../../views/mapping_view.hpp"
+#include "../../views/pathsum_view.hpp"
 
 #include <algorithm>
+#include <bill/dd/zdd.hpp>
 #include <chrono>
 #include <cstdint>
 #include <ctime>
@@ -54,6 +54,9 @@ namespace detail
 
 template<typename Network>
 class find_maximal_partitions_impl {
+	using swap_type = std::pair<uint32_t, uint32_t>;
+	using zdd_node = bill::zdd_base::node_index;
+
 public:
 	find_maximal_partitions_impl(Network const& network, device const& arch, zdd_map_params const& ps, zdd_map_stats& st)
 	    : network_(network)
@@ -110,7 +113,7 @@ public:
 			}
 		}
 		// Retrieve all sets from largest partition to pick one for new map
-		zdd_.sets_to_vector(maps_[max_coverage_idx], global_found_sets);
+		global_found_sets = zdd_.sets_as_vectors(maps_[max_coverage_idx]);
 
 		// This below chooses the set to map new circuit to!
 		auto current_mapping = choose_mapping();
@@ -170,7 +173,7 @@ private:
 	void init_from()
 	{
 		for (auto v = 0u; v < network_.num_qubits(); ++v) {
-			auto set = zdd_.bot();
+			auto set = zdd_.bottom();
 			for (int p = arch_.num_nodes - 1; p >= 0; --p) {
 				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
 			}
@@ -182,7 +185,7 @@ private:
 	void init_to()
 	{
 		for (auto p = 0u; p < arch_.num_nodes; ++p) {
-			auto set = zdd_.bot();
+			auto set = zdd_.bottom();
 			for (int v = network_.num_qubits() - 1; v >= 0; --v) {
 				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
 			}
@@ -193,7 +196,7 @@ private:
 
 	void init_valid()
 	{
-		valid_ = zdd_.bot();
+		valid_ = zdd_.bottom();
 		for (auto const& [p, q] : arch_.edges) {
 			valid_ = zdd_.union_(valid_, zdd_.join(to_[edge_perm_[p]], to_[edge_perm_[q]]));
 		}
@@ -203,7 +206,7 @@ private:
 
 	void init_bad()
 	{
-		bad_ = zdd_.bot();
+		bad_ = zdd_.bottom();
 		for (int v = network_.num_qubits() - 1; v >= 0; --v) {
 			bad_ = zdd_.union_(bad_, zdd_.choose(from_[v], 2));
 		}
@@ -213,7 +216,7 @@ private:
 		zdd_.ref(bad_);
 	}
 
-	zdd_base::node map(uint32_t c, uint32_t t)
+	zdd_node map(uint32_t c, uint32_t t)
 	{
 		return zdd_.intersection(zdd_.join(from_[c], from_[t]), valid_);
 	}
@@ -259,7 +262,7 @@ private:
 		uint32_t depth_weight = 0;
                 uint32_t map_weight = 1;
 		double swap_weight = 1;
-		auto m = zdd_.bot();
+		auto m = zdd_.bottom();
 		// Counts double-qubit gates
 		uint32_t count_2q = 0;
 
@@ -271,7 +274,7 @@ private:
 			}
 			uint32_t c = id_virtual_map_.at(n.gate.control()); 
 			uint32_t t = id_virtual_map_.at(n.gate.target());
-			if (m == zdd_.bot()) {
+			if (m == zdd_.bottom()) {
 				/* first gate */
 				m = map(c, t);
 				zdd_.ref(m);
@@ -280,7 +283,7 @@ private:
 			} 
 			auto m_next = map(c, t);
 			auto mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
-			if (mp != zdd_.bot()) {
+			if (mp != zdd_.bottom()) {
 				zdd_.deref(m);
 				zdd_.ref(mp);
 				m = mp;
@@ -304,7 +307,7 @@ private:
 				init_valid();
 				m_next = map(c, t);
 				mp = zdd_.nonsupersets(zdd_.join(m, m_next), bad_);
-				if (mp == zdd_.bot()) {
+				if (mp == zdd_.bottom()) {
 					// Cannot extend map
 					new_mappings_cnt[i] = 0;
 					depth_count[i] = 0;
@@ -321,7 +324,7 @@ private:
 						uint32_t tt = id_virtual_map_.at(nn.gate.target());
 						auto m_next_prime = map(cc, tt);
 						auto mp_prime = zdd_.nonsupersets(zdd_.join(m_prime, m_next_prime), bad_);
-						if (mp_prime == zdd_.bot()){
+						if (mp_prime == zdd_.bottom()){
 							depth_count[i] = depth_nkt.layer(nn) - depth_nkt.layer(n);
 							return false;
 						} 
@@ -402,11 +405,11 @@ private:
 
 	void init_swap_layers()
 	{
-		zdd_base zdd_swap_layers(arch_.edges.size());
+		bill::zdd_base zdd_swap_layers(arch_.edges.size());
 		zdd_swap_layers.build_tautologies();
 
 		auto univ_fam = zdd_swap_layers.tautology();
-		std::vector<zdd_base::node> edges_p;
+		std::vector<zdd_node> edges_p;
 
 		std::vector<std::vector<uint8_t>> incidents(arch_.num_nodes);
 		for (auto i = 0u; i < arch_.edges.size(); ++i) {
@@ -416,41 +419,39 @@ private:
 
 		for (auto& i : incidents) {
 			std::sort(i.rbegin(), i.rend());
-			auto set = zdd_swap_layers.bot();
+			auto set = zdd_swap_layers.bottom();
 			for (auto o : i) {
 				set = zdd_swap_layers.union_(set, zdd_swap_layers.elementary(o));
 			}
 			edges_p.push_back(set);
 		}
 		
-		auto edges_union = zdd_swap_layers.bot();
+		auto edges_union = zdd_swap_layers.bottom();
 		for (int v = network_.num_qubits() - 1; v >= 0; --v) {
 			edges_union = zdd_swap_layers.union_(edges_union, zdd_swap_layers.choose(edges_p[v], 2));
 		}
 		auto layers = zdd_swap_layers.nonsupersets(univ_fam, edges_union);
-		zdd_swap_layers.sets_to_vector(layers, swap_layers_);
+		swap_layers_ = zdd_swap_layers.sets_as_vectors(layers);
 	}
 
 private:
-	using swap_type = std::pair<uint32_t, uint32_t>;
-
 	Network const& network_;
 	device const& arch_;
 	zdd_map_params const& params_;
 	zdd_map_stats& stats_;
 
-	zdd_base zdd_;
-	std::vector<zdd_base::node> from_;
-	std::vector<zdd_base::node> to_;
-	zdd_base::node valid_;
-	zdd_base::node bad_;
+	bill::zdd_base zdd_;
+	std::vector<zdd_node> from_;
+	std::vector<zdd_node> to_;
+	zdd_node valid_;
+	zdd_node bad_;
 	std::vector<uint32_t> edge_perm_;
 
 	// vectors that hold sets found in mapping and swap layer zdds,respectively
 	std::vector<std::vector<uint32_t>> global_found_sets;
 	std::vector<std::vector<uint32_t>> swap_layers_;
 
-	std::vector<zdd_base::node> maps_;
+	std::vector<zdd_node> maps_;
 
 	// vector that holds gate number that swap is needed for
 	std::vector<uint32_t> index_of_swap;

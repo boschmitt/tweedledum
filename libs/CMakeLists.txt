@@ -1,4 +1,8 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
+if (NOT TARGET bill)
+  add_library(bill INTERFACE)
+  target_include_directories(bill INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/bill)
+endif()
 
 if (NOT TARGET easy)
   add_library(easy INTERFACE)
