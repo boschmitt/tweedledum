@@ -3,8 +3,6 @@
 #include <iostream>
 #include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
-
-#include <tweedledum/algorithms/synthesis/quantum_state_preparation.hpp>
 #include <tweedledum/algorithms/generic/rewrite.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/io/qasm.hpp>
@@ -50,7 +48,7 @@ int main(int argc, char** argv)
 	std::string Maj4 = "1110100010000000";
     std::string tt_f = ghz3;	
 	std::string bench_name = "ghz3";
-
+/*
     netlist<mcmt_gate> net;
 	qsp_params stg;
 	//stg.strategy = 0u;
@@ -107,5 +105,6 @@ int main(int argc, char** argv)
 	// detail::decomposition_mcz<netlist<mcmt_gate>>(net2,q);
 	// write_unicode(net2);
 	// write_qasm(net2,"test.qasm");
+	*/
 	return EXIT_SUCCESS;
 }

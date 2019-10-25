@@ -22,7 +22,7 @@ endif()
 # Options
 # =============================================================================
 option(TWEEDLEDUM_DOCS "Build documentation" OFF)
-option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
+option(TWEEDLEDUM_EXAMPLES "Build examples" ON)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
 
 # Libs
@@ -33,7 +33,16 @@ add_subdirectory(libs)
 # =============================================================================
 add_library(tweedledum INTERFACE)
 target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum INTERFACE cudd easy fmt glucose kitty)
+target_link_libraries(tweedledum INTERFACE easy fmt glucose kitty)
+
+
+target_link_libraries(tweedledum INTERFACE obj)
+target_include_directories(tweedledum INTERFACE libs/cudd)
+target_include_directories(tweedledum INTERFACE libs/cudd/epd)
+target_include_directories(tweedledum INTERFACE libs/cudd/mtr)
+target_include_directories(tweedledum INTERFACE libs/cudd/st)
+target_include_directories(tweedledum INTERFACE libs/cudd/cudd)
+target_include_directories(tweedledum INTERFACE ${CMAKE_BINARY_DIR}/libs/cudd)
 
 # Documentation
 # =============================================================================

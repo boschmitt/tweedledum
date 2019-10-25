@@ -249,7 +249,8 @@ auto to_unicode_str(Network const& network, Builder builder)
 			} else {
 				builder.add_gate("y", controls, targets);
 			}
-		} break;
+		} 
+		break;
 			// gate.foreach_target([&](auto qid) { builder.add_gate("y", qid); });
 			// break;
 
