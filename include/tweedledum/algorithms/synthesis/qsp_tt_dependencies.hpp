@@ -523,7 +523,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
 
 template<typename Network>
 void qsp_ownfunction(Network & net, const std::string &tt_str ,
-std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> dependencies , std::ofstream & out_file)
+std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& dependencies , std::ostream& out_file)
 {
     std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > > gates; // gate name, angle, target_id, controls:id and sign /2 and %2
     auto tt_vars = int(log2(tt_str.size()));
@@ -699,7 +699,7 @@ std::vector<std::pair<std::string, std::vector<int>>> dependencies)
 
 template<class Network>
 void qsp_tt_dependencies(Network& network, const std::string &tt_str, /*qsp_params params = {} ,*/ 
-std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> dependencies , std::ofstream & out_file)
+                         std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& dependencies , std::ostream & out_file)
 {
     //assert(tt_str.size() <= pow(2,6));
     const uint32_t num_qubits = std::log2(tt_str.size());

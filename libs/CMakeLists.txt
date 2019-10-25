@@ -23,9 +23,3 @@ if (NOT TARGET kitty)
 endif()
 
 add_subdirectory(cudd)
-
-add_library(qmdd
- qmdd/qmdd/QMDDpack_fereshte.cpp
- )
-target_include_directories(qmdd PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/qmdd/qmdd)
-

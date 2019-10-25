@@ -13,12 +13,6 @@
 #include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/netlist.hpp>
 
-auto benches_no_dep = 0;
-auto all_bench2 = 0;
-auto benches_I_cant_find_dep=0;
-
-uint32_t andxor_num = 0;
-
 constexpr std::uint32_t ilog2( std::uint32_t const n )
 {
   return ( n > 1 ) ?  1+log2( n >> 1 ) : 0;
@@ -109,9 +103,9 @@ public:
     return kitty::get_bit( _bits, index );
   }
 
-  uint64_t count_ones(  ) const
+  uint64_t count_ones() const
   {
-    return kitty::count_ones(_bits);
+    return kitty::count_ones( _bits );
   }
 
   partial_truth_table operator&( partial_truth_table const& tt ) const
@@ -211,7 +205,7 @@ std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
 }
 
 /*---chech that there isn't any dependency ----*/
-bool check_not_exist_dependencies(std::vector<partial_truth_table> minterms, uint32_t target)
+bool check_not_exist_dependencies( std::vector<partial_truth_table> minterms, uint32_t target )
 {
     uint32_t const minterm_length = minterms[0u].num_bits();
     uint32_t const num_minterms = minterms.size();
@@ -247,28 +241,444 @@ bool check_not_exist_dependencies(std::vector<partial_truth_table> minterms, uin
         // print_binary(check);
         // std::cout<<std::endl;
         
-        if(check.count_ones()==1)
-            return true;  
+        if ( check.count_ones()==1 && check.get_bit( target ) )
+        {
+          return true;
+        }
     }
     
     return false;
 }
 
 
+
+
+
+
+using dependencies_t = std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>>;
+
+struct functional_dependency_stats
+{
+  uint32_t has_no_dependencies = 0;
+  uint32_t no_dependencies_computed = 0;
+  uint32_t num_analysis_calls = 0;
+};
+
+dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats )
+{
+  ++stats.num_analysis_calls;
+
+  /* extract minterms */
+  std::vector<partial_truth_table> minterms = on_set( tt );
+
+  /* convert minterms to column vectors */
+  uint32_t const minterm_length = minterms[0u].num_bits();
+  uint32_t const num_minterms = minterms.size();
+  
+  std::vector<partial_truth_table> columns( minterm_length, partial_truth_table( num_minterms ) );
+  for ( auto i = 0u; i < minterm_length; ++i )
+  {
+    for ( auto j = 0u; j < num_minterms; ++j )
+    {
+      if ( minterms.at( j ).get_bit( i ) )
+      {
+        columns[i].set_bit( j );
+      }
+    }
+  }
+
+  /* resubstitution-style dependency analysis */
+  dependencies_t dependencies;
+
+  uint32_t has_no_dependencies = 0u;
+  for ( auto i = int32_t( columns.size() )-1; i >= 0; --i )
+  {
+    bool found = false;
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      if ( columns.at( i ) == columns.at( j ) )
+      {
+        found = true;
+        dependencies[i] = std::pair{ std::string{"eq"}, std::vector<uint32_t>{ j } };
+        break;
+      }
+    }
+
+    /* go to next column if a solution has been found for this column */
+    if ( found )
+      continue;
+
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      if ( columns.at( i ) == ~columns.at( j ) )
+      {
+        found = true;
+        dependencies[i] = std::pair{ std::string{"not"}, std::vector<uint32_t>{ j }  };
+        break;
+      }
+    }
+
+    /* go to next column if a solution has been found for this column */
+    if ( found )
+      continue;
+
+    /*---check that there isn't any dependency---*/
+    if ( i < minterm_length - 2 )
+    {
+      if ( check_not_exist_dependencies( minterms, i ) )
+      {
+        ++has_no_dependencies;
+        continue;
+      }
+    }
+
+    //----first input
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      //-----second input
+      for ( auto k = j - 1; k > i; --k )
+      {
+        if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ) )
+        {
+          found = true;
+          dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k }  };
+          break;
+        }
+        else if ( columns.at( i ) == ( ~ (columns.at( j ) ^ columns.at( k ) ) ) )
+        {
+          found = true;
+          dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k  }  };
+          break;
+        }
+
+        //-----3rd input
+        for(auto l = j-2 ; l>i ; --l)
+        {
+          if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l)) )
+          {
+            found = true;
+            dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k  , l}  };
+            break;
+          }
+          else if ( columns.at( i ) == ( ~(columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ) ) )
+          {
+            found = true;
+            dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k , l }  };
+            break;
+          }
+          //---- 4th input
+          for(auto m = j-3 ; m>i ; --m)
+          {
+            if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m)) )
+            {
+              found = true;
+              dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k  , l , m}  };
+              break;
+            }
+            else if ( columns.at( i ) == ( ~(columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ) ) )
+            {
+              found = true;
+              dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k , l , m }  };
+              break;
+            }
+
+            //---- 5th input
+            for(auto i5 = j-4 ; i5>i ; --i5)
+            {
+              if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ^ columns.at(i5)) )
+              {
+                found = true;
+                dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k  , l , m , i5}  };
+                break;
+              }
+              else if ( columns.at( i ) == ( ~(columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ^ columns.at(i5) ) ) )
+              {
+                found = true;
+                dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
+                break;
+              }
+            }  
+          }
+        }
+      }
+
+      if ( found )
+        break;
+    }
+
+    if ( found )
+      continue;
+    
+    //-----and---------
+    //-----first input
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      //----second input
+      for ( auto k = j - 1; k > i; --k )
+      {
+        if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) ) )
+        {
+          found = true;
+          dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k }  };
+          break;
+        }
+        else if ( columns.at( i ) == ( ~ (columns.at( j ) & columns.at( k )) ) )
+        {
+          found = true;
+          dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k  }  };
+          break;
+        }
+
+        //----3rd input
+        for(auto l = j-2 ; l>i ; --l)
+        {
+          if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l)) )
+          {
+            found = true;
+            dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k  , l}  };
+            break;
+          }
+          else if ( columns.at( i ) == ( ~(columns.at( j ) & columns.at( k ) & columns.at(l) ) )  )
+          {
+            found = true;
+            dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k , l }  };
+            break;
+          }
+          //---- 4th input
+          for(auto m = j-3 ; m>i ; --m)
+          {
+            if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m)) )
+            {
+              found = true;
+              dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k  , l , m}  };
+              break;
+            }
+            else if ( columns.at( i ) == ( ~(columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) ) ) )
+            {
+              found = true;
+              dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k , l , m }  };
+              break;
+            }
+
+            //---- 5th input
+            for(auto i5 = j-4 ; i5>i ; --i5)
+            {
+              if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) & columns.at(i5)) )
+              {
+                found = true;
+                dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k  , l , m , i5}  };
+                break;
+              }
+              else if ( columns.at( i ) == ( ~(columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) & columns.at(i5) ) ) )
+              {
+                found = true;
+                dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if ( found )
+        break;
+    }
+    if ( found )
+      continue;
+
+    //-----or---------
+    //-----first input
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      //-----second input
+      for ( auto k = j - 1; k > i; --k )
+      {
+        if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) ) )
+        {
+          found = true;
+          dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k }  };
+          break;
+        }
+        else if ( columns.at( i ) == ( ~ (columns.at( j ) | columns.at( k )) ) )
+        {
+          found = true;
+          dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k  }  };
+          break;
+        }
+
+        //------3rd input
+        for(auto l = j-2 ; l>i ; --l)
+        {
+          if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l)) )
+          {
+            found = true;
+            dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k  , l}  };
+            break;
+          }
+          else if ( columns.at( i ) == ( ~(columns.at( j ) | columns.at( k ) | columns.at(l) ) )  )
+          {
+            found = true;
+            dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l }  };
+            break;
+          }
+
+          //---- 4th input
+          for(auto m = j-3 ; m>i ; --m)
+          {
+            if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m)) )
+            {
+              found = true;
+              dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k  , l , m}  };
+              break;
+            }
+            else if ( columns.at( i ) == ( ~(columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) ) ) )
+            {
+              found = true;
+              dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l , m }  };
+              break;
+            }
+            
+            //---- 5th input
+            for(auto i5 = j-4 ; i5>i ; --i5)
+            {
+              if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) | columns.at(i5)) )
+              {
+                found = true;
+                dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k  , l , m , i5}  };
+                break;
+              }
+              else if ( columns.at( i ) == ( ~(columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) | columns.at(i5) ) ) )
+              {
+                found = true;
+                dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
+                break;
+              }
+            }  
+          }        
+        }
+      }
+
+      if ( found )
+        break;
+    }
+    if ( found )
+      continue;
+
+    //-----and xor---------
+    //-----first input
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      //-----second input
+      for ( auto k = j - 1; k > i; --k )
+      {
+        //------3rd input
+        for(auto l = j-2 ; l>i ; --l)
+        {
+          if ( ( columns.at( i ) == ( (columns.at( j ) & columns.at( k ) ) ^ columns.at( l )) ) |
+               ( columns.at( i ) == ( (columns.at( l ) & columns.at( k ) ) ^ columns.at( j )) ) |
+               ( columns.at( i ) == ( (columns.at( j ) & columns.at( l ) ) ^ columns.at( k )) ) )
+          {
+            found = true;
+            dependencies[i] = std::pair{ std::string{"and_xor"}, std::vector<uint32_t>{ j , k  , l}  };
+            break;    
+          }       
+        }
+      }
+      if(found)
+        break;
+    }
+  }
+
+  if ( has_no_dependencies == num_minterms - 2u )
+  {
+    ++stats.has_no_dependencies; 
+  }
+  else if ( dependencies.size() == 0u )
+  {
+    ++stats.no_dependencies_computed;
+  }
+
+  return dependencies;
+}
+
+void print_dependencies( dependencies_t const& dependencies, std::ostream& os = std::cout )
+{
+  os << "[i] dependencies:" << std::endl;
+  os << "dependencies size: " << dependencies.size() << std::endl;
+  for ( const auto& d : dependencies )
+  {
+    os << d.first<<"  ";
+    os << d.second.first << ' ';
+    for ( const auto& c : d.second.second )
+    {
+      os << c << ' ';
+    }
+    os << std::endl;
+  }
+}
+
+void prepare_quantum_state( kitty::dynamic_truth_table const& tt, dependencies_t const& dependencies, functional_dependency_stats const& stats )
+{
+  tweedledum::netlist<tweedledum::mcst_gate> ntk;
+  auto const binary_tt = kitty::to_binary( tt );  
+  qsp_tt_dependencies( ntk, binary_tt, dependencies, std::cout );
+}
+
+void write_report( functional_dependency_stats const& stats, std::ostream& os )
+{
+  os << "[i] number of calls          = " << stats.num_analysis_calls << std::endl;
+  os << "[i] has no dependencies      = " << stats.has_no_dependencies << std::endl;
+  os << "[i] no dependencies computed = " << stats.no_dependencies_computed << std::endl;
+}
+
 int main()
 {
-  /* read minterms for dependency analysis from a file */
-  //auto const minterms = read_minterms_from_file( "minterms.txt" );
-  std::ofstream out_file;
-  out_file.open("../input_allfunc_with4var.txt"); 
-  std::string inpath = "../input_allfunc_with4var/";
+  std::string const inpath = "../input/";
+  functional_dependency_stats stats;
   
   DIR * dir;
   struct dirent *entry;
-  if( dir=opendir(inpath.c_str()) )
+  if ( ( dir = opendir( inpath.c_str() ) ) )
   {
-    while(entry = readdir(dir))
+    while ( ( entry = readdir(dir) ) )
     {
+      std::string filename( entry->d_name );
+      if ( filename == "." || filename == ".." || filename == ".DS_Store" )
+        continue;
+
+      /* read file */
+      std::string tt_str;
+
+      std::ifstream infile;
+      infile.open( inpath + filename );
+      infile >> tt_str;
+      infile.close();
+
+      /* prepare truth table */
+      std::reverse( tt_str.begin(), tt_str.end() );
+      auto const tt_vars = int( log2( tt_str.size() ) );
+      
+      kitty::dynamic_truth_table tt( tt_vars );
+      kitty::create_from_binary_string( tt, tt_str );
+
+      /* functional deps analysis */
+      auto const deps = functional_dependency_analysis( tt, stats );
+      prepare_quantum_state( tt, deps, stats );
+    }
+    
+    closedir( dir );
+  }
+
+  std::ofstream report_file;
+  report_file.open("../output.txt"); 
+  write_report( stats, report_file );
+  report_file.close();
+  
+  
+#if 0
+  /* read minterms for dependency analysis from a file */
+  //auto const minterms = read_minterms_from_file( "minterms.txt" );
+  
       if( strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".DS_Store") != 0 )
       {
         
@@ -722,6 +1132,7 @@ int main()
   std::cout<<"benches no dep: "<<benches_no_dep<<std::endl;
   std::cout<<"benches I cant find dep: "<<benches_I_cant_find_dep<<std::endl;
   std::cout<<"all bench2: "<<all_bench2<<std::endl;
-  
+
+#endif
   return 0;
 }

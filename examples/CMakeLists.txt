@@ -17,5 +17,3 @@ foreach(filename ${FILENAMES})
   
   add_dependencies(examples ${basename})
 endforeach()
-
-target_link_libraries(qsp_test PUBLIC qmdd)
