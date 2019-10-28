@@ -30,6 +30,15 @@ uint32_t all_bench = 0;
 uint32_t funcdep_bench_useful = 0;
 uint32_t funcdep_bench_notuseful=0;
 
+struct qsp_tt_statistics
+{
+  double time{0};
+  uint32_t reduction{0};
+  uint32_t total_cnots{0};
+  uint32_t total_rys{0};
+  
+}; /* qsp_tt_statistics */
+
 namespace tweedledum {
 namespace detail {
 template<class Network>
@@ -91,7 +100,7 @@ std::vector<double> gauss(std::vector< std::vector<double> > A)
         // Make all rows below this one 0 in current column
         for (auto k=i+1; k<n; k++) {
             double c = -A[k][i]/A[i][i];
-            for (int j=i; j<n+1; j++) {
+            for (uint32_t j=i; j<n+1; j++) {
                 if (i==j) {
                     A[k][j] = 0;
                 } else {
@@ -131,7 +140,7 @@ void multiplex_decomposition(Network& net, std::vector<double> mux_angles, uint3
         }
     }
     //solving n equations n unknowns
-    for (int i=0; i<n; i++) {
+    for (auto i=0u; i<n; i++) {
         M[i][n] = mux_angles[i];
     }
     std::cout<<"after M\n";
@@ -139,7 +148,7 @@ void multiplex_decomposition(Network& net, std::vector<double> mux_angles, uint3
     angs = gauss(M);
     std::cout<<"after gauss\n";
     //add gates to network
-    for(auto i=0; i<n;i++){
+    for(auto i=0u; i<n;i++){
         net.add_gate(gate_base(gate_set::rotation_y, angs[i]), target_id);
         uint32_t ctrl = log2(binarytogray(i) ^  ( (i==n-1) ? 0 : binarytogray(i+1) )) +1;
         ctrl += target_id;
@@ -197,7 +206,7 @@ void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple
         std::vector<double> angles(num_angles,0);
         for( auto [name,angle,target_id,controls]: gates)
         { 
-            if(target_id==i)
+          if( target_id == uint32_t(i) )
             {
                 auto len = n-target_id-1;
                 std::vector<uint32_t> idxs (len,2);
@@ -247,7 +256,7 @@ void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple
             }
         }
         //update line values
-        if(angle = M_PI)
+        if( angle == M_PI )
             line_values[target_id] = 1;
         else 
             line_values[target_id] = 2;
@@ -270,8 +279,6 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
  kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls ,
  std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> dependencies)
 {
-    if(var_index==-1)
-        return;
     //-----co factors-------
     kitty::dynamic_truth_table tt0(var_index);
     kitty::dynamic_truth_table tt1(var_index);
@@ -305,42 +312,42 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
                 }
                 else if(dependencies[var_index].first == "xor")
                 {
-                    for(auto d=0 ; d<dependencies[var_index].second.size() ; d++)
+                    for( auto d=0u; d<dependencies[var_index].second.size(); d++)
                         gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]*2 +1} }); 
                 }
                 else if(dependencies[var_index].first == "xnor")
                 {
-                    for(auto d=0 ; d<dependencies[var_index].second.size() ; d++)
+                    for( auto d=0u; d<dependencies[var_index].second.size(); d++)
                         gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]*2 +1} });
                     gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
                 }
                 else if(dependencies[var_index].first == "and")
                 {
-                    std::cout<<"and: "<<var_index<<std::endl;
+                  // std::cout<<"and: "<<var_index<<std::endl;
                     std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
                     gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
                 }
                 else if(dependencies[var_index].first == "nand")
                 {
-                    std::cout<<"nand: "<<var_index<<std::endl;
+                  // std::cout<<"nand: "<<var_index<<std::endl;
                     std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
                     gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
                     gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
                 }
                 else if(dependencies[var_index].first == "or")
                 {
-                    std::cout<<"or: "<<var_index<<std::endl;
+                  // std::cout<<"or: "<<var_index<<std::endl;
                     std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
                     gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
-                    for(auto d=0 ; d<dependencies[var_index].second.size() ; d++)
+                    for(auto d=0u; d<dependencies[var_index].second.size() ; d++)
                         gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]} }); 
                 }
                 else if(dependencies[var_index].first == "nor")
                 {
-                    std::cout<<"nor: "<<var_index<<std::endl;
+                  // std::cout<<"nor: "<<var_index<<std::endl;
                     std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
                     gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
-                    for(auto d=0 ; d<dependencies[var_index].second.size() ; d++)
+                    for(auto d=0u; d<dependencies[var_index].second.size() ; d++)
                         gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]} }); 
                     gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
                 }
@@ -522,8 +529,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
 }
 
 template<typename Network>
-void qsp_ownfunction(Network & net, const std::string &tt_str ,
-std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& dependencies , std::ostream& out_file)
+void qsp_ownfunction( Network& net, const std::string &tt_str, std::map<uint32_t, std::pair<std::string, std::vector<uint32_t>>> const& dependencies, qsp_tt_statistics& stats)
 {
     std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > > gates; // gate name, angle, target_id, controls:id and sign /2 and %2
     auto tt_vars = int(log2(tt_str.size()));
@@ -541,6 +547,7 @@ std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& depend
     //detail::control_line_cancelling(gates,tt_vars);
     auto total_rys = 0;
     auto total_cnots = 0;
+
     bool sig;
     auto n_reduc = 0;
 
@@ -552,7 +559,7 @@ std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& depend
         if(gates[i].size()==0)
         {
             gates_num[i] = std::make_pair(0,0);
-            n_reduc ++;
+            n_reduc++;
             continue;
         }
 
@@ -560,7 +567,7 @@ std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& depend
         auto cnots = 0;
         sig = 1;
         
-        for(auto j=0;j< gates[i].size();j++)
+        for(auto j=0u; j< gates[i].size(); j++)
         {
             if(gates[i][j].second.size()==(gates.size()-1-i-n_reduc))
             {
@@ -610,23 +617,28 @@ std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& depend
         }  
         
         gates_num[i] = std::make_pair(rys,cnots);
-            //out_file<<"i:"<<i<<"  "<<rys<<"  "<<cnots<<"  ";     
+            //out_file<<"i:"<<i<<"  "<<rys<<"  "<<cnots<<"  ";
+
         total_rys += rys;
         total_cnots += cnots;  
     }
     
-std::cout<<"n_reduc: "<<n_reduc<<std::endl;
+    // std::cout<<"n_reduc: "<<n_reduc<<std::endl;
+    stats.total_cnots += total_cnots;
+    stats.total_rys += total_rys;
 
+    stats.reduction += n_reduc;
+    
     if(total_cnots < (pow(2,gates.size()-n_reduc)-2) ) 
     {
-        for(auto i=0; i<gates_num.size() ; i++)
+        for(auto i=0u; i<gates_num.size() ; i++)
         {
-            out_file<<"i:"<<i<<"  "<<gates_num[i].first<<"  "<<gates_num[i].second<<"  ";  
+          // out_file<<"i:"<<i<<"  "<<gates_num[i].first<<"  "<<gates_num[i].second<<"  ";  
         }
     
-        out_file<<"trys: "<<total_rys<<"  upper: "<<pow(2,gates.size()-n_reduc)-1<<
-        "  tcnots: "<<total_cnots<<"  upper: "<<pow(2,gates.size()-n_reduc)-2;
-         out_file<<std::endl;
+        // out_file<<"trys: "<<total_rys<<"  upper: "<<pow(2,gates.size()-n_reduc)-1<<
+        // "  tcnots: "<<total_cnots<<"  upper: "<<pow(2,gates.size()-n_reduc)-2;
+        // out_file<<std::endl;
 
         funcdep_bench_useful++;
     }
@@ -639,13 +651,12 @@ std::cout<<"n_reduc: "<<n_reduc<<std::endl;
         }
     }
     all_bench++;
+
+    // std::cout<<"all benches: "<<all_bench<<std::endl;
+    // std::cout<<"funcdep useful benches: "<<funcdep_bench_useful<<std::endl;
+    // std::cout<<"funcdep not useful benches: "<<funcdep_bench_notuseful<<std::endl;
     
-    std::cout<<"all benches: "<<all_bench<<std::endl;
-    std::cout<<"funcdep useful benches: "<<funcdep_bench_useful<<std::endl;
-    std::cout<<"funcdep not useful benches: "<<funcdep_bench_notuseful<<std::endl;
-    
-    //detail::extract_multiplex_gates(net,tt_vars,gates);
-    
+    //detail::extract_multiplex_gates(net,tt_vars,gates);  
 }
 
 /*template<typename Network>
@@ -699,33 +710,31 @@ std::vector<std::pair<std::string, std::vector<int>>> dependencies)
 
 template<class Network>
 void qsp_tt_dependencies(Network& network, const std::string &tt_str, /*qsp_params params = {} ,*/ 
-                         std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& dependencies , std::ostream & out_file)
+                         std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& dependencies, qsp_tt_statistics& stats)
 {
     //assert(tt_str.size() <= pow(2,6));
     const uint32_t num_qubits = std::log2(tt_str.size());
     for (auto i = 0u; i < num_qubits; ++i) 
     {
-		network.add_qubit();
-	}
-	
-	// switch (params.strategy) 
-    // {
-	// 	case qsp_params::strategy::allone_first:
-    //         std::cout<<"one first\n";
-	// 		qsp_allone_first(network, tt_str , dependencies);
-	// 		break;
-	// 	case qsp_params::strategy::ownfunction:
-    //         std::cout<<"own func\n";
-        stopwatch<>::duration time_bdd_traversal{0};
-    {
-        stopwatch t( time_bdd_traversal );
-        qsp_ownfunction(network, tt_str , dependencies , out_file);
+      network.add_qubit();
     }
-    
-    std::cout << "time = " << to_seconds( time_bdd_traversal ) << "s" << std::endl;
-	 		
-	// 		break;
-	// }
+	
+    // switch (params.strategy) 
+    // {
+    // 	case qsp_params::strategy::allone_first:
+    //         std::cout<<"one first\n";
+    // 		qsp_allone_first(network, tt_str , dependencies);
+    // 		break;
+    // 	case qsp_params::strategy::ownfunction:
+    //         std::cout<<"own func\n";
+
+    stopwatch<>::duration time_bdd_traversal{0};
+    {
+      stopwatch t( time_bdd_traversal );
+      qsp_ownfunction( network, tt_str, dependencies, stats );
+    }
+
+    stats.time = to_seconds( time_bdd_traversal );
 }
 
 } // namespace tweedledum end

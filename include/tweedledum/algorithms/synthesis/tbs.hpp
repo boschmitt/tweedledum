@@ -5,7 +5,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/qubit.hpp":x
+#include "../../networks/qubit.hpp"
 
 #include "../../networks/netlist.hpp"
 
