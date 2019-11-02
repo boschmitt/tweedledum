@@ -25,6 +25,13 @@ if (NOT TARGET kitty)
   target_include_directories(kitty INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kitty)
 endif()
 
+if(TWEEDLEDUM_USE_EXTERNAL_JSON)
+  find_package(nlohmann_json REQUIRED)
+else()
+  add_library(nlohmann_json INTERFACE)
+  target_include_directories(nlohmann_json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann)
+endif()
+
 if(TWEEDLEDUM_BLAS)
   list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR}/xtl-0.6.2)
   list(APPEND CMAKE_PREFIX_PATH ${CMAKE_CURRENT_BINARY_DIR}/xtensor-0.20.4)
