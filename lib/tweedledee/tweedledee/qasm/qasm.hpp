@@ -26,11 +26,6 @@ inline std::unique_ptr<ast_context> read_from_file(std::string const& path)
 
 	pp_lexer.add_target_file(path);
 	auto success = parser.parse();
-	if (success) {
-		std::cout << "Valid QASM =)\n";
-	} else {
-		std::cout << "Invalid QASM =(\n";
-	}
 	return success;
 }
 
@@ -43,11 +38,6 @@ inline std::unique_ptr<ast_context> read_from_buffer(std::string const& buffer)
 
 	pp_lexer.add_target_buffer(buffer);
 	auto success = parser.parse();
-	if (success) {
-		std::cout << "Valid QASM =)\n";
-	} else {
-		std::cout << "Invalid QASM =(\n";
-	}
 	return success;
 }
 
