@@ -297,19 +297,20 @@ private:
 	// <mixedlist> = <id> [ <nninteger> ] | <mixedlist> , <id>
 	//             | <mixedlist> , <id> [ <nninteger> ]
 	//             | <idlist> , <id>[ <nninteger> ]
-	bool parse_anylist(stmt_gate::builder& builder)
+	ast_node* parse_anylist()
 	{
+		auto builder = list_any::builder(context_.get(), current_token_.location);
 		do {
 			auto arg = parse_argument();
 			if (arg == nullptr) {
-				return false;
+				return nullptr;
 			}
 			builder.add_child(arg);
 			if (!try_and_consume_token(token_kinds::comma)) {
-			break;
+				break;
 			}
 		} while (1);
-		return true;
+		return builder.finish();
 	}
 
 	/*! \brief Parse a identifier (<idlist>) */
@@ -337,22 +338,22 @@ private:
 	{
 		auto location = current_token_.location;
 		auto identifier = expect_and_consume_token(token_kinds::identifier);
+		auto argument = expr_argument::builder(context_.get(), location);
 		auto declaration_reference = create_decl_reference(location, identifier);
 		if (declaration_reference == nullptr) {
 			return nullptr;
 		}
+		argument.add_register_decl(declaration_reference);
 		if (not try_and_consume_token(token_kinds::l_square)) {
-			return declaration_reference;
+			return argument.finish();
 		}
 
-		auto indexed_reference = expr_reg_idx_ref::builder(context_.get(), location);
 		auto idx = expect_and_consume_token(token_kinds::nninteger);
 		auto index = expr_integer::create(context_.get(), idx.location, idx);
 		expect_and_consume_token(token_kinds::r_square);
 		if (!error_) {
-			indexed_reference.add_child(declaration_reference);
-			indexed_reference.add_child(index);
-			return indexed_reference.finish();
+			argument.add_index(index);
+			return argument.finish();
 		}
 		return nullptr;
 	}	
@@ -360,16 +361,17 @@ private:
 	/*! \brief Parse expression list (<explist>) */
 	// <explist> = <exp> 
 	//           | <explist> , <exp>
-	void parse_explist(stmt_gate::builder& builder)
+	ast_node* parse_explist()
 	{
+		auto builder = list_exps::builder(context_.get(), current_token_.location);
 		do {
 			auto expr = parse_exp();
 			builder.add_child(expr);
 			if (not try_and_consume_token(token_kinds::comma)) {
-			break;
-		}
+				break;
+			}
 		} while (1);
-		return;
+		return builder.finish();
 	}
 
 	/*! \brief Parse an expression (<exp>) */
@@ -462,21 +464,6 @@ private:
 		return nullptr;
 	}
 
-	bool parse_anylist(stmt_barrier::builder& builder)
-	{
-		do {
-			auto arg = parse_argument();
-			if (arg == nullptr) {
-				return false;
-			}
-			builder.add_child(arg);
-			if (!try_and_consume_token(token_kinds::comma)) {
-				break;
-			}
-		} while (1);
-		return true;
-	}
-
 	ast_node* parse_atom()
 	{
 		if (try_and_consume_token(token_kinds::l_paren)) {
@@ -563,16 +550,18 @@ private:
 		auto stmt_builder = stmt_gate::builder(context_.get(), identifier.location);
 		auto gate_reference = create_decl_reference(identifier.location, identifier);
 
-		stmt_builder.add_child(gate_reference);
+		stmt_builder.add_gate_decl(gate_reference);
 		if (try_and_consume_token(token_kinds::l_paren)) {
 			if (not try_and_consume_token(token_kinds::r_paren)) {
-				parse_explist(stmt_builder);
+				stmt_builder.add_parameters(parse_explist());
 				expect_and_consume_token(token_kinds::r_paren);
 			}
 		}
-		if (!parse_anylist(stmt_builder)) {
+		auto arguments = parse_anylist();
+		if (arguments == nullptr) {
 			return nullptr;
 		}
+		stmt_builder.add_arguments(arguments);
 		expect_and_consume_token(token_kinds::semicolon);
 		if (not error_) {
 			return stmt_builder.finish();
@@ -625,7 +614,11 @@ private:
 		// If we get here 'barrier' was matched
 		auto stmt_builder = stmt_barrier::builder(context_.get(), current_token_.location);
 		consume_token();
-		parse_anylist(stmt_builder);
+		auto arguments = parse_anylist();
+		if (arguments == nullptr) {
+			return nullptr;
+		}
+		stmt_builder.add_child(arguments);
 		expect_and_consume_token(token_kinds::semicolon);
 		return stmt_builder.finish();
 	}

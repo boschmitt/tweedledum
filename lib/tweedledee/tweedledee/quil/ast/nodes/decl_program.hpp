@@ -8,62 +8,48 @@
 #include "../ast_node_kinds.hpp"
 
 #include <memory>
-#include <string>
-#include <vector>
 
 namespace tweedledee {
 namespace quil {
 
 // Root node class of the AST
-class program final
-    : public ast_node
-    , public ast_node_container<program, ast_node> {
+class decl_program final
+	: public ast_node
+	, public ast_node_container<decl_program, ast_node> {
 public:
 	class builder {
 	public:
 		explicit builder()
-		    : program_(new program())
+			: program_(new decl_program())
 		{}
 
-		void add_child(std::unique_ptr<ast_node> child)
+		void add_child(ast_node* child)
 		{
-			program_->add_child(std::move(child));
+			program_->add_child(child);
 		}
 
-		void add_qubit(std::string_view qubit_id)
-		{
-			program_->qubits.emplace_back(qubit_id);
-		}
-
-		program& get()
+		decl_program& get()
 		{
 			return *program_;
 		}
 
-		std::unique_ptr<program> finish()
+		decl_program* finish()
 		{
-			return std::move(program_);
+			return program_;
 		}
 
 	private:
-		std::unique_ptr<program> program_;
+		decl_program* program_;
 	};
 
-	std::vector<std::string> qubits;
-
 private:
-	program()
-	    : ast_node(0)
+	decl_program()
+		: ast_node(0)
 	{}
 
 	ast_node_kinds do_get_kind() const override
 	{
-		return ast_node_kinds::program;
-	}
-
-	void do_print(std::ostream& out) const override
-	{
-		(void) out;
+		return ast_node_kinds::decl_program;
 	}
 };
 

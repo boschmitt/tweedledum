@@ -19,17 +19,19 @@ namespace quil {
 // This is the class able to handle include's. You see, lexers know only about
 // tokens within a single source file.
 class preprocessor {
-	using lexer_pointer = std::unique_ptr<lexer>;
+	using LexerPtr = std::unique_ptr<lexer>;
 
 	source_manager& source_manager_;
+	diagnostic_engine& diagnostic_;
 
-	std::vector<lexer_pointer> lexer_stack_;
+	std::vector<LexerPtr> lexer_stack_;
 	// The current top of the stack that we're lexing from.
-	lexer_pointer current_lexer_ = nullptr;
+	LexerPtr current_lexer_ = nullptr;
 
 public:
-	preprocessor(source_manager& source_manager)
+	preprocessor(source_manager& source_manager, diagnostic_engine& diagnostic)
 	    : source_manager_(source_manager)
+	    , diagnostic_(diagnostic)
 	{}
 
 	// FIXME: For now this is like this because the function to
