@@ -3,7 +3,7 @@
 **/.dir-locals.el
 **/_*
 
-.vscode/
+.*/
 
 build/
 docs/.venv
