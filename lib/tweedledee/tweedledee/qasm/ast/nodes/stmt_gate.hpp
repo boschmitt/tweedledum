@@ -4,7 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "decl_gate.hpp"
+#include "expr_decl_ref.hpp"
 #include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
