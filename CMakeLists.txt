@@ -25,6 +25,7 @@ option(TWEEDLEDUM_BLAS "Enable xtensor-blas functionality" OFF)
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 option(TWEEDLEDUM_EXPERIMENTS "Build experiments" OFF)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
+option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
 
 # Libs
