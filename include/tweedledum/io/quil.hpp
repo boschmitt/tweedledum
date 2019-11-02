@@ -54,30 +54,45 @@ void write_quil(Network const& network, std::ostream& os)
 			gate.foreach_target([&](auto target) { os << fmt::format("H {}\n", target); });
 			break;
 
-		case gate_lib::pauli_x:
-			gate.foreach_target([&](auto target) { os << fmt::format("X {}\n", target); });
-			break;
+		case gate_lib::rotation_x: {
+			angle rotation_angle = gate.rotation_angle();
+			if (rotation_angle == angles::pi) {
+				gate.foreach_target([&](auto target) { 
+					os << fmt::format("X {}\n", target); 
+				});
+			} else if (rotation_angle == angles::pi_half) {
+				gate.foreach_target([&](auto target) { 
+					os << fmt::format("RX(pi/2) {}\n", target); 
+				});
+			} else if (rotation_angle == -angles::pi_half) {
+				gate.foreach_target([&](auto target) { 
+					os << fmt::format("RX(-pi/2) {}\n", target); 
+				});
+			} else {
+				std::cerr << "[w] unsupported gate type\n";
+				assert(0);
+			}
+		} break;
 
-                case gate_lib::pauli_z:
-			gate.foreach_target([&](auto target) { os << fmt::format("Z {}\n", target); });
-                        break;
-
-		case gate_lib::t:
-			gate.foreach_target([&](auto target) { os << fmt::format("T {}\n", target); });
-			break;
-
-                case gate_lib::phase:
-			gate.foreach_target([&](auto target) { os << fmt::format("S {}\n", target); });
-			break;
-
-		case gate_lib::t_dagger:
-		case gate_lib::phase_dagger:
-		case gate_lib::rotation_z:
+		case gate_lib::rotation_z: {
+			angle rotation_angle = gate.rotation_angle();
+			std::string symbol;
+			if (rotation_angle == angles::pi_quarter) {
+				symbol = "T";
+			} else if (rotation_angle == angles::pi_half) {
+				symbol = "S";
+			} else if (rotation_angle == angles::pi) {
+				symbol = "Z";
+			} else {
+				gate.foreach_target([&](auto target) {
+					os << fmt::format("RZ({}) {}\n", rotation_angle, target);
+				});
+				break;
+			}
 			gate.foreach_target([&](auto target) {
-				angle const& angle = gate.rotation_angle();
-				os << fmt::format("RZ({}) {}\n", angle, target);
+				os << fmt::format("{} {}\n", symbol, target);
 			});
-			break;
+		} break;
 
 		case gate_lib::cx:
 			gate.foreach_control([&](auto control) {

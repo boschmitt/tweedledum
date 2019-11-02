@@ -6,6 +6,7 @@
 
 #include "../../gates/gate_lib.hpp"
 #include "../../networks/io_id.hpp"
+#include "../../utils/angle.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -25,17 +26,23 @@ uint64_t simulate_classically(Network const& network, uint64_t pattern)
 	assert(network.num_qubits() <= 64);
 	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
-		switch (node.gate.operation()) {
+		switch (gate.operation()) {
 		default:
 			std::cerr << "[w] non-classical gate, abort simulation\n";
 			pattern = 0ull;
 			return false;
 
-		case gate_lib::pauli_x:
-			gate.foreach_target([&](io_id id) {
-				pattern ^= (1ull << id);
-			});
-			break;
+		case gate_lib::rotation_x: {
+			angle rotation_angle = gate.rotation_angle();
+			if (rotation_angle == angles::pi) {
+				gate.foreach_target([&](io_id id) {
+					pattern ^= (1ull << id);
+				});
+			} else {
+				std::cerr << "[w] unsupported gate type\n";
+				assert(0);
+			}
+		} break;
 
 		case gate_lib::cx:
 			gate.foreach_control([&](io_id control_id) {

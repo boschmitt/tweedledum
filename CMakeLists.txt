@@ -25,16 +25,19 @@ option(TWEEDLEDUM_BLAS "Enable xtensor-blas functionality" OFF)
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 option(TWEEDLEDUM_EXPERIMENTS "Build experiments" OFF)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
+option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
+option(TWEEDLEDUM_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
 
 # Libs
 # =============================================================================
-add_subdirectory(libs)
+add_subdirectory(lib)
 
 # Library
 # =============================================================================
 add_library(tweedledum INTERFACE)
 target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum INTERFACE easy fmt glucose kitty rang tweedledee)
+target_link_libraries(tweedledum INTERFACE bill easy fmt glucose kitty
+                                           nlohmann_json rang tweedledee)
 if(TWEEDLEDUM_BLAS)
   target_link_libraries(tweedledum INTERFACE xtensor-blas)
 endif()

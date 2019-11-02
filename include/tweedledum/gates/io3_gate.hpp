@@ -132,6 +132,11 @@ public:
 		return num_targets_;
 	}
 
+	uint32_t num_io() const
+	{
+		return num_targets() + num_controls();
+	}
+
 	io_id control() const
 	{
 		if (num_controls() != 1) {

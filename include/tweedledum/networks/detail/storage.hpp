@@ -26,11 +26,11 @@ namespace detail {
 struct link {
 	static constexpr auto max = std::numeric_limits<uint32_t>::max();
 
-	link()
+	constexpr link()
 	    : index(max)
 	{}
 
-	explicit link(uint32_t index)
+	constexpr explicit link(uint32_t index)
 	    : index(index)
 	{}
 

@@ -104,6 +104,11 @@ public:
 		return __builtin_popcount(targets_);
 	}
 
+	uint32_t num_io() const
+	{
+		return num_targets() + num_controls();
+	}
+
 	io_id target() const
 	{
 		if (num_targets() > 1) {

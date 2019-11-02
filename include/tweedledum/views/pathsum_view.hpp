@@ -46,10 +46,7 @@ public:
 		// This seems a bit ridiculous
 		// TODO: come up with a better way to check for allowed gates
 		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rotation_x,
-		                              gate_lib::rotation_z, gate_lib::phase,
-		                              gate_lib::phase_dagger, gate_lib::t,
-		                              gate_lib::t_dagger, gate_lib::pauli_z,
-		                              gate_lib::pauli_x, gate_lib::hadamard));
+		                              gate_lib::rotation_z, gate_lib::hadamard));
 		std::iota(phy_virtual_map_.begin(), phy_virtual_map_.end(), 0);
 		network.foreach_qubit([&](io_id id) {
 			virtual_id_map_.emplace_back(id);
@@ -74,10 +71,7 @@ public:
 	    , ignore_single_qubit_(ignore_single_qubit)
 	{
 		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rotation_x,
-		                              gate_lib::rotation_z, gate_lib::phase,
-		                              gate_lib::phase_dagger, gate_lib::t,
-		                              gate_lib::t_dagger, gate_lib::pauli_z,
-		                              gate_lib::pauli_x, gate_lib::hadamard));
+		                              gate_lib::rotation_z, gate_lib::hadamard));
 		for (uint32_t i = 0; i < virtual_phy_map.size(); ++i) {
 			phy_virtual_map_[virtual_phy_map[i]] = i;
 		}
@@ -121,15 +115,19 @@ private:
 			map_pathsum_to_node(id, node, node_index);
 		});
 		this->foreach_gate([&](auto const& node, auto node_index) {
+			auto const& gate = node.gate;
 			// If is a Z rotation save the current state of the qubit
-			if (node.gate.is_z_rotation() && !ignore_single_qubit_) {
-				auto qid = node.gate.target();
+			if (gate.is_z_rotation() && !ignore_single_qubit_) {
+				auto qid = gate.target();
 				auto map_element = pathsum_to_node_.find(qubit_state_[qid]);
 				assert(map_element != pathsum_to_node_.end());
 				node_to_pathsum_[node] = map_element;
 				map_element->second.push_back(node_index);
-			} else if (node.gate.is(gate_lib::pauli_x) && !ignore_single_qubit_) {
-				auto target_qid = node.gate.target();
+			} else if (gate.is(gate_lib::rotation_x) && !ignore_single_qubit_) {
+				if (gate.rotation_angle() != angles::pi) {
+					return;
+				}
+				auto target_qid = gate.target();
 				auto search_it = qubit_state_[target_qid].find(1);
 				if (search_it != qubit_state_[target_qid].end()) {
 					qubit_state_[target_qid].erase(search_it);
@@ -137,9 +135,9 @@ private:
 					qubit_state_[target_qid].emplace(1);
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
-			} else if (node.gate.is(gate_lib::cx)) {
-				auto target_qid = node.gate.target();
-				auto control_qid = node.gate.control();
+			} else if (gate.is(gate_lib::cx)) {
+				auto target_qid = gate.target();
+				auto control_qid = gate.control();
 				for (auto term : qubit_state_[control_qid]) {
 					auto search_it = qubit_state_[target_qid].find(term);
 					if (search_it != qubit_state_[target_qid].end()) {
@@ -149,16 +147,16 @@ private:
 					qubit_state_[target_qid].emplace(term);
 				}
 				map_pathsum_to_node(target_qid, node, node_index);
-			} else if (node.gate.is(gate_lib::swap)) {
+			} else if (gate.is(gate_lib::swap)) {
 				std::array<io_id, 2> targets = {io_invalid, io_invalid};
 				uint32_t i = 0;
-				node.gate.foreach_target([&](auto qid) {
+				gate.foreach_target([&](auto qid) {
 					targets[i++] = qid;
 				});
 				std::swap(qubit_state_[targets[0]], qubit_state_[targets[1]]);
-			} else if (node.gate.is_one_of(gate_lib::hadamard, gate_lib::rotation_x) && !ignore_single_qubit_) {
+			} else if (gate.is_one_of(gate_lib::hadamard, gate_lib::rotation_x) && !ignore_single_qubit_) {
 				// In case of hadamard gate a new path variable
-				auto qid = node.gate.target();
+				auto qid = gate.target();
 				qubit_state_[qid].clear();
 				qubit_state_[qid].emplace((num_path_vars_++ << 1));
 				map_pathsum_to_node(qid, node, node_index);
@@ -175,8 +173,10 @@ private:
 	}
 
 private:
-	std::unordered_map<esop_type, std::vector<uint32_t>> pathsum_to_node_;
-	node_map<std::unordered_map<esop_type, std::vector<uint32_t>>::iterator, Network> node_to_pathsum_;
+	using esop_hash_type = std::unordered_map<esop_type, std::vector<uint32_t>, hash<esop_type>>;
+
+	esop_hash_type pathsum_to_node_;
+	node_map<typename esop_hash_type::iterator, Network> node_to_pathsum_;
 	uint32_t num_path_vars_;
 	std::vector<esop_type> qubit_state_;
 	std::vector<uint32_t> phy_virtual_map_;

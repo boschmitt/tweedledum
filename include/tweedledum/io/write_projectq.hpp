@@ -63,43 +63,43 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 			os << fmt::format("H | {}\n", targets);
 			break;
 
-		case gate_lib::pauli_x:
-			os << fmt::format("X | {}\n", targets);
-			break;
+		case gate_lib::rotation_x: {
+			angle rotation_angle = gate.rotation_angle();
+			if (rotation_angle == angles::pi) {
+				os << fmt::format("X | {}\n", targets);
+			} else {
+				os << fmt::format("Rx({}) | {}\n", rotation_angle.numeric_value(),
+						targets);
+			}
+		} break;
 
-		case gate_lib::pauli_y:
-			os << fmt::format("Y | {}\n", targets);
-			break;
+		case gate_lib::rotation_y: {
+			angle rotation_angle = gate.rotation_angle();
+			if (rotation_angle == angles::pi) {
+				os << fmt::format("Y | {}\n", targets);
+			} else {
+				os << fmt::format("Ry({}) | {}\n", rotation_angle.numeric_value(),
+						targets);
+			}
+		} break;
 
-		case gate_lib::pauli_z:
-			os << fmt::format("Z | {}\n", targets);
-			break;
-
-		case gate_lib::phase:
-			os << fmt::format("S | {}\n", targets);
-			break;
-
-		case gate_lib::phase_dagger:
-			os << fmt::format("Sdag | {}\n", targets);
-			break;
-
-		case gate_lib::t:
-			os << fmt::format("T | {}\n", targets);
-			break;
-
-		case gate_lib::t_dagger:
-			os << fmt::format("Tdag | {}\n", targets);
-			break;
-
-		case gate_lib::rotation_x:
-			os << fmt::format("Rx({}) | {}\n", gate.rotation_angle().numeric_value(),
-			                  targets);
-			break;
-
-		case gate_lib::rotation_z:
-			os << fmt::format("Rz({}) | {}\n", gate.rotation_angle().numeric_value(),
-			                  targets);
-			break;
+		case gate_lib::rotation_z: {
+			angle rotation_angle = node.gate.rotation_angle();
+			if (rotation_angle == angles::pi_quarter) {
+				os << fmt::format("T | {}\n", targets);
+			} else if (rotation_angle == -angles::pi_quarter) {
+				os << fmt::format("Tdag | {}\n", targets);
+			} else if (rotation_angle == angles::pi_half) {
+				os << fmt::format("S | {}\n", targets);
+			} else if (rotation_angle == -angles::pi_half) {
+				os << fmt::format("Sdag | {}\n", targets);
+			} else if (rotation_angle == angles::pi) {
+				os << fmt::format("Z | {}\n", targets);
+			} else {
+				os << fmt::format("Rz({}) | {}\n", rotation_angle.numeric_value(),
+						targets);
+			}
+		} break;
 
 		case gate_lib::cx:
 			os << fmt::format("CNOT | ({}, {})\n", controls, targets);
