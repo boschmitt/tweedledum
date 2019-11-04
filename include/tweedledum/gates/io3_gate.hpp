@@ -193,6 +193,53 @@ public:
 		}
 		return true;
 	}
+
+	bool is_dependent(io3_gate const& other) const
+	{
+		if (*this == other) {
+			return false;
+		}
+		if (this->is_z_rotation()) {
+			if (other.is_z_rotation()) {
+				return false;
+			}
+			if (other.is_x_rotation()) {
+				// Check if the target of the 'other' gate affects the controls
+				// of 'this' gate
+				for (auto i = 0u; i < max_num_io; ++i) {
+					if (i != target0_
+					    && ids_[i] == other.ids_[other.target0_]) {
+						return true;
+					}
+				}
+				return ids_[target0_] == other.ids_[other.target0_];
+			}
+		}
+		if (this->is_x_rotation()) {
+			// Check if the target of the 'this' gate affects the controls
+			// of 'other' gate
+			for (auto i = 0u; i < max_num_io; ++i) {
+				if (i != other.target0_ && other.ids_[i] == ids_[target0_]) {
+					return true;
+				}
+			}
+			if (other.is_z_rotation()) {
+				return ids_[target0_] == other.ids_[other.target0_];
+			}
+			if (other.is_x_rotation()) {
+				// Check if the target of the 'other' gate affects the controls
+				// of 'this' gate
+				for (auto i = 0u; i < max_num_io; ++i) {
+					if (i != target0_
+					    && ids_[i] == other.ids_[other.target0_]) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		return true;
+	}
 #pragma endregion
 
 #pragma region Const iterators
@@ -214,6 +261,24 @@ public:
 		if (target1_ != invalid_value) {
 			fn(ids_[target1_]);
 		}
+	}
+#pragma endregion
+
+#pragma region Overloads
+	bool operator==(io3_gate const& other) const
+	{
+		if (operation() != other.operation()) {
+			return false;
+		}
+		if (data_ != other.data_) {
+			return false;
+		}
+		for (auto i = 0u; i < max_num_io; ++i) {
+			if (ids_[i] != other.ids_[i]) {
+				return false;
+			}
+		}
+		return true;
 	}
 #pragma endregion
 

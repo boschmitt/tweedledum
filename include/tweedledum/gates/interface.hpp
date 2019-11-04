@@ -79,6 +79,20 @@ public:
 	 * same controls and/or same targets.
 	 */
 	bool is_adjoint(gate const& other) const;
+
+	/*! \brief Check whether the this gate depends on ``other`` gate.
+	 *
+	 * If two gates acting on the same qubits are _not_ dependent on each other, it means they
+	 * can commute. For example:
+	 *
+	 *       ┌───┐                        ┌───┐
+	 *  |0>──┤ T ├──●────       |0>────●──┤ T ├──   A T gate can comute with a CNOT gate
+	 *       └───┘  │       ──         │  └───┘     when the T gate it is acting on the
+	 *            ┌─┴─┐     ──       ┌─┴─┐          control qubit of the CNOT.
+	 *  |0>───────┤ X ├──       |0>──┤ X ├───────
+	 *            └───┘              └───┘  
+	 */
+	bool is_dependent(gate const& other) const;
 #pragma endregion
 
 #pragma region Iterators
