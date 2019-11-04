@@ -431,8 +431,9 @@ public:
 	template<typename Fn>
 	void foreach_child(node_type const& node, Fn&& fn) const
 	{
-		static_assert(is_callable_without_index_v< Fn, link_type, void>
-		|| is_callable_with_index_v<Fn, link_type, void>);
+		static_assert(is_callable_without_index_v<Fn, link_type, void>
+		              || is_callable_with_index_v<Fn, link_type, void>
+		              || std::is_invocable_r_v<void, Fn, link_type, io_id>);
 
 		for (auto i = 0u; i < node.children.size(); ++i) {
 			if (node.children[i] == link_type::max) {
@@ -442,6 +443,8 @@ public:
 				fn(node.children[i]);
 			} else if constexpr (is_callable_with_index_v<Fn, link_type, void>) {
 				fn(node.children[i], i);
+			} else if constexpr (std::is_invocable_r_v<void, Fn, link_type, io_id>) {
+				fn(node.children[i], node.gate.qubit(i));
 			}
 		}
 	}

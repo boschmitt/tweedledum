@@ -137,6 +137,15 @@ public:
 		return qid.index();
 	}
 
+	io_id qubit(uint32_t slot) const
+	{
+		assert(slot < max_num_io);
+		if ((1u << slot) & (controls_ | targets_)) {
+			return io_id(slot, (polarity_ >> slot) & 1);
+		}
+		return io_invalid;
+	}
+
 	bool is_adjoint(mcmt_gate const& other) const
 	{
 		if (this->adjoint() != other.operation()) {

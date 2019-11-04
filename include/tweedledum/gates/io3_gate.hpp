@@ -165,6 +165,13 @@ public:
 		std::abort();
 	}
 
+	io_id qubit(uint32_t slot) const
+	{
+		assert(slot < max_num_io);
+		assert(ids_.at(slot) != io_invalid);
+		return ids_.at(slot);
+	}
+
 	// TODO: double check
 	bool is_adjoint(io3_gate const& other) const
 	{
