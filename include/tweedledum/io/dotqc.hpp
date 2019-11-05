@@ -90,7 +90,7 @@ public:
 	             std::vector<std::string> const& targets)
 	{
 		switch (gate.operation()) {
-		case gate_lib::rotation_x:
+		case gate_lib::cx:
 			if (controls.size() == 1) {
 				gate = gate::cx;
 			} else if (controls.size() >= 2) {
