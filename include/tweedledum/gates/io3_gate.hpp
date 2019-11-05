@@ -36,6 +36,7 @@ public:
 #pragma region Constructors
 	io3_gate(gate_base const& op, io_id target)
 	    : gate_base(op)
+	    , unused_(0)
 	    , num_controls_(0)
 	    , num_targets_(1)
 	    , control0_(invalid_value)
@@ -52,6 +53,7 @@ public:
 	// *) In case of MEASUREMENT they are both targets and id1 _must_ be the cbit 
 	io3_gate(gate_base const& op, io_id id0, io_id id1)
 	    : gate_base(op)
+	    , data_(0)
 	    , ids_({io_invalid, io_invalid, io_invalid})
 	{
 		init_two_io(id0, id1);
@@ -60,6 +62,7 @@ public:
 	io3_gate(gate_base const& op, std::vector<io_id> const& controls,
 	       std::vector<io_id> const& targets)
 	    : gate_base(op)
+	    , data_(0)
 	    , ids_({io_invalid, io_invalid, io_invalid})
 	{
 		assert(targets.size() >= 1u && "The gate must have at least one target");
