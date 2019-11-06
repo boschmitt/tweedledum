@@ -6,6 +6,8 @@
 
 #include "../generic/remove_marked.hpp"
 #include "../../gates/gate_lib.hpp"
+#include "../../utils/dynamic_bitset.hpp"
+#include "../../utils/stopwatch.hpp"
 
 #include <vector>
 #include <set>
@@ -13,6 +15,7 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <nlohmann/json.hpp>
 
 namespace tweedledum {
 
@@ -20,14 +23,18 @@ namespace tweedledum {
  */
 // TODO: still feels a bit hacky
 template<typename Network>
-Network gate_cancellation(Network const& network)
+Network gate_cancellation(Network const& network, nlohmann::json* stats = nullptr)
 {
 	using link_type = typename Network::link_type;
 	uint32_t num_deletions = 0u;
+	dynamic_bitset<uint32_t> seen_children(network.size());
 	network.clear_values();
+
+	auto start = std::chrono::steady_clock::now();
 	network.foreach_gate([&](auto const& node) {
 		std::vector<link_type> children;
 		std::set<uint32_t> qubits;
+		seen_children.reset();
 		network.foreach_child(node, [&](link_type child_index, io_id io) {
 			children.emplace_back(child_index);
 			qubits.insert(io.index());
@@ -57,7 +64,10 @@ Network gate_cancellation(Network const& network)
 				if (qubits.find(io.index()) == qubits.end()) {
 					return;
 				}
-				children.emplace_back(child_index);
+				if (seen_children[child_index] == 0) {
+					children.emplace_back(child_index);
+					seen_children[child_index] = 1;
+				}
 			});
 			++i;
 			if (i == i_end) {
@@ -74,6 +84,12 @@ Network gate_cancellation(Network const& network)
 			return;
 		}
 	});
+	auto elapsed_time = std::chrono::steady_clock::now() - start;
+	if (stats) {
+		(*stats)["passes"] += { {"pass", "gate_cancellation"}, 
+		                        {"time", to_seconds(elapsed_time) },
+					{"deletions", num_deletions } };
+	}
 	if (num_deletions == 0) {
 		return network;
 	}
