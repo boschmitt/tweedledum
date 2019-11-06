@@ -105,3 +105,119 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.num_gates() == 4);
 	}
 }
+
+TEMPLATE_PRODUCT_TEST_CASE("Even Sequences", "[gate_cancellation][template]",
+                           (gg_network), (mcmt_gate, io3_gate))
+{
+	TestType network;
+	SECTION("Even sequece of hadamards") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1024; ++i) {
+			network.add_gate(gate::hadamard, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 0);
+	}
+	SECTION("Even sequece of pauli-x") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1024; ++i) {
+			network.add_gate(gate::pauli_x, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 0);
+	}
+	SECTION("Even sequece of pauli-z") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1024; ++i) {
+			network.add_gate(gate::pauli_z, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 0);
+	}
+	SECTION("Even sequece of pauli-y") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1024; ++i) {
+			network.add_gate(gate::pauli_y, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 0);
+	}
+	SECTION("Even sequece of cx") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		for (uint32_t i = 0; i < 1024; ++i) {
+			network.add_gate(gate::cx, q0, q1);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 0);
+	}
+	SECTION("Even sequece of cx") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		auto q2 = network.add_qubit();
+		for (uint32_t i = 0; i < 1024; ++i) {
+			network.add_gate(gate::cx, q0, q1);
+			network.add_gate(gate::cx, q2, q1);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 0);
+	}
+}
+
+TEMPLATE_PRODUCT_TEST_CASE("Odd Sequences", "[gate_cancellation][template]",
+                           (gg_network), (mcmt_gate, io3_gate))
+{
+	TestType network;
+	SECTION("Odd sequece of hadamards") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1023; ++i) {
+			network.add_gate(gate::hadamard, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 1);
+	}
+	SECTION("Odd sequece of pauli-x") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1023; ++i) {
+			network.add_gate(gate::pauli_x, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 1);
+	}
+	SECTION("Odd sequece of pauli-z") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1023; ++i) {
+			network.add_gate(gate::pauli_z, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 1);
+	}
+	SECTION("Odd sequece of pauli-y") {
+		auto q0 = network.add_qubit();
+		for (uint32_t i = 0; i < 1023; ++i) {
+			network.add_gate(gate::pauli_y, q0);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 1);
+	}
+	SECTION("Odd sequece of cx") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		for (uint32_t i = 0; i < 1023; ++i) {
+			network.add_gate(gate::cx, q0, q1);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 1);
+	}
+	SECTION("Odd sequece of cx") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		auto q2 = network.add_qubit();
+		for (uint32_t i = 0; i < 1023; ++i) {
+			network.add_gate(gate::cx, q0, q1);
+			network.add_gate(gate::cx, q2, q1);
+		}
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_gates() == 2);
+	}
+}
