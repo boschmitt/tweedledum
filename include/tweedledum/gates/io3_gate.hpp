@@ -36,6 +36,7 @@ public:
 #pragma region Constructors
 	io3_gate(gate_base const& op, io_id target)
 	    : gate_base(op)
+	    , unused_(0)
 	    , num_controls_(0)
 	    , num_targets_(1)
 	    , control0_(invalid_value)
@@ -52,6 +53,7 @@ public:
 	// *) In case of MEASUREMENT they are both targets and id1 _must_ be the cbit 
 	io3_gate(gate_base const& op, io_id id0, io_id id1)
 	    : gate_base(op)
+	    , data_(0)
 	    , ids_({io_invalid, io_invalid, io_invalid})
 	{
 		init_two_io(id0, id1);
@@ -60,6 +62,7 @@ public:
 	io3_gate(gate_base const& op, std::vector<io_id> const& controls,
 	       std::vector<io_id> const& targets)
 	    : gate_base(op)
+	    , data_(0)
 	    , ids_({io_invalid, io_invalid, io_invalid})
 	{
 		assert(targets.size() >= 1u && "The gate must have at least one target");
@@ -165,6 +168,13 @@ public:
 		std::abort();
 	}
 
+	io_id qubit(uint32_t slot) const
+	{
+		assert(slot < max_num_io);
+		assert(ids_.at(slot) != io_invalid);
+		return ids_.at(slot);
+	}
+
 	// TODO: double check
 	bool is_adjoint(io3_gate const& other) const
 	{
@@ -181,6 +191,53 @@ public:
 		}
 		if (this->is_one_of(gate_lib::rotation_x, gate_lib::rotation_y, gate_lib::rotation_z)) {
 			if (this->rotation_angle() + other.rotation_angle() != angles::zero) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool is_dependent(io3_gate const& other) const
+	{
+		if (*this == other) {
+			return false;
+		}
+		if (this->is_z_rotation()) {
+			if (other.is_z_rotation()) {
+				return false;
+			}
+			if (other.is_x_rotation()) {
+				// Check if the target of the 'other' gate affects the controls
+				// of 'this' gate
+				for (auto i = 0u; i < max_num_io; ++i) {
+					if (i != target0_
+					    && ids_[i] == other.ids_[other.target0_]) {
+						return true;
+					}
+				}
+				return ids_[target0_] == other.ids_[other.target0_];
+			}
+		}
+		if (this->is_x_rotation()) {
+			// Check if the target of the 'this' gate affects the controls
+			// of 'other' gate
+			for (auto i = 0u; i < max_num_io; ++i) {
+				if (i != other.target0_ && other.ids_[i] == ids_[target0_]) {
+					return true;
+				}
+			}
+			if (other.is_z_rotation()) {
+				return ids_[target0_] == other.ids_[other.target0_];
+			}
+			if (other.is_x_rotation()) {
+				// Check if the target of the 'other' gate affects the controls
+				// of 'this' gate
+				for (auto i = 0u; i < max_num_io; ++i) {
+					if (i != target0_
+					    && ids_[i] == other.ids_[other.target0_]) {
+						return true;
+					}
+				}
 				return false;
 			}
 		}
@@ -207,6 +264,24 @@ public:
 		if (target1_ != invalid_value) {
 			fn(ids_[target1_]);
 		}
+	}
+#pragma endregion
+
+#pragma region Overloads
+	bool operator==(io3_gate const& other) const
+	{
+		if (operation() != other.operation()) {
+			return false;
+		}
+		if (data_ != other.data_) {
+			return false;
+		}
+		for (auto i = 0u; i < max_num_io; ++i) {
+			if (ids_[i] != other.ids_[i]) {
+				return false;
+			}
+		}
+		return true;
 	}
 #pragma endregion
 

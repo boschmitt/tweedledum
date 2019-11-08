@@ -137,6 +137,15 @@ public:
 		return qid.index();
 	}
 
+	io_id qubit(uint32_t slot) const
+	{
+		assert(slot < max_num_io);
+		if ((1u << slot) & (controls_ | targets_)) {
+			return io_id(slot, (polarity_ >> slot) & 1);
+		}
+		return io_invalid;
+	}
+
 	bool is_adjoint(mcmt_gate const& other) const
 	{
 		if (this->adjoint() != other.operation()) {
@@ -149,6 +158,34 @@ public:
 		if (this->is_one_of(gate_lib::rotation_x, gate_lib::rotation_y, gate_lib::rotation_z)) {
 			if (this->rotation_angle() + other.rotation_angle() != 0.0) {
 				return false;
+			}
+		}
+		return true;
+	}
+
+	bool is_dependent(mcmt_gate const& other) const
+	{
+		if (*this == other) {
+			return false;
+		}
+		if (this->is_z_rotation()) {
+			if (other.is_z_rotation()) {
+				return false;
+			}
+			if (other.is_x_rotation()) {
+				// Check if the target of the 'other' gate affects the controls of 'this' gate
+				return ((controls_ & other.targets_) != 0);
+			}
+		}
+		if (this->is_x_rotation()) {
+			if ((targets_ & other.controls_) != 0) {
+				return true;
+			}
+			if (other.is_z_rotation()) {
+				return ((targets_ & other.targets_) != 0);
+			}
+			if (other.is_x_rotation()) {
+				return ((controls_ & other.targets_) != 0);
 			}
 		}
 		return true;
@@ -179,6 +216,28 @@ public:
 				fn(io_id(idx, (q & 1)));
 			}
 		}
+	}
+#pragma endregion
+
+#pragma region Overloads
+	bool operator==(mcmt_gate const& other) const
+	{
+		if (operation() != other.operation()) {
+			return false;
+		}
+		if (is_qubit_ != other.is_qubit_) {
+			return false;
+		}
+		if (polarity_ != other.polarity_) {
+			return false;
+		}
+		if (controls_ != other.controls_) {
+			return false;
+		}
+		if (targets_ != other.targets_) {
+			return false;
+		}
+		return true;
 	}
 #pragma endregion
 
