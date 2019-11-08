@@ -657,10 +657,16 @@ void write_report( functional_dependency_stats const& stats, std::ostream& os )
                      stats.total_cnots, stats.total_rys );
 }
 
+/* Experiment #1:
+ *
+ * Read Boolean functions from a file and apply quantum circuit
+ * synthesis with and without dependency analysis.
+ */
 void example1()
 {
   std::string const filename = "../input/specs.txt";
-  
+  std::string const report_filename= "../output.txt";
+
   functional_dependency_stats stats;
   std::ifstream ifs;
   ifs.open( filename );
@@ -672,11 +678,11 @@ void example1()
 
     if ( line.empty() )
       continue;
-    
+
     /* prepare truth table */
     std::reverse( line.begin(), line.end() );
     std::uint32_t num_vars = ilog2( line.size() );
-    
+
     kitty::dynamic_truth_table tt( num_vars );
     kitty::create_from_binary_string( tt, line );
 
@@ -686,15 +692,24 @@ void example1()
   }
   ifs.close();
 
-  std::ofstream report_file;
-  report_file.open("../output.txt"); 
-  write_report( stats, report_file );
-  report_file.close();
+  // std::ofstream report_file;
+  // report_file.open( report_filename );
+  // write_report( stats, report_file );
+  // report_file.close();
+
+  write_report( stats, std::cout );
 }
 
+/* Experiment #2:
+ *
+ * Run quantum circuit synthesis with and without dependency analysis
+ * for all k-input functions.
+ */
 void example2()
 {
-  kitty::dynamic_truth_table tt( 4 );
+  uint32_t const num_vars = 4u;
+
+  kitty::dynamic_truth_table tt( num_vars );
 
   functional_dependency_stats stats;
 
@@ -703,6 +718,9 @@ void example2()
 
   do
   {
+    std::cout << '\r';
+    kitty::print_binary( tt );
+
     /* functional deps analysis */
     auto const deps = functional_dependency_analysis( tt, stats );
     prepare_quantum_state( tt, deps, stats );
@@ -712,16 +730,80 @@ void example2()
   } while ( !kitty::is_const0( tt ) );
 
   // std::ofstream report_file;
-  // report_file.open("../output.txt"); 
+  // report_file.open("../output.txt");
+  // write_report( stats, report_file );
+  // report_file.close();
+
+  std::cout << '\n';
+  write_report( stats, std::cout );
+}
+
+/* Experiment #3:
+ *
+ * Run quantum circuit synthesis with and without dependency analysis
+ * for all representatives of the NPN-k class.
+ */
+void example3()
+{
+  auto const num_vars = 4u;
+
+  /* truth table type in this example */
+  using truth_table = kitty::dynamic_truth_table;
+
+  /* set to store all NPN representatives (dynamic to store bits on heap) */
+  kitty::dynamic_truth_table map( 1 << num_vars );
+
+  /* invert bits: 1 means not classified yet */
+  std::transform( map.cbegin(), map.cend(), map.begin(), []( auto word ) { return ~word; } );
+
+  /* hash set to store all NPN classes */
+  std::unordered_set<truth_table, kitty::hash<truth_table>> classes;
+
+  /* start from 0 */
+  int64_t index = 0;
+  truth_table tt( num_vars );
+
+  while ( index != -1 )
+  {
+    /* create truth table from index value */
+    kitty::create_from_words( tt, &index, &index + 1 );
+
+    /* apply NPN canonization and add resulting representative to set;
+       while canonization, mark all encountered truth tables in map
+     */
+    const auto res = kitty::exact_npn_canonization( tt, [&map]( const auto& tt ) { kitty::clear_bit( map, *tt.cbegin() ); } );
+    classes.insert( std::get<0>( res ) );
+
+    /* find next non-classified truth table */
+    index = find_first_one_bit( map );
+  }
+
+  std::cout << "[i] enumerated "
+            << map.num_bits() << " functions into "
+            << classes.size() << " classes." << std::endl;
+
+  functional_dependency_stats stats;
+  for ( const auto& cl : classes )
+  {
+    if ( kitty::is_const0( cl ) )
+      continue;
+
+    /* functional deps analysis */
+    auto const deps = functional_dependency_analysis( cl, stats );
+    prepare_quantum_state( cl, deps, stats );
+  }
+
+  // std::ofstream report_file;
+  // report_file.open("../output.txt");
   // write_report( stats, report_file );
   // report_file.close();
 
   write_report( stats, std::cout );
 }
 
-void example3()
-{
 #if 0
+void example4()
+{
   std::string const inpath = "../input/";
   functional_dependency_stats stats;
   DIR * dir;
@@ -745,7 +827,7 @@ void example3()
       /* prepare truth table */
       std::reverse( tt_str.begin(), tt_str.end() );
       auto const tt_vars = int( log2( tt_str.size() ) );
-      
+
       kitty::dynamic_truth_table tt( tt_vars );
       kitty::create_from_binary_string( tt, tt_str );
 
@@ -753,19 +835,20 @@ void example3()
       auto const deps = functional_dependency_analysis( tt, stats );
       prepare_quantum_state( tt, deps, stats );
     }
-    
+
     closedir( dir );
   }
 
   std::ofstream report_file;
-  report_file.open("../output.txt"); 
+  report_file.open("../output.txt");
   write_report( stats, report_file );
   report_file.close();
-#endif  
 }
+#endif
 
 int main()
 {
-  example2();  
+  example2();
+  example3();
   return 0;
 }
