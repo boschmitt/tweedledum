@@ -698,23 +698,23 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
         percy::chain chain;
         percy::spec spec;
 
-        /* TODO: select the right primitives */
+        /* TODO #1: select the right primitives */
         spec.set_primitive( percy::AIG );
 
-        /* TODO: translate the partial truth table into a specification can be understood by `percy` */
+        /* TODO: is the order correct? */
         spec[0] = isop_i.first;
         spec.set_dont_care( 0, ~isop_i.second );
         if ( spec.get_nr_in() < 2 )
           continue;
 
-        /* TODO: synthesize a solution */
         auto const result = synthesize( spec, chain );
         if ( result == percy::success )
         {
+          /* TODO: simulate the result */
           // assert( chain.is_aig() );
           // assert( chain.simulate()[0] == tt );
 
-          /* TODO: extract the result and convert it into a dependency */
+          /* TODO #2: extract the result and convert it into a dependency */
           found = true;
           std::cout << "FOUND DEPENDECY: ";
           chain.print_expression();
