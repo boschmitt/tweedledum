@@ -8,6 +8,7 @@
 #include <tweedledum/networks/netlist.hpp>
 
 #include <kitty/kitty.hpp>
+#include <percy/percy.hpp>
 #include <fmt/format.h>
 #include <fstream>
 

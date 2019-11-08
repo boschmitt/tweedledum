@@ -22,4 +22,25 @@ if (NOT TARGET kitty)
   target_include_directories(kitty INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/kitty)
 endif()
 
+if (NOT TARGET percy)
+  add_library(percy INTERFACE) # >v0.1.2
+  target_include_directories(percy SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/percy)
+  target_compile_definitions(percy INTERFACE DISABLE_NAUTY)
+
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads REQUIRED)
+  target_link_libraries(percy INTERFACE Threads::Threads)
+
+  set(ABC_USE_NAMESPACE "pabc")
+  set(STATIC_LIBABC true)
+  add_subdirectory(abcsat)
+  if (UNIX)
+    target_compile_definitions(libabcsat PUBLIC "LIN64" ABC_NAMESPACE=pabc ABC_NO_USE_READLINE)
+  elseif(WIN32)
+    target_compile_definitions(libabcsat PUBLIC ABC_NAMESPACE=pabc ABC_USE_NO_READLINE NOMINMAX)
+    target_compile_definitions(libabcsat PUBLIC WIN32_NO_DLL)
+  endif()
+  target_link_libraries(percy INTERFACE libabcsat)
+endif()
+
 add_subdirectory(cudd)
