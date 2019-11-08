@@ -61,7 +61,7 @@ public:
         assert( false && "unknown symbol in binary string" );
       }
     }
-    
+
     return tt;
   }
 
@@ -76,7 +76,7 @@ public:
       kitty::set_bit( _mask, i );
     _mask = ~_mask;
   }
-  
+
   explicit partial_truth_table( kitty::dynamic_truth_table const& tt, uint32_t num_bits )
     : _num_bits( num_bits )
     , _bits( tt )
@@ -151,12 +151,12 @@ public:
     assert( _num_bits == tt.num_bits() );
     return ( _bits == tt._bits );
   }
-  
+
   uint32_t num_bits() const
   {
     return _num_bits;
   }
-  
+
 public:
   uint32_t _num_bits;
   kitty::dynamic_truth_table _bits;
@@ -181,7 +181,7 @@ std::vector<partial_truth_table> read_minterms_from_file( std::string const& fil
     minterms.emplace_back( partial_truth_table::create_from_binary_string( line ) );
   }
   ifs.close();
-  
+
   return minterms;
 }
 
@@ -196,12 +196,12 @@ std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
   {
     if ( minterm._bits[0] > ( 1u << tt.num_vars() ) )
       break;
-    
+
     if ( kitty::get_bit( tt, minterm._bits[0] ))
     {
       rows.emplace_back( partial_truth_table( minterm, tt.num_vars() ) );
     }
-    
+
     kitty::next_inplace( minterm );
   } while ( !kitty::is_const0( minterm ) );
   return rows;
@@ -236,19 +236,18 @@ bool check_not_exist_dependencies( std::vector<partial_truth_table> minterms, ui
         // print_binary(row2);
         // std::cout<<std::endl;
 
-        
         auto check = row1^row2;
 
         // std::cout<<"check: ";
         // print_binary(check);
         // std::cout<<std::endl;
-        
+
         if ( check.count_ones()==1 && check.get_bit( target ) )
         {
           return true;
         }
     }
-    
+
     return false;
 }
 
@@ -282,7 +281,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
   /* convert minterms to column vectors */
   uint32_t const minterm_length = minterms[0u].num_bits();
   uint32_t const num_minterms = minterms.size();
-  
+
   std::vector<partial_truth_table> columns( minterm_length, partial_truth_table( num_minterms ) );
   for ( auto i = 0u; i < minterm_length; ++i )
   {
@@ -407,7 +406,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
                 dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
                 break;
               }
-            }  
+            }
           }
         }
       }
@@ -418,7 +417,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
 
     if ( found )
       continue;
-    
+
     //-----and---------
     //-----first input
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
@@ -547,7 +546,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l , m }  };
               break;
             }
-            
+
             //---- 5th input
             for(auto i5 = j-4 ; i5>i ; --i5)
             {
@@ -563,8 +562,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
                 dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
                 break;
               }
-            }  
-          }        
+            }
+          }
         }
       }
 
@@ -590,8 +589,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           {
             found = true;
             dependencies[i] = std::pair{ std::string{"and_xor"}, std::vector<uint32_t>{ j , k  , l}  };
-            break;    
-          }       
+            break;
+          }
         }
       }
       if(found)
@@ -601,11 +600,74 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
 
   if ( has_no_dependencies == num_minterms - 2u )
   {
-    ++stats.has_no_dependencies; 
+    ++stats.has_no_dependencies;
   }
   else if ( dependencies.size() == 0u )
   {
     ++stats.no_dependencies_computed;
+  }
+
+  return dependencies;
+}
+
+dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats )
+{
+  ++stats.num_analysis_calls;
+
+  /* extract minterms */
+  std::vector<partial_truth_table> minterms = on_set( tt );
+
+  /* convert minterms to column vectors */
+  uint32_t const minterm_length = minterms[0u].num_bits();
+  uint32_t const num_minterms = minterms.size();
+
+  std::vector<partial_truth_table> columns( minterm_length, partial_truth_table( num_minterms ) );
+  for ( auto i = 0u; i < minterm_length; ++i )
+  {
+    for ( auto j = 0u; j < num_minterms; ++j )
+    {
+      if ( minterms.at( j ).get_bit( i ) )
+      {
+        columns[i].set_bit( j );
+      }
+    }
+  }
+
+  /* dependency analysis using exact synthesis*/
+  dependencies_t dependencies;
+
+  for ( auto mirror_i = 0; mirror_i < int32_t( columns.size() ); ++mirror_i )
+  {
+    auto i = columns.size() - mirror_i - 1;
+
+    for ( auto mirror_j = mirror_i; mirror_j < int32_t( columns.size() ); ++mirror_j )
+    {
+      auto j = columns.size() - mirror_j - 1;
+
+      for ( auto mirror_k = mirror_j; mirror_k < int32_t( columns.size() ); ++mirror_k )
+      {
+        auto k = columns.size() - mirror_k - 1;
+
+        /* check if we can synthesize k from i and j */
+        percy::chain chain;
+        percy::spec spec;
+
+        /* TODO: select the right primitives */
+        spec.set_primitive( percy::AIG );
+
+        /* TODO: translate the partial truth table into a specification can be understood by `percy`
+        // spec[0] = columns[k];
+
+        /* TODO: synthesize a solution */
+        // auto const result = synthesize( spec, chain );
+        // assert( result == percy::success );
+        // assert( chain.is_aig() );
+        // assert( chain.simulate()[0] == tt );
+
+        /* TODO: extract the result and convert it into a dependency */
+        // [ ... ]
+      }
+    }
   }
 
   return dependencies;
@@ -803,7 +865,7 @@ void example3()
 }
 
 #if 0
-void example4()
+void example1b()
 {
   std::string const inpath = "../input/";
   functional_dependency_stats stats;
@@ -847,9 +909,46 @@ void example4()
 }
 #endif
 
+/* Experiment #4:
+ *
+ * Run quantum circuit synthesis with and without dependency analysis
+ * for all k-input functions using exact synthesis.
+ */
+void example4()
+{
+  uint32_t const num_vars = 4u;
+
+  kitty::dynamic_truth_table tt( num_vars );
+
+  functional_dependency_stats stats;
+
+  /* TODO: implementation does not work for 0 */
+  kitty::next_inplace( tt );
+
+  do
+  {
+    std::cout << '\r';
+    kitty::print_binary( tt );
+
+    /* functional deps analysis */
+    auto const deps = exact_fd_analysis( tt, stats );
+    prepare_quantum_state( tt, deps, stats );
+
+    /* increment truth table */
+    kitty::next_inplace( tt );
+  } while ( !kitty::is_const0( tt ) );
+
+  // std::ofstream report_file;
+  // report_file.open("../output.txt");
+  // write_report( stats, report_file );
+  // report_file.close();
+
+  std::cout << '\n';
+  write_report( stats, std::cout );
+}
+
 int main()
 {
-  example2();
-  example3();
+  example4();
   return 0;
 }
