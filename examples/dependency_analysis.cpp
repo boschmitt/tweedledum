@@ -157,6 +157,10 @@ public:
     return _num_bits;
   }
 
+  std::pair<kitty::dynamic_truth_table,kitty::dynamic_truth_table> to_isop() const
+  {
+    return {_bits,_mask};
+  }
 public:
   uint32_t _num_bits;
   kitty::dynamic_truth_table _bits;
@@ -184,7 +188,6 @@ std::vector<partial_truth_table> read_minterms_from_file( std::string const& fil
 
   return minterms;
 }
-
 
 std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
 {
@@ -636,38 +639,96 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
   /* dependency analysis using exact synthesis*/
   dependencies_t dependencies;
 
+  uint32_t has_no_dependencies = 0u;
   for ( auto mirror_i = 0; mirror_i < int32_t( columns.size() ); ++mirror_i )
   {
     auto i = columns.size() - mirror_i - 1;
 
-    for ( auto mirror_j = mirror_i; mirror_j < int32_t( columns.size() ); ++mirror_j )
+    bool found = false;
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
     {
-      auto j = columns.size() - mirror_j - 1;
-
-      for ( auto mirror_k = mirror_j; mirror_k < int32_t( columns.size() ); ++mirror_k )
+      if ( columns.at( i ) == columns.at( j ) )
       {
-        auto k = columns.size() - mirror_k - 1;
+        found = true;
+        dependencies[i] = std::pair{ std::string{"eq"}, std::vector<uint32_t>{ j } };
+        break;
+      }
+    }
 
-        /* check if we can synthesize k from i and j */
+    /* go to next column if a solution has been found for this column */
+    if ( found )
+      continue;
+
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      if ( columns.at( i ) == ~columns.at( j ) )
+      {
+        found = true;
+        dependencies[i] = std::pair{ std::string{"not"}, std::vector<uint32_t>{ j }  };
+        break;
+      }
+    }
+
+    /* go to next column if a solution has been found for this column */
+    if ( found )
+      continue;
+
+    /*---check that there isn't any dependency---*/
+    if ( i < minterm_length - 2 )
+    {
+      if ( check_not_exist_dependencies( minterms, i ) )
+      {
+        ++has_no_dependencies;
+        continue;
+      }
+    }
+
+    //----first input
+    for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
+    {
+      //-----second input
+      for ( auto k = j - 1; k > i; --k )
+      {
+        // std::cout << i << ' ' << j << ' ' << k << std::endl;
+
+        auto const isop_i = columns.at( i ).to_isop();
+        auto const isop_j = columns.at( j ).to_isop();
+        auto const isop_k = columns.at( k ).to_isop();
+
         percy::chain chain;
         percy::spec spec;
 
         /* TODO: select the right primitives */
         spec.set_primitive( percy::AIG );
 
-        /* TODO: translate the partial truth table into a specification can be understood by `percy`
-        // spec[0] = columns[k];
+        /* TODO: translate the partial truth table into a specification can be understood by `percy` */
+        spec[0] = isop_i.first;
+        spec.set_dont_care( 0, ~isop_i.second );
+        if ( spec.get_nr_in() < 2 )
+          continue;
 
         /* TODO: synthesize a solution */
-        // auto const result = synthesize( spec, chain );
-        // assert( result == percy::success );
-        // assert( chain.is_aig() );
-        // assert( chain.simulate()[0] == tt );
+        auto const result = synthesize( spec, chain );
+        if ( result == percy::success )
+        {
+          // assert( chain.is_aig() );
+          // assert( chain.simulate()[0] == tt );
 
-        /* TODO: extract the result and convert it into a dependency */
-        // [ ... ]
+          /* TODO: extract the result and convert it into a dependency */
+          found = true;
+          std::cout << "FOUND DEPENDECY: ";
+          chain.print_expression();
+          std::cout << std::endl;
+          break;
+        }
       }
+
+      if ( found )
+        break;
     }
+
+    if ( found )
+      continue;
   }
 
   return dependencies;
@@ -927,8 +988,8 @@ void example4()
 
   do
   {
-    std::cout << '\r';
-    kitty::print_binary( tt );
+    // std::cout << '\r';
+    kitty::print_binary( tt ); std::cout << std::endl;
 
     /* functional deps analysis */
     auto const deps = exact_fd_analysis( tt, stats );
