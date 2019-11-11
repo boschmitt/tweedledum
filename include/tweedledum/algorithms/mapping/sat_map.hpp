@@ -105,17 +105,12 @@ public:
 
 	std::vector<uint32_t> decode(std::vector<lbool_type> const& model)
 	{
-		std::vector<uint32_t> mapping;
-		network_.foreach_io([&](io_id io) {
-			mapping.push_back(io);
-		});
-
+		std::vector<uint32_t> mapping(network_.num_qubits(), 0);
 		for (uint32_t v_qid = 0; v_qid < num_virtual_qubits(); ++v_qid) {
-			io_id v_id = qid_io_map_.at(v_qid);
 			for (uint32_t phy_qid = 0; phy_qid < num_physical_qubits(); ++phy_qid) {
 				var_type var = virtual_physical_var(v_qid, phy_qid);
 				if (model.at(var) == lbool_type::true_) {
-					mapping.at(v_id.index()) = phy_qid;
+					mapping.at(v_qid) = phy_qid;
 					break;
 				}
 			}
