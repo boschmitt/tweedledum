@@ -1,5 +1,5 @@
 /* kitty: C++ truth table library
- * Copyright (C) 2017-2018  EPFL
+ * Copyright (C) 2017-2019  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -77,6 +77,10 @@ public:
     _bits = _mask = 0u;
 
     auto p = str.begin();
+    if ( p == str.end() )
+    {
+      return;
+    }
 
     for ( uint64_t i = 1; i <= ( uint64_t( 1u ) << 32u ); i <<= 1 )
     {
