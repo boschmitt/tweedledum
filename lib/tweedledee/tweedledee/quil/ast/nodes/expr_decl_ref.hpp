@@ -4,47 +4,43 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../ast_context.hpp"
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
-#include <cstdint>
 #include <memory>
-#include <ostream>
+#include <string>
 
 namespace tweedledee {
 namespace quil {
 
-/*! \brief Qubit AST node
+//
+class expr_decl_ref final : public ast_node {
 
-  A qubit is referred to by its integer index.
-  For example, Q5 is referred to by 5.
-
-*/
-class qubit final : public ast_node {
 public:
-	static std::unique_ptr<qubit> build(uint32_t location, std::string_view label)
+	static expr_decl_ref* build(ast_context* ctx, uint32_t location, ast_node* decl)
 	{
-		auto result = std::unique_ptr<qubit>(new qubit(location, label));
-		return result;
+		return new (*ctx) expr_decl_ref(location, decl);
 	}
 
-	std::string label;
+	ast_node* declaration() const
+	{
+		return decl_;
+	}
 
 private:
-	qubit(uint32_t location, std::string_view label)
+	expr_decl_ref(unsigned location, ast_node* decl)
 	    : ast_node(location)
-	    , label(label)
+	    , decl_(decl)
 	{}
 
 	ast_node_kinds do_get_kind() const override
 	{
-		return ast_node_kinds::qubit;
+		return ast_node_kinds::expr_decl_ref;
 	}
 
-	void do_print(std::ostream& out) const override
-	{
-		out << "qubit " << label;
-	}
+private:
+	ast_node* decl_;
 };
 
 } // namespace quil

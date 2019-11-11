@@ -125,6 +125,10 @@ private:
 				map_element->second.push_back(node_index);
 			} else if (gate.is(gate_lib::rotation_x) && !ignore_single_qubit_) {
 				if (gate.rotation_angle() != angles::pi) {
+					auto qid = gate.target();
+					qubit_state_[qid].clear();
+					qubit_state_[qid].emplace((num_path_vars_++ << 1));
+					map_pathsum_to_node(qid, node, node_index);
 					return;
 				}
 				auto target_qid = gate.target();
@@ -154,7 +158,7 @@ private:
 					targets[i++] = qid;
 				});
 				std::swap(qubit_state_[targets[0]], qubit_state_[targets[1]]);
-			} else if (gate.is_one_of(gate_lib::hadamard, gate_lib::rotation_x) && !ignore_single_qubit_) {
+			} else if (gate.is(gate_lib::hadamard) && !ignore_single_qubit_) {
 				// In case of hadamard gate a new path variable
 				auto qid = gate.target();
 				qubit_state_[qid].clear();

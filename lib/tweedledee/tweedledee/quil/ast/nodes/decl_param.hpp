@@ -8,35 +8,39 @@
 #include "../ast_node.hpp"
 #include "../ast_node_kinds.hpp"
 
+#include <memory>
+#include <string>
+
 namespace tweedledee {
 namespace quil {
 
-class expr_integer final : public ast_node {
-
+// This represents a variable parameter in a gate declaration (`decl_gate`)
+class decl_param final : public ast_node {
 public:
-	static expr_integer* create(ast_context* ctx, uint32_t location, int32_t value)
+	static decl_param* build(ast_context* ctx, uint32_t location, std::string_view identifier)
 	{
-		return new (*ctx) expr_integer(location, value);
+		auto result = new (*ctx) decl_param(location, identifier);
+		return result;
 	}
 
-	int32_t evaluate() const
+	std::string_view identifier() const
 	{
-		return value_;
+		return identifier_;
 	}
 
 private:
-	expr_integer(uint32_t location, int32_t value)
+	decl_param(uint32_t location, std::string_view identifier)
 	    : ast_node(location)
-	    , value_(value)
+	    , identifier_(identifier)
 	{}
 
 	ast_node_kinds do_get_kind() const override
 	{
-		return ast_node_kinds::expr_integer;
+		return ast_node_kinds::decl_param;
 	}
 
 private:
-	int32_t value_;
+	std::string identifier_;
 };
 
 } // namespace quil

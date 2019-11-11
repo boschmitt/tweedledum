@@ -4,9 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "ast_context.hpp"
-#include "ast_node.hpp"
-#include "ast_node_kinds.hpp"
+#include "ast.hpp"
 
 namespace tweedledee {
 namespace qasm {
@@ -42,6 +40,13 @@ protected:
 		}
 	}
 
+	void visit_expr_argument(expr_argument* node)
+	{
+		for (auto& child : *node) {
+			visit(const_cast<ast_node*>(&child));
+		}
+	}
+
 	void visit_expr_binary_op(expr_binary_op* node)
 	{
 		for (auto& child : *node) {
@@ -49,14 +54,21 @@ protected:
 		}
 	}
 
-	void visit_expr_reg_idx_ref(expr_reg_idx_ref* node)
+	void visit_expr_unary_op(expr_unary_op* node)
 	{
 		for (auto& child : *node) {
 			visit(const_cast<ast_node*>(&child));
 		}
 	}
 
-	void visit_expr_unary_op(expr_unary_op* node)
+	void visit_list_any(list_any* node)
+	{
+		for (auto& child : *node) {
+			visit(const_cast<ast_node*>(&child));
+		}
+	}
+
+	void visit_list_exps(list_exps* node)
 	{
 		for (auto& child : *node) {
 			visit(const_cast<ast_node*>(&child));
@@ -169,16 +181,24 @@ private:
 			derived().visit_decl_program(static_cast<decl_program*>(node));
 			break;
 
+		case ast_node_kinds::expr_argument:
+			derived().visit_expr_argument(static_cast<expr_argument*>(node));
+			break;
+
 		case ast_node_kinds::expr_binary_op:
 			derived().visit_expr_binary_op(static_cast<expr_binary_op*>(node));
 			break;
 
-		case ast_node_kinds::expr_reg_idx_ref:
-			derived().visit_expr_reg_idx_ref(static_cast<expr_reg_idx_ref*>(node));
-			break;
-
 		case ast_node_kinds::expr_unary_op:
 			derived().visit_expr_unary_op(static_cast<expr_unary_op*>(node));
+			break;
+
+		case ast_node_kinds::list_any:
+			derived().visit_list_any(static_cast<list_any*>(node));
+			break;
+
+		case ast_node_kinds::list_exps:
+			derived().visit_list_exps(static_cast<list_exps*>(node));
 			break;
 
 		case ast_node_kinds::list_gops:
@@ -268,6 +288,12 @@ public:
 		}
 	}
 
+	void visit_expr_argument(expr_argument* node)
+	{
+		os_ << fmt::format("{}|- expr_argument\n", prefix_);
+		visit_children(node);
+	}
+
 	void visit_expr_binary_op(expr_binary_op* node)
 	{
 		os_ << fmt::format("{}|- expr_binary_op ", prefix_);
@@ -300,12 +326,6 @@ public:
 			os_ << "'unknown'\n";
 			break;
 		}
-		visit_children(node);
-	}
-
-	void visit_expr_reg_idx_ref(expr_reg_idx_ref* node)
-	{
-		os_ << fmt::format("{}|- expr_reg_idx_ref\n", prefix_);
 		visit_children(node);
 	}
 
@@ -349,6 +369,18 @@ public:
 			os_ << "'unknown'\n";
 			break;
 		}
+		visit_children(node);
+	}
+
+	void visit_list_any(list_any* node)
+	{
+		os_ << fmt::format("{}|- list_any ({})\n", prefix_, node->num_children());
+		visit_children(node);
+	}
+
+	void visit_list_exps(list_exps* node)
+	{
+		os_ << fmt::format("{}|- list_exps ({})\n", prefix_, node->num_children());
 		visit_children(node);
 	}
 

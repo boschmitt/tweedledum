@@ -5,7 +5,9 @@
 #pragma once
 
 #include "../gates/gate_lib.hpp"
+#include "../gates/gate_base.hpp"
 #include "../networks/io_id.hpp"
+#include "../program.hpp"
 
 #include <cassert>
 #include <fmt/color.h>
@@ -13,20 +15,141 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <tweedledee/qasm/qasm.hpp>
+#include <vector>
 #include <tweedledee/qasm/ast/visitor.hpp>
+#include <tweedledee/qasm/qasm.hpp>
+
+namespace tweedledee::qasm {
+
+template<typename Network>
+class tweedledum_visitor : public visitor_base<tweedledum_visitor<Network>> {
+public:
+	explicit tweedledum_visitor(Network& network)
+	    : network_(network)
+	{}
+
+	/* Containers */
+	void visit_decl_gate(decl_gate* node)
+	{
+		// Ignore gate declarations for now
+		(void) node;
+		return;
+	}
+
+	std::string visit_expr_argument(expr_argument* node)
+	{
+		auto reg = static_cast<decl_register*>(node->register_decl());
+		auto index = static_cast<expr_integer*>(node->index());
+		if (index) {
+			return fmt::format("{}_{}", reg->identifier(), index->evaluate());
+		}
+		return fmt::format("{}", reg->identifier());
+	}
+
+	void visit_stmt_gate(stmt_gate* node)
+	{
+		using namespace tweedledum;
+		auto gate_id = static_cast<decl_gate*>(node->gate())->identifier();
+		auto arguments_list = visit_list_any(static_cast<list_any*>(node->arguments()));
+		auto parameters = node->parameters();
+		if (gate_id == "cx") {
+			network_.add_gate(gate::cx, arguments_list[0], arguments_list[1]);
+		} else if (gate_id == "h") {
+			network_.add_gate(gate::hadamard, arguments_list[0]);
+		} else if (gate_id == "x") {
+			network_.add_gate(gate::pauli_x, arguments_list[0]);
+		} else if (gate_id == "y") {
+			network_.add_gate(gate::pauli_y, arguments_list[0]);
+		} else if (gate_id == "rz") {
+			// FIXME: this is a hack! I need to properly implement expression evaluation
+			assert(parameters != nullptr);
+			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
+			double angle = evaluate(parameter);
+			network_.add_gate(gate_base(gate_lib::rotation_z, angle), arguments_list[0]); 
+		} else if (gate_id == "t") {
+			network_.add_gate(gate::t, arguments_list[0]);
+		} else if (gate_id == "s") {
+			network_.add_gate(gate::phase, arguments_list[0]);
+		} else if (gate_id == "z") {
+			network_.add_gate(gate::pauli_z, arguments_list[0]);
+		} else if (gate_id == "sdg") {
+			network_.add_gate(gate::phase_dagger, arguments_list[0]);
+		} else if (gate_id == "tdg") {
+			network_.add_gate(gate::t_dagger, arguments_list[0]);
+		} else {
+			fmt::print("Unrecognized gate: {}\n", gate_id);
+			assert(0);
+		}
+	}
+
+	std::vector<std::string> visit_list_any(list_any* node)
+	{
+		std::vector<std::string> arguments;
+		for (auto& child : *node) {
+			assert(child.kind() == ast_node_kinds::expr_argument);
+			arguments.emplace_back(visit_expr_argument(static_cast<expr_argument*>(&child)));
+		}
+		return arguments;
+	}
+
+	void visit_decl_register(decl_register* node)
+	{
+		std::string_view register_name = node->identifier();
+		if (node->is_quantum()) {
+			for (uint32_t i = 0u; i < node->size(); ++i) {
+				network_.add_qubit(fmt::format("{}_{}", register_name, i));
+			}
+		} else {
+			for (uint32_t i = 0u; i < node->size(); ++i) {
+				network_.add_cbit(fmt::format("{}_{}", register_name, i));
+			}
+		}
+	}
+
+private:
+	double evaluate(ast_node* node) const
+	{
+		switch (node->kind()) {
+		case ast_node_kinds::expr_integer:
+			return static_cast<expr_integer*>(node)->evaluate();
+
+		case ast_node_kinds::expr_real:
+			return static_cast<expr_real*>(node)->evaluate();
+
+		case ast_node_kinds::expr_unary_op:
+			if (static_cast<expr_unary_op*>(node)->op() == unary_ops::minus) {
+				return -evaluate(static_cast<expr_unary_op*>(node)->operand());
+			}
+
+		default:
+			// The time has come, implement a better way to evaluate expression!
+			std::abort();
+		}
+	}
+
+private:
+	Network& network_;
+};
+} // namespace tweedledee::qasm
 
 namespace tweedledum {
 
 /*! \brief Reads OPENQASM 2.0 format
  */
-void read_qasm_from_file(std::string const& path)
+template<typename Network>
+Network read_qasm_from_file(std::string const& path)
 {
-	auto program_ast = tweedledee::qasm::read_from_file(path);
+	using namespace tweedledee::qasm;
+	Network network;
+	auto program_ast = read_from_file(path);
 	if (program_ast) {
-		tweedledee::qasm::ast_printer printer;
-		printer.visit(*program_ast);
+		// ast_printer printer;
+		// printer.visit(*program_ast);
+
+		tweedledum_visitor network_builder(network);
+		network_builder.visit(*program_ast);
 	}
+	return network;
 }
 
 /*! \brief Writes network in OPENQASM 2.0 format into output stream

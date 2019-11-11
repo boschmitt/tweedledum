@@ -17,10 +17,10 @@ namespace qasm {
 // A `decl_gate` node has three childs, one of which optional.
 // The children objects are in order:
 //
-// * A `list_ids *` for the parameter list.
+// * A `list_ids *` for the parameter identifier list.
 //    Present if and only if has_parameters().
 //
-// * A "list_ids *" for the qubit argument list. (At least one qubit argument is required)
+// * A "list_ids *" for the qubit argument identifier list. (At least one qubit argument is required)
 //    Always present.
 //
 // * A "list_gops *" for the body.
@@ -76,28 +76,34 @@ public:
 		return ((this->config_bits_ >> has_params_) & 1) == 1;
 	}
 
-	ast_node& parameters()
+	ast_node* parameters()
 	{
-		return *(this->begin());
+		if (has_parameters()) {
+			return &(*(this->begin()));
+		}
+		return nullptr;
 	}
 
-	// FIXME: this is hacky, implement random access iterator
-	ast_node& arguments()
+	// FIXME: this is hacky, implement random access iterator?
+	ast_node* arguments()
 	{
 		auto iter = this->begin();
 		if (has_parameters()) {
 			++iter;
+			return &(*iter);
 		}
-		return *iter;
+		return &(*iter);
 	}
 
-	ast_node& body()
+	ast_node* body()
 	{
 		auto iter = this->begin();
+		++iter;
 		if (has_parameters()) {
 			++iter;
+			return &(*iter);
 		}
-		return *(++iter);
+		return &(*iter);
 	}
 
 private:
