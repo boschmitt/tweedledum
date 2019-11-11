@@ -10,7 +10,7 @@ script:
 matrix:
   include:
   - os: linux
-    dist: trusty
+    dist: bionic
     sudo: required
     compiler: gcc
     addons:
@@ -23,7 +23,7 @@ matrix:
           - liblapack-dev
     env: COMPILER=g++-7
   - os: linux
-    dist: trusty
+    dist: bionic
     sudo: required
     compiler: gcc
     addons:
@@ -36,14 +36,14 @@ matrix:
           - liblapack-dev
     env: COMPILER=g++-9
   - os: linux
-    dist: trusty
+    dist: bionic
     sudo: required
     compiler: clang
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-7.0
+          - llvm-toolchain-bionic-7.0
         packages:
           - clang-7.0
           - g++-7
