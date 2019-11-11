@@ -48,7 +48,7 @@ matrix:
         packages:
           - libblas-dev
           - liblapack-dev
-    env: COMPILER=clang++-7.0
+    env: COMPILER=clang++
 
   - os: osx
     osx_image: xcode10.2
