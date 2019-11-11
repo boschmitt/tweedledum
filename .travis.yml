@@ -10,46 +10,46 @@ script:
 matrix:
   include:
   - os: linux
-    dist: trusty
+    dist: bionic
     sudo: required
     compiler: gcc
     addons:
       apt:
         sources: 
-          - ubuntu-toolchain-r-test
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
         packages:
           - g++-7
           - libblas-dev
           - liblapack-dev
     env: COMPILER=g++-7
+
   - os: linux
-    dist: trusty
+    dist: bionic
     sudo: required
     compiler: gcc
     addons:
       apt:
         sources:
-          - ubuntu-toolchain-r-test
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
         packages:
-          - g++-8
+          - g++-9
           - libblas-dev
           - liblapack-dev
-    env: COMPILER=g++-8
+    env: COMPILER=g++-9
+
   - os: linux
-    dist: trusty
+    dist: bionic
     sudo: required
     compiler: clang
     addons:
       apt:
         sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-6.0
+          - sourceline: "ppa:ubuntu-toolchain-r/test"
         packages:
-          - clang-6.0
-          - g++-7
           - libblas-dev
           - liblapack-dev
-    env: COMPILER=clang++-6.0
+    env: COMPILER=clang++
+
   - os: osx
     osx_image: xcode10.2
     compiler: clang
@@ -57,12 +57,14 @@ matrix:
       - brew update
       - brew install llvm
     env: COMPILER=/usr/local/opt/llvm/bin/clang++
+
   - os: osx
     osx_image: xcode10.2
     compiler: gcc
     before_install:
       - brew upgrade gcc
     env: COMPILER=/usr/local/opt/gcc/bin/g++-9
+
   - os: osx
     osx_image: xcode10.2
     compiler: gcc
