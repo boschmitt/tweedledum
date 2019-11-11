@@ -51,6 +51,7 @@ public:
 		using namespace tweedledum;
 		auto gate_id = static_cast<decl_gate*>(node->gate())->identifier();
 		auto arguments_list = visit_list_any(static_cast<list_any*>(node->arguments()));
+		auto parameters = node->parameters();
 		if (gate_id == "cx") {
 			network_.add_gate(gate::cx, arguments_list[0], arguments_list[1]);
 		} else if (gate_id == "h") {
@@ -59,6 +60,12 @@ public:
 			network_.add_gate(gate::pauli_x, arguments_list[0]);
 		} else if (gate_id == "y") {
 			network_.add_gate(gate::pauli_y, arguments_list[0]);
+		} else if (gate_id == "rz") {
+			// FIXME: this is a hack! I need to properly implement expression evaluation
+			assert(parameters != nullptr);
+			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
+			double angle = evaluate(parameter);
+			network_.add_gate(gate_base(gate_lib::rotation_z, angle), arguments_list[0]); 
 		} else if (gate_id == "t") {
 			network_.add_gate(gate::t, arguments_list[0]);
 		} else if (gate_id == "s") {
@@ -70,7 +77,7 @@ public:
 		} else if (gate_id == "tdg") {
 			network_.add_gate(gate::t_dagger, arguments_list[0]);
 		} else {
-			fmt::print("Unrecognized gate: {}", gate_id);
+			fmt::print("Unrecognized gate: {}\n", gate_id);
 			assert(0);
 		}
 	}
@@ -96,6 +103,27 @@ public:
 			for (uint32_t i = 0u; i < node->size(); ++i) {
 				network_.add_cbit(fmt::format("{}_{}", register_name, i));
 			}
+		}
+	}
+
+private:
+	double evaluate(ast_node* node) const
+	{
+		switch (node->kind()) {
+		case ast_node_kinds::expr_integer:
+			return static_cast<expr_integer*>(node)->evaluate();
+
+		case ast_node_kinds::expr_real:
+			return static_cast<expr_real*>(node)->evaluate();
+
+		case ast_node_kinds::expr_unary_op:
+			if (static_cast<expr_unary_op*>(node)->op() == unary_ops::minus) {
+				return -evaluate(static_cast<expr_unary_op*>(node)->operand());
+			}
+
+		default:
+			// The time has come, implement a better way to evaluate expression!
+			std::abort();
 		}
 	}
 

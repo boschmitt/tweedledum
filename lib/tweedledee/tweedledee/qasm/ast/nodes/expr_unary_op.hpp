@@ -62,6 +62,11 @@ public:
 		return this->config_bits_ == static_cast<uint32_t>(op);
 	}
 
+	ast_node* operand()
+	{
+		return &(*(this->begin()));
+	}
+
 private:
 	expr_unary_op(uint32_t location, unary_ops op)
 	    : ast_node(location)
