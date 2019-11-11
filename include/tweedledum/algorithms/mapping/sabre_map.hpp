@@ -126,8 +126,6 @@ private:
 
 		if (use_look_ahead_) {
 			select_e_layer(network);
-			std::sort(e_layer_.begin(), e_layer_.end());
-			std::unique(e_layer_.begin(), e_layer_.end());
 		}
 
 		for (auto& [swap_q0, swap_q1, score] : swap_candidates) {
@@ -159,7 +157,7 @@ private:
 			auto [q0, q1] = find_qubits(mapping,
 			                            mapped_network.virtual_qubit(gate.control()),
 			                            mapped_network.virtual_qubit(gate.target()));
-			score += distances_.at(q0).at(q1);
+			score += (distances_.at(q0).at(q1) - 1);
 		}
 		return score;
 	}
@@ -180,6 +178,7 @@ private:
 	void select_e_layer(Network const& network)
 	{
 		e_layer_.clear();
+		std::vector<uint32_t> tmp_incremented;
 		std::vector<uint32_t> tmp_e_layer = front_layer_;
 		while (!tmp_e_layer.empty()) {
 			std::vector<uint32_t> tmp = {};
@@ -190,18 +189,27 @@ private:
 					if (child.gate.is_meta()) {
 						return;
 					}
-					tmp.emplace_back(child_index);
-					if (child.gate.is_single_qubit()) {
-						return;
+					tmp_incremented.emplace_back(child_index);
+					assert(network.value(child) < child.gate.num_io());
+					if (network.incr_value(child) == child.gate.num_io()) {
+						tmp.emplace_back(child_index);
+						if (child.gate.is_single_qubit()) {
+							return;
+						}
+						e_layer_.emplace_back(child_index);
 					}
-					e_layer_.emplace_back(child_index);
 				});
 				if (e_layer_.size() >= e_set_size_) {
-					return;
+					goto undo_increment;
 				}
 			}
 			tmp_e_layer = tmp;
 		}
+	undo_increment:
+		for (auto node_index : tmp_incremented) {
+			auto& node = network.get_node(node_index);
+			network.decr_value(node); 
+		} 
 	}
 
 private:
@@ -242,13 +250,20 @@ mapping_view<Network> sabre_map(Network const& network, device const& device,
                                 sabre_map_params const& params = {})
 {
 	detail::sabre_mapper<Network> mapper(device, params);
+	// Heuristic v0
 	auto init = sat_initial_map(network, device);
-	// auto init = sat_initial_map(reverse(static_cast<Network>(network)), device);
-	// fmt::print("{}\n", fmt::join(init, ", "));
-	mapping_view<Network> mapped_ntk = mapper.run(network, init);
-	// mapping_view<Network> mapped_ntk = mapper.run(network);
-	mapped_ntk = mapper.run(reverse(static_cast<Network>(network)), mapped_ntk.virtual_phy_map());
-	return mapped_ntk;
+	mapping_view<Network> h0_ntk = mapper.run(network, init);
+	h0_ntk = mapper.run(reverse(static_cast<Network>(network)), h0_ntk.virtual_phy_map());
+
+	// Heuristic v1
+	mapping_view<Network> h1_ntk = mapper.run(reverse(static_cast<Network>(network)), init);
+	h1_ntk = mapper.run((network), h1_ntk.virtual_phy_map());
+	h1_ntk = mapper.run(reverse(static_cast<Network>(network)), h1_ntk.virtual_phy_map());
+
+	if (h0_ntk.num_gates() < h1_ntk.num_gates()) {
+		return h0_ntk;
+	}
+	return h1_ntk;
 }
 
 } // namespace tweedledum
