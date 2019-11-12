@@ -8,11 +8,9 @@
 #include <mockturtle/algorithms/simulation.hpp>
 #include <mockturtle/networks/xag.hpp>
 #include <tweedledum/algorithms/generic/to_logic_network.hpp>
-#include <tweedledum/algorithms/optimization/gate_cancellation.hpp>
 #include <tweedledum/algorithms/synthesis/oracles/hrs.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/io/write_unicode.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/io_id.hpp>
 #include <tweedledum/networks/netlist.hpp>
@@ -32,7 +30,6 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis", "[oracle_synthesis][template]
 	TestType quantum_ntk;
 	hrs_info info;
 	hrs(quantum_ntk, oracle, &info);
-	// write_unicode(quantum_ntk);
 }
 
 TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 2", "[oracle_synthesis][template]",
@@ -56,8 +53,6 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 2", "[oracle_synthesis][templat
 	TestType quantum_ntk;
 	hrs_info info;
 	hrs(quantum_ntk, oracle, &info);
-	quantum_ntk = gate_cancellation(quantum_ntk);
-	write_unicode(quantum_ntk);
 
 	auto out_network = to_logic_network<mockturtle::xag_network>(quantum_ntk, info.inputs, info.outputs);
 	const auto miter = *mockturtle::miter<mockturtle::xag_network>(oracle, out_network);
@@ -94,8 +89,6 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 3", "[oracle_synthesis][templat
 	TestType quantum_ntk;
 	hrs_info info;
 	hrs(quantum_ntk, oracle, &info);
-	// quantum_ntk = gate_cancellation(quantum_ntk);
-	write_unicode(quantum_ntk);
 
 	auto out_network = to_logic_network<mockturtle::xag_network>(quantum_ntk, info.inputs, info.outputs);
 	const auto miter = *mockturtle::miter<mockturtle::xag_network>(oracle, out_network);
