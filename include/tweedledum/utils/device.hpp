@@ -26,10 +26,13 @@ struct device {
 	std::vector<edge_type> edges;
 
 	/*! \brief Number of qubits. */
-	uint32_t num_nodes;
+	uint32_t num_vertices_;
+
+	/*! \brief Distance matrix (lazy) */
+	mutable std::vector<std::vector<uint32_t>> distance_matrix;
 
 	device(uint32_t num_qubits = 0)
-	    : num_nodes(num_qubits)
+	    : num_vertices_(num_qubits)
 	{}
 
 	/*! \brief Create a device for a path topology.
@@ -38,11 +41,11 @@ struct device {
 	 */
 	static device path(uint32_t num_qubits)
 	{
-		device arch(num_qubits);
+		device topology(num_qubits);
 		for (uint32_t i = 1; i < num_qubits; ++i) {
-			arch.add_edge(i - 1, i);
+			topology.add_edge(i - 1, i);
 		}
-		return arch;
+		return topology;
 	}
 
 	/*! \brief Create a device for a ring topology.
@@ -51,11 +54,11 @@ struct device {
 	 */
 	static device ring(uint32_t num_qubits)
 	{
-		device arch(num_qubits);
+		device topology(num_qubits);
 		for (uint32_t i = 0; i < num_qubits; ++i) {
-			arch.add_edge(i, (i + 1) % num_qubits);
+			topology.add_edge(i, (i + 1) % num_qubits);
 		}
-		return arch;
+		return topology;
 	}
 
 	/*! \brief Create a device for a star topology.
@@ -64,11 +67,11 @@ struct device {
 	 */
 	static device star(uint32_t num_qubits)
 	{
-		device arch(num_qubits);
+		device topology(num_qubits);
 		for (uint32_t i = 1; i < num_qubits; ++i) {
-			arch.add_edge(0, i);
+			topology.add_edge(0, i);
 		}
-		return arch;
+		return topology;
 	}
 
 	/*! \brief Create a device for a grid topology.
@@ -80,19 +83,19 @@ struct device {
 	 */
 	static device grid(uint32_t width, uint32_t height)
 	{
-		device arch(width * height);
+		device topology(width * height);
 		for (uint32_t x = 0; x < width; ++x) {
 			for (uint32_t y = 0; y < height; ++y) {
 				uint32_t e = y * width + x;
 				if (x < width - 1) {
-					arch.add_edge(e, e + 1);
+					topology.add_edge(e, e + 1);
 				}
 				if (y < height - 1) {
-					arch.add_edge(e, e + width);
+					topology.add_edge(e, e + width);
 				}
 			}
 		}
-		return arch;
+		return topology;
 	}
 
 	/*! \brief Creates a device with a random topology.
@@ -107,24 +110,34 @@ struct device {
 		std::uniform_int_distribution<uint32_t> d1(0, num_qubits - 1);
 		std::uniform_int_distribution<uint32_t> d2(1, num_qubits - 2);
 
-		device arch(num_qubits);
-		while (arch.edges.size() != num_edges) {
+		device topology(num_qubits);
+		while (topology.edges.size() != num_edges) {
 			uint32_t p = d1(gen);
 			uint32_t q = (p + d2(gen)) % num_qubits;
-			arch.add_edge(p, q);
+			topology.add_edge(p, q);
 		}
-		return arch;
+		return topology;
 	}
 
+	uint32_t num_vertices() const
+	{
+		return num_vertices_;
+	}
 
-	/*! \brief Add an edge between two nodes
+	uint32_t num_edges() const
+	{
+		return edges.size();
+
+	}
+
+	/*! \brief Add an edge between two vertices
 	 *
 	 * \param v Vertice identifier
 	 * \param w Vertice identifier
 	 */
 	void add_edge(uint32_t v, uint32_t w)
 	{
-		assert(v <= num_nodes && w <= num_nodes);
+		assert(v <= num_vertices() && w <= num_vertices());
 		edge_type edge = {std::min(v, w), std::max(w, v)};
 		if (std::find(edges.begin(), edges.end(), edge) == edges.end()) {
 			edges.emplace_back(edge);
@@ -134,7 +147,7 @@ struct device {
 	/*! \brief Returns adjacency matrix of coupling graph. */
 	bit_matrix_rm<> get_coupling_matrix() const
 	{
-		bit_matrix_rm<> matrix(num_nodes, num_nodes);
+		bit_matrix_rm<> matrix(num_vertices(), num_vertices());
 
 		for (auto const& [v, w] : edges) {
 			matrix.at(v, w) = true;
@@ -143,27 +156,47 @@ struct device {
 		return matrix;
 	}
 
+	/*! \brief Returns the distance between nodes `v` and `u`. */
+	uint32_t distance(uint32_t v, uint32_t u) const
+	{
+		assert(v < num_vertices() && u < num_vertices());
+		if (distance_matrix.empty()) {
+			compute_distance_matrix();
+		}
+		return distance_matrix[v][u];
+	}
+
 	/*! \brief Returns distance matrix of coupling graph. */
 	std::vector<std::vector<uint32_t>> get_distance_matrix() const
 	{
-		std::vector<std::vector<uint32_t>> matrix(num_nodes, std::vector<uint32_t>(num_nodes, num_nodes + 1));
+		if (distance_matrix.empty()) {
+			compute_distance_matrix();
+		}
+		return distance_matrix;
+	}
+
+private:
+	/*! \brief Returns distance matrix of coupling graph. */
+	void compute_distance_matrix() const
+	{
+		distance_matrix.resize(num_vertices(), std::vector<uint32_t>(num_vertices(), num_vertices() + 1));
 		for (auto const& [v, w] : edges) {
-			matrix[v][w] = 1;
-			matrix[w][v] = 1;
+			distance_matrix[v][w] = 1;
+			distance_matrix[w][v] = 1;
 		}
-		for (auto v = 0u; v < num_nodes; ++v) {
-			matrix[v][v] = 0;
+		for (auto v = 0u; v < num_vertices(); ++v) {
+			distance_matrix[v][v] = 0;
 		}
-		for (auto k = 0u; k < num_nodes; ++k) {
-			for (auto i = 0u; i < num_nodes; ++i) {
-				for (auto j = 0u; j < num_nodes; ++j) {
-					if (matrix[i][j] > matrix[i][k] + matrix[k][j]) {
-						matrix[i][j] = matrix[i][k] + matrix[k][j];
+		for (auto k = 0u; k < num_vertices(); ++k) {
+			for (auto i = 0u; i < num_vertices(); ++i) {
+				for (auto j = 0u; j < num_vertices(); ++j) {
+					if (distance_matrix[i][j] > distance_matrix[i][k] + distance_matrix[k][j]) {
+						distance_matrix[i][j] = distance_matrix[i][k]
+						                        + distance_matrix[k][j];
 					}
 				}
 			}
 		}
-		return matrix;
 	}
 };
 
