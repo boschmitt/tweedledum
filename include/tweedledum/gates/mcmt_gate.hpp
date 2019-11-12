@@ -69,7 +69,7 @@ public:
 	}
 
 	mcmt_gate(gate_base const& op, std::vector<io_id> const& controls,
-	          std::vector<io_id> const& target)
+	          std::vector<io_id> const& targets)
 	    : gate_base(op)
 	    , is_qubit_(0)
 	    , polarity_(0)
@@ -77,14 +77,14 @@ public:
 	    , targets_(0)
 	{
 		assert(controls.size() <= max_num_io);
-		assert(target.size() > 0 && target.size() <= max_num_io);
+		assert(targets.size() > 0 && targets.size() <= max_num_io);
 		for (auto control : controls) {
 			assert(control <= network_max_num_io);
 			controls_ |= (1u << control);
 			polarity_ |= (control.is_complemented() << control);
 			is_qubit_ |= (control.is_qubit() << control);
 		}
-		for (auto target : target) {
+		for (auto target : targets) {
 			assert(target <= network_max_num_io);
 			targets_ |= (1u << target);
 			is_qubit_ |= (target.is_qubit() << target);
