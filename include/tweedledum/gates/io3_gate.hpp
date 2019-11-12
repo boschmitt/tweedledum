@@ -222,19 +222,19 @@ public:
 			// Check if the target of the 'this' gate affects the controls
 			// of 'other' gate
 			for (auto i = 0u; i < max_num_io; ++i) {
-				if (i != other.target0_ && other.ids_[i] == ids_[target0_]) {
+				if (i != other.target0_ && other.ids_[i].index() == ids_[target0_].index()) {
 					return true;
 				}
 			}
 			if (other.is_z_rotation()) {
-				return ids_[target0_] == other.ids_[other.target0_];
+				return ids_[target0_].index() == other.ids_[other.target0_].index();
 			}
 			if (other.is_x_rotation()) {
 				// Check if the target of the 'other' gate affects the controls
 				// of 'this' gate
 				for (auto i = 0u; i < max_num_io; ++i) {
 					if (i != target0_
-					    && ids_[i] == other.ids_[other.target0_]) {
+					    && ids_[i].index() == other.ids_[other.target0_].index()) {
 						return true;
 					}
 				}

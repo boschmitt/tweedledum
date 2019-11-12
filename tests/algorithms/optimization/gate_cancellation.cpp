@@ -29,7 +29,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.num_gates() == 1);
 		CHECK(opt_network.num_qubits() == 2);
 	}
-	SECTION("Two qubit gates") {
+	SECTION("1") {
 		auto q0 = network.add_qubit("q0");
 		auto q1 = network.add_qubit();
 		network.add_gate(gate::cx, q0, q1);
@@ -39,7 +39,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.num_gates() == 1);
 		CHECK(opt_network.num_qubits() == 2);
 	}
-	SECTION("Two qubit gates") {
+	SECTION("2") {
 		auto q0 = network.add_qubit("q0");
 		auto q1 = network.add_qubit();
 		network.add_gate(gate::cx, q0, q1);
@@ -50,7 +50,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.num_gates() == 2);
 		CHECK(opt_network.num_qubits() == 2);
 	}
-	SECTION("Two qubit gates") {
+	SECTION("3") {
 		auto q0 = network.add_qubit();
 		auto q1 = network.add_qubit();
 		auto q2 = network.add_qubit();
@@ -63,7 +63,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.num_qubits() == 3);
 		CHECK(opt_network.num_gates() == 0);
 	}
-	SECTION("Two qubit gates") {
+	SECTION("4") {
 		auto q0 = network.add_qubit();
 		auto q1 = network.add_qubit();
 		auto q2 = network.add_qubit();
@@ -76,7 +76,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.num_qubits() == 3);
 		CHECK(opt_network.num_gates() == 0);
 	}
-	SECTION("Two qubit gates") {
+	SECTION("5") {
 		auto q0 = network.add_qubit();
 		auto q1 = network.add_qubit();
 		auto q2 = network.add_qubit();
@@ -89,7 +89,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.num_qubits() == 3);
 		CHECK(opt_network.num_gates() == 0);
 	}
-	SECTION("Two qubit gates") {
+	SECTION("6") {
 		auto q0 = network.add_qubit();
 		auto q1 = network.add_qubit();
 		auto q2 = network.add_qubit();
@@ -103,6 +103,69 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple gate cancellations", "[gate_cancellation][tem
 		CHECK(opt_network.size() == 10);
 		CHECK(opt_network.num_qubits() == 3);
 		CHECK(opt_network.num_gates() == 4);
+	}
+	SECTION("Multiple qubit gates") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		auto q2 = network.add_qubit();
+		network.add_gate(gate::mcz, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
+		network.add_gate(gate::mcx, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
+		network.add_gate(gate::mcx, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
+		network.add_gate(gate::mcz, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_qubits() == 3);
+		CHECK(opt_network.num_gates() == 0);
+	}
+	SECTION("Multiple qubit gates") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		auto q2 = network.add_qubit();
+		network.add_gate(gate::cx, q0, q1);
+		network.add_gate(gate::mcx, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
+		network.add_gate(gate::cx, q0, q1);
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_qubits() == 3);
+		CHECK(opt_network.num_gates() == 3);
+	}
+	SECTION("Multiple qubit gates") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		auto q2 = network.add_qubit();
+		network.add_gate(gate::cx, q0, q2);
+		network.add_gate(gate::mcx, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
+		network.add_gate(gate::cx, q0, q2);
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_qubits() == 3);
+		CHECK(opt_network.num_gates() == 1);
+	}
+	SECTION("Multiple qubit gates") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		auto q2 = network.add_qubit();
+		auto q3 = network.add_qubit();
+		network.add_gate(gate::cx, q0, q1);
+		network.add_gate(gate::mcx, std::vector<io_id>({q1, q2}), std::vector<io_id>({q3}));
+		network.add_gate(gate::cx, q0, q1);
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_qubits() == 4);
+		CHECK(opt_network.num_gates() == 3);
+	}
+	SECTION("Multiple qubit gates") {
+		auto q0 = network.add_qubit();
+		auto q1 = network.add_qubit();
+		auto q2 = network.add_qubit();
+		auto q3 = network.add_qubit();
+		auto q4 = network.add_qubit();
+		network.add_gate(gate::cx, q0, q2);
+		network.add_gate(gate::cx, q1, q2);
+		network.add_gate(gate::mcx, std::vector<io_id>({q2, q3}), std::vector<io_id>({q4}));
+		network.add_gate(gate::cx, q1, q2);
+		network.add_gate(gate::cx, q0, q2);
+		network.add_gate(gate::cx, q0, q2);
+		network.add_gate(gate::mcx, std::vector<io_id>({q2, q3}), std::vector<io_id>({q4}));
+		auto opt_network = gate_cancellation(network);
+		CHECK(opt_network.num_qubits() == 5);
+		CHECK(opt_network.num_gates() == 5);
 	}
 }
 
