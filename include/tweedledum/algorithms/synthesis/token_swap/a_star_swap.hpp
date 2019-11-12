@@ -46,7 +46,8 @@ public:
 	{}
 
 	std::vector<swap_type> run(map_type const& init_mapping,
-	                           map_type const& final_mapping)
+	                           map_type const& final_mapping,
+				   bool admissable = true)
 	{
 		std::vector<node_type> nodes;
 		std::vector<uint32_t> open_nodes;
@@ -97,7 +98,9 @@ public:
 						new_node.h += topology_.distance(k, idx);
 					}
 				}
-				new_node.h = std::ceil(new_node.h / 2.0);
+				if (admissable) {
+					new_node.h = std::ceil(new_node.h / 2.0);
+				}
 			}
 			auto min_it = std::min_element(open_nodes.begin(), open_nodes.end(),
 						       [&](auto a_idx, auto b_idx) {
@@ -129,6 +132,9 @@ private:
 auto a_star_swap(device const& topology, std::vector<uint32_t> const& init_mapping, std::vector<uint32_t> const& final_mapping, swap_network_params params)
 {
 	a_star_swapper swapper(topology);
+	if (params.method == swap_network_params::methods::non_admissible) {
+		return swapper.run(init_mapping, final_mapping, false);
+	}
 	return swapper.run(init_mapping, final_mapping);
 }
 
