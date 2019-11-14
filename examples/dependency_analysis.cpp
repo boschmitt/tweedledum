@@ -259,7 +259,7 @@ bool check_not_exist_dependencies( std::vector<partial_truth_table> minterms, ui
 
 
 
-using dependencies_t = std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>>;
+using dependencies_t = std::map<uint32_t , std::vector<std::pair<std::string, std::vector<int32_t>>>>;
 
 struct functional_dependency_stats
 {
@@ -311,7 +311,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
       if ( columns.at( i ) == columns.at( j ) )
       {
         found = true;
-        dependencies[i] = std::pair{ std::string{"eq"}, std::vector<uint32_t>{ j } };
+        dependencies[i] = std::vector{ std::pair{ std::string{"eq"}, std::vector<int32_t>{ int32_t( j ) } } };
         break;
       }
     }
@@ -325,7 +325,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
       if ( columns.at( i ) == ~columns.at( j ) )
       {
         found = true;
-        dependencies[i] = std::pair{ std::string{"not"}, std::vector<uint32_t>{ j }  };
+        dependencies[i] = std::vector{ std::pair{ std::string{"not"}, std::vector<int32_t>{ int32_t( j ) } } };
         break;
       }
     }
@@ -353,13 +353,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ) )
         {
           found = true;
-          dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k }  };
+          dependencies[i] = std::vector{ std::pair{ std::string{"xor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ) } } };
           break;
         }
         else if ( columns.at( i ) == ( ~ (columns.at( j ) ^ columns.at( k ) ) ) )
         {
           found = true;
-          dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k  }  };
+          dependencies[i] = std::vector{ std::pair{ std::string{"xnor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ) } } };
           break;
         }
 
@@ -369,13 +369,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l)) )
           {
             found = true;
-            dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k  , l}  };
+            dependencies[i] = std::vector{ std::pair{ std::string{"xor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ) } } };
             break;
           }
           else if ( columns.at( i ) == ( ~(columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ) ) )
           {
             found = true;
-            dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k , l }  };
+            dependencies[i] = std::vector{ std::pair{ std::string{"xnor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ) } } };
             break;
           }
           //---- 4th input
@@ -384,13 +384,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m)) )
             {
               found = true;
-              dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k  , l , m}  };
+              dependencies[i] = std::vector{ std::pair{ std::string{"xor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m )} } };
               break;
             }
             else if ( columns.at( i ) == ( ~(columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ) ) )
             {
               found = true;
-              dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k , l , m }  };
+              dependencies[i] = std::vector{ std::pair{ std::string{"xnor"}, std::vector<int32_t>{ int32_t( j ) , int32_t( k ) , int32_t( l ), int32_t( m ) } } };
               break;
             }
 
@@ -400,13 +400,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               if ( columns.at( i ) == ( columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ^ columns.at(i5)) )
               {
                 found = true;
-                dependencies[i] = std::pair{ std::string{"xor"}, std::vector<uint32_t>{ j , k  , l , m , i5}  };
+                dependencies[i] = std::vector{ std::pair{ std::string{"xor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ), int32_t( i5 ) } } };
                 break;
               }
               else if ( columns.at( i ) == ( ~(columns.at( j ) ^ columns.at( k ) ^ columns.at(l) ^ columns.at(m) ^ columns.at(i5) ) ) )
               {
                 found = true;
-                dependencies[i] = std::pair{ std::string{"xnor"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
+                dependencies[i] = std::vector{ std::pair{ std::string{"xnor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ), int32_t( i5 ) } } };
                 break;
               }
             }
@@ -431,13 +431,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) ) )
         {
           found = true;
-          dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k }  };
+          dependencies[i] = std::vector{ std::pair{ std::string{"and"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ) } } };
           break;
         }
         else if ( columns.at( i ) == ( ~ (columns.at( j ) & columns.at( k )) ) )
         {
           found = true;
-          dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k  }  };
+          dependencies[i] = std::vector{ std::pair{ std::string{"nand"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ) } } };
           break;
         }
 
@@ -447,13 +447,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l)) )
           {
             found = true;
-            dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k  , l}  };
+            dependencies[i] = std::vector{ std::pair{ std::string{"and"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l )} } };
             break;
           }
           else if ( columns.at( i ) == ( ~(columns.at( j ) & columns.at( k ) & columns.at(l) ) )  )
           {
             found = true;
-            dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k , l }  };
+            dependencies[i] = std::vector{ std::pair{ std::string{"nand"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ) } } };
             break;
           }
           //---- 4th input
@@ -462,13 +462,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m)) )
             {
               found = true;
-              dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k  , l , m}  };
+              dependencies[i] = std::vector{ std::pair{ std::string{"and"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ) } } };
               break;
             }
             else if ( columns.at( i ) == ( ~(columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) ) ) )
             {
               found = true;
-              dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k , l , m }  };
+              dependencies[i] = std::vector{ std::pair{ std::string{"nand"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ) } } };
               break;
             }
 
@@ -478,13 +478,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               if ( columns.at( i ) == ( columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) & columns.at(i5)) )
               {
                 found = true;
-                dependencies[i] = std::pair{ std::string{"and"}, std::vector<uint32_t>{ j , k  , l , m , i5}  };
+                dependencies[i] = std::vector{ std::pair{ std::string{"and"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ), int32_t( i5 ) } } };
                 break;
               }
               else if ( columns.at( i ) == ( ~(columns.at( j ) & columns.at( k ) & columns.at(l) & columns.at(m) & columns.at(i5) ) ) )
               {
                 found = true;
-                dependencies[i] = std::pair{ std::string{"nand"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
+                dependencies[i] = std::vector{ std::pair{ std::string{"nand"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ), int32_t( i5 ) } } };
                 break;
               }
             }
@@ -508,13 +508,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) ) )
         {
           found = true;
-          dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k }  };
+          dependencies[i] = std::vector{ std::pair{ std::string{"or"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ) } } };
           break;
         }
         else if ( columns.at( i ) == ( ~ (columns.at( j ) | columns.at( k )) ) )
         {
           found = true;
-          dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k  }  };
+          dependencies[i] = std::vector{ std::pair{ std::string{"nor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ) } } };
           break;
         }
 
@@ -524,13 +524,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
           if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l)) )
           {
             found = true;
-            dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k  , l}  };
+            dependencies[i] = std::vector{ std::pair{ std::string{"or"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ) } } };
             break;
           }
           else if ( columns.at( i ) == ( ~(columns.at( j ) | columns.at( k ) | columns.at(l) ) )  )
           {
             found = true;
-            dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l }  };
+            dependencies[i] = std::vector{ std::pair{ std::string{"nor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ) } } };
             break;
           }
 
@@ -540,13 +540,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
             if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m)) )
             {
               found = true;
-              dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k  , l , m}  };
+              dependencies[i] = std::vector{ std::pair{ std::string{"or"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ) } } };
               break;
             }
             else if ( columns.at( i ) == ( ~(columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) ) ) )
             {
               found = true;
-              dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l , m }  };
+              dependencies[i] = std::vector{ std::pair{ std::string{"nor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ) } } };
               break;
             }
 
@@ -556,13 +556,13 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
               if ( columns.at( i ) == ( columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) | columns.at(i5)) )
               {
                 found = true;
-                dependencies[i] = std::pair{ std::string{"or"}, std::vector<uint32_t>{ j , k  , l , m , i5}  };
+                dependencies[i] = std::vector{ std::pair{ std::string{"or"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ), int32_t( i5 ) } } };
                 break;
               }
               else if ( columns.at( i ) == ( ~(columns.at( j ) | columns.at( k ) | columns.at(l) | columns.at(m) | columns.at(i5) ) ) )
               {
                 found = true;
-                dependencies[i] = std::pair{ std::string{"nor"}, std::vector<uint32_t>{ j , k , l , m , i5}  };
+                dependencies[i] = std::vector{ std::pair{ std::string{"nor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l ), int32_t( m ), int32_t( i5 ) } } };
                 break;
               }
             }
@@ -591,7 +591,7 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
                ( columns.at( i ) == ( (columns.at( j ) & columns.at( l ) ) ^ columns.at( k )) ) )
           {
             found = true;
-            dependencies[i] = std::pair{ std::string{"and_xor"}, std::vector<uint32_t>{ j , k  , l}  };
+            dependencies[i] = std::vector{ std::pair{ std::string{"and_xor"}, std::vector<int32_t>{ int32_t( j ), int32_t( k ), int32_t( l )} } };
             break;
           }
         }
@@ -650,7 +650,7 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
       if ( columns.at( i ) == columns.at( j ) )
       {
         found = true;
-        dependencies[i] = std::pair{ std::string{"eq"}, std::vector<uint32_t>{ j } };
+        dependencies[i] = std::vector{ std::pair{ std::string{"eq"}, std::vector<int32_t>{ int32_t( j ) } } };
         break;
       }
     }
@@ -664,7 +664,7 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
       if ( columns.at( i ) == ~columns.at( j ) )
       {
         found = true;
-        dependencies[i] = std::pair{ std::string{"not"}, std::vector<uint32_t>{ j }  };
+        dependencies[i] = std::vector{ std::pair{ std::string{"not"}, std::vector<int32_t>{ int32_t( j ) } } };
         break;
       }
     }
@@ -699,14 +699,30 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
         percy::spec spec;
 
         /* TODO #1: select the right primitives */
-        spec.set_primitive( percy::AIG );
-
+        // spec.set_primitive( percy::AIG );
+        auto const fanin = 2;
+        kitty::dynamic_truth_table tt( fanin );
+        std::vector<kitty::dynamic_truth_table> inputs;
+        for (int i = 0; i < fanin; i++)
+        {
+          inputs.push_back(kitty::create<kitty::dynamic_truth_table>(fanin));
+          kitty::create_nth_var(inputs[i], i);
+        }
+        spec.add_primitive( inputs[0] & inputs[1] );
+        spec.add_primitive( ~inputs[0] & inputs[1] );
+        spec.add_primitive( inputs[0] & ~inputs[1] );
+        spec.add_primitive( inputs[0] | inputs[1] );
+        
         /* TODO: is the order correct? */
         spec[0] = isop_i.first;
         spec.set_dont_care( 0, ~isop_i.second );
         if ( spec.get_nr_in() < 2 )
           continue;
-
+        
+        std::vector<std::pair<std::string,std::vector<int32_t>>> xs;
+        xs.emplace_back( "column", std::vector<int32_t>{ int32_t( j ) } );
+        xs.emplace_back( "column", std::vector<int32_t>{ int32_t( k ) } );
+        
         auto const result = synthesize( spec, chain );
         if ( result == percy::success )
         {
@@ -714,11 +730,39 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
           // assert( chain.is_aig() );
           // assert( chain.simulate()[0] == tt );
 
-          /* TODO #2: extract the result and convert it into a dependency */
+          for ( auto l = 0; l < chain.get_nr_steps(); ++l )
+          {
+            // std::cout << l << ' ' << chain.get_operator( l )._bits[0] << ' ' << chain.get_step( l )[0] << ' ' << chain.get_step( l )[1] << std::endl;            
+            
+            auto c1 = chain.get_step( l )[0];
+            auto c2 = chain.get_step( l )[1];
+
+            switch ( chain.get_operator( l )._bits[0] )
+            {
+            default:
+              std::cerr << "[e] unsupported operation " << kitty::to_hex( chain.get_operator( l ) ) << "\n";
+              assert( false );
+              break;
+            case 0x8:
+              xs.emplace_back( "and", std::vector<int32_t>{c1,c2} );
+              break;
+            case 0x4:
+              xs.emplace_back( "and", std::vector<int32_t>{-c1,c2} );
+              break;
+            case 0x2:
+              xs.emplace_back( "and", std::vector<int32_t>{c1,-c2} );
+              break;
+            case 0xe:
+              xs.emplace_back( "or", std::vector<int32_t>{c1,c2} );
+              break;
+            case 0x6:
+              xs.emplace_back( "xor", std::vector<int32_t>{c1,c2} );
+              break;
+            }
+          }
+
           found = true;
-          std::cout << "FOUND DEPENDECY: ";
-          chain.print_expression();
-          std::cout << std::endl;
+          dependencies[i] = xs;
           break;
         }
       }
@@ -740,11 +784,14 @@ void print_dependencies( dependencies_t const& dependencies, std::ostream& os = 
   os << "dependencies size: " << dependencies.size() << std::endl;
   for ( const auto& d : dependencies )
   {
-    os << d.first<<"  ";
-    os << d.second.first << ' ';
-    for ( const auto& c : d.second.second )
+    os << d.first << "  ";
+    for ( const auto& dd : d.second )
     {
-      os << c << ' ';
+      os << dd.first << ' ';
+      for ( const auto& c : dd.second )
+      {
+        os << c << ' ';
+      }
     }
     os << std::endl;
   }
@@ -760,7 +807,9 @@ void prepare_quantum_state( kitty::dynamic_truth_table const& tt, dependencies_t
   // dependencies_t no_deps;
   // qsp_tt_dependencies( ntk, binary_tt, no_deps, qsp_stats );
 
-  qsp_tt_dependencies( ntk, binary_tt, dependencies, qsp_stats );
+  /* TODO: need to be modified */
+  // qsp_tt_dependencies( ntk, binary_tt, dependencies, qsp_stats );
+
   stats.total_time += qsp_stats.time;
   stats.total_reduction += qsp_stats.reduction;
   stats.total_cnots += qsp_stats.total_cnots;
