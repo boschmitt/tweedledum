@@ -190,6 +190,7 @@ private:
 						      std::back_inserter(ltfi));
 			std::sort(ltfi.begin(), ltfi.end());
 		}
+		assert(ltfi.size() && "If the size is empty, then the XAG was not properly optmized!");
 		node_ltfi_[node] = ltfi;
 	}
 
@@ -252,6 +253,8 @@ private:
 
 		auto* l0 = &(node_ltfi_[node_l0_l1.at(0)]);
 		auto* l1 = &(node_ltfi_[node_l0_l1.at(1)]);
+		assert(l0->size());
+		assert(l1->size());
 		if (both_xor) {
 			bool l0_includes_l1 = false;
 			if (std::includes(l0->begin(), l0->end(), l1->begin(), l1->end())) {
