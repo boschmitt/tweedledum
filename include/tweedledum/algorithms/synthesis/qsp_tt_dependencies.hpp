@@ -39,6 +39,7 @@ struct qsp_tt_statistics
   
 }; /* qsp_tt_statistics */
 
+
 namespace tweedledum {
 namespace detail {
 template<class Network>
@@ -276,8 +277,8 @@ struct qsp_params {
 };
 
 void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > >& gates,
- kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls ,
- std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> dependencies)
+ kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls 
+ ,std::map<uint32_t , std::vector<std::pair<std::string, std::vector<int32_t>>>> dependencies)
 {
     //-----co factors-------
     kitty::dynamic_truth_table tt0(var_index);
@@ -301,20 +302,30 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
         {
             if(gates[var_index].size()==0)
             {
-                if(dependencies[var_index].first == "eq") // insert cnot
+                for(auto d = 0 ; d<dependencies[var_index].size() ; d++)
                 {
-                    gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[0]*2 +1} });
+                    if(dependencies[var_index][d].first == "eq") // insert cnot
+                    {
+                        auto index = dependencies[var_index][d].second[0];
+                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{ dependencies[var_index][index].second[0]  *2 +1} });
+                    }
+                    else if(dependencies[var_index][d].first == "not") // not cnot
+                    {
+                        auto index = dependencies[var_index][d].second[0];
+                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index][index].second[0]*2 +1 } });
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
+                    }
+                    else if(dependencies[var_index][d].first == "xor")
+                    {
+                        for( auto d_in=0u; d_in<dependencies[var_index][d].second.size(); d_in++)
+                            gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d_in]*2 +1} }); 
+                    }
+
                 }
-                else if(dependencies[var_index].first == "not") // not cnot
-                {
-                    gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[0]*2 +1 } });
-                    gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
-                }
-                else if(dependencies[var_index].first == "xor")
-                {
-                    for( auto d=0u; d<dependencies[var_index].second.size(); d++)
-                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]*2 +1} }); 
-                }
+
+               
+                
+                
                 else if(dependencies[var_index].first == "xnor")
                 {
                     for( auto d=0u; d<dependencies[var_index].second.size(); d++)
@@ -529,7 +540,9 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
 }
 
 template<typename Network>
-void qsp_ownfunction( Network& net, const std::string &tt_str, std::map<uint32_t, std::pair<std::string, std::vector<uint32_t>>> const& dependencies, qsp_tt_statistics& stats)
+void qsp_ownfunction( Network& net, 
+const std::string &tt_str, std::map<uint32_t , std::vector<std::pair<std::string, std::vector<int32_t>>>> const dependencies, 
+qsp_tt_statistics& stats)
 {
     std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > > gates; // gate name, angle, target_id, controls:id and sign /2 and %2
     auto tt_vars = int(log2(tt_str.size()));
@@ -709,8 +722,8 @@ std::vector<std::pair<std::string, std::vector<int>>> dependencies)
 
 
 template<class Network>
-void qsp_tt_dependencies(Network& network, const std::string &tt_str, /*qsp_params params = {} ,*/ 
-                         std::map<uint32_t , std::pair<std::string, std::vector<uint32_t>>> const& dependencies, qsp_tt_statistics& stats)
+void qsp_tt_dependencies(Network& network, const std::string &tt_str , 
+std::map<uint32_t , std::vector<std::pair<std::string, std::vector<int32_t>>>> const dependencies, qsp_tt_statistics& stats)
 {
     //assert(tt_str.size() <= pow(2,6));
     const uint32_t num_qubits = std::log2(tt_str.size());

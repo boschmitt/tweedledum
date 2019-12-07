@@ -808,7 +808,7 @@ void prepare_quantum_state( kitty::dynamic_truth_table const& tt, dependencies_t
   // qsp_tt_dependencies( ntk, binary_tt, no_deps, qsp_stats );
 
   /* TODO: need to be modified */
-  // qsp_tt_dependencies( ntk, binary_tt, dependencies, qsp_stats );
+  qsp_tt_dependencies( ntk, binary_tt, dependencies, qsp_stats );
 
   stats.total_time += qsp_stats.time;
   stats.total_reduction += qsp_stats.reduction;
@@ -1038,7 +1038,7 @@ void example4()
   do
   {
     // std::cout << '\r';
-    kitty::print_binary( tt ); std::cout << std::endl;
+    //kitty::print_binary( tt ); std::cout << std::endl;
 
     /* functional deps analysis */
     auto const deps = exact_fd_analysis( tt, stats );
