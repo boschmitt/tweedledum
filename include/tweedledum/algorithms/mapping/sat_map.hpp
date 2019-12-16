@@ -18,6 +18,7 @@ namespace detail {
 template<typename Network, typename Solver>
 class map_cnf_encoder {
 	using lbool_type = bill::lbool_type;
+	using lit_type = bill::lit_type;
 	using var_type = bill::var_type;
 
 public:
@@ -59,6 +60,46 @@ public:
 			}
 			return true;
 		});
+		return decode(model_);
+	}
+
+	std::vector<uint32_t> run_greedly()
+	{
+		solver_.add_variables(num_virtual_qubits() * num_physical_qubits());
+		qubits_constraints();
+		network_.foreach_gate([&](auto const& node) {
+			if (!node.gate.is(gate_lib::cx)) {
+				return;
+			}
+			uint32_t control = io_qid_map_.at(node.gate.control());
+			uint32_t target = io_qid_map_.at(node.gate.target());
+			++pairs_[triangle_to_vector_idx(control, target)];
+		});
+
+		std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> aa;
+		for (uint32_t i = 0; i < num_virtual_qubits(); ++i) {
+			for (uint32_t j = 0; j < num_virtual_qubits(); ++j) {
+				if (pairs_[triangle_to_vector_idx(i, j)] != 0) {
+					aa.emplace_back(i, j, pairs_[triangle_to_vector_idx(i, j)]);
+					pairs_[triangle_to_vector_idx(i, j)] = 0;
+				}
+			}
+		}
+		std::sort(aa.begin(), aa.end(), [&](auto const& c0, auto const& c1) {
+			return std::get<2>(c0) > std::get<2>(c1); 
+		});
+		std::vector<lit_type> assumptions;
+		for (auto &&[control, target, score] : aa) {
+			var_type act = gate_act_constraints(control, target);
+			assumptions.emplace_back(act, bill::positive_polarity);
+			solver_.solve(assumptions);
+			bill::result result = solver_.get_result();
+			if (result) {
+				model_= result.model();
+			} else {
+				assumptions.back().complement();
+			}
+		}
 		return decode(model_);
 	}
 
@@ -189,6 +230,28 @@ private:
 		}
 	}
 
+	var_type gate_act_constraints(uint32_t c_v_qid, uint32_t t_v_qid)
+	{
+		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.get_coupling_matrix();
+		std::vector<bill::lit_type> clause;
+		var_type act_var = solver_.add_variable();
+		for (uint32_t t_phy_qid = 0; t_phy_qid < num_physical_qubits(); ++t_phy_qid) {
+			uint32_t t_v_phy_var = virtual_physical_var(t_v_qid, t_phy_qid);
+			clause.emplace_back(act_var, bill::negative_polarity);
+			clause.emplace_back(t_v_phy_var, bill::negative_polarity);
+			for (uint32_t c_phy_qid = 0; c_phy_qid < num_physical_qubits(); ++c_phy_qid) {
+				if (c_phy_qid == t_phy_qid || !coupling_matrix.at(c_phy_qid, t_phy_qid)) {
+					continue;
+				}
+				uint32_t c_v_phy_var = virtual_physical_var(c_v_qid, c_phy_qid);
+				clause.emplace_back(c_v_phy_var, bill::positive_polarity);
+			}
+			solver_.add_clause(clause);
+			clause.clear();
+		}
+		return act_var;
+	}
+
 private:
 	bill::var_type virtual_physical_var(uint32_t virtual_id, uint32_t physical_id)
 	{
@@ -259,7 +322,8 @@ std::vector<uint32_t> sat_initial_map(Network const& network, device const& devi
 {
 	bill::solver solver;
 	detail::map_cnf_encoder encoder(network, device, solver);
-	return encoder.run_incrementally();
+	// return encoder.run_incrementally();
+	return encoder.run_greedly();
 }
 
 } // namespace tweedledum

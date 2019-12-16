@@ -16,8 +16,8 @@ namespace tweedledum {
 
 /*! \brief Parameters for `sabre_map`. */
 struct sabre_map_params {
-	uint32_t e_set_size = 20;
-	float e_score_weight = 0.5;
+	uint32_t e_set_size = 200;
+	float e_score_weight = .8;
 	float decay_delta = 0.001;
 	uint32_t num_rounds_decay_reset = 5;
 	bool randomize_initial_map = false;
