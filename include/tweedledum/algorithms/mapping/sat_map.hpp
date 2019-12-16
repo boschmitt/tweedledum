@@ -175,7 +175,7 @@ public:
 private:
 	uint32_t num_physical_qubits() const
 	{
-		return device_.num_nodes;
+		return device_.num_vertices();
 	}
 
 	uint32_t num_virtual_qubits() const

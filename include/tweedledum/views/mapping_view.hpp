@@ -28,13 +28,13 @@ public:
 	                      bool allow_partial = false, bool random_initial_map = false)
 	    : Network()
 	    , io_qid_map_(network.num_io(), io_invalid)
-	    , init_v_phy_qid_map_(arch.num_nodes)
-	    , v_phy_qid_map_(arch.num_nodes)
+	    , init_v_phy_qid_map_(arch.num_vertices())
+	    , v_phy_qid_map_(arch.num_vertices())
 	    , coupling_matrix_(arch.get_coupling_matrix())
 	    , allow_partial_(allow_partial)
 	    , is_partial_(false)
 	{
-		assert(this->num_qubits() <= arch.num_nodes);
+		assert(this->num_qubits() <= arch.num_vertices());
 		std::iota(v_phy_qid_map_.begin(), v_phy_qid_map_.end(), 0u);
 		if (random_initial_map) {
 			std::random_device rd;
@@ -51,7 +51,7 @@ public:
 				this->add_cbit(label);
 			}
 		});
-		for (uint32_t i = this->num_qubits(); i < arch.num_nodes; ++i) {
+		for (uint32_t i = this->num_qubits(); i < arch.num_vertices(); ++i) {
 			qid_io_map_.push_back(this->add_qubit());
 		}
 	}

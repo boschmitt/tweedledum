@@ -63,10 +63,10 @@ public:
 	    , arch_(arch)
             , params_(ps)
             , stats_(st)
-	    , zdd_(network.num_qubits() * arch.num_nodes, 21)
+	    , zdd_(network.num_qubits() * arch.num_vertices(), 21)
 	    , from_(network.num_qubits())
-	    , to_(arch.num_nodes)
-            , edge_perm_(arch.num_nodes, 0)
+	    , to_(arch.num_vertices())
+            , edge_perm_(arch.num_vertices(), 0)
 	    , id_virtual_map_(network.num_io(), io_invalid)
 	{
 		std::iota(edge_perm_.begin(), edge_perm_.end(), 0);
@@ -167,14 +167,14 @@ public:
 private:
 	auto index(uint32_t v, uint32_t p) const
 	{
-		return v * arch_.num_nodes + p;
+		return v * arch_.num_vertices() + p;
 	}
 
 	void init_from()
 	{
 		for (auto v = 0u; v < network_.num_qubits(); ++v) {
 			auto set = zdd_.bottom();
-			for (int p = arch_.num_nodes - 1; p >= 0; --p) {
+			for (int p = arch_.num_vertices() - 1; p >= 0; --p) {
 				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
 			}
 			from_[v] = set;
@@ -184,7 +184,7 @@ private:
 
 	void init_to()
 	{
-		for (auto p = 0u; p < arch_.num_nodes; ++p) {
+		for (auto p = 0u; p < arch_.num_vertices(); ++p) {
 			auto set = zdd_.bottom();
 			for (int v = network_.num_qubits() - 1; v >= 0; --v) {
 				set = zdd_.union_(set, zdd_.elementary(index(v, p)));
@@ -210,7 +210,7 @@ private:
 		for (int v = network_.num_qubits() - 1; v >= 0; --v) {
 			bad_ = zdd_.union_(bad_, zdd_.choose(from_[v], 2));
 		}
-		for (int p = arch_.num_nodes - 1; p >= 0; --p) {
+		for (int p = arch_.num_vertices() - 1; p >= 0; --p) {
 			bad_ = zdd_.union_(bad_, zdd_.choose(to_[p], 2));
 		}
 		zdd_.ref(bad_);
@@ -405,14 +405,14 @@ private:
 
 	void init_swap_layers()
 	{
-		bill::zdd_base zdd_swap_layers(arch_.edges.size());
+		bill::zdd_base zdd_swap_layers(arch_.num_edges());
 		zdd_swap_layers.build_tautologies();
 
 		auto univ_fam = zdd_swap_layers.tautology();
 		std::vector<zdd_node> edges_p;
 
-		std::vector<std::vector<uint8_t>> incidents(arch_.num_nodes);
-		for (auto i = 0u; i < arch_.edges.size(); ++i) {
+		std::vector<std::vector<uint8_t>> incidents(arch_.num_vertices());
+		for (auto i = 0u; i < arch_.num_edges(); ++i) {
 			incidents[arch_.edges[i].first].push_back(i);
 			incidents[arch_.edges[i].second].push_back(i);
 		}

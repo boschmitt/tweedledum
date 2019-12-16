@@ -42,7 +42,7 @@ public:
 	    , randomize_initial_map_(params.randomize_initial_map)
 	    , use_look_ahead_(params.use_look_ahead) 
 	    // Temporary data
-	    , qubits_decay_(device.num_nodes, 1.0)
+	    , qubits_decay_(device.num_vertices(), 1.0)
 	{}
 
 	mapping_view<Network> run(Network const& network, std::vector<uint32_t> initial_mapping = {})
