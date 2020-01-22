@@ -307,7 +307,7 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
                     if(dependencies[var_index][d].first == "eq") // insert cnot
                     {
                         auto index = dependencies[var_index][d].second[0];
-                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{ dependencies[var_index][index].second[0]  *2 +1} });
+                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{ dependencies[var_index][index].second[0]*2 +1} });
                     }
                     else if(dependencies[var_index][d].first == "not") // not cnot
                     {
@@ -320,48 +320,79 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
                         for( auto d_in=0u; d_in<dependencies[var_index][d].second.size(); d_in++)
                             gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d_in]*2 +1} }); 
                     }
+                    
+                    else if(dependencies[var_index].first == "xnor")
+                    {
+                        for( auto d=0u; d<dependencies[var_index].second.size(); d++)
+                            gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]*2 +1} });
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
+                    }
+                    else if(dependencies[var_index].first == "and")
+                    {
+                        // to do --- insert nots
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = abs(el)*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
+                    }
+                    else if(dependencies[var_index].first == "nand")
+                    {
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
+                    }
+                    else if(dependencies[var_index].first == "or")
+                    {
+                        // to do --- insert nots
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = abs(el)*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
+                        for(auto d=0u; d<dependencies[var_index].second.size() ; d++)
+                            gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]} }); 
+                    }
+                    else if(dependencies[var_index].first == "nor")
+                    {
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
+                        for(auto d=0u; d<dependencies[var_index].second.size() ; d++)
+                            gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]} }); 
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
+                    }
+                    else if (dependencies[var_index].first == "and_xor")
+                    {
+                        // to do --- insert nots
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = abs(el)*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector {dependencies[var_index].second[0],dependencies[var_index].second[1] } } );
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector{dependencies[var_index].second[2]} }); 
+                    }
+                    else if (dependencies[var_index].first == "and_xnor")
+                    {
+                        // to do --- insert nots
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = abs(el)*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector {dependencies[var_index].second[0],dependencies[var_index].second[1] } } );
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector{dependencies[var_index].second[2]} }); 
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
+                    }
+                    else if (dependencies[var_index].first == "or_xor")
+                    {
+                        // to do --- insert nots
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = abs(el)*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector {dependencies[var_index].second[0],dependencies[var_index].second[1] } } );
+                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[0]} }); 
+                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[1]} }); 
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector{dependencies[var_index].second[2]} }); 
+                        
+                    }
+                    else if (dependencies[var_index].first == "or_xnor")
+                    {
+                       // to do --- insert nots
+                        std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = abs(el)*2+1; });
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector {dependencies[var_index].second[0],dependencies[var_index].second[1] } } );
+                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[0]} }); 
+                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[1]} }); 
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector{dependencies[var_index].second[2]} }); 
+                        gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
+                    }
 
                 }
 
-               
-                
-                
-                else if(dependencies[var_index].first == "xnor")
-                {
-                    for( auto d=0u; d<dependencies[var_index].second.size(); d++)
-                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]*2 +1} });
-                    gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
-                }
-                else if(dependencies[var_index].first == "and")
-                {
-                  // std::cout<<"and: "<<var_index<<std::endl;
-                    std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
-                    gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
-                }
-                else if(dependencies[var_index].first == "nand")
-                {
-                  // std::cout<<"nand: "<<var_index<<std::endl;
-                    std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
-                    gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
-                    gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
-                }
-                else if(dependencies[var_index].first == "or")
-                {
-                  // std::cout<<"or: "<<var_index<<std::endl;
-                    std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
-                    gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
-                    for(auto d=0u; d<dependencies[var_index].second.size() ; d++)
-                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]} }); 
-                }
-                else if(dependencies[var_index].first == "nor")
-                {
-                  // std::cout<<"nor: "<<var_index<<std::endl;
-                    std::for_each(dependencies[var_index].second.begin(), dependencies[var_index].second.end(), [](uint32_t &el){el = el*2+1; });
-                    gates[var_index].emplace_back(std::pair{ M_PI,dependencies[var_index].second });
-                    for(auto d=0u; d<dependencies[var_index].second.size() ; d++)
-                        gates[var_index].emplace_back(std::pair{ M_PI,std::vector{dependencies[var_index].second[d]} }); 
-                    gates[var_index].emplace_back(std::pair{ M_PI, std::vector<uint32_t>{} });
-                }
             }
             
         }
