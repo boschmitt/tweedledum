@@ -255,10 +255,6 @@ bool check_not_exist_dependencies( std::vector<partial_truth_table> minterms, ui
 }
 
 
-
-
-
-
 using dependencies_t = std::map<uint32_t , std::vector<std::pair<std::string, std::vector<uint32_t>>>>;
 
 struct functional_dependency_stats
@@ -275,7 +271,8 @@ struct functional_dependency_stats
   uint32_t total_rys{0};
 };
 
-dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats )
+dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats ,
+std::vector<uint32_t> orders )
 {
   ++stats.num_analysis_calls;
 
@@ -1526,7 +1523,6 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
   return dependencies;
 }
 
-
 dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats )
 {
   ++stats.num_analysis_calls;
@@ -1692,6 +1688,94 @@ dependencies_t exact_fd_analysis( kitty::dynamic_truth_table const& tt, function
   return dependencies;
 }
 
+std::vector<uint32_t> varaible_ordering_regarding_deps(dependencies_t deps , uint32_t num_vars)
+{
+    std::vector<uint32_t> orders;
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "eq")
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "not")
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "xor")
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "and" && d.second[0].second.size()<4)
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "nand" && d.second[0].second.size()<4)
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "or" && d.second[0].second.size()<4)
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "nor" && d.second[0].second.size()<4)
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "and_xor")
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "and_xnor")
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "or_xor")
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "or_xnor")
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "and" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "nand" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "or" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
+            orders.emplace_back(d.first);
+    } 
+    for ( const auto& d : deps )
+    {
+        if(d.second[0].first == "nor" && d.second[0].second.size()<(num_vars-1) && d.second[0].second.size()>3)
+            orders.emplace_back(d.first);
+    } 
+
+    for (int32_t i=num_vars-1 ; i>=0 ; i--)
+    {
+        auto it = std::find(orders.begin(), orders.end(), i);
+        if(it == orders.end())
+            orders.emplace_back(i);
+    }
+    std::reverse(orders.begin(),orders.end());
+    return orders;
+}
 
 void print_dependencies( dependencies_t const& dependencies, std::ostream& os = std::cout )
 {
@@ -1899,7 +1983,7 @@ void example3()
 
 void example4()
 {
-  std::string const inpath = "../input8/";
+  std::string const inpath = "../input6/";
   functional_dependency_stats stats;
   DIR * dir;
   struct dirent *entry;
@@ -1908,7 +1992,7 @@ void example4()
     while ( ( entry = readdir(dir) ) )
     {
       std::string filename( entry->d_name );
-      if ( filename == "." || filename == ".." || filename == ".DS_Store" || filename[0]!= '8' )
+      if ( filename == "." || filename == ".." || filename == ".DS_Store" || filename[0]!= '6' )
         continue;
 
       /* read file */
@@ -1930,7 +2014,12 @@ void example4()
       {
         /* functional deps analysis */
         auto const deps = functional_dependency_analysis( tt, stats );
-        prepare_quantum_state( tt, deps, stats );
+        print_dependencies(deps);
+        auto orders = varaible_ordering_regarding_deps(deps , tt_vars);
+        for(auto i=0; i<orders.size() ; i++)
+            std::cout<<orders[i]<<"  ";
+        std::cout<<std::endl;
+        //prepare_quantum_state( tt, deps, stats );
       }
       
     }
