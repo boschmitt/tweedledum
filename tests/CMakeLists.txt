@@ -24,6 +24,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/linear_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/stg.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/tbs.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/qsp.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/gates/mcst_gate.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/qasm.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"

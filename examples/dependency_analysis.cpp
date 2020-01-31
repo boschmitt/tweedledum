@@ -262,6 +262,7 @@ struct functional_dependency_stats
   uint32_t num_analysis_calls{0};
   uint32_t has_no_dependencies{0};
   uint32_t no_dependencies_computed{0};
+  uint32_t has_dependencies{0};
   uint32_t funcdep_bench_useful{0};
   uint32_t funcdep_bench_notuseful{0};
   
@@ -288,9 +289,9 @@ std::vector<uint32_t> orders )
   {
     for ( auto j = 0u; j < num_minterms; ++j )
     {
-      if ( minterms.at( j ).get_bit( i ) )
+      if ( minterms.at( j ).get_bit( orders[i] ) )
       {
-        columns[i].set_bit( j );
+        columns[minterm_length-i-1].set_bit( j );
       }
     }
   }
@@ -302,6 +303,16 @@ std::vector<uint32_t> orders )
   for ( auto mirror_i = 0; mirror_i < int32_t( columns.size() ); ++mirror_i )
   {
     auto i = columns.size() - mirror_i - 1;
+
+       /*---check that there isn't any dependency---*/
+    if ( i < minterm_length - 2 )
+    {
+      if ( check_not_exist_dependencies( minterms, i ) )
+      {
+        ++has_no_dependencies;
+        continue;
+      }
+    }
 
     bool found = false;
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
@@ -332,15 +343,7 @@ std::vector<uint32_t> orders )
     if ( found )
       continue;
 
-    /*---check that there isn't any dependency---*/
-    if ( i < minterm_length - 2 )
-    {
-      if ( check_not_exist_dependencies( minterms, i ) )
-      {
-        ++has_no_dependencies;
-        continue;
-      }
-    }
+ 
     //-----xor---------
     //----first input
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
@@ -1511,13 +1514,17 @@ std::vector<uint32_t> orders )
         continue;
   }
 
-  if ( has_no_dependencies == num_minterms - 2u )
+  if ( has_no_dependencies == (minterm_length - 2u) )
   {
     ++stats.has_no_dependencies;
   }
   else if ( dependencies.size() == 0u )
   {
     ++stats.no_dependencies_computed;
+  }
+  else if ( dependencies.size() > 0u )
+  {
+    ++stats.has_dependencies;
   }
 
   return dependencies;
@@ -1767,7 +1774,7 @@ std::vector<uint32_t> varaible_ordering_regarding_deps(dependencies_t deps , uin
             orders.emplace_back(d.first);
     } 
 
-    for (int32_t i=num_vars-1 ; i>=0 ; i--)
+    for (auto i=0u ; i<num_vars; i++)
     {
         auto it = std::find(orders.begin(), orders.end(), i);
         if(it == orders.end())
@@ -1796,10 +1803,11 @@ void print_dependencies( dependencies_t const& dependencies, std::ostream& os = 
   }
 }
 
-void prepare_quantum_state( kitty::dynamic_truth_table const& tt, dependencies_t const& dependencies, functional_dependency_stats& stats )
+void prepare_quantum_state( kitty::dynamic_truth_table const& tt, dependencies_t const& dependencies, 
+functional_dependency_stats& stats, std::vector<uint32_t> orders )
 {
   tweedledum::netlist<tweedledum::mcst_gate> ntk;
-  auto const binary_tt = kitty::to_binary( tt );
+  //auto const binary_tt = kitty::to_binary( tt );
 
   qsp_tt_statistics qsp_stats;
 
@@ -1807,7 +1815,8 @@ void prepare_quantum_state( kitty::dynamic_truth_table const& tt, dependencies_t
   // qsp_tt_dependencies( ntk, binary_tt, no_deps, qsp_stats );
 
   /* TODO: need to be modified */
-  qsp_tt_dependencies( ntk, binary_tt, dependencies, qsp_stats );
+  std::reverse(orders.begin(),orders.end());
+  qsp_tt_dependencies( ntk, tt, dependencies, qsp_stats, orders);
 
   stats.total_time += qsp_stats.time;
   stats.funcdep_bench_useful += qsp_stats.funcdep_bench_useful;
@@ -1820,8 +1829,9 @@ void write_report( functional_dependency_stats const& stats, std::ostream& os )
 {
   os << "[i] number of analyzed benchmarks = " << stats.num_analysis_calls << std::endl;
   os << fmt::format( "[i] total = no deps exist + no deps found + found deps ::: {} = {} + {} + {}\n",
-                     stats.num_analysis_calls, stats.has_no_dependencies, stats.no_dependencies_computed,
-                     ( stats.num_analysis_calls - stats.has_no_dependencies - stats.no_dependencies_computed ) );
+                     (stats.has_no_dependencies+stats.no_dependencies_computed+
+                     stats.has_dependencies), stats.has_no_dependencies, stats.no_dependencies_computed, 
+                     stats.has_dependencies );
   os << fmt::format( "[i] total deps = dep useful + dep not useful ::: {} = {} + {}\n",
                      stats.funcdep_bench_useful + stats.funcdep_bench_notuseful, stats.funcdep_bench_useful, stats.funcdep_bench_notuseful);
   os << fmt::format( "[i] total synthesis time (considering dependencies) = {:8.2f}s\n",
@@ -1833,45 +1843,60 @@ void write_report( functional_dependency_stats const& stats, std::ostream& os )
 
 /* Experiment #1:
  *
- * Read Boolean functions from a file and apply quantum circuit
- * synthesis with and without dependency analysis.
+ * Run for one Boolean function
  */
 void example1()
 {
-  std::string const filename = "../input/specs.txt";
-  std::string const report_filename= "../output.txt";
+    std::string const inpath = "../input6/";
+    functional_dependency_stats stats;
+    functional_dependency_stats stats2;
+    std::string filename;
 
-  functional_dependency_stats stats;
-  std::ifstream ifs;
-  ifs.open( filename );
+    std::string tt_str;
 
-  std::string line;
-  while ( !ifs.eof() )
-  {
-    std::getline( ifs, line );
+    // std::ifstream infile;
+    // infile.open( inpath + filename );
+    // infile >> tt_str;
+    // infile.close();
 
-    if ( line.empty() )
-      continue;
+    tt_str = "10000001";
 
     /* prepare truth table */
-    std::reverse( line.begin(), line.end() );
-    std::uint32_t num_vars = ilog2( line.size() );
+    std::reverse( tt_str.begin(), tt_str.end() );
+    auto const tt_vars = int( log2( tt_str.size() ) );
 
-    kitty::dynamic_truth_table tt( num_vars );
-    kitty::create_from_binary_string( tt, line );
+    kitty::dynamic_truth_table tt( tt_vars );
+    kitty::create_from_binary_string( tt, tt_str );
 
+    if(!kitty::is_const0(tt))
+    {
     /* functional deps analysis */
-    auto const deps = functional_dependency_analysis( tt, stats );
-    prepare_quantum_state( tt, deps, stats );
-  }
-  ifs.close();
+    std::vector <uint32_t> orders_init;
+    for(int32_t i = tt_vars-1 ; i>=0 ; i--)
+        orders_init.emplace_back(i);
 
-  // std::ofstream report_file;
-  // report_file.open( report_filename );
-  // write_report( stats, report_file );
-  // report_file.close();
+    /* without ordering */   
+    // auto const deps2 = functional_dependency_analysis( tt, stats2 , orders_init);
+    // if(deps2.size()>0)
+    //     prepare_quantum_state( tt, deps2, stats2 , orders_init );
 
-  write_report( stats, std::cout );
+    /* with ordering */
+    auto const deps1 = functional_dependency_analysis( tt, stats , orders_init);
+    //print_dependencies(deps1);
+    auto orders = varaible_ordering_regarding_deps(deps1 , tt_vars);
+    for(auto i=0; i<orders.size() ; i++)
+        std::cout<<orders[i]<<"  ";
+    std::cout<<std::endl;
+    
+    auto const deps2 = functional_dependency_analysis( tt, stats2 , orders);
+    std::cout<<"deps2:\n";
+    print_dependencies(deps2);
+    //std::cout<<"end iteration\n";
+    prepare_quantum_state( tt, deps2, stats2 , orders );
+    }
+
+    std::cout << '\n';
+    write_report( stats2, std::cout );
 }
 
 /* Experiment #2:
@@ -1896,8 +1921,11 @@ void example2()
     kitty::print_binary( tt );
 
     /* functional deps analysis */
-    auto const deps = functional_dependency_analysis( tt, stats );
-    prepare_quantum_state( tt, deps, stats );
+    std::vector <uint32_t> orders_init;
+        for(int32_t i = num_vars-1 ; i>=0 ; i--)
+            orders_init.emplace_back(i);
+    auto const deps = functional_dependency_analysis( tt, stats , orders_init );
+    prepare_quantum_state( tt, deps, stats , orders_init );
 
     /* increment truth table */
     kitty::next_inplace( tt );
@@ -1963,8 +1991,11 @@ void example3()
       continue;
 
     /* functional deps analysis */
-    auto const deps = functional_dependency_analysis( cl, stats );
-    prepare_quantum_state( cl, deps, stats );
+    std::vector <uint32_t> orders_init;
+        for(int32_t i = num_vars-1 ; i>=0 ; i--)
+            orders_init.emplace_back(i);
+    auto const deps = functional_dependency_analysis( cl, stats , orders_init );
+    prepare_quantum_state( cl, deps, stats , orders_init );
   }
 
   // std::ofstream report_file;
@@ -1985,11 +2016,13 @@ void example4()
 {
   std::string const inpath = "../input6/";
   functional_dependency_stats stats;
+  functional_dependency_stats stats2;
   DIR * dir;
   struct dirent *entry;
+  std::vector<std::string> tt_strs;
   if ( ( dir = opendir( inpath.c_str() ) ) )
   {
-    while ( ( entry = readdir(dir) ) )
+    while ( entry = readdir(dir) )
     {
       std::string filename( entry->d_name );
       if ( filename == "." || filename == ".." || filename == ".DS_Store" || filename[0]!= '6' )
@@ -2003,6 +2036,13 @@ void example4()
       infile >> tt_str;
       infile.close();
 
+      /* check uniqueness */
+      auto it = std::find(tt_strs.begin() , tt_strs.end() , tt_str);
+      if(it != tt_strs.end())
+        continue;
+        
+      tt_strs.emplace_back(tt_str);
+
       /* prepare truth table */
       std::reverse( tt_str.begin(), tt_str.end() );
       auto const tt_vars = int( log2( tt_str.size() ) );
@@ -2013,13 +2053,28 @@ void example4()
       if(!kitty::is_const0(tt))
       {
         /* functional deps analysis */
-        auto const deps = functional_dependency_analysis( tt, stats );
-        print_dependencies(deps);
-        auto orders = varaible_ordering_regarding_deps(deps , tt_vars);
-        for(auto i=0; i<orders.size() ; i++)
-            std::cout<<orders[i]<<"  ";
-        std::cout<<std::endl;
-        //prepare_quantum_state( tt, deps, stats );
+        std::vector <uint32_t> orders_init;
+        for(int32_t i = tt_vars-1 ; i>=0 ; i--)
+            orders_init.emplace_back(i);
+
+        /* without ordering */   
+        // auto const deps2 = functional_dependency_analysis( tt, stats2 , orders_init);
+        // if(deps2.size()>0)
+        //     prepare_quantum_state( tt, deps2, stats2 , orders_init );
+
+        /* with ordering */
+        auto const deps1 = functional_dependency_analysis( tt, stats , orders_init);
+        //print_dependencies(deps1);
+        auto orders = varaible_ordering_regarding_deps(deps1 , tt_vars);
+        // for(auto i=0; i<orders.size() ; i++)
+        //     std::cout<<orders[i]<<"  ";
+        // std::cout<<std::endl;
+        
+        auto const deps2 = functional_dependency_analysis( tt, stats2 , orders);
+        //std::cout<<"deps2:\n";
+        //print_dependencies(deps2);
+        //std::cout<<"end iteration\n";
+        prepare_quantum_state( tt, deps2, stats2 , orders );
       }
       
     }
@@ -2033,7 +2088,7 @@ void example4()
 //   write_report( stats, report_file );
 //   report_file.close();
   std::cout << '\n';
-  write_report( stats, std::cout );
+  write_report( stats2, std::cout );
 }
 
 
@@ -2061,8 +2116,11 @@ void example5()
     //kitty::print_binary( tt ); std::cout << std::endl;
 
     /* functional deps analysis */
+    std::vector <uint32_t> orders_init;
+        for(int32_t i = num_vars-1 ; i>=0 ; i--)
+            orders_init.emplace_back(i);
     auto const deps = exact_fd_analysis( tt, stats );
-    prepare_quantum_state( tt, deps, stats );
+    prepare_quantum_state( tt, deps, stats , orders_init);
 
     /* increment truth table */
     kitty::next_inplace( tt );
@@ -2080,6 +2138,6 @@ void example5()
 
 int main()
 {
-  example4();
+  example1();
   return 0;
 }
