@@ -191,6 +191,7 @@ std::vector<partial_truth_table> read_minterms_from_file( std::string const& fil
 
 std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
 {
+  // TODO: integer_dual_logarithm( get_next_power_of_two( tt.num_vars ) ), e.g., tt.num_vars() == 3u: integer_dual_logarithm( 4 ) == 2u
   std::vector<partial_truth_table> rows;
   kitty::dynamic_truth_table minterm( tt.num_vars() );
 
@@ -272,8 +273,7 @@ struct functional_dependency_stats
   uint32_t total_rys{0};
 };
 
-dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats ,
-std::vector<uint32_t> orders )
+dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const& tt, functional_dependency_stats& stats, std::vector<uint32_t> orders )
 {
   ++stats.num_analysis_calls;
 
