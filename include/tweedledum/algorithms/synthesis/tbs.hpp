@@ -249,7 +249,7 @@ void tbs(Network& network, std::vector<qubit_id> const& qubits, std::vector<uint
 
 	switch (params.behavior) {
 		case tbs_params::behavior::unidirectional:
-			detail::tbs_unidirectional(network, qubits, permutation);
+                  detail::tbs_unidirectional(network, qubits, permutation, 1u);
 			break;
 		case tbs_params::behavior::bidirectional:
 			detail::tbs_bidirectional(network, qubits, permutation);
