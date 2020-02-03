@@ -23,9 +23,11 @@
 #include <cudd/cudd.h>
 #include <cudd/cuddInt.h>
 #include <cplusplus/cuddObj.hh>
-#include <QMDDpack_fereshte.h>
+//#include <QMDDpack_fereshte.h>
 #include <tweedledum/utils/stopwatch.hpp>
 #include <typeinfo>
+
+#if 0
 
 namespace tweedledum {
 namespace detail {
@@ -671,3 +673,5 @@ void qsp_add(Network& network , const std::string tt_str) //, const std::string 
 }
 
 } /* namespace tweedledum end */
+
+#endif
