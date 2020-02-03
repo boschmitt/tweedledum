@@ -1,5 +1,5 @@
+/* Author: Fereshte */
 #pragma once
-
 #include "../../gates/gate_set.hpp"
 #include "../../gates/gate_base.hpp"
 #include "../../gates/mcst_gate.hpp"
@@ -24,20 +24,24 @@
 #include <cudd/cuddInt.h>
 #include <cplusplus/cuddObj.hh>
 #include <tweedledum/utils/stopwatch.hpp>
-
 #include <typeinfo>
 
+struct qsp_tt_statistics
+{
+  double time{0};
+  uint32_t total_cnots{0};
+  uint32_t total_rys{0};
+  
+}; /* qsp_tt_statistics */
+
 namespace tweedledum {
+
 namespace detail {
+
+
 template<class Network>
 void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty::dynamic_truth_table tt)//changed by fereshte
 {
-    
-    //unsigned nlines = q_map.size();
-    //auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
-    //kitty::set_bit(tt,pow(2,nlines-1)-1);
-    //kitty::set_bit(tt,5);
-        
     const auto num_controls = tt.num_vars();
     //assert(qubit_map.size() == num_controls + 1);
     
@@ -45,8 +49,6 @@ void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty:
     auto xt = g.construct();
     kitty::create_nth_var(xt, num_controls);
     g &= xt;
-    
-
     parity_terms parities;
     const float nom = M_PI / (1 << g.num_vars());
     const auto spectrum = kitty::rademacher_walsh_spectrum(g);
@@ -57,9 +59,7 @@ void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty:
         parities.add_term(i, nom * spectrum[i]);
         
     }
-    
     detail::linear_synth_gray(net, q_map, parities);
-
         
 }
 
@@ -97,7 +97,7 @@ std::vector<double> gauss(std::vector< std::vector<double> > A)
             }
         }
     }
-std::cout<<"after m manipulation\n";
+    std::cout<<"after m manipulation\n";
     // Solve equation Ax=b for an upper triangular matrix A
     std::vector<double> x(n,0);
     for (int32_t i=n-1; i>=0; i--) {
@@ -218,7 +218,8 @@ void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple
     
 }
 
-/*std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>*/ void control_line_cancelling
+/*std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>*/ 
+void control_line_cancelling
 (std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>& in_gates, uint32_t nqubits)
 {
     //std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>> out_gates;
@@ -253,6 +254,14 @@ void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple
     return ;//out_gates;
 }
 
+std::vector<uint32_t> initialize_orders (uint32_t n)
+{
+    std::vector <uint32_t> orders_init;
+        for(auto i=0u ; i<n ; i++)
+            orders_init.emplace_back(i);
+    return orders_init;
+}
+
 
 } // namespace detail end
 //**************************************************************
@@ -264,8 +273,9 @@ struct qsp_params {
 };
 
 void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > >& gates,
- kitty::dynamic_truth_table tt, uint32_t var_index, std::vector<uint32_t> controls)
+ kitty::dynamic_truth_table tt, uint32_t var_index_pure, std::vector<uint32_t> controls, std::vector<uint32_t> const& orders)
 {
+    auto var_index = orders[var_index_pure];
     if(var_index==-1)
         return;
     //-----co factors-------
@@ -275,7 +285,6 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
     tt1 = kitty::shrink_to(kitty::cofactor1(tt,var_index), tt.num_vars() - 1);
     //--computing probability gate---
     auto c0_ones = kitty::count_ones(tt0);
-    
     auto c1_ones = kitty::count_ones(tt1);
     auto tt_ones = kitty::count_ones(tt);
     if (c0_ones!=tt_ones)
@@ -304,69 +313,68 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
     if (c0_allone){
         
         //---add H gates---
-        for(auto i=0u;i<var_index;i++)
-            //gates.emplace_back("RY",M_PI/2,i,controls_new0);
-            gates[i].emplace_back(std::pair{M_PI/2,controls_new0});
+        for(auto i=0u;i<var_index_pure;i++)
+            gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new0});
         //--check one cofactor----
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 1; //positive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
             //---add H gates---
-            for(auto i=0u;i<var_index;i++)
+            for(auto i=0u;i<var_index_pure;i++)
                 //gates.emplace_back("RY",M_PI/2,i,controls_new1);
-                gates[i].emplace_back(std::pair{M_PI/2,controls_new1});
+                gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
         else if(c1_allzero){
             return;
         }
         else{//some 1 some 0
-            general_qg_generation(gates,tt1,var_index-1,controls_new1);
+            general_qg_generation(gates,tt1,var_index_pure-1,controls_new1, orders);
         }
     }
     else if(c0_allzero){
         //--check one cofactor----
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 1; //positive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
             //---add H gates---
-            for(auto i=0u;i<var_index;i++)
+            for(auto i=0u;i<var_index_pure;i++)
                 //gates.emplace_back("RY",M_PI/2,i,controls_new1);
-                gates[i].emplace_back(std::pair{M_PI/2,controls_new1});
+                gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
         else if(c1_allzero){
             return;
         }
         else{//some 1 some 0
-            general_qg_generation(gates,tt1,var_index-1,controls_new1);
+            general_qg_generation(gates,tt1,var_index_pure-1,controls_new1, orders);
         }
     }
     else{//some 0 some 1 for c0
         
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
-        auto ctrl1 = var_index*2 + 1; //positive control: /2 ---> index %2 ---> sign
+        auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
-            general_qg_generation(gates,tt0,var_index-1,controls_new0);
+            general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
             //---add H gates---
-            for(auto i=0u;i<var_index;i++)
+            for(auto i=0u;i<var_index_pure;i++)
                 //gates.emplace_back("RY",M_PI/2,i,controls_new1);
-                gates[i].emplace_back(std::pair{M_PI/2,controls_new1});
+                gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
         else if(c1_allzero){
-            general_qg_generation(gates,tt0,var_index-1,controls_new0);
+            general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
             //return;
         }
         else{//some 1 some 0
-            general_qg_generation(gates,tt0,var_index-1,controls_new0);
-            general_qg_generation(gates,tt1,var_index-1,controls_new1);
+            general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
+            general_qg_generation(gates,tt1,var_index_pure-1,controls_new1, orders);
         }
     }
 
@@ -495,7 +503,7 @@ void qsp_ownfunction(Network & net, std::string tt_str)
     
 }
 
-/*template<typename Network>
+template<typename Network>
 void qsp_allone_first(Network & net, const std::string &tt_str , 
 std::vector<std::pair<std::string, std::vector<int>>> dependencies)
 {
@@ -541,37 +549,51 @@ std::vector<std::pair<std::string, std::vector<int>>> dependencies)
 
     // detail::tbs_unidirectional(net, qubits, perm,ones);
                           
-}*/
-
+}
 
 template<class Network>
-void qsp_tt(Network& network, const std::string &tt_str /*qsp_params params = {} ,*/ )
+void qsp_tt_dependencies(Network& network, const kitty::dynamic_truth_table tt, 
+std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>> const dependencies, 
+qsp_tt_statistics& stats, std::vector<uint32_t> const& orders )
+{
+
+template<class Network>
+void qsp_tt(Network& network, const kitty::dynamic_truth_table tt , std::vector<uint32_t> const& orders ,
+qsp_tt_stats & stats, qsp_params params = {} )
 {
     //assert(tt_str.size() <= pow(2,6));
-    const uint32_t num_qubits = std::log2(tt_str.size());
+    const uint32_t num_qubits = tt.num_vars();
     for (auto i = 0u; i < num_qubits; ++i) 
     {
-		network.add_qubit();
-	}
-	
-	// switch (params.strategy) 
-    // {
-	// 	case qsp_params::strategy::allone_first:
-    //         std::cout<<"one first\n";
-	// 		qsp_allone_first(network, tt_str , dependencies);
-	// 		break;
-	// 	case qsp_params::strategy::ownfunction:
-    //         std::cout<<"own func\n";
-        stopwatch<>::duration time_bdd_traversal{0};
-    {
-        stopwatch t( time_bdd_traversal );
-        qsp_ownfunction(network, tt_str);
+      network.add_qubit();
     }
+	
+    stopwatch<>::duration time_traversal{0};
     
-    std::cout << "time for BDD traversal = " << to_seconds( time_bdd_traversal ) << "s" << std::endl;
-	 		
-	// 		break;
-	// }
+	switch (params.strategy) 
+    {
+		case qsp_params::strategy::allone_first:
+            std::cout<<"one first\n";
+			qsp_allone_first(network, tt, stats, orders);
+			break;
+		case qsp_params::strategy::ownfunction:
+            std::cout<<"own func\n";
+            qsp_ownfunction(network, tt, stats, orders);
+            break;
+    }
+
+    stopwatch t( time_traversal );
+        
+    
+    std::cout << "time for BDD traversal = " << to_seconds( time_traversal ) << "s" << std::endl;
+	
+}
+
+template<class Network>
+void qsp_tt(Network& network, const kitty::dynamic_truth_table tt ,
+qsp_tt_stats & stats, qsp_params params = {} )
+{
+    qsp_tt(network, tt, detail::initialize_orders(tt.num_vars()), stats, params);
 }
 
 } // namespace tweedledum end

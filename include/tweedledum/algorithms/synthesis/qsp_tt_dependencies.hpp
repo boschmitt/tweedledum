@@ -28,7 +28,7 @@
 
 
 
-struct qsp_tt_statistics
+struct qsp_tt_deps_statistics
 {
   double time{0};
   uint32_t funcdep_bench_useful{0};
