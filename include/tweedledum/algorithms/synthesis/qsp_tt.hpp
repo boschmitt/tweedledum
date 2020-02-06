@@ -38,9 +38,8 @@ namespace tweedledum {
 
 namespace detail {
 
-
 template<class Network>
-void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty::dynamic_truth_table tt)//changed by fereshte
+inline void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty::dynamic_truth_table tt)//changed by fereshte
 {
     const auto num_controls = tt.num_vars();
     //assert(qubit_map.size() == num_controls + 1);
@@ -63,7 +62,7 @@ void decomposition_mcz(Network& net,  std::vector<qubit_id> const& q_map, kitty:
         
 }
 
-std::vector<double> gauss(std::vector< std::vector<double> > A) 
+inline std::vector<double> gauss(std::vector< std::vector<double> > A) 
 {
     auto n = A.size();
     std::cout<<"m size: "<<n<<std::endl;
@@ -115,7 +114,7 @@ std::vector<double> gauss(std::vector< std::vector<double> > A)
 }
 
 template<class Network>
-void multiplex_decomposition(Network& net, std::vector<double> mux_angles, uint32_t target_id)
+inline void multiplex_decomposition(Network& net, std::vector<double> mux_angles, uint32_t target_id)
 {
     uint32_t n = mux_angles.size();
     auto binarytogray = [](uint32_t num) { return (num>>1) ^ num;};
@@ -145,7 +144,7 @@ void multiplex_decomposition(Network& net, std::vector<double> mux_angles, uint3
     }
 }
 
-std::vector<uint32_t> extract_angle_idxs(std::vector<uint32_t> idxvec)
+inline std::vector<uint32_t> extract_angle_idxs(std::vector<uint32_t> idxvec)
 {
     std::vector<uint32_t> out_idx;
     auto temp=0;
@@ -174,7 +173,7 @@ std::vector<uint32_t> extract_angle_idxs(std::vector<uint32_t> idxvec)
 }
 
 template<typename Network>
-void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > >
+inline void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > >
  gates)
 {
     auto angle_1 = std::get<1> (gates[0]);
@@ -219,7 +218,7 @@ void extract_multiplex_gates(Network & net, uint32_t n, std::vector < std::tuple
 }
 
 /*std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>*/ 
-void control_line_cancelling
+inline void control_line_cancelling
 (std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>>& in_gates, uint32_t nqubits)
 {
     //std::vector<std::tuple<std::string,double,uint32_t,std::vector<uint32_t>>> out_gates;
@@ -254,7 +253,7 @@ void control_line_cancelling
     return ;//out_gates;
 }
 
-std::vector<uint32_t> initialize_orders (uint32_t n)
+inline std::vector<uint32_t> initialize_orders (uint32_t n)
 {
     std::vector <uint32_t> orders_init;
         for(auto i=0u ; i<n ; i++)
@@ -262,17 +261,7 @@ std::vector<uint32_t> initialize_orders (uint32_t n)
     return orders_init;
 }
 
-
-} // namespace detail end
-//**************************************************************
-struct qsp_params {
-	enum class strategy : uint32_t {
-		allone_first,
-		ownfunction,
-	} strategy = strategy::ownfunction;
-};
-
-void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > >& gates,
+inline void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > >& gates,
  kitty::dynamic_truth_table tt, uint32_t var_index_pure, std::vector<uint32_t> controls, std::vector<uint32_t> const& orders)
 {
     auto var_index = orders[var_index_pure];
@@ -290,14 +279,7 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
     if (c0_ones!=tt_ones)
     { // == --> identity and ignore
         double angle = 2*acos(sqrt(static_cast<double> (c0_ones)/tt_ones));
-        //angle *= (180/3.14159265); //in degree
-        //----add probability gate----
-        //gates.emplace_back("RY",angle,var_index,controls);
-        
-        
-            gates[var_index].emplace_back(std::pair{angle,controls});
-        //std::cout<<"c0 ones: "<<c0_ones<<"tt one: "<<tt_ones<<std::endl;
-        //std::cout<<"angle: "<<angle<<"control size: "<<controls.size()<<std::endl;     
+        gates[var_index].emplace_back(std::pair{angle,controls});    
     }
     //-----qc of cofactors-------
     //---check state--- 
@@ -308,7 +290,7 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
 
     std::vector<uint32_t> controls_new0;
     std::copy(controls.begin(), controls.end(), back_inserter(controls_new0)); 
-    auto ctrl0 = var_index*2 + 0; //negetive control: /2 ---> index %2 ---> sign
+    auto ctrl0 = var_index*2 + 1; //negetive control: /2 ---> index %2 ---> sign
     controls_new0.emplace_back(ctrl0);
     if (c0_allone){
         
@@ -323,7 +305,6 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
         if(c1_allone){
             //---add H gates---
             for(auto i=0u;i<var_index_pure;i++)
-                //gates.emplace_back("RY",M_PI/2,i,controls_new1);
                 gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
@@ -343,7 +324,6 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
         if(c1_allone){
             //---add H gates---
             for(auto i=0u;i<var_index_pure;i++)
-                //gates.emplace_back("RY",M_PI/2,i,controls_new1);
                 gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
@@ -364,13 +344,12 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
             general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
             //---add H gates---
             for(auto i=0u;i<var_index_pure;i++)
-                //gates.emplace_back("RY",M_PI/2,i,controls_new1);
+                
                 gates[orders[i]].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
         else if(c1_allzero){
             general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
-            //return;
         }
         else{//some 1 some 0
             general_qg_generation(gates,tt0,var_index_pure-1,controls_new0, orders);
@@ -379,38 +358,35 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
     }
 
 }
-
+// to do: need to complete and verify
 template<typename Network>
-void qc_generation(Network & net, std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > >
- gates){
-    for(const auto [name,angle,target_id,controls]: gates){
-        if(name=="RY"){
-            
-            if(controls.size()==0){
+void qc_generation(Network & net, 
+std::map <uint32_t, std::vector < std::pair < double,std::vector<uint32_t> > > > gates)
+{
+    for(auto i=0u; i<gates.size(); i++)
+    {
+        for(const auto g: gates[i])
+        {
+            auto angle = g.first;
+            auto controls = g.second;
+            if(controls.size()==0)
+            {
                 auto temp = gate_base(gate_set::rotation_y, angle);
-                net.add_gate(temp, target_id);
+                net.add_gate(temp, i<<1);
             }
-            else if( (controls.size()==1) && (angle==M_PI) ){
-                
-                    if(controls[0]%2 == 0){
-                        net.add_gate(gate::pauli_x, controls[0]/2);
-                        net.add_gate(gate::cx,controls[0]/2,target_id);
-                        net.add_gate(gate::pauli_x, controls[0]/2);
-                    }
-                    else
-                    {
-                        net.add_gate(gate::cx,controls[0]/2,target_id);
-                    }
-                           
+            else if( (controls.size()==1) && (std::abs(angle-M_PI)<0.001) )
+            {
+                net.add_gate(gate::cx,controls,i);     
             }
-            else {//we have multi control probability gate
+            else 
+            {//we have multi control probability gate
                 unsigned nlines = controls.size()+1;
                 auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
                 uint32_t tt_idx_set=0;
                 //kitty::set_bit(tt,pow(2,nlines-1)-1);
             
                 std::vector<qubit_id> q_map;
-                net.add_gate(gate_base(gate_set::rotation_y, angle/2), target_id);
+                net.add_gate(gate_base(gate_set::rotation_y, angle/2), i);
                 auto idx=0;
                 for(const auto ctrl:controls){
                     if(ctrl%2 == 1){//negative control
@@ -420,7 +396,7 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                     idx++;
                     q_map.emplace_back(ctrl/2);
                 }
-                q_map.emplace_back(target_id);
+                q_map.emplace_back(i);
                 tt_idx_set += pow(2,nlines-1);
                 kitty::set_bit(tt,tt_idx_set);
                 detail::decomposition_mcz(net,q_map,tt);
@@ -428,110 +404,93 @@ void qc_generation(Network & net, std::vector < std::tuple < std::string,double,
                     //if(ctrl%2 == 1)//negative control
                         //net.add_gate(gate::pauli_x, ctrl/2);
                 //}
-                net.add_gate(gate_base(gate_set::rotation_y, -angle/2), target_id);
+                net.add_gate(gate_base(gate_set::rotation_y, -angle/2), i);
 
             }//end multi control
-        }//end RY
-        else if(name=="H"){
-            
-            if(controls.size()==0)
-                net.add_gate(gate::hadamard, target_id);
-            else{//we have multi control probability gate
-                unsigned nlines = controls.size()+1;
-                auto tt = kitty::create<kitty::dynamic_truth_table>(nlines-1);
-                uint32_t tt_idx_set=0;
-                std::vector<qubit_id> q_map;
-                net.add_gate(gate_base(gate_set::rotation_y, M_PI/4), target_id);
-                auto idx=0;
-                for(const auto ctrl:controls){
-                    if(ctrl%2 == 1){//negative control
-                        //net.add_gate(gate::pauli_x, ctrl/2)
-                        tt_idx_set += pow(2,idx);
-                    }
-                    idx++;
-                    q_map.emplace_back(ctrl/2);
-                }
-                q_map.emplace_back(target_id);
-                tt_idx_set += pow(2,nlines-1);
-                kitty::set_bit(tt,tt_idx_set);
-                detail::decomposition_mcz(net,q_map,tt);
-                // for(const auto ctrl:controls){
-                //     if(ctrl%2 == 1)//negative control
-                //         net.add_gate(gate::pauli_x, ctrl/2);
-                // }
-                net.add_gate(gate_base(gate_set::rotation_y, -M_PI/4), target_id);
-            }//end multi control
-        }//end H
 
-    }// end gates
+        }//end loop for gates on a line
+    }// end loop for lines
 
 }
 
 template<typename Network>
-void qsp_ownfunction(Network & net, std::string tt_str)
+void qsp_ownfunction(Network& net, 
+const kitty::dynamic_truth_table tt, 
+qsp_tt_statistics& stats , std::vector<uint32_t> const& orders)
 {
-    std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > > gates; // gate name, angle, target_id, controls:id and sign /2 and %2
-    auto tt_vars = int(log2(tt_str.size()));
-
-    std::reverse(tt_str.begin() , tt_str.end());
-
-    kitty::dynamic_truth_table tt(tt_vars);
-    kitty::create_from_binary_string( tt, tt_str);
+    std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > > gates;
     
-
-    auto var_idx = tt_vars-1;
+    auto var_idx = tt.num_vars()-1;
  
     std::vector<uint32_t> cs;
-    general_qg_generation(gates,tt,var_idx,cs);
-    
-    //detail::control_line_cancelling(gates,tt_vars);
-    // for(auto i=0u;i<gates.size();i++)
-    // {
-    //     std::cout<<"gates: "<<i<<"\n";
-        
-    //     for(auto j=0;j< gates[i].size();j++)
-    //     {
-    //         std::cout<<"angle:  "<<gates[i][j].first <<std::endl<<"ctrls: ";
-    //         for(auto k=0; k<gates[i][j].second.size() ; k++)
-    //             std::cout<<gates[i][j].second[k]<<"  ";
-    //         std::cout<<std::endl;
-    //     }
-            
-    // }
+    general_qg_generation(gates,tt,var_idx,cs, orders);
+    qc_generation(net, gates);
+    auto total_rys = 0;
+    auto total_cnots = 0;
 
+    auto n_reduc = 0; // lines that always are zero or one and so we dont need to prepare them
+
+    std::vector< std::pair<uint32_t,uint32_t> > gates_num(tt.num_vars()); //rys,cnots
+    for(int32_t i=gates.size()-1; i>=0;i--)
+    {
+        if(gates[ orders[i] ].size()==0)
+        {
+            gates_num[ orders[i] ] = std::make_pair(0,0); // number of rys and cnots
+            n_reduc++;
+            continue;
+        }
+
+        auto rys = 0;
+        auto cnots = 0;
+        for(auto j=0u; j< gates[ orders[i] ].size(); j++)
+        {
+           
+            if( i==(tt.num_vars()-1-n_reduc) ) // first line for preparation
+            {
+                cnots = 0;
+                rys = 1;
+            }
+            else if(gates[orders[i]].size()==1 && (std::abs(gates[orders[i]][0].first-M_PI)<0.1) && gates[orders[i]][0].second.size()==1) // second line for preparation
+            {               
+                cnots = 1;
+                rys = 0;
+            }
+            else // other lines with more than one control
+            {
+                rys = pow(2,((tt.num_vars()-i-1)-n_reduc));
+                cnots = pow(2,((tt.num_vars()-i-1)-n_reduc)); 
+            }   
+        }  
+        
+        gates_num[orders[i]] = std::make_pair(rys,cnots);
+        total_rys += rys;
+        total_cnots += cnots;  
+    }
+
+    stats.total_cnots += total_cnots;
+    stats.total_rys += total_rys;
+     
+    //detail::control_line_cancelling(gates,tt_vars);
     //detail::extract_multiplex_gates(net,tt_vars,gates);
     
 }
 
 template<typename Network>
-void qsp_allone_first(Network & net, const std::string &tt_str , 
-std::vector<std::pair<std::string, std::vector<int>>> dependencies)
+void qsp_allone_first(Network & net, const kitty::dynamic_truth_table tt, 
+qsp_tt_statistics& stats , std::vector<uint32_t> const& orders)
 {
-    std::vector < std::tuple < std::string,double,uint32_t,std::vector<uint32_t> > > gates; // gate name, angle, target_id, controls:id and sign /2 and %2
-    auto tt_vars = int(log2(tt_str.size()));
-    
-    //first tt
-    kitty::dynamic_truth_table tt(tt_vars);
-    kitty::create_from_binary_string(tt, tt_str);
-    auto ones = kitty::count_ones(tt);
+    std::map <uint32_t , std::vector < std::pair < double,std::vector<uint32_t> > > > gates;
 
-    auto tt_new = kitty::create<kitty::dynamic_truth_table>(tt_vars);
+    auto ones = kitty::count_ones(tt);
+    auto tt_new = kitty::create<kitty::dynamic_truth_table>(tt.num_vars());
     for(auto i=0u;i<ones;i++)
         kitty::set_bit(tt_new,i);
 
-    auto var_idx = tt_vars-1;
+    auto var_idx = tt.num_vars()-1;
     std::vector<uint32_t> cs;
-    general_qg_generation(gates,tt_new,var_idx,cs);
+    general_qg_generation(gates,tt_new,var_idx,cs, orders);
     //detail::control_line_cancelling(gates,tt_vars);
-    for(auto i=0u;i<gates.size();i++){
-        std::cout<<"gates: "<<i<<"\n";
-        std::cout<<std::get<0> (gates[i]) <<std::endl;
-        std::cout<<"angle:  "<<std::get<1> (gates[i]) <<std::endl;
-        std::cout<<"target_id:  "<<std::get<2> (gates[i]) <<std::endl;
-        for(auto j=0;j< (std::get<3> (gates[i])).size();j++)
-            std::cout<<(std::get<3> (gates[i])) [j] <<"  ";
-            std::cout<<std::endl;
-    }
+    
     //qc_generation(net,gates);
     
     // std::vector<qubit_id> qubits(tt_vars);
@@ -551,15 +510,21 @@ std::vector<std::pair<std::string, std::vector<int>>> dependencies)
                           
 }
 
-template<class Network>
-void qsp_tt_dependencies(Network& network, const kitty::dynamic_truth_table tt, 
-std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>> const dependencies, 
-qsp_tt_statistics& stats, std::vector<uint32_t> const& orders )
-{
+
+} // namespace detail end
+//**************************************************************
+struct qsp_params {
+	enum class strategy : uint32_t {
+		allone_first,
+		ownfunction,
+	} strategy = strategy::ownfunction;
+};
+
+
 
 template<class Network>
 void qsp_tt(Network& network, const kitty::dynamic_truth_table tt , std::vector<uint32_t> const& orders ,
-qsp_tt_stats & stats, qsp_params params = {} )
+qsp_tt_statistics & stats, qsp_params params = {} )
 {
     //assert(tt_str.size() <= pow(2,6));
     const uint32_t num_qubits = tt.num_vars();
@@ -574,24 +539,24 @@ qsp_tt_stats & stats, qsp_params params = {} )
     {
 		case qsp_params::strategy::allone_first:
             std::cout<<"one first\n";
-			qsp_allone_first(network, tt, stats, orders);
+			detail::qsp_allone_first(network, tt, stats, orders);
 			break;
 		case qsp_params::strategy::ownfunction:
             std::cout<<"own func\n";
-            qsp_ownfunction(network, tt, stats, orders);
+            detail::qsp_ownfunction(network, tt, stats, orders);
             break;
     }
 
     stopwatch t( time_traversal );
         
     
-    std::cout << "time for BDD traversal = " << to_seconds( time_traversal ) << "s" << std::endl;
+    std::cout << "time = " << to_seconds( time_traversal ) << "s" << std::endl;
 	
 }
 
 template<class Network>
 void qsp_tt(Network& network, const kitty::dynamic_truth_table tt ,
-qsp_tt_stats & stats, qsp_params params = {} )
+qsp_tt_statistics & stats, qsp_params params = {} )
 {
     qsp_tt(network, tt, detail::initialize_orders(tt.num_vars()), stats, params);
 }

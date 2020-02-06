@@ -15,7 +15,7 @@ TEST_CASE("Prepare GHZ(3) state with sp_tt_dependencies method", "[qsp_tt_depend
 	deps[0].emplace_back(std::make_pair("eq", std::vector<uint32_t>{4}));
 	deps[1].emplace_back(std::make_pair("eq", std::vector<uint32_t>{4}));
 
-	qsp_tt_statistics stats;
+	qsp_tt_deps_statistics stats;
 	qsp_tt_dependencies(network, tt, deps, stats);
 
 	CHECK(stats.total_cnots == 2u);

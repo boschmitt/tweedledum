@@ -24,6 +24,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/linear_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/stg.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/tbs.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/qsp_tt.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/qsp_tt_dependencies.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/qsp_dependency_analysis.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/utils/partial_truth_table.cpp"

@@ -1809,14 +1809,14 @@ functional_dependency_stats& stats, std::vector<uint32_t> orders )
   tweedledum::netlist<tweedledum::mcst_gate> ntk;
   //auto const binary_tt = kitty::to_binary( tt );
 
-  qsp_tt_statistics qsp_stats;
+  qsp_tt_deps_statistics qsp_stats;
 
   // dependencies_t no_deps;
   // qsp_tt_dependencies( ntk, binary_tt, no_deps, qsp_stats );
 
   /* TODO: need to be modified */
   std::reverse(orders.begin(),orders.end());
-  qsp_tt_dependencies( ntk, tt, dependencies, qsp_stats, orders);
+  qsp_tt_dependencies( ntk, tt, dependencies, orders, qsp_stats);
 
   stats.total_time += qsp_stats.time;
   stats.funcdep_bench_useful += qsp_stats.funcdep_bench_useful;
