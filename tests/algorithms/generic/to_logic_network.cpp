@@ -22,14 +22,16 @@ TEMPLATE_PRODUCT_TEST_CASE("Conver simple quantum circuit to XAG", "[to_logic_ne
                            (gg_network, netlist), (io3_gate, mcmt_gate))
 {
 	TestType quantum_ntk;
-	auto q0 = quantum_ntk.add_qubit();
-	auto q1 = quantum_ntk.add_qubit();
-	auto q2 = quantum_ntk.add_qubit();
+	auto q0 = quantum_ntk.add_qubit("i_0");
+	auto q1 = quantum_ntk.add_qubit("i_1");
+	auto q2 = quantum_ntk.add_qubit("o_0");
+	quantum_ntk.mark_as_input(q0);
+	quantum_ntk.mark_as_input(q1);
+	quantum_ntk.mark_as_output(q2);
 
 	quantum_ntk.add_gate(gate::mcx, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
 
-	const auto logic_ntk = to_logic_network<xag_network>(quantum_ntk, std::vector<io_id>({q0, q1}),
-	                                                                  std::vector<io_id>({q2}));
+	const auto logic_ntk = to_logic_network<xag_network>(quantum_ntk);
 
 	kitty::dynamic_truth_table function(2u);
 	kitty::create_from_binary_string(function, "1000");
