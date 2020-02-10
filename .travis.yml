@@ -59,7 +59,6 @@ jobs:
     osx_image: xcode11
     compiler: gcc
     before_install:
-      - brew upgrade gcc
     env: COMPILER=/usr/local/opt/gcc/bin/g++-9
 
   - os: osx
