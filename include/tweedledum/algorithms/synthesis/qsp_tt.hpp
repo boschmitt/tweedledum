@@ -376,7 +376,7 @@ std::map <uint32_t, std::vector < std::pair < double,std::vector<uint32_t> > > >
             }
             else if( (controls.size()==1) && (std::abs(angle-M_PI)<0.001) )
             {
-                net.add_gate(gate::cx,controls,i);     
+                //net.add_gate(gate::cx,controls,i);     
             }
             else 
             {//we have multi control probability gate

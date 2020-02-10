@@ -417,11 +417,9 @@ std::map<uint32_t, std::vector<std::pair<std::string, std::vector<uint32_t>>>> c
     switch (params.strategy) 
     {
     	case qsp_params::strategy::allone_first:
-            std::cout<<"one first\n";
     		detail::qsp_allone_first(network, tt , dependencies, stats, orders);
     		break;
     	case qsp_params::strategy::ownfunction:
-            std::cout<<"own func\n";
             detail::qsp_ownfunction( network, tt, dependencies, stats , orders);
             break;
     }

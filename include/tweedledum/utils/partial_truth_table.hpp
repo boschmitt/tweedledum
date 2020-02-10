@@ -6,6 +6,7 @@
 #include <kitty/operators.hpp>
 #include <kitty/print.hpp>
 #include <iostream>
+#include <fstream>
 
 namespace tweedledum
 {
@@ -168,6 +169,43 @@ inline void print_binary( partial_truth_table const& tt, std::ostream& os = std:
   kitty::print_binary( tt._bits, os );
   os << ':';
   os << tt._num_bits;
+}
+
+std::vector<partial_truth_table> read_minterms_from_file( std::string const& filename )
+{
+  std::vector<partial_truth_table> minterms;
+
+  std::ifstream ifs( filename, std::ios::in );
+  std::string line;
+  while ( std::getline( ifs, line ) )
+  {
+    minterms.emplace_back( partial_truth_table::create_from_binary_string( line ) );
+  }
+  ifs.close();
+
+  return minterms;
+}
+
+std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
+{
+  // TODO: integer_dual_logarithm( get_next_power_of_two( tt.num_vars ) ), e.g., tt.num_vars() == 3u: integer_dual_logarithm( 4 ) == 2u
+  std::vector<partial_truth_table> rows;
+  kitty::dynamic_truth_table minterm( tt.num_vars() );
+
+  //std::cout << tt.num_vars() << std::endl;
+  do
+  {
+    if ( minterm._bits[0] > ( 1u << tt.num_vars() ) )
+      break;
+
+    if ( kitty::get_bit( tt, minterm._bits[0] ))
+    {
+      rows.emplace_back( partial_truth_table( minterm, tt.num_vars() ) );
+    }
+
+    kitty::next_inplace( minterm );
+  } while ( !kitty::is_const0( minterm ) );
+  return rows;
 }
 
 } // namespace tweedledum
