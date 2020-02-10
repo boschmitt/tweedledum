@@ -48,7 +48,7 @@ jobs:
     env: COMPILER=clang++
 
   - os: osx
-    osx_image: xcode11
+    osx_image: xcode10.3
     compiler: clang
     before_install:
       - brew update
@@ -56,17 +56,20 @@ jobs:
     env: COMPILER=/usr/local/opt/llvm/bin/clang++
 
   - os: osx
-    osx_image: xcode11
+    osx_image: xcode10.3
     compiler: gcc
     before_install:
       - export HOMEBREW_NO_INSTALL_CLEANUP=1
-      - brew upgrade gcc
+      - brew uninstall gcc
+      - brew update
+      - brew install gcc
     env: COMPILER=/usr/local/opt/gcc/bin/g++-9
 
   - os: osx
-    osx_image: xcode11
+    osx_image: xcode10.3
     compiler: gcc
     before_install:
+      - export HOMEBREW_NO_INSTALL_CLEANUP=1
       - brew update
       - brew install gcc@7
     env: COMPILER=/usr/local/opt/gcc@7/bin/g++-7
