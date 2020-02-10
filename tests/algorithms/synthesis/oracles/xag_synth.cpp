@@ -8,12 +8,13 @@
 #include <mockturtle/algorithms/simulation.hpp>
 #include <mockturtle/networks/xag.hpp>
 #include <tweedledum/algorithms/generic/to_logic_network.hpp>
-#include <tweedledum/algorithms/synthesis/oracles/hrs.hpp>
+#include <tweedledum/algorithms/synthesis/oracles/xag_synth.hpp>
 #include <tweedledum/gates/io3_gate.hpp>
 #include <tweedledum/gates/mcmt_gate.hpp>
 #include <tweedledum/networks/gg_network.hpp>
 #include <tweedledum/networks/io_id.hpp>
 #include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/io/write_unicode.hpp>
 
 using namespace mockturtle;
 using namespace tweedledum;
@@ -28,8 +29,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis", "[oracle_synthesis][template]
 	oracle.create_po(a_and_b);
 
 	TestType quantum_ntk;
-	hrs_info info;
-	hrs(quantum_ntk, oracle, &info);
+	xag_synth(quantum_ntk, oracle);
 }
 
 TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 2", "[oracle_synthesis][template]",
@@ -51,10 +51,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 2", "[oracle_synthesis][templat
 	oracle.create_po(n6); 
 
 	TestType quantum_ntk;
-	hrs_info info;
-	hrs(quantum_ntk, oracle, &info);
+	xag_synth(quantum_ntk, oracle);
 
-	auto out_network = to_logic_network<mockturtle::xag_network>(quantum_ntk, info.inputs, info.outputs);
+	auto out_network = to_logic_network<mockturtle::xag_network>(quantum_ntk);
 	const auto miter = *mockturtle::miter<mockturtle::xag_network>(oracle, out_network);
 	const auto result = mockturtle::equivalence_checking(miter);
 	CHECK(result);
@@ -87,10 +86,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 3", "[oracle_synthesis][templat
 	oracle.create_po(n33);
 
 	TestType quantum_ntk;
-	hrs_info info;
-	hrs(quantum_ntk, oracle, &info);
+	xag_synth(quantum_ntk, oracle);
+	auto out_network = to_logic_network<mockturtle::xag_network>(quantum_ntk);
+	CHECK(out_network.num_pis() == 5u);
+	CHECK(out_network.num_pos() == 6u);
 
-	auto out_network = to_logic_network<mockturtle::xag_network>(quantum_ntk, info.inputs, info.outputs);
 	const auto miter = *mockturtle::miter<mockturtle::xag_network>(oracle, out_network);
 	const auto result = mockturtle::equivalence_checking(miter);
 	CHECK(result);
