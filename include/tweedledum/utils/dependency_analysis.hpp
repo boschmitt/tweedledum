@@ -90,7 +90,9 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
   /* resubstitution-style dependency analysis */
   dependencies_t dependencies;
 
+    /* check there is no deps */
   uint32_t has_no_dependencies = 0u;
+
   for ( auto mirror_i = 0; mirror_i < int32_t( columns.size() ); ++mirror_i )
   {
     auto i = columns.size() - mirror_i - 1;
@@ -104,6 +106,17 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         continue;
       }
     }
+  }
+
+   if ( has_no_dependencies == (minterm_length - 2u) )
+  {
+    ++stats.has_no_dependencies;
+    return dependencies;
+  }
+
+  for ( auto mirror_i = 0; mirror_i < int32_t( columns.size() ); ++mirror_i )
+  {
+    auto i = columns.size() - mirror_i - 1;
 
     bool found = false;
     for ( auto j = uint32_t( columns.size() )-1; j > i; --j )
@@ -1305,11 +1318,8 @@ dependencies_t functional_dependency_analysis( kitty::dynamic_truth_table const&
         continue;
   }
 
-  if ( has_no_dependencies == (minterm_length - 2u) )
-  {
-    ++stats.has_no_dependencies;
-  }
-  else if ( dependencies.size() == 0u )
+ 
+  if ( dependencies.size() == 0u )
   {
     ++stats.no_dependencies_computed;
   }

@@ -47,13 +47,13 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
  kitty::dynamic_truth_table tt, uint32_t var_idx_pure, std::vector<uint32_t> controls 
  ,std::map<uint32_t , std::vector<std::pair<std::string, std::vector<uint32_t>>>> dependencies , std::vector<uint32_t> const& orders)
 {
-    //-----co factors-------
+    /*-----co factors-------*/
     auto var_index = orders[var_idx_pure];
     kitty::dynamic_truth_table tt0(var_index);
     kitty::dynamic_truth_table tt1(var_index);
     tt0 = kitty::shrink_to(kitty::cofactor0(tt,var_index), tt.num_vars() - 1);
     tt1 = kitty::shrink_to(kitty::cofactor1(tt,var_index), tt.num_vars() - 1);
-    //--computing probability gate---
+    /*--computing probability gate---*/
     auto c0_ones = kitty::count_ones(tt0);
     
     auto c1_ones = kitty::count_ones(tt1);
@@ -62,7 +62,7 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
     { // == --> identity and ignore
         double angle = 2*acos(sqrt(static_cast<double> (c0_ones)/tt_ones));
         //angle *= (180/3.14159265); //in degree
-        //----add probability gate----
+        /*----add probability gate----*/
         //gates.emplace_back("RY",angle,var_index,controls);
         auto it = dependencies.find(var_index);
         
@@ -174,11 +174,9 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
         }
         else
             gates[var_index].emplace_back(std::pair{angle,controls});
-        //std::cout<<"c0 ones: "<<c0_ones<<"tt one: "<<tt_ones<<std::endl;
-        //std::cout<<"angle: "<<angle<<"control size: "<<controls.size()<<std::endl;     
     }
-    //-----qc of cofactors-------
-    //---check state--- 
+    /*-----qc of cofactors-------*/
+    /*---check state---*/ 
     auto c0_allone = (c0_ones==pow(2, tt0.num_vars())) ? true : false ;
     auto c0_allzero = (c0_ones==0) ? true : false ;
     auto c1_allone = (c1_ones==pow(2, tt1.num_vars())) ? true : false ;
@@ -190,19 +188,17 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
     controls_new0.emplace_back(ctrl0);
     if (c0_allone){
         
-        //---add H gates---
+        /*---add H gates---*/
         for(auto i=0u;i<var_idx_pure;i++)
-            //gates.emplace_back("RY",M_PI/2,i,controls_new0);
             gates[ orders[i] ] .emplace_back(std::pair{M_PI/2,controls_new0});
-        //--check one cofactor----
+        /*--check one cofactor----*/
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
         auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
-            //---add H gates---
+            /*---add H gates---*/
             for(auto i=0u;i<var_idx_pure;i++)
-                //gates.emplace_back("RY",M_PI/2,i,controls_new1);
                 gates[ orders[i] ].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
@@ -214,15 +210,14 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
         }
     }
     else if(c0_allzero){
-        //--check one cofactor----
+        /*--check one cofactor----*/
         std::vector<uint32_t> controls_new1;
         std::copy(controls.begin(), controls.end(), back_inserter(controls_new1)); 
         auto ctrl1 = var_index*2 + 0; //positive control: /2 ---> index %2 ---> sign
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
-            //---add H gates---
+            /*---add H gates---*/
             for(auto i=0u;i<var_idx_pure;i++)
-                //gates.emplace_back("RY",M_PI/2,i,controls_new1);
                 gates[ orders[i] ].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
@@ -241,15 +236,13 @@ void general_qg_generation(std::map <uint32_t , std::vector < std::pair < double
         controls_new1.emplace_back(ctrl1);
         if(c1_allone){
             general_qg_generation(gates,tt0,var_idx_pure-1,controls_new0 , dependencies , orders);
-            //---add H gates---
+            /*---add H gates---*/
             for(auto i=0u;i<var_idx_pure;i++)
-                //gates.emplace_back("RY",M_PI/2,i,controls_new1);
                 gates[ orders[i] ].emplace_back(std::pair{M_PI/2,controls_new1});
 
         }
         else if(c1_allzero){
             general_qg_generation(gates,tt0,var_idx_pure-1,controls_new0 , dependencies , orders);
-            //return;
         }
         else{//some 1 some 0
             general_qg_generation(gates,tt0,var_idx_pure-1,controls_new0 , dependencies , orders);
@@ -299,6 +292,7 @@ qsp_tt_deps_statistics& stats , std::vector<uint32_t> const& orders)
             gates[ orders[i] ][j].second.size()!=0) // number of controls is max or not?
             {
                 sig = 0;
+                break;
             }
         
             auto cs = gates[ orders[i] ][j].second.size();
@@ -329,13 +323,10 @@ qsp_tt_deps_statistics& stats , std::vector<uint32_t> const& orders)
             {
                 rys = pow(2,((tt.num_vars()-i-1)-n_reduc));
                 cnots = pow(2,((tt.num_vars()-i-1)-n_reduc)); 
-            }
-            
+            }        
         }  
         
         gates_num[orders[i]] = std::make_pair(rys,cnots);
-            //out_file<<"i:"<<i<<"  "<<rys<<"  "<<cnots<<"  ";
-
         total_rys += rys;
         total_cnots += cnots;  
     }
@@ -344,19 +335,20 @@ qsp_tt_deps_statistics& stats , std::vector<uint32_t> const& orders)
     stats.total_cnots += total_cnots;
     stats.total_rys += total_rys;
 
-    //stats.reduction += n_reduc;
-    
-    if(total_cnots < (pow(2,tt_vars-n_reduc)-2) && dependencies.size()>0) 
-    {       
-        ++stats.funcdep_bench_useful;
-    }
-   
-    else if(total_cnots >= (pow(2,tt_vars-n_reduc)-2) && dependencies.size()>0)
+    if(dependencies.size()>0)
     {
-        ++stats.funcdep_bench_notuseful;
+        if(total_cnots < (pow(2,tt_vars-n_reduc)-2) ) 
+        {       
+            ++stats.funcdep_bench_useful;
+        }
+        else
+        {
+            ++stats.funcdep_bench_notuseful;
+        }
     }
-    
+  
     //detail::extract_multiplex_gates(net,tt_vars,gates);  
+    return;
 }
 
 template<typename Network>
