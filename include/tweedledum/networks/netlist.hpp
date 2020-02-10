@@ -184,6 +184,16 @@ public:
 		return (storage_->nodes.size() + storage_->outputs.size());
 	}
 
+	uint32_t capacity() const
+	{
+		return storage_->nodes.capacity();
+	}
+
+	void reserve(uint32_t new_cap) const
+	{
+		storage_->nodes.reserve(new_cap);
+	}
+
 	uint32_t num_io() const
 	{
 		return (storage_->inputs.size());
