@@ -191,20 +191,14 @@ std::vector<partial_truth_table> on_set( kitty::dynamic_truth_table const& tt )
   // TODO: integer_dual_logarithm( get_next_power_of_two( tt.num_vars ) ), e.g., tt.num_vars() == 3u: integer_dual_logarithm( 4 ) == 2u
   std::vector<partial_truth_table> rows;
   kitty::dynamic_truth_table minterm( tt.num_vars() );
-
-  //std::cout << tt.num_vars() << std::endl;
-  do
+  for ( auto i = 0; i < ( 1 << tt.num_vars() ); ++i )
   {
-    if ( minterm._bits[0] > ( 1u << tt.num_vars() ) )
-      break;
-
-    if ( kitty::get_bit( tt, minterm._bits[0] ))
+    if ( kitty::get_bit( tt, i ) )
     {
       rows.emplace_back( partial_truth_table( minterm, tt.num_vars() ) );
     }
-
     kitty::next_inplace( minterm );
-  } while ( !kitty::is_const0( minterm ) );
+  }
   return rows;
 }
 

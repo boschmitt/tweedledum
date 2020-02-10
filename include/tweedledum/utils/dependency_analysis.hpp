@@ -2,6 +2,7 @@
 
 #include <kitty/kitty.hpp>
 #include <percy/percy.hpp>
+#include <fmt/format.h>
 
 namespace tweedledum
 {
@@ -18,6 +19,22 @@ struct functional_dependency_stats
   uint32_t total_cnots{0};
   uint32_t total_rys{0};
   double total_time{0};
+
+  void report( std::ostream& os = std::cout ) const
+  {
+    os << "[i] number of analyzed benchmarks = " << num_analysis_calls << std::endl;
+    os << fmt::format( "[i] total = no deps exist + no deps found + found deps ::: {} = {} + {} + {}\n",
+                       (has_no_dependencies+no_dependencies_computed+
+                       has_dependencies), has_no_dependencies, no_dependencies_computed,
+                       has_dependencies );
+    os << fmt::format( "[i] total deps = dep useful + dep not useful ::: {} = {} + {}\n",
+                       funcdep_bench_useful + funcdep_bench_notuseful, funcdep_bench_useful, funcdep_bench_notuseful);
+    os << fmt::format( "[i] total synthesis time (considering dependencies) = {:8.2f}s\n",
+                       total_time );
+
+    os << fmt::format( "[i] synthesis result: CNOTs / RYs = {} / {}\n",
+                       total_cnots, total_rys );
+  }
 };
 
 /*---chech that there isn't any dependency ----*/

@@ -89,3 +89,12 @@ TEST_CASE("Print binary", "[partial_truth_table]")
 
   CHECK( ss.str() == "0011:3" ); /* TODO: should be "011" */
 }
+
+TEST_CASE( "Compute on_set", "[partial_truth_table]" )
+{
+  kitty::dynamic_truth_table tt( 6 );
+  kitty::create_from_binary_string( tt, "0101010111010101010100001101000000000101010001010000000001000000" );
+
+  auto const minterms = on_set( tt );
+  CHECK( minterms.size() == kitty::count_ones( tt ) );
+}
