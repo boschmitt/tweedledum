@@ -23,13 +23,23 @@ GATE(rotation_y, rotation_y, 'y', "Ry", "Arbitrary rotation Y")
 GATE(rotation_z, rotation_z, 'z', "Rz", "Arbitrary rotation Z")
 
 /* Double-qubit unitary gates */
-GATE(cx,   cx,   'x', "CX",   "Control Not")
+GATE(crx,  crx,  'x', "CRX",  "Control arbitrary rotation X")
+GATE(cry,  cry,  'y', "CRY",  "Control arbitrary rotation Y")
+GATE(crz,  crz,  'z', "CRZ",  "Control arbitrary rotation Z")
+
+GATE(cx,   cx,   'x', "CX",   "Control Pauli-X (aka CNOT)")
+GATE(cy,   cy,   'y', "CY",   "Control Pauli-Y")
 GATE(cz,   cz,   'z', "CZ",   "Control Pauli-Z")
 GATE(swap, swap, '-', "SWAP", "Swap gate")
 
 /* Multiple-qubit unitary gates */
 GATE(mcx, mcx, 'x', "TOF", "Multiple Control Not (aka Toffoli)")
+GATE(mcy, mcy, 'y', "MCY", "Multiple Control Pauli-Y")
 GATE(mcz, mcz, 'z', "MCZ", "Multiple Control Pauli-Z")
+
+GATE(mcrx,  mcrx,  'x', "MCRX",  "Multpile control arbitrary rotation X")
+GATE(mcry,  mcry,  'y', "MCRY",  "Multpile control arbitrary rotation Y")
+GATE(mcrz,  mcrz,  'z', "MCRZ",  "Multpile control arbitrary rotation Z")
 
 /* Single-qubit, single-cbit gate */
 GATE(measurement, undefined, '-', "M", "Measurement")
