@@ -94,10 +94,12 @@ struct storage {
 	std::string name;
 	uint32_t num_qubits;
 	uint32_t gate_set;
+	uint32_t default_value;
 	std::vector<uint32_t> inputs;
 	std::vector<VertexType> nodes;
 	std::vector<VertexType> outputs;
 	std::vector<io_id> wiring_map;
+	std::vector<uint8_t> io_marks;
 };
 
 class labels_map {
@@ -106,6 +108,12 @@ public:
 	{
 		label_to_id_.emplace(label, id);
 		id_to_label_.emplace_back(label, id);
+	}
+
+	void remap(io_id id, std::string const& label)
+	{
+		label_to_id_.emplace(label, id);
+		id_to_label_.at(id) = std::make_pair(label, id);
 	}
 
 	io_id to_id(std::string const& label) const
