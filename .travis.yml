@@ -62,7 +62,7 @@ jobs:
       - export HOMEBREW_NO_INSTALL_CLEANUP=1
       - brew uninstall --ignore-dependencies gcc
       - brew update
-      - brew install --ignore-dependencies gcc
+      - brew install gcc
     env: COMPILER=/usr/local/opt/gcc/bin/g++-9
 
   - os: osx
