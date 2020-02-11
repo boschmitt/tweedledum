@@ -148,47 +148,53 @@ public:
 
 	bool is_adjoint(mcmt_gate const& other) const
 	{
-		if (this->adjoint() != other.operation()) {
+		if (this->is_op_adjoint(other) == false) {
 			return false;
 		}
-		if (controls_ != other.controls_ || polarity_ != other.polarity_
-		    || targets_ != other.targets_) {
-			return false;
-		}
-		if (this->is_one_of(gate_lib::rx, gate_lib::ry, gate_lib::rz)) {
-			if (this->rotation_angle() + other.rotation_angle() != 0.0) {
-				return false;
-			}
-		}
-		return true;
+		bool not_adj = false;
+		not_adj |= (controls_ != other.controls_);
+		not_adj |= (polarity_ != other.polarity_);
+		not_adj |= (targets_ != other.targets_);
+		return !not_adj;
 	}
 
 	bool is_dependent(mcmt_gate const& other) const
 	{
+		if (this->is_meta() || other.is_meta()) {
+			return true;
+		}
+		// The easiest case is when the gates are equal, then they are _not_ dependent.
 		if (*this == other) {
 			return false;
 		}
+		// Checking dependency for Z-axis rotation is 'weird'.  Basically these rotations
+		// do not interfere with controls of other gates, hence if `this` is a Z-axis
+		// rotation, I just need to guarantee that `this.controls` and `this.targets` do
+		// _not_ intersect with the `other.targets` do when other is _not_ a Z-axis
+		// rotation.  Otherwise, the gates are independent, i.e. both are Z-axis rotation.
+		//
+		// If `other` is a Z-axis rotation then the gates are _not_ dependent.
 		if (this->is_z_rotation()) {
 			if (other.is_z_rotation()) {
 				return false;
 			}
-			if (other.is_x_rotation()) {
-				// Check if the target of the 'other' gate affects the controls of 'this' gate
-				return ((controls_ & other.targets_) != 0);
-			}
+			return (((controls_ | targets_) & other.targets_) != 0);
 		}
-		if (this->is_x_rotation()) {
-			if ((targets_ & other.controls_) != 0) {
-				return true;
-			}
-			if (other.is_z_rotation()) {
-				return ((targets_ & other.targets_) != 0);
-			}
-			if (other.is_x_rotation()) {
-				return ((controls_ & other.targets_) != 0);
-			}
+		// If the other gate is a Z-axis rotation then the gate will be dependet as long
+		// as the intersection between the targets is _not_ empty, i.e. 0.
+		if (other.is_z_rotation()) {
+			return ((targets_ & other.targets_) != 0);
 		}
-		return true;
+		// Both gates are _not_ Z-axis rotation, then they will be dependet as long as the
+		// intersection between `this.targets` and `other.controls_` is _not_ empty, and 
+		// vice versa.
+		if ((targets_ & other.controls_) != 0) {
+			return true;
+		} else if ((controls_ & other.targets_) != 0) {
+			return true;
+		}
+		// Finaly, they will be dependent as long as their rotation axis are diferent.
+		return this->rotation_axis() != other.rotation_axis();
 	}
 #pragma endregion
 
@@ -225,19 +231,12 @@ public:
 		if (operation() != other.operation()) {
 			return false;
 		}
-		if (is_qubit_ != other.is_qubit_) {
-			return false;
-		}
-		if (polarity_ != other.polarity_) {
-			return false;
-		}
-		if (controls_ != other.controls_) {
-			return false;
-		}
-		if (targets_ != other.targets_) {
-			return false;
-		}
-		return true;
+		bool equal = true;
+		equal &= (is_qubit_ == other.is_qubit_);
+		equal &= (polarity_ == other.polarity_);
+		equal &= (controls_ == other.controls_);
+		equal &= (targets_ == other.targets_);
+		return equal;
 	}
 #pragma endregion
 

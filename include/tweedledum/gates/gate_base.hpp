@@ -39,11 +39,30 @@ public:
 	    , phi_(angles::zero)
 	    , lambda_(rotation_angle)
 	{
-		assert(is_one_of(gate_lib::rx, gate_lib::rz));
-		if (operation == gate_lib::rx) {
+		switch (operation_) {
+		case gate_lib::rz:
+		case gate_lib::crz:
+		case gate_lib::mcrz:
+			break;
+
+		case gate_lib::ry:
+		case gate_lib::cry:
+		case gate_lib::mcry:
+			theta_ = rotation_angle;
+			lambda_ = angles::zero;
+			break;
+
+		case gate_lib::rx:
+		case gate_lib::crx:
+		case gate_lib::mcrx:
 			theta_ = rotation_angle;
 			phi_ = -angles::pi_half;
 			lambda_ = angles::pi_half;
+			break;
+
+		default:
+			assert(0 && "This constructor is for arbitrary rotation gates");
+			break;
 		}
 	}
 #pragma endregion
@@ -53,6 +72,31 @@ public:
 	constexpr gate_lib adjoint() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].adjoint;
+	}
+
+	/*! \brief Returns whether `this` operation is ajoint to `other`. */
+	bool is_op_adjoint(gate_base const& other) const
+	{
+		if (adjoint() != other.operation_) {
+			return false;
+		}
+		switch (operation_) {
+		case gate_lib::rz:
+		case gate_lib::crz:
+		case gate_lib::mcrz:
+		case gate_lib::ry:
+		case gate_lib::cry:
+		case gate_lib::mcry:
+		case gate_lib::rx:
+		case gate_lib::crx:
+		case gate_lib::mcrx:
+			if (rotation_angle() + other.rotation_angle() != angles::zero) {
+				return false;
+			}
+		default:
+			break;
+		}
+		return true;
 	}
 
 	/*! \brief Returns true if this gate is the operation ``operation``. */
@@ -95,7 +139,7 @@ public:
 	/*! \brief Returns true if this gate acts on two I/Os. */
 	constexpr bool is_two_io() const
 	{
-		return is_one_of(gate_lib::cx, gate_lib::cz, gate_lib::swap, gate_lib::measurement);
+		return (operation_ >= gate_lib::crx && operation_ <= gate_lib::measurement);
 	}
 
 	/*! \brief Returns true if this gate acts on a single qubit. */
@@ -108,7 +152,7 @@ public:
 	/*! \brief Returns true if this gate acts on two _qubits_. */
 	constexpr bool is_double_qubit() const
 	{
-		return is_one_of(gate_lib::cx, gate_lib::cz, gate_lib::swap);
+		return (operation_ >= gate_lib::crx && operation_ <= gate_lib::swap);
 	}
 
 	/*! \brief Returns true if this gate is a rotation around x axis. */
@@ -139,6 +183,11 @@ public:
 	std::string symbol() const
 	{
 		return detail::gates_info[static_cast<uint8_t>(operation_)].symbol;
+	}
+
+	constexpr char rotation_axis() const
+	{
+		return detail::gates_info[static_cast<uint8_t>(operation_)].rotation_axis;
 	}
 #pragma endregion
 
@@ -184,11 +233,13 @@ constexpr gate_base t_dagger(gate_lib::rz, angles::zero, angles::zero, -angles::
 
 /* Double-qubit unitary gates */
 constexpr gate_base cx(gate_lib::cx, angles::pi, angles::zero, angles::pi);
+constexpr gate_base cy(gate_lib::mcz, angles::pi, angles::pi_half, angles::pi_half);
 constexpr gate_base cz(gate_lib::cz, angles::zero, angles::zero, angles::pi);
 constexpr gate_base swap(gate_lib::swap);
 
 /* Multiple-qubit unitary gates */
 constexpr gate_base mcx(gate_lib::mcx, angles::pi, angles::zero, angles::pi);
+constexpr gate_base mcy(gate_lib::mcz, angles::pi, angles::pi_half, angles::pi_half);
 constexpr gate_base mcz(gate_lib::mcz, angles::zero, angles::zero, angles::pi);
 
 /* Single-qubit, single-cbit gate */

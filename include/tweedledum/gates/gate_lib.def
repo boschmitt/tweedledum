@@ -6,41 +6,48 @@
 #define GATE(X, Y, Z, V, W)
 #endif
 
-/* Meta gates */
+// When defining gates I consider the rotation axis for u3, hadamard and swap to be 'u', 'h' and
+// 's', respectively.  This is a hack to simplify the function which check for dependency
+// between gates.
+
+// Meta gates
 GATE(undefined, undefined, '-', "-", "Undefined")
 GATE(unknown,   undefined, '-', "-", "Unknown")
+// One I/O unitary gates
 GATE(input,     undefined, '-', "-", "Input")
 GATE(output,    undefined, '-', "-", "Output")
-
-/* Single-qubit unitary gates */
+// END: meta gates
+// -- Single-qubit unitary gates
 GATE(identity, identity, '-', "I", "Identity")
-GATE(u3,       u3,       '-', "U3", "Parameterizable single-qubit gate")
-GATE(hadamard, hadamard, '-', "H", "Hadamard")
-
-/* Arbitrary rotations */
+GATE(u3,       u3,       'u', "U3", "Parameterizable single-qubit gate")
+GATE(hadamard, hadamard, 'h', "H", "Hadamard")
 GATE(rx, rx, 'x', "Rx", "Arbitrary rotation X")
+
 GATE(ry, ry, 'y', "Ry", "Arbitrary rotation Y")
 GATE(rz, rz, 'z', "Rz", "Arbitrary rotation Z")
+// -- END: single-qubit unitary gates
+// END: one I/O unitary gates
 
-/* Double-qubit unitary gates */
+// Two I/O unitary gates
+// -- Double-qubit unitary gates
 GATE(crx,  crx,  'x', "CRX",  "Control arbitrary rotation X")
 GATE(cry,  cry,  'y', "CRY",  "Control arbitrary rotation Y")
 GATE(crz,  crz,  'z', "CRZ",  "Control arbitrary rotation Z")
-
 GATE(cx,   cx,   'x', "CX",   "Control Pauli-X (aka CNOT)")
 GATE(cy,   cy,   'y', "CY",   "Control Pauli-Y")
 GATE(cz,   cz,   'z', "CZ",   "Control Pauli-Z")
-GATE(swap, swap, '-', "SWAP", "Swap gate")
+GATE(swap, swap, 's', "SWAP", "Swap gate")
+// -- END: double-qubit unitary gates
+GATE(measurement, undefined, '-', "M", "Measurement")
+// END: two I/O unitary gates
 
-/* Multiple-qubit unitary gates */
+// Multiple-qubit unitary gates
 GATE(mcx, mcx, 'x', "TOF", "Multiple Control Not (aka Toffoli)")
 GATE(mcy, mcy, 'y', "MCY", "Multiple Control Pauli-Y")
 GATE(mcz, mcz, 'z', "MCZ", "Multiple Control Pauli-Z")
 
-GATE(mcrx,  mcrx,  'x', "MCRX",  "Multpile control arbitrary rotation X")
-GATE(mcry,  mcry,  'y', "MCRY",  "Multpile control arbitrary rotation Y")
-GATE(mcrz,  mcrz,  'z', "MCRZ",  "Multpile control arbitrary rotation Z")
+GATE(mcrx,  mcrx, 'x', "MCRX", "Multpile control arbitrary rotation X")
+GATE(mcry,  mcry, 'y', "MCRY", "Multpile control arbitrary rotation Y")
+GATE(mcrz,  mcrz, 'z', "MCRZ", "Multpile control arbitrary rotation Z")
 
-/* Single-qubit, single-cbit gate */
-GATE(measurement, undefined, '-', "M", "Measurement")
 #undef GATE
