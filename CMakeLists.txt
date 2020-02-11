@@ -37,7 +37,7 @@ add_subdirectory(lib)
 # =============================================================================
 add_library(tweedledum INTERFACE)
 target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum INTERFACE bill easy fmt glucose kitty
+target_link_libraries(tweedledum INTERFACE bill easy fmt glucose kitty mockturtle
                                            nlohmann_json rang tweedledee)
 if(TWEEDLEDUM_BLAS)
   target_link_libraries(tweedledum INTERFACE xtensor-blas)

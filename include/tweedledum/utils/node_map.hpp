@@ -52,12 +52,24 @@ public:
 	/*! \brief Mutable access to value by node. */
 	reference operator[](node_type const& node)
 	{
-		assert(network_.index(node) < data_->size() && "index out of bounds");
 		return (*data_)[network_.index(node)];
 	}
 
 	/*! \brief Constant access to value by node. */
 	const_reference operator[](node_type const& node) const
+	{
+		return (*data_)[network_.index(node)];
+	}
+
+	/*! \brief Mutable access to value by node. */
+	reference at(node_type const& node)
+	{
+		assert(network_.index(node) < data_->size() && "index out of bounds");
+		return (*data_)[network_.index(node)];
+	}
+
+	/*! \brief Constant access to value by node. */
+	const_reference at(node_type const& node) const
 	{
 		assert(network_.index(node) < data_->size() && "index out of bounds");
 		return (*data_)[network_.index(node)];

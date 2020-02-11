@@ -58,24 +58,67 @@ private:
 	}
 
 public:
-	io_id add_qubit(std::string const& label)
+	io_id add_qubit(std::string const& label, bool is_ancilla = false)
 	{
-		io_id id = create_io(true);
-		labels_->map(id, label);
+		io_id qid = create_io(true);
+		labels_->map(qid, label);
 		storage_->num_qubits += 1;
-		return id;
+		storage_->io_marks.push_back(is_ancilla ? 1 : 0);
+		return qid;
 	}
 
-	io_id add_qubit()
+	io_id add_qubit(char const* c_label, bool is_ancilla = false)
+	{
+		std::string label(c_label);
+		return add_qubit(label, is_ancilla);
+	}
+
+	io_id add_qubit(bool is_ancilla = false)
 	{
 		std::string label = fmt::format("q{}", num_qubits());
-		return add_qubit(label);
+		return add_qubit(label, is_ancilla);
+	}
+
+	void mark_as_ancilla(io_id id)
+	{
+		storage_->io_marks.at(id) |= 1;
+	}
+
+	void unmark_as_ancilla(io_id id)
+	{
+		storage_->io_marks.at(id) &= 0xFE;
+	}
+
+	void mark_as_input(io_id id)
+	{
+		storage_->io_marks.at(id) |= (1 << 1);
+	}
+
+	void mark_as_output(io_id id)
+	{
+		storage_->io_marks.at(id) |= (1 << 2);
+	}
+
+	bool is_ancilla(io_id id) const
+	{
+		return storage_->io_marks.at(id) & 1;
+	}
+
+	bool is_input(io_id id) const
+	{
+		return storage_->io_marks.at(id) & (1 << 1);
+	}
+
+	bool is_output(io_id id) const
+	{
+		return storage_->io_marks.at(id) & (1 << 2);
 	}
 
 	io_id add_cbit(std::string const& label)
 	{
 		io_id id = create_io(false);
 		labels_->map(id, label);
+		storage_->io_marks.push_back(0u);
 		return id;
 	}
 
@@ -88,6 +131,16 @@ public:
 	std::string io_label(io_id id) const
 	{
 		return labels_->to_label(id);
+	}
+
+	io_id id(std::string const& label) const
+	{
+		return labels_->to_id(label);
+	}
+
+	void io_set_label(io_id id, std::string const& label)
+	{
+		labels_->remap(id, label);
 	}
 #pragma endregion
 
@@ -129,6 +182,16 @@ public:
 	uint32_t size() const
 	{
 		return (storage_->nodes.size() + storage_->outputs.size());
+	}
+
+	uint32_t capacity() const
+	{
+		return storage_->nodes.capacity();
+	}
+
+	void reserve(uint32_t new_cap) const
+	{
+		storage_->nodes.reserve(new_cap);
 	}
 
 	uint32_t num_io() const
@@ -179,6 +242,7 @@ public:
 	{
 		node_type& node = storage_->nodes.emplace_back(std::forward<Args>(args)...);
 		storage_->gate_set |= (1 << static_cast<uint32_t>(node.gate.operation()));
+		node.data[0] = storage_->default_value;
 		return node;
 	}
 
@@ -388,6 +452,14 @@ public:
 	}
 
 	template<typename Fn>
+	void foreach_rgate(Fn&& fn, uint32_t start = 0) const
+	{
+		foreach_element_if(storage_->nodes.crbegin() + start, storage_->nodes.crend(),
+		                  [](auto const& node) { return node.gate.is_gate(); },
+		                  fn);
+	}
+
+	template<typename Fn>
 	void foreach_vertex(Fn&& fn) const
 	{
 		foreach_element(storage_->nodes.cbegin(), storage_->nodes.cend(), fn);
@@ -416,6 +488,11 @@ public:
 #pragma endregion
 
 #pragma region Custom node values
+	void set_default_value(uint32_t value) const
+	{
+		storage_->default_value = value;
+	}
+
 	void clear_values() const
 	{
 		std::for_each(storage_->nodes.begin(), storage_->nodes.end(),
