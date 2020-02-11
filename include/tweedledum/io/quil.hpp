@@ -54,7 +54,7 @@ void write_quil(Network const& network, std::ostream& os)
 			gate.foreach_target([&](auto target) { os << fmt::format("H {}\n", target); });
 			break;
 
-		case gate_lib::rotation_x: {
+		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
 			if (rotation_angle == angles::pi) {
 				gate.foreach_target([&](auto target) { 
@@ -74,7 +74,7 @@ void write_quil(Network const& network, std::ostream& os)
 			}
 		} break;
 
-		case gate_lib::rotation_z: {
+		case gate_lib::rz: {
 			angle rotation_angle = gate.rotation_angle();
 			std::string symbol;
 			if (rotation_angle == angles::pi_quarter) {

@@ -98,7 +98,7 @@ public:
 			}
 			break;
 
-		case gate_lib::rotation_z:
+		case gate_lib::rz:
 			if (controls.size() == 1) {
 				gate = gate::cz;
 			} else if (controls.size() >= 2) {
@@ -158,7 +158,7 @@ void write_dotqc(Network const& network, std::ostream& os)
 	network.foreach_gate([&](auto const& node) {
 		auto const& gate = node.gate;
 		switch (gate.operation()) {
-		case gate_lib::rotation_x: {
+		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
 			if (rotation_angle == angles::pi) {
 				os << "X"; 
@@ -168,7 +168,7 @@ void write_dotqc(Network const& network, std::ostream& os)
 			}
 		} break;
 
-		case gate_lib::rotation_z: {
+		case gate_lib::rz: {
 			angle rotation_angle = gate.rotation_angle();
 			std::string symbol;
 			if (rotation_angle == angles::pi_quarter) {

@@ -155,7 +155,7 @@ public:
 		    || targets_ != other.targets_) {
 			return false;
 		}
-		if (this->is_one_of(gate_lib::rotation_x, gate_lib::rotation_y, gate_lib::rotation_z)) {
+		if (this->is_one_of(gate_lib::rx, gate_lib::ry, gate_lib::rz)) {
 			if (this->rotation_angle() + other.rotation_angle() != 0.0) {
 				return false;
 			}

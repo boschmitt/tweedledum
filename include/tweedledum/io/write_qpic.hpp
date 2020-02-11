@@ -60,7 +60,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			os << 'H';
 			break;
 
-		case gate_lib::rotation_x: {
+		case gate_lib::rx: {
 			angle rotation_angle = node.gate.rotation_angle();
 			if (rotation_angle == angles::pi) {
 				os << 'N';
@@ -69,7 +69,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 			}
 		} break;
 
-		case gate_lib::rotation_z: {
+		case gate_lib::rz: {
 			angle rotation_angle = node.gate.rotation_angle();
 			if (rotation_angle == angles::pi_quarter) {
 				os << "G $T$";

@@ -150,17 +150,17 @@ private:
 	void compute_statistics()
 	{
 		this->foreach_gate([&](auto const& node) {
-			if (node.gate.is(gate_lib::rotation_z)) {
+			if (node.gate.is(gate_lib::rz)) {
 				identify_rz(node.gate);
 				return;
 			}
-			if (node.gate.is(gate_lib::rotation_x)) {
+			if (node.gate.is(gate_lib::rx)) {
 				if (node.gate.rotation_angle() == angles::pi) {
 					num_pauli_x_ += 1;
 					return;
 				}
 			}
-			if (node.gate.is(gate_lib::rotation_y)) {
+			if (node.gate.is(gate_lib::ry)) {
 				if (node.gate.rotation_angle() == angles::pi) {
 					num_pauli_y_ += 1;
 					return;

@@ -46,7 +46,7 @@ Network phase_folding(Network const& network)
 		if (angle == angles::zero) {
 			return;
 		}
-		result.add_gate(gate_base(gate_lib::rotation_z, angle), node.gate.target());
+		result.add_gate(gate_base(gate_lib::rz, angle), node.gate.target());
 	});
 	result.rewire(network.wiring_map());
 	return result;

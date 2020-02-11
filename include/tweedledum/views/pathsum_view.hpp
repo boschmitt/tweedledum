@@ -45,8 +45,8 @@ public:
 	{
 		// This seems a bit ridiculous
 		// TODO: come up with a better way to check for allowed gates
-		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rotation_x,
-		                              gate_lib::rotation_z, gate_lib::hadamard));
+		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rx,
+		                              gate_lib::rz, gate_lib::hadamard));
 		std::iota(phy_virtual_map_.begin(), phy_virtual_map_.end(), 0);
 		network.foreach_qubit([&](io_id id) {
 			virtual_id_map_.emplace_back(id);
@@ -70,8 +70,8 @@ public:
 	    , phy_virtual_map_(network.num_qubits(), 0)
 	    , ignore_single_qubit_(ignore_single_qubit)
 	{
-		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rotation_x,
-		                              gate_lib::rotation_z, gate_lib::hadamard));
+		assert(network.check_gate_set(gate_lib::cx, gate_lib::swap, gate_lib::rx,
+		                              gate_lib::rz, gate_lib::hadamard));
 		for (uint32_t i = 0; i < virtual_phy_map.size(); ++i) {
 			phy_virtual_map_[virtual_phy_map[i]] = i;
 		}
@@ -123,7 +123,7 @@ private:
 				assert(map_element != pathsum_to_node_.end());
 				node_to_pathsum_[node] = map_element;
 				map_element->second.push_back(node_index);
-			} else if (gate.is(gate_lib::rotation_x) && !ignore_single_qubit_) {
+			} else if (gate.is(gate_lib::rx) && !ignore_single_qubit_) {
 				if (gate.rotation_angle() != angles::pi) {
 					auto qid = gate.target();
 					qubit_state_[qid].clear();

@@ -39,8 +39,8 @@ public:
 	    , phi_(angles::zero)
 	    , lambda_(rotation_angle)
 	{
-		assert(is_one_of(gate_lib::rotation_x, gate_lib::rotation_z));
-		if (operation == gate_lib::rotation_x) {
+		assert(is_one_of(gate_lib::rx, gate_lib::rz));
+		if (operation == gate_lib::rx) {
 			theta_ = rotation_angle;
 			phi_ = -angles::pi_half;
 			lambda_ = angles::pi_half;
@@ -89,7 +89,7 @@ public:
 	/*! \brief Returns true if this gate acts on one I/Os. */
 	constexpr bool is_one_io() const
 	{
-		return (operation_ >= gate_lib::input && operation_ <= gate_lib::rotation_z);
+		return (operation_ >= gate_lib::input && operation_ <= gate_lib::rz);
 	}
 
 	/*! \brief Returns true if this gate acts on two I/Os. */
@@ -102,7 +102,7 @@ public:
 	// TODO: Is MEASUREMENT single-qubit? It acts on two I/Os, but only one qubit.
 	constexpr bool is_single_qubit() const
 	{
-		return (operation_ >= gate_lib::identity && operation_ <= gate_lib::rotation_z);
+		return (operation_ >= gate_lib::identity && operation_ <= gate_lib::rz);
 	}
 
 	/*! \brief Returns true if this gate acts on two _qubits_. */
@@ -174,13 +174,13 @@ namespace gate {
 /* Single-qubit gates */
 constexpr gate_base identity(gate_lib::identity, angles::zero, angles::zero, angles::zero);
 constexpr gate_base hadamard(gate_lib::hadamard, angles::pi_half, angles::zero, angles::pi);
-constexpr gate_base pauli_x(gate_lib::rotation_x, angles::pi, angles::zero, angles::pi);
-constexpr gate_base pauli_y(gate_lib::rotation_y, angles::pi, angles::pi_half, angles::pi_half);
-constexpr gate_base t(gate_lib::rotation_z, angles::zero, angles::zero, angles::pi_quarter);
-constexpr gate_base phase(gate_lib::rotation_z, angles::zero, angles::zero, angles::pi_half);
-constexpr gate_base pauli_z(gate_lib::rotation_z, angles::zero, angles::zero, angles::pi);
-constexpr gate_base phase_dagger(gate_lib::rotation_z, angles::zero, angles::zero, -angles::pi_half);
-constexpr gate_base t_dagger(gate_lib::rotation_z, angles::zero, angles::zero, -angles::pi_quarter);
+constexpr gate_base pauli_x(gate_lib::rx, angles::pi, angles::zero, angles::pi);
+constexpr gate_base pauli_y(gate_lib::ry, angles::pi, angles::pi_half, angles::pi_half);
+constexpr gate_base t(gate_lib::rz, angles::zero, angles::zero, angles::pi_quarter);
+constexpr gate_base phase(gate_lib::rz, angles::zero, angles::zero, angles::pi_half);
+constexpr gate_base pauli_z(gate_lib::rz, angles::zero, angles::zero, angles::pi);
+constexpr gate_base phase_dagger(gate_lib::rz, angles::zero, angles::zero, -angles::pi_half);
+constexpr gate_base t_dagger(gate_lib::rz, angles::zero, angles::zero, -angles::pi_quarter);
 
 /* Double-qubit unitary gates */
 constexpr gate_base cx(gate_lib::cx, angles::pi, angles::zero, angles::pi);

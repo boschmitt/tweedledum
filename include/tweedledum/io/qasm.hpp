@@ -65,7 +65,7 @@ public:
 			assert(parameters != nullptr);
 			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
 			double angle = evaluate(parameter);
-			network_.add_gate(gate_base(gate_lib::rotation_z, angle), arguments_list[0]); 
+			network_.add_gate(gate_base(gate_lib::rz, angle), arguments_list[0]); 
 		} else if (gate_id == "t") {
 			network_.add_gate(gate::t, arguments_list[0]);
 		} else if (gate_id == "s") {
@@ -182,7 +182,7 @@ void write_qasm(Network const& network, std::ostream& os)
 			gate.foreach_target([&](auto target) { os << fmt::format("h q[{}];\n", target); });
 			break;
 
-		case gate_lib::rotation_x: {
+		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
 			if (rotation_angle == angles::pi) {
 				gate.foreach_target([&](auto target) { 
@@ -195,13 +195,13 @@ void write_qasm(Network const& network, std::ostream& os)
 			}
 		} break;
 
-		case gate_lib::rotation_y:
+		case gate_lib::ry:
 			gate.foreach_target([&](auto target) {
 				os << fmt::format("ry({}) q[{}];\n", gate.rotation_angle(), target);
 			});
 			break;
 
-		case gate_lib::rotation_z: {
+		case gate_lib::rz: {
 			angle rotation_angle = gate.rotation_angle();
 			std::string symbol;
 			if (rotation_angle == angles::pi_quarter) {
