@@ -32,7 +32,7 @@ uint64_t simulate_classically(Network const& network, uint64_t pattern)
 			pattern = 0ull;
 			return false;
 
-		case gate_lib::rotation_x: {
+		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
 			if (rotation_angle == angles::pi) {
 				gate.foreach_target([&](io_id id) {

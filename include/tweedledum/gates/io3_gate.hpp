@@ -80,14 +80,16 @@ public:
 			break;
 
 		case 1u:
-			assert(targets.size() == 1 && "This gate operation cannot have morew than one target");
-			assert(is_one_of(gate_lib::cx, gate_lib::cz));
+			assert(targets.size() == 1 && "This gate operation cannot have more than one target");
+			assert(is_one_of(gate_lib::cx, gate_lib::cy, gate_lib::cz,
+			                 gate_lib::crx, gate_lib::cry, gate_lib::crz));
 			init_two_io(controls[0], targets[0]);
 			break;
 
 		case 2u:
-			assert(targets.size() == 1 && "This gate operation cannot have morew than one target");
-			assert(is_one_of(gate_lib::mcx, gate_lib::mcz));
+			assert(targets.size() == 1 && "This gate operation cannot have more than one target");
+			assert(is_one_of(gate_lib::mcx, gate_lib::mcy, gate_lib::mcz,
+			                 gate_lib::mcrx, gate_lib::mcry, gate_lib::mcrz));
 			num_controls_ = 2;
 			num_targets_ = 1;
 			target1_ = invalid_value;
@@ -178,7 +180,7 @@ public:
 	// TODO: double check
 	bool is_adjoint(io3_gate const& other) const
 	{
-		if (this->adjoint() != other.operation()) {
+		if (this->is_op_adjoint(other) == false) {
 			return false;
 		}
 		if (data_ != other.data_) {
@@ -189,59 +191,63 @@ public:
 				return false;
 			}
 		}
-		if (this->is_one_of(gate_lib::rotation_x, gate_lib::rotation_y, gate_lib::rotation_z)) {
-			if (this->rotation_angle() + other.rotation_angle() != angles::zero) {
-				return false;
-			}
-		}
 		return true;
 	}
 
 	bool is_dependent(io3_gate const& other) const
 	{
+		if (this->is_meta() || other.is_meta()) {
+			return true;
+		}
+		// The easiest case is when the gates are equal, then they are _not_ dependent.
 		if (*this == other) {
 			return false;
 		}
+		// Checking dependency for Z-axis rotation is 'weird'.  Basically these rotations
+		// do not interfere with controls of other gates, hence if `this` is a Z-axis
+		// rotation, I just need to guarantee that `this.controls` and `this.targets` do
+		// _not_ intersect with the `other.targets` do when other is _not_ a Z-axis
+		// rotation.  Otherwise, the gates are independent, i.e. both are Z-axis rotation.
+		//
+		// If `other` is a Z-axis rotation then the gates are _not_ dependent.
 		if (this->is_z_rotation()) {
 			if (other.is_z_rotation()) {
 				return false;
 			}
-			if (other.is_x_rotation()) {
-				// Check if the target of the 'other' gate affects the controls
-				// of 'this' gate
-				for (auto i = 0u; i < max_num_io; ++i) {
-					if (i != target0_
-					    && ids_[i] == other.ids_[other.target0_]) {
-						return true;
-					}
-				}
-				return ids_[target0_] == other.ids_[other.target0_];
-			}
+			bool dependent = false;
+			foreach_control([&](io_id this_control) {
+				other.foreach_target([&](io_id other_target) {
+					dependent |= (this_control.index() == other_target);
+					dependent |= (target() == other_target);
+				});
+			});
+			return dependent;
 		}
-		if (this->is_x_rotation()) {
-			// Check if the target of the 'this' gate affects the controls
-			// of 'other' gate
-			for (auto i = 0u; i < max_num_io; ++i) {
-				if (i != other.target0_ && other.ids_[i].index() == ids_[target0_].index()) {
-					return true;
-				}
-			}
-			if (other.is_z_rotation()) {
-				return ids_[target0_].index() == other.ids_[other.target0_].index();
-			}
-			if (other.is_x_rotation()) {
-				// Check if the target of the 'other' gate affects the controls
-				// of 'this' gate
-				for (auto i = 0u; i < max_num_io; ++i) {
-					if (i != target0_
-					    && ids_[i].index() == other.ids_[other.target0_].index()) {
-						return true;
-					}
-				}
-				return false;
-			}
+		// If the other gate is a Z-axis rotation then the gate will be dependet as long
+		// as the intersection between the targets is _not_ empty, i.e. 0.
+		if (other.is_z_rotation()) {
+			bool dependent = false;
+			foreach_target([&](io_id this_target) {
+				dependent |= (this_target == other.target());
+			});
+			return dependent;
 		}
-		return true;
+		// Both gates are _not_ Z-axis rotation, hence they will be dependent as long as their
+		// rotation axis are different.
+		if (this->rotation_axis() != other.rotation_axis()) {
+			return true;
+		}
+		// Finaly, if they are on the same rotation axis, then they will be dependet as long as the
+		// intersection between `this.controls` and `other.target` is _not_ empty, and 
+		// vice versa.
+		bool dependent = false;
+		foreach_control([&](io_id this_control) {
+			dependent |= (this_control.index() == other.target());
+		});
+		other.foreach_control([&](io_id other_control) {
+			dependent |= (target() == other_control.index());
+		});
+		return dependent;
 	}
 #pragma endregion
 

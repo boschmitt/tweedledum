@@ -153,7 +153,7 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 			gate.foreach_target([&](auto qid) { builder.add_gate("H", qid); });
 			break;
 
-		case gate_lib::rotation_x: {
+		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
 			if (rotation_angle == angles::pi_quarter) {
 				symbol = "X^%C2%BC";
@@ -174,7 +174,7 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 			});
 		} break;
 
-		case gate_lib::rotation_z: {
+		case gate_lib::rz: {
 			angle rotation_angle = gate.rotation_angle();
 			std::string symbol;
 			if (rotation_angle == angles::pi_quarter) {

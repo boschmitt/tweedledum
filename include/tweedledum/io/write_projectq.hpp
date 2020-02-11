@@ -63,7 +63,7 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 			os << fmt::format("H | {}\n", targets);
 			break;
 
-		case gate_lib::rotation_x: {
+		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
 			if (rotation_angle == angles::pi) {
 				os << fmt::format("X | {}\n", targets);
@@ -73,7 +73,7 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 			}
 		} break;
 
-		case gate_lib::rotation_y: {
+		case gate_lib::ry: {
 			angle rotation_angle = gate.rotation_angle();
 			if (rotation_angle == angles::pi) {
 				os << fmt::format("Y | {}\n", targets);
@@ -83,7 +83,7 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 			}
 		} break;
 
-		case gate_lib::rotation_z: {
+		case gate_lib::rz: {
 			angle rotation_angle = node.gate.rotation_angle();
 			if (rotation_angle == angles::pi_quarter) {
 				os << fmt::format("T | {}\n", targets);

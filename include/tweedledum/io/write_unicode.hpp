@@ -294,15 +294,15 @@ auto to_unicode_str(Network const& network, Builder builder)
 			gate.foreach_target([&](auto qid) { builder.add_gate("H", qid); });
 			break;
 
-		case gate_lib::rotation_x:
+		case gate_lib::rx:
 			gate.foreach_target([&](auto qid) { builder.add_gate("x", qid); });
 			break;
 
-		case gate_lib::rotation_y:
+		case gate_lib::ry:
 			gate.foreach_target([&](auto qid) { builder.add_gate("y", qid); });
 			break;
 
-		case gate_lib::rotation_z:
+		case gate_lib::rz:
 			gate.foreach_target([&](auto qid) { builder.add_gate("z", qid); });
 			break;
 
