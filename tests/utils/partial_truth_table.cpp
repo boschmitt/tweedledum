@@ -92,9 +92,19 @@ TEST_CASE("Print binary", "[partial_truth_table]")
 
 TEST_CASE( "Compute on_set", "[partial_truth_table]" )
 {
-  kitty::dynamic_truth_table tt( 6 );
-  kitty::create_from_binary_string( tt, "0101010111010101010100001101000000000101010001010000000001000000" );
+  /* 6 variables */
+  kitty::dynamic_truth_table tt6( 6 );
+  kitty::create_from_binary_string( tt6, "0101010111010101010100001101000000000101010001010000000001000000" );
 
-  auto const minterms = on_set( tt );
-  CHECK( minterms.size() == kitty::count_ones( tt ) );
+  CHECK( on_set( tt6 ).size() == kitty::count_ones( tt6 ) );
+
+  /* 8 variables */
+  kitty::dynamic_truth_table tt8( 8 );
+  kitty::create_from_binary_string( tt8, "0101010100001010101000001101000000000101010001010000000001000000"
+                                         "0101000000101010101010001101000000000101010001010000000001001110"
+                                         "0101010111010000010100001101000100000101010001010001110010000100"
+                                         "0101010111010101010100001101000000000101010001010000010001000010" );
+
+  CHECK( on_set( tt8 ).size() == kitty::count_ones( tt8 ) );
+
 }
