@@ -47,7 +47,7 @@
 #include "../utils/progress_bar.hpp"
 #include "../utils/stopwatch.hpp"
 #include "../views/cut_view.hpp"
-#include "../views/fanout_view2.hpp"
+#include "../views/fanout_view.hpp"
 #include "cut_enumeration.hpp"
 #include "detail/mffc_utils.hpp"
 #include "dont_cares.hpp"
@@ -323,7 +323,7 @@ std::tuple<graph, std::vector<std::pair<node<Ntk>, uint32_t>>> network_cuts_grap
       {
         leaves.push_back( ntk.index_to_node( leaf_index ) );
       }
-      cut_view<Ntk> dcut( ntk, leaves, n );
+      cut_view<Ntk> dcut( ntk, leaves, ntk.make_signal( n ) );
       dcut.foreach_gate( [&]( auto const& n2 ) {
         //if ( dcut.is_constant( n2 ) || dcut.is_pi( n2 ) )
         //  return;
@@ -690,10 +690,10 @@ void cut_rewriting( Ntk& ntk, RewritingFn&& rewriting_fn, cut_rewriting_params c
   }
   else
   {
-    fanout_view2_params fvps;
+    fanout_view_params fvps;
     fvps.update_on_delete = false;
-    fanout_view2<Ntk> ntk_fo{ntk, fvps};
-    detail::cut_rewriting_impl<fanout_view2<Ntk>, RewritingFn, NodeCostFn> p( ntk_fo, rewriting_fn, ps, st, cost_fn );
+    fanout_view<Ntk> ntk_fo{ntk, fvps};
+    detail::cut_rewriting_impl<fanout_view<Ntk>, RewritingFn, NodeCostFn> p( ntk_fo, rewriting_fn, ps, st, cost_fn );
     p.run();
   }
 
