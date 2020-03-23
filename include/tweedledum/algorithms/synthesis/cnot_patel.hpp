@@ -4,9 +4,8 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_lib.hpp"
-#include "../../gates/gate_base.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../gates/gate.hpp"
+#include "../../networks/wire_id.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
 
@@ -26,7 +25,7 @@ class cnot_patel_ftor {
 	using qubit_pair_type = std::pair<uint32_t, uint32_t>;
 
 public:
-	cnot_patel_ftor(network_type& network, std::vector<io_id> const& qubits,
+	cnot_patel_ftor(network_type& network, std::vector<wire_id> const& qubits,
 	                matrix_type const& matrix, uint32_t partition_size)
 	    : network_(network)
 	    , qubits_(qubits)
@@ -48,12 +47,12 @@ public:
 
 		for (const auto [control, target] : gates_upper) {
 			// switch control/target of CX gates in gates_upper;
-			network_.add_gate(gate::cx, qubits_[target], qubits_[control]);
+			network_.create_op(gate_lib::cx, qubits_[target], qubits_[control]);
 		}
 
 		std::reverse(gates_lower.begin(), gates_lower.end());
 		for (const auto [control, target] : gates_lower) {
-			network_.add_gate(gate::cx, qubits_[control], qubits_[target]);
+			network_.create_op(gate_lib::cx, qubits_[control], qubits_[target]);
 		}
 		return (gates_upper.size() + gates_lower.size());
 	}
@@ -112,7 +111,7 @@ private:
 
 private:
 	network_type& network_;
-	std::vector<io_id> qubits_;
+	std::vector<wire_id> qubits_;
 	matrix_type matrix_;
 	uint32_t partition_size_;
 };
@@ -121,13 +120,71 @@ private:
 
 /*! \brief Parameters for `cnot_patel`. */
 struct cnot_patel_params {
-	/*! \brief Allow rewiring. */
-	bool allow_rewiring = false;
 	/*! \brief Search for the best parition size. */
 	bool best_partition_size = false;
 	/*! \brief Partition size */
 	uint32_t partition_size = 1u;
 };
+
+// TODO:
+// /*! \brief */
+// template<class Network, class Matrix>
+// void cnot_patel_rewire(Network& network, std::vector<wire_id> const& qubits, Matrix const& matrix,
+//                 cnot_patel_params params = {})
+// {
+// 	assert(network.num_qubits() >= qubits.size());
+// 	assert(matrix.is_square());
+// 	assert(qubits.size() == matrix.num_rows());
+// 	assert(params.best_partition_size
+// 	       || (params.partition_size < 32u && params.partition_size <= matrix.num_rows()));
+
+// 	// Abbreviations:
+// 	//   - ps : partition size
+// 	if (!params.allow_rewiring && !params.best_partition_size) {
+// 		detail::cnot_patel_ftor synthesizer(network, qubits, matrix, params.partition_size);
+// 		synthesizer.synthesize();
+// 		return;
+// 	}
+
+// 	auto const min_ps = params.best_partition_size ? 1u : params.partition_size;
+// 	auto const max_ps = params.best_partition_size ? matrix.num_rows() : params.partition_size;
+// 	auto const old_num_gates = network.num_operations();
+// 	(void)old_num_gates; /* var not used in Release mode */
+// 	auto best_num_gates = std::numeric_limits<uint32_t>::max();
+
+
+// 	auto best_ps = min_ps;
+// 	std::vector<uint32_t> best_permutation(qubits.size());
+// 	std::iota(best_permutation.begin(), best_permutation.end(), 0u);
+
+// 	auto permutation = best_permutation;
+// 	do {
+// 		auto permuted_matrix = matrix.permute_rows(permutation);
+// 		auto ps = min_ps;
+// 		do {
+// 			detail::cnot_patel_ftor synthesizer(network, qubits, permuted_matrix, ps);
+// 			const auto num_gates = synthesizer.synthesize(false);
+// 			if (num_gates < best_num_gates) {
+// 				best_num_gates = num_gates;
+// 				best_ps = ps;
+// 				best_permutation = permutation;
+// 			}
+// 			++ps;
+// 			assert(network.num_operations() == old_num_gates);
+// 		} while (ps < max_ps);
+// 	} while (std::next_permutation(permutation.begin(), permutation.end()));
+
+// 	auto permuted_matrix = matrix.permute_rows(best_permutation);
+// 	detail::cnot_patel_ftor synthesizer(network, qubits, permuted_matrix, best_ps);
+// 	synthesizer.synthesize();
+	
+// 	auto transpositions = permutation_to_transpositions(best_permutation);
+// 	for (auto&& [i, j] : transpositions) {
+// 		i = qubits[i];
+// 		j = qubits[j];
+// 	}
+// 	network.rewire(transpositions);
+// }
 
 /*! \brief CNOT Patel synthesis for linear circuits
  *
@@ -142,7 +199,7 @@ struct cnot_patel_params {
  *                See `cnot_patel_params` for details.
  */
 template<class Network, class Matrix>
-void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const& matrix,
+void cnot_patel(Network& network, std::vector<wire_id> const& qubits, Matrix const& matrix,
                 cnot_patel_params params = {})
 {
 	assert(network.num_qubits() >= qubits.size());
@@ -153,7 +210,7 @@ void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const
 
 	// Abbreviations:
 	//   - ps : partition size
-	if (!params.allow_rewiring && !params.best_partition_size) {
+	if (!params.best_partition_size) {
 		detail::cnot_patel_ftor synthesizer(network, qubits, matrix, params.partition_size);
 		synthesizer.synthesize();
 		return;
@@ -161,58 +218,24 @@ void cnot_patel(Network& network, std::vector<io_id> const& qubits, Matrix const
 
 	auto const min_ps = params.best_partition_size ? 1u : params.partition_size;
 	auto const max_ps = params.best_partition_size ? matrix.num_rows() : params.partition_size;
-	auto const old_num_gates = network.num_gates();
-	(void)old_num_gates; /* var not used in Release mode */
+	auto const old_num_gates = network.num_operations();
+	(void) old_num_gates; /* var not used in Release mode */
 	auto best_num_gates = std::numeric_limits<uint32_t>::max();
 
-	if (params.allow_rewiring == true) {
-		auto best_ps = min_ps;
-		std::vector<uint32_t> best_permutation(qubits.size());
-		std::iota(best_permutation.begin(), best_permutation.end(), 0u);
-
-		auto permutation = best_permutation;
-		do {
-			auto permuted_matrix = matrix.permute_rows(permutation);
-			auto ps = min_ps;
-			do {
-				detail::cnot_patel_ftor synthesizer(network, qubits, permuted_matrix, ps);
-				const auto num_gates = synthesizer.synthesize(false);
-				if (num_gates < best_num_gates) {
-					best_num_gates = num_gates;
-					best_ps = ps;
-					best_permutation = permutation;
-				}
-				++ps;
-				assert(network.num_gates() == old_num_gates);
-			} while (ps < max_ps);
-		} while (std::next_permutation(permutation.begin(), permutation.end()));
-
-		auto permuted_matrix = matrix.permute_rows(best_permutation);
-		detail::cnot_patel_ftor synthesizer(network, qubits, permuted_matrix, best_ps);
-		synthesizer.synthesize();
-		
-		auto transpositions = permutation_to_transpositions(best_permutation);
-		for (auto&& [i, j] : transpositions) {
-			i = qubits[i];
-			j = qubits[j];
+	auto best_ps = min_ps;
+	auto ps = min_ps;
+	do {
+		detail::cnot_patel_ftor synthesizer(network, qubits, matrix, ps);
+		const auto num_gates = synthesizer.synthesize(false);
+		if (num_gates < best_num_gates) {
+			best_num_gates = num_gates;
+			best_ps = ps;
 		}
-		network.rewire(transpositions);
-	} else {
-		auto best_ps = min_ps;
-		auto ps = min_ps;
-		do {
-			detail::cnot_patel_ftor synthesizer(network, qubits, matrix, ps);
-			const auto num_gates = synthesizer.synthesize(false);
-			if (num_gates < best_num_gates) {
-				best_num_gates = num_gates;
-				best_ps = ps;
-			}
-			++ps;
-			assert(network.num_gates() == old_num_gates);
-		} while (ps < max_ps);
-		detail::cnot_patel_ftor synthesizer(network, qubits, matrix, best_ps);
-		synthesizer.synthesize();
-	}
+		++ps;
+		assert(network.num_operations() == old_num_gates);
+	} while (ps < max_ps);
+	detail::cnot_patel_ftor synthesizer(network, qubits, matrix, best_ps);
+	synthesizer.synthesize();
 }
 
 /*! \brief CNOT Patel synthesis for linear circuits
@@ -254,11 +277,12 @@ Network cnot_patel(Matrix const& matrix, cnot_patel_params params = {})
 	assert(params.best_partition_size || (params.partition_size >= 1 && params.partition_size <= 32));
 
 	Network network;
-	const auto num_qubits = matrix.num_rows();
-	for (auto i = 0u; i < num_qubits; ++i) {
-		network.add_qubit();
+	const uint32_t num_qubits = matrix.num_rows();
+	std::vector<wire_id> qubits;
+	for (uint32_t i = 0u; i < num_qubits; ++i) {
+		qubits.emplace_back(network.create_qubit());
 	}
-	cnot_patel(network, network.wiring_map(), matrix, params);
+	cnot_patel(network, qubits, matrix, params);
 	return network;
 }
 

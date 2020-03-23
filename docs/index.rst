@@ -10,6 +10,7 @@ Welcome to tweedledum's documentation!
    :maxdepth: 2
 
    installation
+   concept_overview
    tutorial
    changelog
    acknowledgments
@@ -19,9 +20,8 @@ Welcome to tweedledum's documentation!
    :maxdepth: 2
    :caption: Core Componetns
 
-   core/architecture
    core/gate_lib
-   core/gate
+   core/operation
    core/network
    core/implementations
    core/views

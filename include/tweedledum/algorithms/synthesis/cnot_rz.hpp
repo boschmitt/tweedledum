@@ -4,9 +4,8 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_base.hpp"
-#include "../../gates/gate_lib.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../gates/gate.hpp"
+#include "../../networks/wire_id.hpp"
 #include "../../utils/parity_terms.hpp"
 
 #include <bill/sat/cardinality.hpp>
@@ -96,14 +95,14 @@ public:
 	}
 	
 	template<class Network>
-	void decode(Network& network, std::vector<io_id> const& qubits, std::vector<lbool_type> const& model)
+	void decode(Network& network, std::vector<wire_id> const& qubits, std::vector<lbool_type> const& model)
 	{
 		std::vector<uint32_t> qubits_states;
 		for (uint32_t i = 0u; i < num_qubits(); ++i) {
 			qubits_states.emplace_back(1u << i);
 			angle rotation = parities_.extract_term(qubits_states[i]);
 			if (rotation != 0.0) {
-				network.add_gate(gate_base(gate_lib::rz, rotation), qubits.at(i));
+				network.create_op(gate_lib::rz(rotation), qubits.at(i));
 			}
 		}
 		for (uint32_t moment = 0u; moment < (num_moments_ - 1); ++moment) {
@@ -118,11 +117,11 @@ public:
 					assert(model.at(control_var(moment, row)) == lbool_type::false_);
 				}
 			}
-			network.add_gate(gate::cx, qubits.at(control), qubits.at(target));
+			network.create_op(gate_lib::cx, qubits.at(control), qubits.at(target));
 			qubits_states[target] ^= qubits_states[control];
 			angle rotation = parities_.extract_term(qubits_states[target]);
 			if (rotation != 0.0) {
-				network.add_gate(gate_base(gate_lib::rz, rotation), qubits.at(target));
+				network.create_op(gate_lib::rz(rotation), qubits.at(target));
 			}
 		}
 	}
@@ -381,7 +380,7 @@ private:
 /*! \brief .
  */
 template<class Network, class Matrix>
-void cnot_rz(Network& network, std::vector<io_id> const& qubits,
+void cnot_rz(Network& network, std::vector<wire_id> const& qubits,
              Matrix const& matrix, parity_terms<uint32_t> const& parities,
              cnot_rz_params params = {})
 {
@@ -411,10 +410,11 @@ Network cnot_rz(Matrix const& matrix, parity_terms<uint32_t> const& parities, cn
 	assert(matrix.num_rows() <= 32);
 	assert(matrix.is_square());
 	Network network;
-	for (auto i = 0u; i < matrix.num_rows(); ++i) {
-		network.add_qubit();
+	std::vector<wire_id> qubits;
+	for (uint32_t i = 0u; i < matrix.num_rows(); ++i) {
+		qubits.emplace_back(network.create_qubit());
 	}
-	cnot_rz(network, network.wiring_map(), matrix, parities, params);
+	cnot_rz(network, qubits, matrix, parities, params);
 	return network;
 }
 

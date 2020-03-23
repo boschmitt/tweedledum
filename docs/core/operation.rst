@@ -1,7 +1,7 @@
-.. _gate:
-
-Gate API
-========
+.. _operation:
+**************
+Operation API
+**************
 
 A ``Gate`` is an ``gate_base`` that is applied to a collection of qubits. Those qubits are identified
 by a ``qid`` given by a ``network``.

@@ -4,9 +4,8 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../gates/gate_base.hpp"
-#include "../gates/gate_lib.hpp"
-#include "../networks/io_id.hpp"
+#include "../gates/gate.hpp"
+#include "../networks/wire_id.hpp"
 
 #include <cassert>
 #include <tweedledee/dotqc/dotqc.hpp>
@@ -14,50 +13,50 @@
 namespace tweedledum {
 
 struct identify_gate {
-	gate_base operator()(std::string_view gate_label)
+	gate operator()(std::string_view gate_label)
 	{
 		switch (gate_label[0]) {
 		case 'H':
-			return gate::hadamard;
+			return gate_lib::h;
 
 		case 'S':
 		case 'P':
 			if (gate_label.size() == 2 && gate_label[1] == '*') {
-				return gate::phase_dagger;
+				return gate_lib::sdg;
 			}
-			return gate::phase;
+			return gate_lib::s;
 
 		case 'T':
 			if (gate_label.size() == 2 && gate_label[1] == '*') {
-				return gate::t_dagger;
+				return gate_lib::tdg;
 			}
-			return gate::t;
+			return gate_lib::t;
 
 		case 'X':
-			return gate::pauli_x;
+			return gate_lib::x;
 
 		case 'Y':
-			return gate::pauli_y;
+			return gate_lib::y;
 
 		case 'Z':
 			// This will be a ugly hack (:
 			if (gate_label.size() == 2 && gate_label[1] == 'd') {
-				return gate_base(gate_lib::undefined);
+				return gate_lib::opaque;
 			}
-			return gate::pauli_z;
+			return gate_lib::z;
 
 		default:
 			break;
 		}
 		if (gate_label == "tof") {
-			return gate::cx;
+			return gate_lib::x;
 		}
-		return gate_base(gate_lib::unknown);
+		return gate_lib::undefined;
 	}
 };
 
 template<typename Network>
-class dotqc_reader : public tweedledee::dotqc_reader<gate_base> {
+class dotqc_reader : public tweedledee::dotqc_reader<gate> {
 public:
 	explicit dotqc_reader(Network& network)
 	    : network_(network)
@@ -65,7 +64,7 @@ public:
 
 	void on_qubit(std::string qubit_label)
 	{
-		network_.add_qubit(qubit_label);
+		network_.create_qubit(qubit_label);
 	}
 
 	void on_input(std::string qubit_label)
@@ -80,57 +79,71 @@ public:
 		// network_.mark_as_output(qubit_label);
 	}
 
-	void on_gate(gate_base gate, std::string const& target)
+	void on_gate(gate g, std::string const& target)
 
 	{
-		network_.add_gate(gate, target);
+		network_.create_op(g, target);
 	}
 
-	void on_gate(gate_base gate, std::vector<std::string> const& controls,
+	void on_gate(gate g, std::vector<std::string> const& controls,
 	             std::vector<std::string> const& targets)
 	{
-		switch (gate.operation()) {
-		case gate_lib::cx:
+		switch (g.id()) {
+		case gate_ids::x:
 			if (controls.size() == 1) {
-				gate = gate::cx;
+				network_.create_op(gate_lib::cx, controls, targets);
+				return;
 			} else if (controls.size() >= 2) {
-				gate = gate::mcx;
+				network_.create_op(gate_lib::ncx, controls, targets);
+				return;
 			}
 			break;
 
-		case gate_lib::rz:
+		case gate_ids::y:
 			if (controls.size() == 1) {
-				gate = gate::cz;
+				network_.create_op(gate_lib::cy, controls, targets);
+				return;
 			} else if (controls.size() >= 2) {
-				gate = gate::mcz;
+				network_.create_op(gate_lib::ncy, controls, targets);
+				return;
+			}
+			break;
+
+		case gate_ids::z:
+			if (controls.size() == 1) {
+				network_.create_op(gate_lib::cz, controls, targets);
+				return;
+			} else if (controls.size() >= 2) {
+				network_.create_op(gate_lib::ncz, controls, targets);
+				return;
 			}
 			break;
 
 		// Hack to handle 'Zd' gate
-		case gate_lib::undefined:
-			network_.add_gate(gate::t_dagger, controls[0]);
-			network_.add_gate(gate::t_dagger, controls[1]);
-			network_.add_gate(gate::t_dagger, targets[0]);
+		case gate_ids::opaque:
+			network_.create_op(gate_lib::tdg, controls[0]);
+			network_.create_op(gate_lib::tdg, controls[1]);
+			network_.create_op(gate_lib::tdg, targets[0]);
 
-			network_.add_gate(gate::cx, controls[0], controls[1]);
-			network_.add_gate(gate::cx, controls[1], targets[0]);
-			network_.add_gate(gate::cx, targets[0], controls[0]);
+			network_.create_op(gate_lib::cx, controls[0], controls[1]);
+			network_.create_op(gate_lib::cx, controls[1], targets[0]);
+			network_.create_op(gate_lib::cx, targets[0], controls[0]);
 
-			network_.add_gate(gate::t, controls[0]);
-			network_.add_gate(gate::t, controls[1]);
-			network_.add_gate(gate::t_dagger, targets[0]);
+			network_.create_op(gate_lib::t, controls[0]);
+			network_.create_op(gate_lib::t, controls[1]);
+			network_.create_op(gate_lib::tdg, targets[0]);
 
-			network_.add_gate(gate::cx, controls[1], controls[0]);
-			network_.add_gate(gate::t, controls[0]);
-			network_.add_gate(gate::cx, controls[1], targets[0]);
-			network_.add_gate(gate::cx, targets[0], controls[0]);
-			network_.add_gate(gate::cx, controls[0], controls[1]);
+			network_.create_op(gate_lib::cx, controls[1], controls[0]);
+			network_.create_op(gate_lib::t, controls[0]);
+			network_.create_op(gate_lib::cx, controls[1], targets[0]);
+			network_.create_op(gate_lib::cx, targets[0], controls[0]);
+			network_.create_op(gate_lib::cx, controls[0], controls[1]);
 			return;
 
 		default:
 			break;
 		}
-		network_.add_gate(gate, controls, targets);
+		network_.create_op(g, controls, targets);
 	}
 
 private:
@@ -149,65 +162,77 @@ void write_dotqc(Network const& network, std::ostream& os)
 {
 	os << fmt::format("# Generated by tweedledum\n");
 	os << fmt::format(".v");
-	network.foreach_io([&](auto id, auto const& name) {
+	network.foreach_wire([&](wire_id id, auto const& name) {
 		if (id.is_qubit()) {
 			os << fmt::format(" {}", name);
 		}
 	});
 	os << fmt::format("\nBEGIN\n\n");
-	network.foreach_gate([&](auto const& node) {
-		auto const& gate = node.gate;
-		switch (gate.operation()) {
-		case gate_lib::rx: {
-			angle rotation_angle = gate.rotation_angle();
-			if (rotation_angle == angles::pi) {
-				os << "X"; 
-			} else {
-				std::cerr << "[w] unsupported gate type\n";
-				assert(0);
-			}
-		} break;
-
-		case gate_lib::rz: {
-			angle rotation_angle = gate.rotation_angle();
-			std::string symbol;
-			if (rotation_angle == angles::pi_quarter) {
-				os << "T";
-			} else if (rotation_angle == -angles::pi_quarter) {
-				os << "T*";
-			} else if (rotation_angle == angles::pi_half) {
-				os << "S";
-			} else if (rotation_angle == -angles::pi_half) {
-				os << "S*";
-			} else if (rotation_angle == angles::pi) {
-				os << "Z";
-			} else {
-				std::cerr << "[w] unsupported gate type\n";
-				assert(0);
-			}
-		} break;
-
-		case gate_lib::cx:
-		case gate_lib::mcx:
-			os << "tof";
+	network.foreach_op([&](auto const& node) {
+		auto const& operation = node.operation;
+		switch (operation.gate.id()) {
+		case gate_ids::h:
+			os << fmt::format("H {}\n", network.wire_label(operation.target()));
 			break;
 
-		case gate_lib::cz:
-		case gate_lib::mcz:
-			os << 'Z';
+		case gate_ids::x:
+			os << fmt::format("X {}\n", network.wire_label(operation.target()));
 			break;
 
-		case gate_lib::hadamard:
-			os << 'H';
+		case gate_ids::y:
+			os << fmt::format("Y {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::z:
+			os << fmt::format("Z {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::s:
+			os << fmt::format("S {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::sdg:
+			os << fmt::format("S* {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::t:
+			os << fmt::format("T {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::tdg:
+			os << fmt::format("T* {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::cx:
+		case gate_ids::ncx:
+			os << fmt::format("X");
+			operation.foreach_control([&](wire_id c) {
+				os << fmt::format(" {}", network.wire_label(c));
+			});
+			os << fmt::format(" {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::cy:
+		case gate_ids::ncy:
+			os << fmt::format("Y");
+			operation.foreach_control([&](wire_id c) {
+				os << fmt::format(" {}", network.wire_label(c));
+			});
+			os << fmt::format(" {}\n", network.wire_label(operation.target()));
+			break;
+
+		case gate_ids::cz:
+		case gate_ids::ncz:
+			os << fmt::format("Z");
+			operation.foreach_control([&](wire_id c) {
+				os << fmt::format(" {}", network.wire_label(c));
+			});
+			os << fmt::format(" {}\n", network.wire_label(operation.target()));
 			break;
 
 		default:
 			break;
 		}
-		gate.foreach_control([&](auto qubit) {
-			os << fmt::format(" {}", network.io_label(qubit)); 
-		});
-		os << fmt::format(" {}\n", network.io_label(gate.target()));
 	});
 	os << fmt::format("\nEND\n");
 }

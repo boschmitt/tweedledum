@@ -4,8 +4,8 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../gates/gate_lib.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../gates/gate.hpp"
+#include "../../networks/wire_id.hpp"
 #include "../../utils/bit_matrix_cm.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
@@ -25,7 +25,7 @@ namespace tweedledum {
 /*! \brief Parameters for `gray_synth`. */
 struct gray_synth_params {
 	cnot_patel_params cp_params = {
-		/*allow_rewiring*/ true,
+		/*allow_rewiring*/ false,
 		/*best_partition_size*/ true
 	};
 };
@@ -44,7 +44,7 @@ class gray_synth_ftor {
 	};
 
 public:
-	gray_synth_ftor(Network& network, std::vector<io_id> const& qubits,
+	gray_synth_ftor(Network& network, std::vector<wire_id> const& qubits,
 	                parity_terms<uint32_t> const& parities, gray_synth_params params)
 	    : network_(network)
 	    , qubits_(qubits)
@@ -127,18 +127,16 @@ public:
 			qubits_states.emplace_back((1u << i));
 			auto rotation_angle = parities_.extract_term(qubits_states[i]);
 			if (rotation_angle != 0.0) {
-				network_.add_gate(gate_base(gate_lib::rz, rotation_angle),
-				                  qubits_[i]);
+				network_.create_op(gate_lib::r1(rotation_angle), qubits_[i]);
 			}
 		}
 
 		for (const auto [control, target] : gates) {
 			qubits_states[target] ^= qubits_states[control];
-			network_.add_gate(gate::cx, qubits_[control], qubits_[target]);
+			network_.create_op(gate_lib::cx, qubits_[control], qubits_[target]);
 			auto rotation_angle = parities_.extract_term(qubits_states[target]);
 			if (rotation_angle != 0.0) {
-				network_.add_gate(gate_base(gate_lib::rz, rotation_angle),
-				                  qubits_[target]);
+				network_.create_op(gate_lib::r1(rotation_angle), qubits_[target]);
 			}
 		}
 
@@ -185,7 +183,7 @@ private:
 
 private:
 	Network& network_;
-	std::vector<io_id> qubits_;
+	std::vector<wire_id> qubits_;
 	parity_terms<uint32_t> parities_;
 	matrix_type parity_matrix_;
 	std::vector<state_type> state_stack_;
@@ -207,7 +205,7 @@ private:
  *                 See `gray_synth_params` for details.
  */
 template<class Network>
-void gray_synth(Network& network, std::vector<io_id> const& qubits,
+void gray_synth(Network& network, std::vector<wire_id> const& qubits,
                 parity_terms<uint32_t> const& parities, gray_synth_params params = {})
 {
 	assert(qubits.size() <= 32u);
@@ -242,10 +240,11 @@ Network gray_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities, 
 {
 	assert(num_qubits <= 32);
 	Network network;
-	for (auto i = 0u; i < num_qubits; ++i) {
-		network.add_qubit();
+	std::vector<wire_id> qubits;
+	for (uint32_t i = 0u; i < num_qubits; ++i) {
+		qubits.emplace_back(network.create_qubit());
 	}
-	gray_synth(network, network.wiring_map(), parities, params);
+	gray_synth(network, qubits, parities, params);
 	return network;
 }
 

@@ -155,15 +155,15 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 
 		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
-			if (rotation_angle == angles::pi_quarter) {
+			if (rotation_angle == sym_angle::pi_quarter) {
 				symbol = "X^%C2%BC";
-			} else if (rotation_angle == -angles::pi_quarter) {
+			} else if (rotation_angle == -sym_angle::pi_quarter) {
 				symbol = "X^-%C2%BC";
-			} else if (rotation_angle == angles::pi_half) {
+			} else if (rotation_angle == sym_angle::pi_half) {
 				symbol = "X^%C2%BD";
-			} else if (rotation_angle == -angles::pi_half) {
+			} else if (rotation_angle == -sym_angle::pi_half) {
 				symbol = "X^-%C2%BD";
-			} else if (rotation_angle == angles::pi) {
+			} else if (rotation_angle == sym_angle::pi) {
 				symbol = "X";
 			} else {
 				std::cerr << "[w] unsupported gate type\n";
@@ -177,15 +177,15 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
 		case gate_lib::rz: {
 			angle rotation_angle = gate.rotation_angle();
 			std::string symbol;
-			if (rotation_angle == angles::pi_quarter) {
+			if (rotation_angle == sym_angle::pi_quarter) {
 				symbol = "Z^%C2%BC";
-			} else if (rotation_angle == -angles::pi_quarter) {
+			} else if (rotation_angle == -sym_angle::pi_quarter) {
 				symbol = "Z^-%C2%BC";
-			} else if (rotation_angle == angles::pi_half) {
+			} else if (rotation_angle == sym_angle::pi_half) {
 				symbol = "Z^%C2%BD";
-			} else if (rotation_angle == -angles::pi_half) {
+			} else if (rotation_angle == -sym_angle::pi_half) {
 				symbol = "Z^-%C2%BD";
-			} else if (rotation_angle == angles::pi) {
+			} else if (rotation_angle == sym_angle::pi) {
 				symbol = "Z";
 			} else {
 				std::cerr << "[w] unsupported gate type\n";

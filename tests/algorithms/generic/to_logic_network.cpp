@@ -2,34 +2,33 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
+#include "tweedledum/algorithms/generic/to_logic_network.hpp"
+
+#include "tweedledum/gates/w3_op.hpp"
+#include "tweedledum/gates/wn32_op.hpp"
+#include "tweedledum/networks/netlist.hpp"
+#include "tweedledum/networks/op_dag.hpp"
+#include "tweedledum/networks/wire_id.hpp"
+
 #include <catch.hpp>
-#include <kitty/dynamic_truth_table.hpp>
 #include <kitty/constructors.hpp>
+#include <kitty/dynamic_truth_table.hpp>
 #include <kitty/static_truth_table.hpp>
 #include <mockturtle/algorithms/simulation.hpp>
 #include <mockturtle/networks/xag.hpp>
-#include <tweedledum/algorithms/generic/to_logic_network.hpp>
-#include <tweedledum/gates/io3_gate.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/gg_network.hpp>
-#include <tweedledum/networks/io_id.hpp>
-#include <tweedledum/networks/netlist.hpp>
 
 using namespace mockturtle;
 using namespace tweedledum;
 
 TEMPLATE_PRODUCT_TEST_CASE("Conver simple quantum circuit to XAG", "[to_logic_network][template]",
-                           (gg_network, netlist), (io3_gate, mcmt_gate))
+                           (op_dag, netlist), (w3_op, wn32_op))
 {
 	TestType quantum_ntk;
-	auto q0 = quantum_ntk.add_qubit("i_0");
-	auto q1 = quantum_ntk.add_qubit("i_1");
-	auto q2 = quantum_ntk.add_qubit("o_0");
-	quantum_ntk.mark_as_input(q0);
-	quantum_ntk.mark_as_input(q1);
-	quantum_ntk.mark_as_output(q2);
+	wire_id q0 = quantum_ntk.create_qubit("__i_0", wire_modes::in);
+	wire_id q1 = quantum_ntk.create_qubit("__i_1", wire_modes::in);
+	wire_id q2 = quantum_ntk.create_qubit("__o_0", wire_modes::out);
 
-	quantum_ntk.add_gate(gate::mcx, std::vector<io_id>({q0, q1}), std::vector<io_id>({q2}));
+	quantum_ntk.create_op(gate_lib::ncx, std::vector<wire_id>({q0, q1}), std::vector<wire_id>({q2}));
 
 	const auto logic_ntk = to_logic_network<xag_network>(quantum_ntk);
 

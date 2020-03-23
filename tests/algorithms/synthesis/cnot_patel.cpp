@@ -2,25 +2,27 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
+#include "tweedledum/algorithms/synthesis/cnot_patel.hpp"
+
+#include "tweedledum/gates/gate.hpp"
+#include "tweedledum/gates/w3_op.hpp"
+#include "tweedledum/gates/wn32_op.hpp"
+#include "tweedledum/networks/netlist.hpp"
+#include "tweedledum/networks/op_dag.hpp"
+#include "tweedledum/utils/bit_matrix_rm.hpp"
+
 #include <catch.hpp>
-#include <tweedledum/algorithms/synthesis/cnot_patel.hpp>
-#include <tweedledum/gates/gate_lib.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/io3_gate.hpp>
-#include <tweedledum/networks/gg_network.hpp>
-#include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/utils/bit_matrix_rm.hpp>
 
 using namespace tweedledum;
+
 TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
-                           (gg_network, netlist), (mcmt_gate, io3_gate))
+                           (op_dag, netlist), (wn32_op, w3_op))
 {
 	std::vector<uint32_t> rows = {0b000011, 0b011001, 0b010010, 0b111111, 0b111011, 0b011100};
 	bit_matrix_rm matrix(6, rows);
 	SECTION("Check example from paper")
 	{
 		cnot_patel_params parameters;
-		parameters.allow_rewiring = false;
 		parameters.best_partition_size = false;
 		parameters.partition_size = 2u;
 		auto network = cnot_patel<TestType>(matrix, parameters);
@@ -29,43 +31,43 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_vertex([&](auto const& node) {
-			if (!node.gate.is(gate_lib::cx)) {
+		network.foreach_op([&](auto const& node) {
+			if (!node.operation.gate.is(gate_ids::cx)) {
 				return;
 			}
-			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
+			id_matrix.row(node.operation.target()) ^= id_matrix.row(node.operation.control());
 		});
 		// Check if network realizes original matrix
 		for (auto row_index = 0u; row_index < matrix.num_rows(); ++row_index) {
 			CHECK(matrix.row(row_index) == id_matrix.row(row_index));
 		}
 	}
-	SECTION("Find best permutation for the example from paper")
-	{
-		cnot_patel_params parameters;
-		parameters.allow_rewiring = true;
-		parameters.best_partition_size = true;
-		auto network = cnot_patel<TestType>(matrix, parameters);
+	// SECTION("Find best permutation for the example from paper")
+	// {
+	// 	cnot_patel_params parameters;
+	// 	parameters.allow_rewiring = true;
+	// 	parameters.best_partition_size = true;
+	// 	auto network = cnot_patel<TestType>(matrix, parameters);
 
-		// Simulate CNOTs in network
-		bit_matrix_rm id_matrix(6, 6);
-		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
+	// 	// Simulate CNOTs in network
+	// 	bit_matrix_rm id_matrix(6, 6);
+	// 	id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_vertex([&](auto const& node) {
-			if (!node.gate.is(gate_lib::cx)) {
-				return;
-			}
-			id_matrix.row(node.gate.target()) ^= id_matrix.row(node.gate.control());
-		});
-		std::vector<uint32_t> rows_permutation;
-		for (auto io_id : network.wiring_map()) {
-			rows_permutation.push_back(io_id.index());
-		}
-		matrix.permute_rows(rows_permutation);
+	// 	network.foreach_op([&](auto const& node) {
+	// 		if (!node.operation.gate.is(gate_ids::cx)) {
+	// 			return;
+	// 		}
+	// 		id_matrix.row(node.operation.target()) ^= id_matrix.row(node.operation.control());
+	// 	});
+	// 	std::vector<uint32_t> rows_permutation;
+	// 	for (wire_id wire : network.wiring_map()) {
+	// 		rows_permutation.push_back(wire);
+	// 	}
+	// 	matrix.permute_rows(rows_permutation);
 
-		// Check if network realizes original matrix
-		for (auto row_index = 0u; row_index < matrix.num_rows(); ++row_index) {
-			CHECK(matrix.row(row_index) == id_matrix.row(row_index));
-		}
-	}
+	// 	// Check if network realizes original matrix
+	// 	for (auto row_index = 0u; row_index < matrix.num_rows(); ++row_index) {
+	// 		CHECK(matrix.row(row_index) == id_matrix.row(row_index));
+	// 	}
+	// }
 }

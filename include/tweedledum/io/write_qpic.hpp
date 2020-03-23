@@ -62,7 +62,7 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 
 		case gate_lib::rx: {
 			angle rotation_angle = node.gate.rotation_angle();
-			if (rotation_angle == angles::pi) {
+			if (rotation_angle == sym_angle::pi) {
 				os << 'N';
 			} else {
 				os << "G $R_{x}$";
@@ -71,15 +71,15 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
 
 		case gate_lib::rz: {
 			angle rotation_angle = node.gate.rotation_angle();
-			if (rotation_angle == angles::pi_quarter) {
+			if (rotation_angle == sym_angle::pi_quarter) {
 				os << "G $T$";
-			} else if (rotation_angle == -angles::pi_quarter) {
+			} else if (rotation_angle == -sym_angle::pi_quarter) {
 				os << "G $T^{\\dagger}$";
-			} else if (rotation_angle == angles::pi_half) {
+			} else if (rotation_angle == sym_angle::pi_half) {
 				os << "G $S$";
-			} else if (rotation_angle == -angles::pi_half) {
+			} else if (rotation_angle == -sym_angle::pi_half) {
 				os << "G $S^{\\dagger}$";
-			} else if (rotation_angle == angles::pi) {
+			} else if (rotation_angle == sym_angle::pi) {
 				os << 'Z';
 			} else {
 				os << "G $R_{z}$";

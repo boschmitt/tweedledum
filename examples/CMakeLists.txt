@@ -1,8 +1,5 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-add_compile_options(
-  -W
-  -Wall
-  -pedantic)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 
 add_custom_target(examples COMMENT "Build all examples.")
 

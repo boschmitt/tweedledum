@@ -2,39 +2,40 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
+#include "tweedledum/algorithms/synthesis/gray_synth.hpp"
+
+#include "tweedledum/gates/gate.hpp"
+#include "tweedledum/gates/w3_op.hpp"
+#include "tweedledum/gates/wn32_op.hpp"
+#include "tweedledum/networks/netlist.hpp"
+#include "tweedledum/networks/op_dag.hpp"
+#include "tweedledum/utils/angle.hpp"
+#include "tweedledum/utils/parity_terms.hpp"
+
 #include <catch.hpp>
-#include <tweedledum/algorithms/synthesis/gray_synth.hpp>
-#include <tweedledum/gates/gate_lib.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/gates/io3_gate.hpp>
-#include <tweedledum/networks/gg_network.hpp>
-#include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/utils/angle.hpp>
-#include <tweedledum/utils/parity_terms.hpp>
 
 using namespace tweedledum;
+
 TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
-                           (gg_network, netlist), (mcmt_gate, io3_gate))
+                           (op_dag, netlist), (wn32_op, w3_op))
 {
 	SECTION("Check simple example from Amy paper")
 	{
 		parity_terms<uint32_t> parities;
-		parities.add_term(0b0110, angles::pi_quarter);
-		parities.add_term(0b0001, angles::pi_quarter);
-		parities.add_term(0b1001, angles::pi_quarter);
-		parities.add_term(0b0111, angles::pi_quarter);
-		parities.add_term(0b1011, angles::pi_quarter);
-		parities.add_term(0b0011, angles::pi_quarter);
+		parities.add_term(0b0110, sym_angle::pi_quarter);
+		parities.add_term(0b0001, sym_angle::pi_quarter);
+		parities.add_term(0b1001, sym_angle::pi_quarter);
+		parities.add_term(0b0111, sym_angle::pi_quarter);
+		parities.add_term(0b1011, sym_angle::pi_quarter);
+		parities.add_term(0b0011, sym_angle::pi_quarter);
 
 		auto network = gray_synth<TestType>(4, parities);
 		bit_matrix_rm id_matrix(4, 4);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		auto wiring_map = network.wiring_map();
-		network.foreach_vertex([&](auto const& node) {
-			if (node.gate.is(gate_lib::cx)) {
-				id_matrix.row(node.gate.target()) ^= id_matrix.row(
-				    node.gate.control());
+		network.foreach_op([&](auto const& node) {
+			if (node.operation.gate.is(gate_ids::cx)) {
+				id_matrix.row(node.operation.target()) ^= id_matrix.row(node.operation.control());
 			}
 		});
 	}
@@ -42,7 +43,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 	SECTION("Check with empty parities")
 	{
 		auto network = gray_synth<TestType>(4, {});
-		CHECK(network.num_gates() == 0u);
+		CHECK(network.num_operations() == 0u);
 		CHECK(network.num_qubits() == 4u);
 	}
 }

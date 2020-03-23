@@ -5,39 +5,25 @@
 #pragma once
 
 #include "ccz.hpp"
-#include "../../../gates/gate_base.hpp"
-#include "../../../gates/gate_lib.hpp"
-#include "../../../networks/io_id.hpp"
-
-#include <array>
-#include <vector>
+#include "../../../gates/gate.hpp"
+#include "../../../networks/wire_id.hpp"
 
 namespace tweedledum::detail {
 
 template<typename Network>
-void ccx_(Network& network, io_id x, io_id y, io_id z)
+void ccx(Network& network, wire_id x, wire_id y, wire_id z)
 {
-	network.add_gate(gate::hadamard, z);
+	network.add_gate(gate_lib::h, z);
 	ccz_(network, x, y, z);
-	network.add_gate(gate::hadamard, z);
+	network.add_gate(gate_lib::h, z);
 }
 
 template<typename Network>
-void ccx_tpar(Network& network, io_id x, io_id y, io_id z)
+void ccx_tpar(Network& network, wire_id x, wire_id y, wire_id z)
 {
-	network.add_gate(gate::hadamard, z);
+	network.add_gate(gate_lib::h, z);
 	ccz_tpar(network, x, y, z);
-	network.add_gate(gate::hadamard, z);
-}
-
-template<typename Network>
-void ccx(Network& network, io_id x, io_id y, io_id z, bool use_t_par)
-{
-	if (use_t_par) {
-		ccx_tpar(network, x, y, z);
-	} else {
-		ccx_(network, x, y, z);
-	}
+	network.add_gate(gate_lib::h, z);
 }
 
 } // namespace tweedledum::detail

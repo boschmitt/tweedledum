@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../utils/device.hpp"
-#include "../../views/mapping_view.hpp"
+#include "../../networks/mapped_dag.hpp"
 
 #include <bill/sat/cardinality.hpp>
 #include <bill/sat/solver.hpp>
@@ -27,26 +27,26 @@ public:
 	    , device_(device)
 	    , pairs_(network_.num_qubits() * (network_.num_qubits() + 1) / 2, 0u)
 	    , solver_(solver)
-	    , io_qid_map_(network.num_io(), io_invalid)
+	    , wire_to_v_(network.num_wires(), wire::invalid)
 	{
-		network.foreach_io([&](io_id io) {
-			if (io.is_qubit()) {
-				io_qid_map_.at(io.index()) = qid_io_map_.size();
-				qid_io_map_.push_back(io);
+		network.foreach_wire([&](wire_id id) {
+			if (id.is_qubit()) {
+				wire_to_v_.at(id) = wire_id(v_to_wire_.size(), true);
+				v_to_wire_.push_back(id);
 			}
 		});
 	}
 
-	std::vector<uint32_t> run_incrementally()
+	std::vector<wire_id> run_incrementally()
 	{
-		solver_.add_variables(num_virtual_qubits() * num_physical_qubits());
+		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
-		network_.foreach_gate([&](auto const& node) {
-			if (!node.gate.is(gate_lib::cx)) {
+		network_.foreach_op([&](auto const& node) {
+			if (!node.operation.gate.is_two_qubit()) {
 				return true;
 			}
-			uint32_t control = io_qid_map_.at(node.gate.control());
-			uint32_t target = io_qid_map_.at(node.gate.target());
+			wire_id control = wire_to_v_.at(node.operation.control());
+			wire_id target = wire_to_v_.at(node.operation.target());
 			if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
 				gate_constraints(control, target);
 			}
@@ -63,22 +63,22 @@ public:
 		return decode(model_);
 	}
 
-	std::vector<uint32_t> run_greedly()
+	std::vector<wire_id> run_greedly()
 	{
-		solver_.add_variables(num_virtual_qubits() * num_physical_qubits());
+		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
-		network_.foreach_gate([&](auto const& node) {
-			if (!node.gate.is(gate_lib::cx)) {
+		network_.foreach_op([&](auto const& node) {
+			if (!node.operation.gate.is_two_qubit()) {
 				return;
 			}
-			uint32_t control = io_qid_map_.at(node.gate.control());
-			uint32_t target = io_qid_map_.at(node.gate.target());
+			wire_id control = wire_to_v_.at(node.operation.control());
+			wire_id target = wire_to_v_.at(node.operation.target());
 			++pairs_[triangle_to_vector_idx(control, target)];
 		});
 
 		std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> aa;
-		for (uint32_t i = 0; i < num_virtual_qubits(); ++i) {
-			for (uint32_t j = 0; j < num_virtual_qubits(); ++j) {
+		for (uint32_t i = 0; i < num_v(); ++i) {
+			for (uint32_t j = 0; j < num_v(); ++j) {
 				if (pairs_[triangle_to_vector_idx(i, j)] != 0) {
 					aa.emplace_back(i, j, pairs_[triangle_to_vector_idx(i, j)]);
 					pairs_[triangle_to_vector_idx(i, j)] = 0;
@@ -103,21 +103,20 @@ public:
 		return decode(model_);
 	}
 
-	std::vector<uint32_t> run()
+	std::vector<wire_id> run()
 	{
-		solver_.add_variables(num_virtual_qubits() * num_physical_qubits());
+		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
-		network_.foreach_gate([&](auto const& node) {
-			if (!node.gate.is(gate_lib::cx)) {
-				return true;
+		network_.foreach_op([&](auto const& node) {
+			if (!node.operation.gate.is_two_qubit()) {
+				return;
 			}
-			uint32_t control = io_qid_map_.at(node.gate.control());
-			uint32_t target = io_qid_map_.at(node.gate.target());
+			wire_id control = wire_to_v_.at(node.operation.control());
+			wire_id target = wire_to_v_.at(node.operation.target());
 			if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
 				gate_constraints(control, target);
 			}
 			++pairs_[triangle_to_vector_idx(control, target)];
-			solver_.solve();
 		});
 		solver_.solve();
 		bill::result result = solver_.get_result();
@@ -129,14 +128,14 @@ public:
 
 	void encode()
 	{
-		solver_.add_variables(num_virtual_qubits() * num_physical_qubits());
+		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
 		network_.foreach_gate([&](auto const& node) {
 			if (!node.gate.is(gate_lib::cx)) {
 				return;
 			}
-			uint32_t control = io_qid_map_.at(node.gate.control());
-			uint32_t target = io_qid_map_.at(node.gate.target());
+			uint32_t control = wire_to_v_.at(node.gate.control());
+			uint32_t target = wire_to_v_.at(node.gate.target());
 			if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
 				gate_constraints(control, target);
 			}
@@ -144,41 +143,41 @@ public:
 		});
 	}
 
-	std::vector<uint32_t> decode(std::vector<lbool_type> const& model)
+	std::vector<wire_id> decode(std::vector<lbool_type> const& model)
 	{
-		std::vector<uint32_t> mapping(network_.num_qubits(), 0);
-		for (uint32_t v_qid = 0; v_qid < num_virtual_qubits(); ++v_qid) {
-			for (uint32_t phy_qid = 0; phy_qid < num_physical_qubits(); ++phy_qid) {
-				var_type var = virtual_physical_var(v_qid, phy_qid);
+		std::vector<wire_id> mapping(network_.num_qubits(), wire::invalid);
+		for (uint32_t v_qid = 0; v_qid < num_v(); ++v_qid) {
+			for (uint32_t phy_qid = 0; phy_qid < num_phy(); ++phy_qid) {
+				var_type var = v_to_phy_var(v_qid, phy_qid);
 				if (model.at(var) == lbool_type::true_) {
-					mapping.at(v_qid) = phy_qid;
+					mapping.at(v_qid) = wire_id(phy_qid, true);
 					break;
 				}
 			}
 		}
-		for (uint32_t phy_qid = 0; phy_qid < num_physical_qubits(); ++phy_qid) {
+		for (uint32_t phy_qid = 0; phy_qid < num_phy(); ++phy_qid) {
 			bool used = false;
-			for (uint32_t v_qid = 0; v_qid < num_virtual_qubits(); ++v_qid) {
-				var_type var = virtual_physical_var(v_qid, phy_qid);
+			for (uint32_t v_qid = 0; v_qid < num_v(); ++v_qid) {
+				var_type var = v_to_phy_var(v_qid, phy_qid);
 				if (model.at(var) == lbool_type::true_) {
 					used = true;
 					break;
 				}
 			}
 			if (!used) {
-				mapping.push_back(phy_qid);
+				mapping.emplace_back(phy_qid, true);
 			}
 		}
 		return mapping;
 	}
 
 private:
-	uint32_t num_physical_qubits() const
+	uint32_t num_phy() const
 	{
 		return device_.num_vertices();
 	}
 
-	uint32_t num_virtual_qubits() const
+	uint32_t num_v() const
 	{
 		return network_.num_qubits();
 	}
@@ -187,9 +186,9 @@ private:
 	{
 		// Condition 2:
 		std::vector<bill::var_type> variables;
-		for (auto v = 0u; v < num_virtual_qubits(); ++v) {
-			for (auto p = 0u; p < num_physical_qubits(); ++p) {
-				variables.emplace_back(virtual_physical_var(v, p));
+		for (auto v = 0u; v < num_v(); ++v) {
+			for (auto p = 0u; p < num_phy(); ++p) {
+				variables.emplace_back(v_to_phy_var(v, p));
 			}
 			at_least_one(variables, solver_);
 			at_most_one_pairwise(variables, solver_);
@@ -197,9 +196,9 @@ private:
 		}
 
 		// Condition 3:
-		for (auto p = 0u; p < num_physical_qubits(); ++p) {
-			for (auto v = 0u; v < num_virtual_qubits(); ++v) {
-				variables.emplace_back(virtual_physical_var(v, p));
+		for (auto p = 0u; p < num_phy(); ++p) {
+			for (auto v = 0u; v < num_v(); ++v) {
+				variables.emplace_back(v_to_phy_var(v, p));
 			}
 			at_most_one_pairwise(variables, solver_);
 			variables.clear();
@@ -207,22 +206,22 @@ private:
 	}
 
 	// Abbreviations:
-	// - c_v_qid (control, virtual qubit identifier)
-	// - t_v_qid (target, virtual qubit identifier)
-	// - c_phy_qid (control, physical qubit identifier)
-	// - t_phy_qid (target, physical qubit identifier)
-	void gate_constraints(uint32_t c_v_qid, uint32_t t_v_qid)
+	// - c_v (control, virtual qubit identifier)
+	// - t_v (target, virtual qubit identifier)
+	// - c_phy (control, physical qubit identifier)
+	// - t_phy (target, physical qubit identifier)
+	void gate_constraints(uint32_t c_v, uint32_t t_v)
 	{
 		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.get_coupling_matrix();
 		std::vector<bill::lit_type> clause;
-		for (uint32_t t_phy_qid = 0; t_phy_qid < num_physical_qubits(); ++t_phy_qid) {
-			uint32_t t_v_phy_var = virtual_physical_var(t_v_qid, t_phy_qid);
+		for (uint32_t t_phy = 0; t_phy < num_phy(); ++t_phy) {
+			uint32_t t_v_phy_var = v_to_phy_var(t_v, t_phy);
 			clause.emplace_back(t_v_phy_var, bill::negative_polarity);
-			for (uint32_t c_phy_qid = 0; c_phy_qid < num_physical_qubits(); ++c_phy_qid) {
-				if (c_phy_qid == t_phy_qid || !coupling_matrix.at(c_phy_qid, t_phy_qid)) {
+			for (uint32_t c_phy = 0; c_phy < num_phy(); ++c_phy) {
+				if (c_phy == t_phy || !coupling_matrix.at(c_phy, t_phy)) {
 					continue;
 				}
-				uint32_t c_v_phy_var = virtual_physical_var(c_v_qid, c_phy_qid);
+				uint32_t c_v_phy_var = v_to_phy_var(c_v, c_phy);
 				clause.emplace_back(c_v_phy_var, bill::positive_polarity);
 			}
 			solver_.add_clause(clause);
@@ -230,20 +229,20 @@ private:
 		}
 	}
 
-	var_type gate_act_constraints(uint32_t c_v_qid, uint32_t t_v_qid)
+	var_type gate_act_constraints(uint32_t c_v, uint32_t t_v)
 	{
 		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.get_coupling_matrix();
 		std::vector<bill::lit_type> clause;
 		var_type act_var = solver_.add_variable();
-		for (uint32_t t_phy_qid = 0; t_phy_qid < num_physical_qubits(); ++t_phy_qid) {
-			uint32_t t_v_phy_var = virtual_physical_var(t_v_qid, t_phy_qid);
+		for (uint32_t t_phy = 0; t_phy < num_phy(); ++t_phy) {
+			uint32_t t_v_phy_var = v_to_phy_var(t_v, t_phy);
 			clause.emplace_back(act_var, bill::negative_polarity);
 			clause.emplace_back(t_v_phy_var, bill::negative_polarity);
-			for (uint32_t c_phy_qid = 0; c_phy_qid < num_physical_qubits(); ++c_phy_qid) {
-				if (c_phy_qid == t_phy_qid || !coupling_matrix.at(c_phy_qid, t_phy_qid)) {
+			for (uint32_t c_phy = 0; c_phy < num_phy(); ++c_phy) {
+				if (c_phy == t_phy || !coupling_matrix.at(c_phy, t_phy)) {
 					continue;
 				}
-				uint32_t c_v_phy_var = virtual_physical_var(c_v_qid, c_phy_qid);
+				uint32_t c_v_phy_var = v_to_phy_var(c_v, c_phy);
 				clause.emplace_back(c_v_phy_var, bill::positive_polarity);
 			}
 			solver_.add_clause(clause);
@@ -253,9 +252,9 @@ private:
 	}
 
 private:
-	bill::var_type virtual_physical_var(uint32_t virtual_id, uint32_t physical_id)
+	bill::var_type v_to_phy_var(uint32_t virtual_id, uint32_t physical_id)
 	{
-		return virtual_id * num_physical_qubits() + physical_id;
+		return virtual_id * num_phy() + physical_id;
 	}
 
 	uint32_t triangle_to_vector_idx(uint32_t i, uint32_t j)
@@ -263,7 +262,7 @@ private:
 		if (i > j) {
 			std::swap(i, j);
 		}
-		return i * num_virtual_qubits() - (i - 1) * i / 2 + j - i;
+		return i * num_v() - (i - 1) * i / 2 + j - i;
 	}
 
 private:
@@ -277,12 +276,12 @@ private:
 	std::vector<lbool_type> model_;
 
 	// Qubit normalization
-	std::vector<uint32_t> io_qid_map_;
-	std::vector<io_id> qid_io_map_;
+	std::vector<wire_id> wire_to_v_;
+	std::vector<wire_id> v_to_wire_;
 };
 
 template<typename Network>
-std::vector<uint32_t> map_without_swaps(Network const& network, device const& device)
+std::vector<wire_id> map_without_swaps(Network const& network, device const& device)
 {
 	bill::solver solver;
 	map_cnf_encoder encoder(network, device, solver);
@@ -295,34 +294,34 @@ std::vector<uint32_t> map_without_swaps(Network const& network, device const& de
 /*! \brief
  */
 template<typename Network>
-mapping_view<Network> sat_map(Network const& network, device const& device)
+mapped_dag sat_map(Network const& original, device const& device)
 {
-	mapping_view<Network> mapped_network(network, device);
+	mapped_dag mapped(original, device);
 
-	std::vector<uint32_t> mapping = detail::map_without_swaps(network, device);
+	std::vector<wire_id> mapping = detail::map_without_swaps(original, device);
 	if (mapping.empty()) {
-		return mapped_network;
+		return mapped;
 	}
-	mapped_network.set_virtual_phy_map(mapping);
-	network.foreach_gate([&](auto const& node) {
-		if (node.gate.is_single_qubit()) {
-			mapped_network.add_gate(node.gate, node.gate.target());
-			return;
+	mapped.v_to_phy(mapping);
+	original.foreach_op([&](auto const& node) {
+		auto const& op = node.operation;
+		if (op.gate.is_one_qubit()) {
+			mapped.add_op(op.gate, op.target());
+		} else if (node.operation.gate.is_two_qubit()) {
+			mapped.add_op(op.gate, op.control(), op.target());
 		}
-		mapped_network.add_gate(node.gate, node.gate.control(), node.gate.target());
 	});
 
-	return mapped_network;
+	return mapped;
 }
 
 /*! \brief
  */
 template<typename Network>
-std::vector<uint32_t> sat_initial_map(Network const& network, device const& device)
+std::vector<wire_id> sat_initial_map(Network const& network, device const& device)
 {
 	bill::solver solver;
 	detail::map_cnf_encoder encoder(network, device, solver);
-	// return encoder.run_incrementally();
 	return encoder.run_greedly();
 }
 

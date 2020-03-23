@@ -4,9 +4,8 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../../gates/gate_base.hpp"
-#include "../../../gates/gate_lib.hpp"
-#include "../../../networks/io_id.hpp"
+#include "../../../gates/gate.hpp"
+#include "../../../networks/wire_id.hpp"
 
 namespace tweedledum::detail {
 
@@ -24,24 +23,24 @@ namespace tweedledum::detail {
  * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
-void ccz_(Network& network, io_id x, io_id y, io_id z)
+void ccz(Network& network, wire_id x, wire_id y, wire_id z)
 {
 	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());
-	network.add_gate(gate::cx, y.id(), z);
-	network.add_gate(x.is_complemented() ? gate::t : gate::t_dagger, z);
-	network.add_gate(gate::cx, x.id(), z);
-	network.add_gate(gate::t, z);
-	network.add_gate(gate::cx, y.id(), z);
-	network.add_gate(y.is_complemented() ? gate::t : gate::t_dagger, z);
-	network.add_gate(gate::cx, x.id(), z);
-	network.add_gate(x.is_complemented() && !y.is_complemented()? gate::t_dagger : gate::t, z);
+	network.create_op(gate_lib::cx, y.id(), z);
+	network.create_op(x.is_complemented() ? gate_lib::t : gate_lib::tdg, z);
+	network.create_op(gate_lib::cx, x.id(), z);
+	network.create_op(gate_lib::t, z);
+	network.create_op(gate_lib::cx, y.id(), z);
+	network.create_op(y.is_complemented() ? gate_lib::t : gate_lib::tdg, z);
+	network.create_op(gate_lib::cx, x.id(), z);
+	network.create_op(x.is_complemented() && !y.is_complemented()? gate_lib::tdg : gate_lib::t, z);
 	
-	network.add_gate(gate::cx, x.id(), y);
-	network.add_gate(gate::t_dagger, y);
-	network.add_gate(gate::cx, x.id(), y);
-	network.add_gate(y.is_complemented() ? gate::t_dagger : gate::t, x);
-	network.add_gate(x.is_complemented() ? gate::t_dagger : gate::t, y);
+	network.create_op(gate_lib::cx, x.id(), y);
+	network.create_op(gate_lib::tdg, y);
+	network.create_op(gate_lib::cx, x.id(), y);
+	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x);
+	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y);
 }
 
 /* Better T gate parallelization at the expense of an extra CNOT gate.
@@ -60,37 +59,27 @@ void ccz_(Network& network, io_id x, io_id y, io_id z)
  * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
-void ccz_tpar(Network& network, io_id x, io_id y, io_id z)
+void ccz_tpar(Network& network, wire_id x, wire_id y, wire_id z)
 {
 	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());
-	network.add_gate(y.is_complemented() ? gate::t_dagger : gate::t, x.id());
-	network.add_gate(x.is_complemented() ? gate::t_dagger : gate::t, y.id());
-	network.add_gate(x.is_complemented() && !y.is_complemented() ? gate::t_dagger : gate::t, z);
+	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x.id());
+	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y.id());
+	network.create_op(x.is_complemented() && !y.is_complemented() ? gate_lib::tdg : gate_lib::t, z);
 
-	network.add_gate(gate::cx, x.id(), y.id());
-	network.add_gate(gate::cx, y.id(), z);
-	network.add_gate(gate::cx, z, x.id());
+	network.create_op(gate_lib::cx, x.id(), y.id());
+	network.create_op(gate_lib::cx, y.id(), z);
+	network.create_op(gate_lib::cx, z, x.id());
 
-	network.add_gate(x.is_complemented() ? gate::t : gate::t_dagger, x);
-	network.add_gate(gate::t_dagger, y.id());
-	network.add_gate(gate::t, z);
+	network.create_op(x.is_complemented() ? gate_lib::t : gate_lib::tdg, x);
+	network.create_op(gate_lib::tdg, y.id());
+	network.create_op(gate_lib::t, z);
 
-	network.add_gate(gate::cx, y.id(), x.id());
-	network.add_gate(y.is_complemented() ? gate::t : gate::t_dagger, x);
-	network.add_gate(gate::cx, y.id(), z);
-	network.add_gate(gate::cx, z, x.id());
-	network.add_gate(gate::cx, x.id(), y.id());
-}
-
-template<typename Network>
-void ccz(Network& network, io_id x, io_id y, io_id z, bool use_t_par)
-{
-	if (use_t_par) {
-		ccz_tpar(network, x, y, z);
-	} else {
-		ccz_(network, x, y, z);
-	}
+	network.create_op(gate_lib::cx, y.id(), x.id());
+	network.create_op(y.is_complemented() ? gate_lib::t : gate_lib::tdg, x);
+	network.create_op(gate_lib::cx, y.id(), z);
+	network.create_op(gate_lib::cx, z, x.id());
+	network.create_op(gate_lib::cx, x.id(), y.id());
 }
 
 } // namespace tweedledum::detail

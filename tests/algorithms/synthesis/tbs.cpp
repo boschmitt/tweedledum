@@ -2,18 +2,20 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
+#include "tweedledum/algorithms/synthesis/tbs.hpp"
+
+#include "tweedledum/algorithms/simulation/simulate_classically.hpp"
+#include "tweedledum/gates/wn32_op.hpp"
+#include "tweedledum/networks/netlist.hpp"
+#include "tweedledum/networks/op_dag.hpp"
+
 #include <catch.hpp>
 #include <cstdint>
-#include <tweedledum/algorithms/simulation/simulate_classically.hpp>
-#include <tweedledum/algorithms/synthesis/tbs.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/gg_network.hpp>
-#include <tweedledum/networks/netlist.hpp>
 #include <vector>
 
 using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Transformation based synthesis", "[tbs][template]",
-                           (gg_network, netlist), (mcmt_gate))
+                           (op_dag, netlist), (wn32_op))
 {
 	std::vector<uint32_t> permutation = {0, 2, 3, 5, 7, 1, 4, 6};
 	SECTION("Synthesize PRIME(3) - unidirectional TBS")

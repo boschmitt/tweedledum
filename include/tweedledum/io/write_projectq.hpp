@@ -65,7 +65,7 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 
 		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
-			if (rotation_angle == angles::pi) {
+			if (rotation_angle == sym_angle::pi) {
 				os << fmt::format("X | {}\n", targets);
 			} else {
 				os << fmt::format("Rx({}) | {}\n", rotation_angle.numeric_value(),
@@ -75,7 +75,7 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 
 		case gate_lib::ry: {
 			angle rotation_angle = gate.rotation_angle();
-			if (rotation_angle == angles::pi) {
+			if (rotation_angle == sym_angle::pi) {
 				os << fmt::format("Y | {}\n", targets);
 			} else {
 				os << fmt::format("Ry({}) | {}\n", rotation_angle.numeric_value(),
@@ -85,15 +85,15 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
 
 		case gate_lib::rz: {
 			angle rotation_angle = node.gate.rotation_angle();
-			if (rotation_angle == angles::pi_quarter) {
+			if (rotation_angle == sym_angle::pi_quarter) {
 				os << fmt::format("T | {}\n", targets);
-			} else if (rotation_angle == -angles::pi_quarter) {
+			} else if (rotation_angle == -sym_angle::pi_quarter) {
 				os << fmt::format("Tdag | {}\n", targets);
-			} else if (rotation_angle == angles::pi_half) {
+			} else if (rotation_angle == sym_angle::pi_half) {
 				os << fmt::format("S | {}\n", targets);
-			} else if (rotation_angle == -angles::pi_half) {
+			} else if (rotation_angle == -sym_angle::pi_half) {
 				os << fmt::format("Sdag | {}\n", targets);
-			} else if (rotation_angle == angles::pi) {
+			} else if (rotation_angle == sym_angle::pi) {
 				os << fmt::format("Z | {}\n", targets);
 			} else {
 				os << fmt::format("Rz({}) | {}\n", rotation_angle.numeric_value(),

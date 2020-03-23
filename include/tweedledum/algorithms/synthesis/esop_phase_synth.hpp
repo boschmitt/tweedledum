@@ -4,7 +4,8 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/netlist.hpp"
+#include "../../gates/gate.hpp"
+#include "../../networks/wire_id.hpp"
 
 #include <easy/esop/esop_from_pprm.hpp>
 #include <vector>
@@ -22,12 +23,12 @@ namespace tweedledum {
  * \param function A Boolean function
  */
 template<typename Network>
-void esop_phase_synth(Network& network, std::vector<io_id> const& qubits,
+void esop_phase_synth(Network& network, std::vector<wire_id> const& qubits,
                       kitty::dynamic_truth_table const& function)
 {
 	for (const auto& cube : easy::esop::esop_from_pprm(function)) {
-		std::vector<io_id> controls;
-		std::vector<io_id> targets;
+		std::vector<wire_id> controls;
+		std::vector<wire_id> targets;
 		for (auto i = 0; i < function.num_vars(); ++i) {
 			if (!cube.get_mask(i)) {
 				continue;
@@ -40,7 +41,7 @@ void esop_phase_synth(Network& network, std::vector<io_id> const& qubits,
 			}
 		}
 		if (!targets.empty()) {
-			network.add_gate(gate::mcz, controls, targets);
+			network.create_op(gate_lib::ncz, controls, targets);
 		}
 	}
 }
@@ -64,11 +65,12 @@ template<class Network>
 Network esop_phase_synth(kitty::dynamic_truth_table const& function)
 {
 	Network network;
-	const uint32_t num_qubits = function.num_vars();
-	for (auto i = 0u; i < num_qubits; ++i) {
-		network.add_qubit();
+	uint32_t const num_qubits = function.num_vars();
+	std::vector<wire_id> qubits;
+	for (uint32_t i = 0u; i < num_qubits; ++i) {
+		qubits.emplace_back(network.create_qubit());
 	}
-	esop_phase_synth(network, network.wiring_map(), function);
+	esop_phase_synth(network, qubits, function);
 	return network;
 }
 

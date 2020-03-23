@@ -72,6 +72,9 @@ public:
 	constexpr angle operator-() const
 	{
 		angle result = *this;
+		if (result.numerical_ == 0.0) {
+			return result;
+		}
 		if (!is_numerically_defined()) {
 			result.numerator_ = -numerator_;
 		}
@@ -107,15 +110,13 @@ public:
 
 	friend angle operator+(angle lhs, angle const& rhs)
 	{
-		if (lhs.is_numerically_defined() || rhs.is_numerically_defined()) {
-			lhs.denominator_ = 0;
-			lhs.numerical_ = lhs.numeric_value() + rhs.numeric_value();
-			return lhs;
-		}
-		lhs.numerator_ = (lhs.numerator_ * rhs.denominator_)
-		                 + (rhs.numerator_ * lhs.denominator_);
-		lhs.denominator_ = lhs.denominator_ * rhs.denominator_;
-		lhs.normalize();
+		lhs += rhs;
+		return lhs;
+	}
+
+	friend angle operator-(angle lhs, angle const& rhs)
+	{
+		lhs += -rhs;
 		return lhs;
 	}
 
@@ -127,6 +128,18 @@ public:
 			return lhs;
 		}
 		lhs.numerator_ = (lhs.numerator_ * rhs);
+		lhs.normalize();
+		return lhs;
+	}
+
+	friend angle operator/(angle lhs, int32_t const& rhs)
+	{
+		if (lhs.is_numerically_defined()) {
+			lhs.denominator_ = 0;
+			lhs.numerical_ = lhs.numeric_value() / rhs;
+			return lhs;
+		}
+		lhs.denominator_ = (lhs.denominator_ * rhs);
 		lhs.normalize();
 		return lhs;
 	}
@@ -181,7 +194,7 @@ private:
 				denominator_ = std::abs(denominator_);
 			}
 			auto tmp = std::gcd(numerator_, denominator_);
-			numerator_ = numerator_ / tmp * sign;
+			numerator_ = (numerator_ / tmp) * sign;
 			denominator_ = denominator_ / tmp;
 		}
 		if (denominator_ == 1) {
@@ -191,12 +204,12 @@ private:
 	}
 
 private:
-	int64_t numerator_ : 32;
-	int64_t denominator_ : 32;
+	int32_t numerator_;
+	int32_t denominator_;
 	double numerical_;
 };
 
-namespace angles {
+namespace sym_angle {
 /*! \brief identity */
 constexpr angle zero(0, 1);
 /*! \brief rotation angle of a T gate */

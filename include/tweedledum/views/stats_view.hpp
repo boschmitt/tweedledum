@@ -93,19 +93,19 @@ private:
 			return;
 		}
 		// Try to identify gates based on known rotations
-		if (rotation_angle == angles::pi_quarter) {
+		if (rotation_angle == sym_angle::pi_quarter) {
 			num_t_ += 1;
 			return;
-		} else if (rotation_angle == -angles::pi_quarter) {
+		} else if (rotation_angle == -sym_angle::pi_quarter) {
 			num_t_ += 1;
 			return;
-		} else if (rotation_angle == angles::pi_half) {
+		} else if (rotation_angle == sym_angle::pi_half) {
 			num_phase_ += 1;
 			return;
-		} else if (rotation_angle == -angles::pi_half) {
+		} else if (rotation_angle == -sym_angle::pi_half) {
 			num_phase_ += 1;
 			return;
-		} else if (rotation_angle == angles::pi) {
+		} else if (rotation_angle == sym_angle::pi) {
 			num_pauli_z_ += 1;
 			return;
 		}
@@ -155,13 +155,13 @@ private:
 				return;
 			}
 			if (node.gate.is(gate_lib::rx)) {
-				if (node.gate.rotation_angle() == angles::pi) {
+				if (node.gate.rotation_angle() == sym_angle::pi) {
 					num_pauli_x_ += 1;
 					return;
 				}
 			}
 			if (node.gate.is(gate_lib::ry)) {
-				if (node.gate.rotation_angle() == angles::pi) {
+				if (node.gate.rotation_angle() == sym_angle::pi) {
 					num_pauli_y_ += 1;
 					return;
 				}

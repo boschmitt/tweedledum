@@ -4,16 +4,12 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../gates/gate_lib.hpp"
-#include "../gates/gate_base.hpp"
-#include "../networks/io_id.hpp"
-#include "../program.hpp"
+#include "../gates/gate.hpp"
+#include "../networks/wire_id.hpp"
 
 #include <cassert>
-#include <fmt/color.h>
 #include <fmt/format.h>
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <vector>
 #include <tweedledee/qasm/ast/visitor.hpp>
@@ -49,35 +45,46 @@ public:
 	void visit_stmt_gate(stmt_gate* node)
 	{
 		using namespace tweedledum;
-		auto gate_id = static_cast<decl_gate*>(node->gate())->identifier();
+		auto gate_ids = static_cast<decl_gate*>(node->gate())->identifier();
 		auto arguments_list = visit_list_any(static_cast<list_any*>(node->arguments()));
 		auto parameters = node->parameters();
-		if (gate_id == "cx") {
-			network_.add_gate(gate::cx, arguments_list[0], arguments_list[1]);
-		} else if (gate_id == "h") {
-			network_.add_gate(gate::hadamard, arguments_list[0]);
-		} else if (gate_id == "x") {
-			network_.add_gate(gate::pauli_x, arguments_list[0]);
-		} else if (gate_id == "y") {
-			network_.add_gate(gate::pauli_y, arguments_list[0]);
-		} else if (gate_id == "rz") {
+		if (gate_ids == "id") {
+			network_.create_op(gate_lib::i, arguments_list[0]);
+		} else if (gate_ids == "h") {
+			network_.create_op(gate_lib::h, arguments_list[0]); 
+		} else if (gate_ids == "x") {
+			network_.create_op(gate_lib::x, arguments_list[0]); 
+		} else if (gate_ids == "y") {
+			network_.create_op(gate_lib::y, arguments_list[0]); 
+		} else if (gate_ids == "z") {
+			network_.create_op(gate_lib::z, arguments_list[0]); 
+		} else if (gate_ids == "s") {
+			network_.create_op(gate_lib::s, arguments_list[0]); 
+		} else if (gate_ids == "sdg") {
+			network_.create_op(gate_lib::sdg, arguments_list[0]); 
+		} else if (gate_ids == "t") {
+			network_.create_op(gate_lib::t, arguments_list[0]); 
+		} else if (gate_ids == "tdg") {
+			network_.create_op(gate_lib::tdg, arguments_list[0]); 
+		} else if (gate_ids == "cx") {
+			network_.create_op(gate_lib::cx, arguments_list[0], arguments_list[1]);
+		} else if (gate_ids == "cy") {
+			network_.create_op(gate_lib::cy, arguments_list[0], arguments_list[1]);
+		} else if (gate_ids == "cz") {
+			network_.create_op(gate_lib::cz, arguments_list[0], arguments_list[1]);
+		} else if (gate_ids == "swap") {
+			network_.create_op(gate_lib::swap, arguments_list[0], arguments_list[1]);
+		} else if (gate_ids == "ccx") {
+			network_.create_op(gate_lib::ncx, arguments_list[0], arguments_list[1],
+			                   arguments_list[2]);
+		} else if (gate_ids == "rz") {
 			// FIXME: this is a hack! I need to properly implement expression evaluation
 			assert(parameters != nullptr);
 			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
 			double angle = evaluate(parameter);
-			network_.add_gate(gate_base(gate_lib::rz, angle), arguments_list[0]); 
-		} else if (gate_id == "t") {
-			network_.add_gate(gate::t, arguments_list[0]);
-		} else if (gate_id == "s") {
-			network_.add_gate(gate::phase, arguments_list[0]);
-		} else if (gate_id == "z") {
-			network_.add_gate(gate::pauli_z, arguments_list[0]);
-		} else if (gate_id == "sdg") {
-			network_.add_gate(gate::phase_dagger, arguments_list[0]);
-		} else if (gate_id == "tdg") {
-			network_.add_gate(gate::t_dagger, arguments_list[0]);
+			network_.create_op(gate_lib::rz(angle), arguments_list[0]);
 		} else {
-			fmt::print("Unrecognized gate: {}\n", gate_id);
+			fmt::print("Unrecognized gate: {}\n", gate_ids);
 			assert(0);
 		}
 	}
@@ -97,11 +104,11 @@ public:
 		std::string_view register_name = node->identifier();
 		if (node->is_quantum()) {
 			for (uint32_t i = 0u; i < node->size(); ++i) {
-				network_.add_qubit(fmt::format("{}_{}", register_name, i));
+				network_.create_qubit(fmt::format("{}_{}", register_name, i));
 			}
 		} else {
 			for (uint32_t i = 0u; i < node->size(); ++i) {
-				network_.add_cbit(fmt::format("{}_{}", register_name, i));
+				network_.create_cbit(fmt::format("{}_{}", register_name, i));
 			}
 		}
 	}
@@ -133,6 +140,21 @@ private:
 } // namespace tweedledee::qasm
 
 namespace tweedledum {
+
+/*! \brief Reads OPENQASM 2.0 format
+ */
+template<typename Network>
+Network read_qasm_from_buffer(std::string const& buffer)
+{
+	using namespace tweedledee::qasm;
+	Network network;
+	auto program_ast = read_from_buffer(buffer);
+	if (program_ast) {
+		tweedledum_visitor network_builder(network);
+		network_builder.visit(*program_ast);
+	}
+	return network;
+}
 
 /*! \brief Reads OPENQASM 2.0 format
  */
@@ -170,134 +192,89 @@ void write_qasm(Network const& network, std::ostream& os)
 		os << fmt::format("creg c[{}];\n", network.num_cbits());
 	}
 
-	network.foreach_gate([&](auto const& node) {
-		auto const& gate = node.gate;
-		switch (gate.operation()) {
+	network.foreach_op([&](auto const& node) {
+		auto const& operation = node.operation;
+		switch (operation.gate.id()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
-			assert(0);
 			return true;
-
-		case gate_lib::hadamard:
-			gate.foreach_target([&](auto target) { os << fmt::format("h q[{}];\n", target); });
+		// Non-parameterisable gates
+		case gate_ids::i:
+			os << fmt::format("id q[{}];\n", operation.target().id());
 			break;
 
-		case gate_lib::rx: {
-			angle rotation_angle = gate.rotation_angle();
-			if (rotation_angle == angles::pi) {
-				gate.foreach_target([&](auto target) { 
-					os << fmt::format("x q[{}];\n", target); 
-				});
-			} else {
-				gate.foreach_target([&](auto target) { 
-					os << fmt::format("rx({}) q[{}];\n", gate.rotation_angle(), target);
-				});
-			}
-		} break;
-
-		case gate_lib::ry:
-			gate.foreach_target([&](auto target) {
-				os << fmt::format("ry({}) q[{}];\n", gate.rotation_angle(), target);
-			});
+		case gate_ids::h:
+			os << fmt::format("h q[{}];\n", operation.target().id());
 			break;
 
-		case gate_lib::rz: {
-			angle rotation_angle = gate.rotation_angle();
-			std::string symbol;
-			if (rotation_angle == angles::pi_quarter) {
-				symbol = "t";;
-			} else if (rotation_angle == -angles::pi_quarter) {
-				symbol = "tdg";
-			} else if (rotation_angle == angles::pi_half) {
-				symbol = "s";
-			} else if (rotation_angle == -angles::pi_half) {
-				symbol = "sdg";
-			} else if (rotation_angle == angles::pi) {
-				symbol = "z";
-			} else {
-				gate.foreach_target([&](auto target) {
-					os << fmt::format("rz({}) q[{}];\n", gate.rotation_angle(), target);
-				});
-				break;
-			}
-			gate.foreach_target([&](auto target) {
-				os << fmt::format("{} q[{}];\n", symbol, target);
-			});
-		} break;
-
-		case gate_lib::cx:
-			gate.foreach_control([&](auto control) {
-				if (control.is_complemented()) {
-					os << fmt::format("x q[{}];\n", control.index());
-				}
-				gate.foreach_target([&](auto target) {
-					os << fmt::format("cx q[{}], q[{}];\n", control.index(), target);
-				});
-				if (control.is_complemented()) {
-					os << fmt::format("x q[{}];\n", control.index());
-				}
-			});
+		case gate_ids::x:
+			os << fmt::format("x q[{}];\n", operation.target().id());
 			break;
 
-		case gate_lib::swap: {
-			std::vector<io_id> targets;
-			gate.foreach_target([&](auto target) {
-				targets.push_back(target);
-			});
-			os << fmt::format("cx q[{}], q[{}];\n", targets[0], targets[1]);
-			os << fmt::format("cx q[{}], q[{}];\n", targets[1], targets[0]);
-			os << fmt::format("cx q[{}], q[{}];\n", targets[0], targets[1]);
-		} break;
+		case gate_ids::y:
+			os << fmt::format("y q[{}];\n", operation.target().id());
+			break;
 
-		case gate_lib::mcx: {
-			std::vector<io_id> controls;
-			std::vector<io_id> targets;
-			gate.foreach_control([&](auto control) {
-				if (control.is_complemented()) {
-					os << fmt::format("x q[{}];\n", control.index());
-				}
-				controls.push_back(control.id()); 
-			});
-			gate.foreach_target([&](auto target) {
-				targets.push_back(target);
-			});
-			switch (controls.size()) {
-			default:
-				std::cerr << "[w] unsupported control size\n";
-				assert(0);
-				return true;
+		case gate_ids::z:
+			os << fmt::format("z q[{}];\n", operation.target().id());
+			break;
 
-			case 0u:
-				for (auto q : targets) {
-					os << fmt::format("x q[{}];\n", q);
-				}
-				break;
+		case gate_ids::s:
+			os << fmt::format("s q[{}];\n", operation.target().id());
+			break;
 
-			case 1u:
-				for (auto q : targets) {
-					os << fmt::format("cx q[{}],q[{}];\n", controls[0], q);
-				}
-				break;
+		case gate_ids::sdg:
+			os << fmt::format("sdg q[{}];\n", operation.target().id());
+			break;
 
-			case 2u:
-				for (auto i = 1u; i < targets.size(); ++i) {
-					os << fmt::format("cx q[{}], q[{}];\n", targets[0],
-					                   targets[i]);
-				}
-				os << fmt::format("ccx q[{}], q[{}], q[{}];\n", controls[0],
-				                   controls[1], targets[0]);
-				for (auto i = 1u; i < targets.size(); ++i) {
-					os << fmt::format("cx q[{}], q[{}];\n", targets[0],
-					                   targets[i]);
-				}
-				break;
-			}
-			gate.foreach_control([&](auto control) {
-				if (control.is_complemented()) {
-					os << fmt::format("x q[{}];\n", control.index());
-				}
-			});
-		} break;
+		case gate_ids::t:
+			os << fmt::format("t q[{}];\n", operation.target().id());
+			break;
+
+		case gate_ids::tdg:
+			os << fmt::format("tdg q[{}];\n", operation.target().id());
+			break;
+
+		case gate_ids::cx:
+			os << fmt::format("cx q[{}], q[{}];\n", operation.control().id(),
+			                  operation.target().id());
+			break;
+
+		case gate_ids::cy:
+			os << fmt::format("cy q[{}], q[{}];\n", operation.control().id(),
+			                  operation.target().id());
+			break;
+
+		case gate_ids::cz:
+			os << fmt::format("cz q[{}], q[{}];\n", operation.control().id(),
+			                  operation.target().id());
+			break;
+
+		case gate_ids::swap:
+			os << fmt::format("swap q[{}], q[{}];\n", operation.target(0u).id(),
+			                  operation.target(1u).id());
+			break;
+
+		case gate_ids::ncx:
+			os << fmt::format("ccx q[{}], q[{}], q[{}];\n", operation.control(0u),
+			                  operation.control(1u).id(), operation.target());
+			break;
+		// Parameterisable gates
+		case gate_ids::r1:
+			os << fmt::format("u1({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			break;
+
+		case gate_ids::rx:
+			os << fmt::format("rx({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			break;
+
+		case gate_ids::ry:
+			os << fmt::format("ry({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			break;
+
+		case gate_ids::rz:
+			os << fmt::format("rz({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			break;
 		}
 		return true;
 	});

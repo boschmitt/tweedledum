@@ -4,8 +4,8 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "tweedledum/gates/gate_lib.hpp"
-#include "tweedledum/networks/io_id.hpp"
+#include "../../gates/gate.hpp"
+#include "../../networks/wire_id.hpp"
 
 #include <mockturtle/traits.hpp>
 #include <vector>
@@ -43,36 +43,54 @@ LogicNtk to_logic_network(QuantumNtk const& quantum_ntk)
 	std::vector<signal_type> qubit_to_signal(quantum_ntk.num_qubits(),
 	                                         logic_ntk.get_constant(false));
 
-	quantum_ntk.foreach_qubit([&](io_id const qubit) {
-		if (quantum_ntk.is_input(qubit)) {
-			qubit_to_signal[qubit] = logic_ntk.create_pi();
+	quantum_ntk.foreach_wire([&](wire_id const wire) {
+		if (!wire.is_qubit()) {
+			return;
+		}
+		switch (quantum_ntk.wire_mode(wire)) {
+		case wire_modes::in:
+		case wire_modes::inout:
+			qubit_to_signal[wire] = logic_ntk.create_pi();
+			break;
+			
+		default:
+			break;
 		}
 	});
 
-	quantum_ntk.foreach_gate([&](auto node) {
+	quantum_ntk.foreach_op([&](auto const& node) {
 		std::vector<signal_type> controls;
 
-		node.gate.foreach_control([&](auto control) { 
+		node.operation.foreach_control([&](wire_id control) { 
 			controls.push_back(qubit_to_signal[control] ^ control.is_complemented());
 		});
 
 		const auto ctrl_signal = logic_ntk.create_nary_and(controls);
 
-		node.gate.foreach_target([&](auto target) {
+		node.operation.foreach_target([&](wire_id target) {
 			qubit_to_signal[target] = logic_ntk.create_xor(qubit_to_signal[target], ctrl_signal);
 		});
 	});
 
-	uint32_t num_outputs = 0;
-	quantum_ntk.foreach_qubit([&](io_id const qubit) {
-		if (quantum_ntk.is_output(qubit)) {
-			++num_outputs;
+	uint32_t num_pos = 0;
+	quantum_ntk.foreach_wire([&](wire_id const wire) {
+		if (!wire.is_qubit()) {
+			return;
+		}
+		switch (quantum_ntk.wire_mode(wire)) {
+		case wire_modes::out:
+		case wire_modes::inout:
+			++num_pos;
+			break;
+
+		default:
+			break;
 		}
 	});
-	for (uint32_t i = 0; i < num_outputs; ++i) {
-		logic_ntk.create_po(qubit_to_signal[quantum_ntk.id(fmt::format("o_{}", i))]);
+	// I need this hack, otherwise the outputs might be permuted
+	for (uint32_t po = 0; po < num_pos; ++po) {
+		logic_ntk.create_po(qubit_to_signal[quantum_ntk.wire(fmt::format("__o_{}", po))]);
 	}
-
 	return logic_ntk;
 }
 

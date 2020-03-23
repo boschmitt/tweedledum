@@ -2,25 +2,28 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
-#include <catch.hpp>
+// FIXME: There are conflicts betweend SAT solver, so this header need to appear first! Quite wierd!
 #include <mockturtle/algorithms/equivalence_checking.hpp>
+
+#include "tweedledum/algorithms/synthesis/oracles/xag_synth.hpp"
+
+#include "tweedledum/algorithms/generic/to_logic_network.hpp"
+#include "tweedledum/gates/w3_op.hpp"
+#include "tweedledum/gates/wn32_op.hpp"
+#include "tweedledum/io/write_utf8.hpp"
+#include "tweedledum/networks/netlist.hpp"
+#include "tweedledum/networks/op_dag.hpp"
+#include "tweedledum/networks/wire_id.hpp"
+
+#include <catch.hpp>
 #include <mockturtle/algorithms/miter.hpp>
-#include <mockturtle/algorithms/simulation.hpp>
 #include <mockturtle/networks/xag.hpp>
-#include <tweedledum/algorithms/generic/to_logic_network.hpp>
-#include <tweedledum/algorithms/synthesis/oracles/xag_synth.hpp>
-#include <tweedledum/gates/io3_gate.hpp>
-#include <tweedledum/gates/mcmt_gate.hpp>
-#include <tweedledum/networks/gg_network.hpp>
-#include <tweedledum/networks/io_id.hpp>
-#include <tweedledum/networks/netlist.hpp>
-#include <tweedledum/io/write_unicode.hpp>
 
 using namespace mockturtle;
 using namespace tweedledum;
 
 TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis", "[oracle_synthesis][template]",
-                           (gg_network, netlist), (io3_gate, mcmt_gate))
+                           (op_dag, netlist), (w3_op, wn32_op))
 {
 	auto oracle = xag_network();
 	auto a = oracle.create_pi();
@@ -33,7 +36,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis", "[oracle_synthesis][template]
 }
 
 TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 2", "[oracle_synthesis][template]",
-                           (gg_network), (io3_gate))
+                           (op_dag), (w3_op))
 {
 	auto oracle = xag_network();
 	auto a = oracle.create_pi();
@@ -60,8 +63,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 2", "[oracle_synthesis][templat
 	CHECK(*result);
 }
 
-TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 3", "[oracle_synthesis][template]",
-                           (gg_network), (io3_gate))
+TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 3", "[oracle_synthesis][template]", (op_dag),
+                           (w3_op))
 {
 	/* Test includeness */
 	auto oracle = mockturtle::xag_network();
@@ -77,19 +80,17 @@ TEMPLATE_PRODUCT_TEST_CASE("Simple XAG synthesis 3", "[oracle_synthesis][templat
 	auto n30 = oracle.create_and(x0, x3);
 	auto n31 = oracle.create_and(n16 ^ 1, n30);
 	auto n32 = oracle.create_and(n31, n20 ^ 1);
-	auto n33 = oracle.create_and(n31, n31);
 	oracle.create_po(n32);
 	oracle.create_po(n32 ^ 1);
 	oracle.create_po(n32);
 	oracle.create_po(oracle.get_constant(false));
 	oracle.create_po(x3 ^ 1);
-	oracle.create_po(n33);
 
 	TestType quantum_ntk;
 	xag_synth(quantum_ntk, oracle);
 	auto out_network = to_logic_network<mockturtle::xag_network>(quantum_ntk);
 	CHECK(out_network.num_pis() == 5u);
-	CHECK(out_network.num_pos() == 6u);
+	CHECK(out_network.num_pos() == 5u);
 
 	const auto miter = *mockturtle::miter<mockturtle::xag_network>(oracle, out_network);
 	const auto result = mockturtle::equivalence_checking(miter);

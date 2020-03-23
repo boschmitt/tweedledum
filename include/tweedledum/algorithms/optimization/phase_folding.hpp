@@ -4,15 +4,13 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../generic/shallow_duplicate.hpp"
-#include "../../networks/io_id.hpp"
+#include "../../gates/gate.hpp"
+#include "../../networks/wire_id.hpp"
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
-#include "../../views/pathsum_view.hpp"
 
 #include <cstdint>
-#include <fmt/format.h>
-#include <iostream>
+#include <limits>
 #include <vector>
 
 namespace tweedledum {
@@ -20,36 +18,102 @@ namespace tweedledum {
 /*! \brief TODO
  */
 template<typename Network>
-Network phase_folding(Network const& network)
+Network phase_folding(Network const& original)
 {
-	using term_type = typename pathsum_view<Network>::esop_type;
-	Network result = shallow_duplicate(network);
-	parity_terms<term_type> parities;
+	using sum_type = std::vector<uint32_t>;
+	constexpr uint32_t qid_max = std::numeric_limits<uint32_t>::max();
 
-	pathsum_view pathsums(network);
-	// Go through the network and merge angles of rotations being applied to the same pathsum.
-	network.foreach_gate([&](auto const& node) {
-		if (!node.gate.is_z_rotation()) {
+	Network optmized;
+	uint32_t num_path_vars = 1u;
+	std::vector<uint32_t> wire_to_qid(original.num_wires(), qid_max);
+	std::vector<sum_type> qubit_pathsum;
+
+	original.foreach_wire([&](wire_id w_id, std::string const& label) {
+		if (!w_id.is_qubit()) {
+			optmized.create_cbit(label);
 			return;
-		}
-		auto term = pathsums.get_pathsum(node);
-		parities.add_term(term, node.gate.rotation_angle());
+		};
+		optmized.create_qubit(label);
+		wire_to_qid.at(w_id) = qubit_pathsum.size();
+		qubit_pathsum.emplace_back(1u, (num_path_vars++ << 1));
 	});
 
-	network.foreach_gate([&](auto const& node) {
-		if (node.gate.is_z_rotation()) {
+	parity_terms<sum_type> parities;
+	original.foreach_op([&](auto const& node) {
+		auto const& op = node.operation;
+		uint32_t t_qid = wire_to_qid.at(op.target());
+		if (op.gate.axis() == rot_axis::z) {
+			parities.add_term(qubit_pathsum.at(t_qid), op.gate.rotation_angle());
+		}
+		if (op.gate.id() == gate_ids::x) {
+			if (qubit_pathsum.at(t_qid).at(0) == 1u) {
+				qubit_pathsum.at(t_qid).erase(qubit_pathsum.at(t_qid).begin());
+				return;
+			}
+			qubit_pathsum.at(t_qid).insert(qubit_pathsum.at(t_qid).begin(), 1u);
 			return;
 		}
-		result.emplace_gate(node.gate);
-		auto const term = pathsums.get_pathsum(node);
-		auto angle = parities.extract_term(term);
-		if (angle == angles::zero) {
+		if (op.gate.id() == gate_ids::cx) {
+			uint32_t c_qid = wire_to_qid.at(op.control());
+			std::vector<uint32_t> optmized;
+			std::set_symmetric_difference(qubit_pathsum.at(c_qid).begin(),
+			                              qubit_pathsum.at(c_qid).end(),
+			                              qubit_pathsum.at(t_qid).begin(),
+			                              qubit_pathsum.at(t_qid).end(),
+			                              std::back_inserter(optmized));
+			qubit_pathsum.at(t_qid) = optmized;
 			return;
 		}
-		result.add_gate(gate_base(gate_lib::rz, angle), node.gate.target());
+		if (op.gate.id() == gate_ids::swap) {
+			uint32_t t1_qid = wire_to_qid.at(op.target(1u));
+			std::swap(qubit_pathsum.at(t_qid), qubit_pathsum.at(t1_qid));
+			return;
+		}
+		qubit_pathsum.at(t_qid).clear();
+		qubit_pathsum.at(t_qid).emplace_back((num_path_vars++ << 1));
 	});
-	result.rewire(network.wiring_map());
-	return result;
+
+	original.foreach_op([&](auto const& node) {
+		auto const& op = node.operation;
+		if (op.gate.axis() == rot_axis::z) {
+			return;
+		}
+		optmized.emplace_op(op);
+
+		// Could do better that recalculate this
+		uint32_t t_qid = wire_to_qid.at(op.target());
+		if (op.gate.id() == gate_ids::x) {
+			if (qubit_pathsum.at(t_qid).at(0) == 1u) {
+				qubit_pathsum.at(t_qid).erase(qubit_pathsum.at(t_qid).begin());
+			} else {
+				qubit_pathsum.at(t_qid).insert(qubit_pathsum.at(t_qid).begin(), 1u);
+			}
+		} else if (op.gate.id() == gate_ids::cx) {
+			uint32_t c_qid = wire_to_qid.at(op.control());
+			std::vector<uint32_t> optmized;
+			std::set_symmetric_difference(qubit_pathsum.at(c_qid).begin(),
+			                              qubit_pathsum.at(c_qid).end(),
+			                              qubit_pathsum.at(t_qid).begin(),
+			                              qubit_pathsum.at(t_qid).end(),
+			                              std::back_inserter(optmized));
+			qubit_pathsum.at(t_qid) = optmized;
+		} else if (op.gate.id() == gate_ids::swap) {
+			uint32_t t1_qid = wire_to_qid.at(op.target(1u));
+			std::swap(qubit_pathsum.at(t_qid), qubit_pathsum.at(t1_qid));
+			return; // No need to add a angle, would alredy have done it!
+		} else {
+			qubit_pathsum.at(t_qid).clear();
+			qubit_pathsum.at(t_qid).emplace_back((num_path_vars++ << 1));
+		}
+
+		// Check if I neeed to add a rotation Z
+		angle rot_angle = parities.extract_term(qubit_pathsum.at(t_qid));
+		if (rot_angle == sym_angle::zero) {
+			return;
+		}
+		optmized.create_op(gate_lib::rz(rot_angle), op.target());
+	});
+	return optmized;
 }
 
 } // namespace tweedledum

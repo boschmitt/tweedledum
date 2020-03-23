@@ -4,13 +4,6 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../gates/gate_base.hpp"
-#include "../gates/gate_lib.hpp"
-#include "../networks/io_id.hpp"
-
-#include <string>
-#include <vector>
-
 namespace tweedledum {
 
 /*! \brief Deletes all methods that can change the network.
@@ -24,7 +17,6 @@ class immutable_view : public Network {
 public:
 	using gate_type = typename Network::gate_type;
 	using node_type = typename Network::node_type;
-	using link_type = typename Network::link_type;
 	using storage_type = typename Network::storage_type;
 
 	/*! \brief Default constructor.
@@ -34,18 +26,6 @@ public:
 	immutable_view(Network const& network)
 	    : Network(network)
 	{}
-
-	auto add_qubit() = delete;
-	auto add_qubit(std::string const&) = delete;
-	auto& add_gate(gate_type const& gate) = delete;
-	auto& add_gate(gate_base op, io_id target) = delete;
-	auto& add_gate(gate_base op, io_id control, io_id target) = delete;
-	auto& add_gate(gate_base op, std::vector<io_id> controls, std::vector<io_id> targets) = delete;
-	auto& add_gate(gate_base op, std::string const& qlabel_target) = delete;
-	auto& add_gate(gate_base op, std::string const& qlabel_control,
-	               std::string const& qlabel_target) = delete;
-	auto& add_gate(gate_base op, std::vector<std::string> const& qlabels_control,
-	               std::vector<std::string> const& qlabels_target) = delete;
 };
 
 } // namespace tweedledum

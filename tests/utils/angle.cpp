@@ -2,10 +2,11 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
+#include "tweedledum/utils/angle.hpp"
+
 #include <catch.hpp>
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include <tweedledum/utils/angle.hpp>
 
 TEST_CASE("Create angles that don't need to be normalized", "[angle]")
 {
@@ -66,5 +67,5 @@ TEST_CASE("Adding angles", "[angle]")
 	CHECK(c.numeric_value() == M_PI);
 
 	angle d = c + c;
-	CHECK(d == angles::zero);
+	CHECK(d == sym_angle::zero);
 }

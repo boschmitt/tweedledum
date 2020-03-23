@@ -4,8 +4,8 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../../networks/mapped_dag.hpp"
 #include "../../utils/device.hpp"
-#include "../../views/mapping_view.hpp"
 #include "../generic/reverse.hpp"
 #include "sat_map.hpp"
 
@@ -29,7 +29,10 @@ namespace detail {
 
 template<typename Network>
 class sabre_mapper {
-	using swap_type = std::tuple<uint32_t, uint32_t, double>;
+	using swap_type = std::tuple<wire_id, wire_id, double>;
+	using node_type = typename Network::node_type;
+	using op_type = typename Network::op_type;
+
 public:
 	sabre_mapper(device const& device, sabre_map_params const& params)
 	    : device_(device)
@@ -45,57 +48,28 @@ public:
 	    , qubits_decay_(device.num_vertices(), 1.0)
 	{}
 
-	mapping_view<Network> run(Network const& network, std::vector<uint32_t> initial_mapping = {})
+	mapped_dag run(Network const& original, std::vector<wire_id> initial_mapping = {})
 	{
-		mapping_view<Network> mapped_network(network, device_, false, randomize_initial_map_);
+		mapped_dag mapped(original, device_);
 		if (!initial_mapping.empty()) {
-			mapped_network.set_virtual_phy_map(initial_mapping);
+			mapped.v_to_phy(initial_mapping);
 		}
 
-		network.clear_values();
-		network.foreach_output([&](auto const& node) {
-			network.foreach_child(node, [&](auto child_index) {
-				auto& child = network.get_node(child_index);
-				if (network.incr_value(child) == child.gate.num_io()) {
-					front_layer_.push_back(child_index);
-				}
-			});
+		original.clear_values();
+		original.foreach_output([&](node_type const& node, node_id id) {
+			if (node.operation.gate.is_meta()) {
+				return;
+			}
+			if (original.incr_value(node) == node.operation.num_wires()) {
+				front_layer_.push_back(id);
+			}
 		});
 
 		uint32_t num_swap_searches = 0;
 		while (!front_layer_.empty()) {
-			bool executed = false;
-			std::vector<uint32_t> new_front_layer;
-			std::set<uint32_t> phy_qubits;
-			for (auto node_index : front_layer_) {
-				auto& node = network.get_node(node_index);
-				if (node.gate.is_meta()) {
-					continue;
-				} 
-				// fmt::print("{}, {}\n", node_index, node.gate);
-				// fmt::print("{}, {}\n", node.gate.control(), node.gate.target());
-				if (node.gate.is_single_qubit()) {
-					mapped_network.add_gate(node.gate, node.gate.target());
-				} else if (!mapped_network.add_gate(node.gate, node.gate.control(), node.gate.target())) {
-					new_front_layer.push_back(node_index);
-					phy_qubits.emplace(mapped_network.virtual_phy_map(node.gate.control()));
-					phy_qubits.emplace(mapped_network.virtual_phy_map(node.gate.target()));
-					continue;
-				}
-				executed = true;
-				network.foreach_child(node, [&](auto child_index) {
-					auto& child = network.get_node(child_index);
-					if (child.gate.is_meta()) {
-						return;
-					}
-					if (network.incr_value(child) == child.gate.num_io()) {
-						new_front_layer.push_back(child_index);
-					}
-				});
-			}
-			front_layer_ = new_front_layer;
-			if (!executed) {
-				auto [swap_q0, swap_q1, score] = find_swap(network, mapped_network, phy_qubits);
+			std::set<wire_id> phy_qubits;
+			if (!execute_front_layer(original, mapped, phy_qubits)) {
+				auto [swap_q0, swap_q1, score] = find_swap(original, mapped, phy_qubits);
 				num_swap_searches += 1;
 				if (num_swap_searches % num_rounds_decay_reset_ == 0) {
 					std::fill(qubits_decay_.begin(), qubits_decay_.end(), 1.0);
@@ -103,40 +77,74 @@ public:
 					qubits_decay_.at(swap_q0) += decay_delta_;
 					qubits_decay_.at(swap_q1) += decay_delta_;
 				}
-				mapped_network.add_swap(swap_q0, swap_q1);
+				mapped.create_swap(swap_q0, swap_q1);
 			}
 		}
-		return mapped_network;
+		return mapped;
 	}
 
 private:
-	swap_type find_swap(Network const& network,
-	                    mapping_view<Network> const& mapped_network,
-	                    std::set<uint32_t> const& phy_qubits)
+	bool execute_front_layer(Network const& original, mapped_dag& mapped,
+	                         std::set<wire_id>& phy_qubits)
+	{
+		bool executed = false;
+		std::vector<node_id> new_front_layer;
+		for (node_id n_id : front_layer_) {
+			node_type const& node = original.node(n_id);
+			op_type const& op = node.operation;
+			if (op.gate.is_meta()) {
+				continue;
+			} 
+			if (op.gate.is_one_qubit()) {
+				mapped.add_op(op.gate, op.target());
+			} else if (mapped.add_op(op.gate, op.control(), op.target()) == node::invalid) {
+				new_front_layer.push_back(n_id);
+				phy_qubits.emplace(mapped.wire_to_phy(op.control()));
+				phy_qubits.emplace(mapped.wire_to_phy(op.target()));
+				continue;
+			}
+			executed = true;
+			original.foreach_child(node, [&](node_type const& child, node_id child_id) {
+				if (child.operation.gate.is_meta()) {
+					return;
+				}
+				if (original.incr_value(child) == child.operation.num_wires()) {
+					new_front_layer.push_back(child_id);
+				}
+			});
+		}
+		front_layer_ = new_front_layer;
+		return executed;
+	}
+
+	swap_type find_swap(Network const& original, mapped_dag const& mapped,
+	                    std::set<wire_id> const& phy_qubits)
 	{
 		// Obtain SWAP candidates
 		std::vector<swap_type> swap_candidates;
-		for (auto [v, u] : device_.edges) {
-			auto search_v = phy_qubits.find(v);
-			auto search_u = phy_qubits.find(u);
+		for (auto [w, u] : device_.edges) {
+			wire_id w_phy(w, true);
+			wire_id u_phy(u, true);
+			auto search_v = phy_qubits.find(w_phy);
+			auto search_u = phy_qubits.find(u_phy);
 			if ((search_v != phy_qubits.end()) || (search_u != phy_qubits.end())) {
-				swap_candidates.emplace_back(v, u, 0.0);
+				swap_candidates.emplace_back(w_phy, u_phy, 0.0);
 			}
 		}
 
 		if (use_look_ahead_) {
-			select_e_layer(network);
+			select_e_layer(original);
 		}
 
 		for (auto& [swap_q0, swap_q1, score] : swap_candidates) {
-			auto current_mapping = mapped_network.phy_virtual_map();
+			auto current_mapping = mapped.phy_to_v();
 			std::swap(current_mapping[swap_q0], current_mapping[swap_q1]);
-			double f_score = compute_score(network, mapped_network, current_mapping, front_layer_);
+			double f_score = compute_score(original, mapped, current_mapping, front_layer_);
 			score = f_score;
 
 			if (!e_layer_.empty() && use_look_ahead_) {
 				double max_decay = std::max(qubits_decay_[swap_q0], qubits_decay_[swap_q1]);
-				double e_score = compute_score(network, mapped_network, current_mapping, e_layer_);
+				double e_score = compute_score(original, mapped, current_mapping, e_layer_);
 				f_score = f_score / front_layer_.size();
 				e_score = e_score / e_layer_.size();
 				score = max_decay * (f_score + (e_score_weight_ * e_score));
@@ -148,55 +156,58 @@ private:
 		return swap_candidates.front();
 	}
 
-	double compute_score(Network const& network, mapping_view<Network> const& mapped_network,
-	                     std::vector<uint32_t> const& mapping, std::vector<uint32_t> const& gates)
+	double compute_score(Network const& original, mapped_dag const& mapped,
+	                     std::vector<wire_id> const& mapping, std::vector<node_id> const& gates)
 	{
 		double score = 0.0;
-		for (auto node_index : gates) {
-			auto& gate = network.get_node(node_index).gate;
-			auto [q0, q1] = find_qubits(mapping,
-			                            mapped_network.virtual_qubit(gate.control()),
-			                            mapped_network.virtual_qubit(gate.target()));
+		for (node_id n_id : gates) {
+			op_type const& op = original.node(n_id).operation;
+			auto [q0, q1] = v_to_pos(mapping, mapped.wire_to_v(op.control()),
+			                         mapped.wire_to_v(op.target()));
 			score += (distances_.at(q0).at(q1) - 1);
 		}
 		return score;
 	}
 
-	std::pair<uint32_t, uint32_t> find_qubits(std::vector<uint32_t> const& mapping, uint32_t q0,
-	                                          uint32_t q1)
+	std::pair<uint32_t, uint32_t> v_to_pos(std::vector<wire_id> const& phy_to_v, wire_id v0,
+	                                       wire_id v1)
 	{
-		uint32_t position_q0 = std::distance(mapping.begin(),
-		                                     std::find(mapping.begin(), mapping.end(), q0));
-		uint32_t position_q1 = std::distance(mapping.begin(),
-		                                     std::find(mapping.begin(), mapping.end(), q1));
-		assert(position_q0 < mapping.size());
-		assert(position_q1 < mapping.size());
-		return {position_q0, position_q1};
+		uint32_t pos_v0;
+		uint32_t pos_v1;
+		for (uint32_t i = 0, found = 0u; i < phy_to_v.size() && found != 2; ++i) {
+			if (phy_to_v.at(i) == v0) {
+				pos_v0 = i;
+				++found;
+			} else if (phy_to_v.at(i) == v1) {
+				pos_v1 = i;
+				++found;
+			}
+		}
+		return {pos_v0, pos_v1};
 	}
 
 	// 'e_layer' is extented front layer, i.e. the look-ahead
-	void select_e_layer(Network const& network)
+	void select_e_layer(Network const& original)
 	{
 		e_layer_.clear();
-		std::vector<uint32_t> tmp_incremented;
-		std::vector<uint32_t> tmp_e_layer = front_layer_;
+		std::vector<node_id> tmp_incremented;
+		std::vector<node_id> tmp_e_layer = front_layer_;
 		while (!tmp_e_layer.empty()) {
-			std::vector<uint32_t> tmp = {};
-			for (auto node_index : tmp_e_layer) {
-				auto& node = network.get_node(node_index);
-				network.foreach_child(node, [&](auto child_index) {
-					auto& child = network.get_node(child_index);
-					if (child.gate.is_meta()) {
+			std::vector<node_id> tmp = {};
+			for (node_id n_id : tmp_e_layer) {
+				node_type const& node = original.node(n_id);
+				original.foreach_child(node, [&](node_type const& child, node_id child_id) {
+					if (child.operation.gate.is_meta()) {
 						return;
 					}
-					tmp_incremented.emplace_back(child_index);
-					assert(network.value(child) < child.gate.num_io());
-					if (network.incr_value(child) == child.gate.num_io()) {
-						tmp.emplace_back(child_index);
-						if (child.gate.is_single_qubit()) {
+					tmp_incremented.emplace_back(child_id);
+					assert(original.value(child) < child.operation.num_wires());
+					if (original.incr_value(child) == child.operation.num_wires()) {
+						tmp.emplace_back(child_id);
+						if (!child.operation.gate.is_two_qubit()) {
 							return;
 						}
-						e_layer_.emplace_back(child_index);
+						e_layer_.emplace_back(child_id);
 					}
 				});
 				if (e_layer_.size() >= e_set_size_) {
@@ -206,9 +217,9 @@ private:
 			tmp_e_layer = tmp;
 		}
 	undo_increment:
-		for (auto node_index : tmp_incremented) {
-			auto& node = network.get_node(node_index);
-			network.decr_value(node); 
+		for (node_id n_id : tmp_incremented) {
+			node_type const& node = original.node(n_id);
+			original.decr_value(node); 
 		} 
 	}
 
@@ -225,8 +236,8 @@ private:
 	bool randomize_initial_map_;
 	bool use_look_ahead_;
 	// Algorithm temporary data
-	std::vector<uint32_t> front_layer_;
-	std::vector<uint32_t> e_layer_;
+	std::vector<node_id> front_layer_;
+	std::vector<node_id> e_layer_;
 	std::vector<float> qubits_decay_;
 };
 
@@ -242,25 +253,25 @@ private:
    \endverbatim
  * 
  * \algtype mapping
- * \algexpects A network
- * \algreturns A mapped network
+ * \algexpects A original
+ * \algreturns A mapped original
  */
 template<typename Network>
-mapping_view<Network> sabre_map(Network const& network, device const& device,
+mapped_dag sabre_map(Network const& original, device const& device,
                                 sabre_map_params const& params = {})
 {
 	detail::sabre_mapper<Network> mapper(device, params);
 	// Heuristic v0
-	auto init = sat_initial_map(network, device);
-	mapping_view<Network> h0_ntk = mapper.run(network, init);
-	h0_ntk = mapper.run(reverse(static_cast<Network>(network)), h0_ntk.virtual_phy_map());
+	auto init = sat_initial_map(original, device);
+	mapped_dag h0_ntk = mapper.run(original, init);
+	h0_ntk = mapper.run(reverse(static_cast<Network>(original)), h0_ntk.v_to_phy());
 
 	// Heuristic v1
-	mapping_view<Network> h1_ntk = mapper.run(reverse(static_cast<Network>(network)), init);
-	h1_ntk = mapper.run((network), h1_ntk.virtual_phy_map());
-	h1_ntk = mapper.run(reverse(static_cast<Network>(network)), h1_ntk.virtual_phy_map());
+	mapped_dag h1_ntk = mapper.run(reverse(static_cast<Network>(original)), init);
+	h1_ntk = mapper.run((original), h1_ntk.v_to_phy());
+	h1_ntk = mapper.run(reverse(static_cast<Network>(original)), h1_ntk.v_to_phy());
 
-	if (h0_ntk.num_gates() < h1_ntk.num_gates()) {
+	if (h0_ntk.num_operations() < h1_ntk.num_operations()) {
 		return h0_ntk;
 	}
 	return h1_ntk;

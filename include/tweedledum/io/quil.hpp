@@ -56,15 +56,15 @@ void write_quil(Network const& network, std::ostream& os)
 
 		case gate_lib::rx: {
 			angle rotation_angle = gate.rotation_angle();
-			if (rotation_angle == angles::pi) {
+			if (rotation_angle == sym_angle::pi) {
 				gate.foreach_target([&](auto target) { 
 					os << fmt::format("X {}\n", target); 
 				});
-			} else if (rotation_angle == angles::pi_half) {
+			} else if (rotation_angle == sym_angle::pi_half) {
 				gate.foreach_target([&](auto target) { 
 					os << fmt::format("RX(pi/2) {}\n", target); 
 				});
-			} else if (rotation_angle == -angles::pi_half) {
+			} else if (rotation_angle == -sym_angle::pi_half) {
 				gate.foreach_target([&](auto target) { 
 					os << fmt::format("RX(-pi/2) {}\n", target); 
 				});
@@ -77,11 +77,11 @@ void write_quil(Network const& network, std::ostream& os)
 		case gate_lib::rz: {
 			angle rotation_angle = gate.rotation_angle();
 			std::string symbol;
-			if (rotation_angle == angles::pi_quarter) {
+			if (rotation_angle == sym_angle::pi_quarter) {
 				symbol = "T";
-			} else if (rotation_angle == angles::pi_half) {
+			} else if (rotation_angle == sym_angle::pi_half) {
 				symbol = "S";
-			} else if (rotation_angle == angles::pi) {
+			} else if (rotation_angle == sym_angle::pi) {
 				symbol = "Z";
 			} else {
 				gate.foreach_target([&](auto target) {

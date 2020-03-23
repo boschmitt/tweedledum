@@ -27,8 +27,8 @@ NewNetwork reverse(Network const& original)
 	              "Gate type _must_ be the same");
 
 	NewNetwork result = shallow_duplicate<NewNetwork>(original);
-	original.foreach_rgate([&](auto const& node) {
-		result.emplace_gate(node.gate);
+	original.foreach_rop([&](auto const& node) {
+		result.emplace_gate(node.operation);
 	});
 	return result;
 }
@@ -42,8 +42,8 @@ template<class Network>
 Network reverse(Network const& original)
 {
 	Network result = shallow_duplicate(original);
-	original.foreach_rgate([&](auto const& node) {
-		result.emplace_gate(node.gate);
+	original.foreach_rop([&](auto const& node) {
+		result.emplace_op(node.operation);
 	});
 	return result;
 }
