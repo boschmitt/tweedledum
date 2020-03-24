@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../gates/gate.hpp"
-#include "../gates/w2_op.hpp"
+#include "../operations/w2_op.hpp"
 #include "../utils/device.hpp"
 #include "storage.hpp"
 #include "wire_id.hpp"

@@ -5,10 +5,10 @@
 #include "tweedledum/algorithms/synthesis/gray_synth.hpp"
 
 #include "tweedledum/gates/gate.hpp"
-#include "tweedledum/gates/w3_op.hpp"
-#include "tweedledum/gates/wn32_op.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
+#include "tweedledum/operations/w3_op.hpp"
+#include "tweedledum/operations/wn32_op.hpp"
 #include "tweedledum/utils/angle.hpp"
 #include "tweedledum/utils/parity_terms.hpp"
 

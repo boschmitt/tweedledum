@@ -28,7 +28,6 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/stg.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/tbs.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/gates/gate.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/gates/operations.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/dotqc.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/qasm.cpp"
   # "${CMAKE_CURRENT_SOURCE_DIR}/io/quil.cpp"
@@ -38,6 +37,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/networks.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/op_dag.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/wire_id.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/operations/operations.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/utils/angle.cpp"
   # "${CMAKE_CURRENT_SOURCE_DIR}/views/layers_view.cpp"
   )

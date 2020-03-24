@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../networks/wire_id.hpp"
-#include "gate.hpp"
+#include "../gates/gate.hpp"
 
 #include <algorithm>
 #include <array>

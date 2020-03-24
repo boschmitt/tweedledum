@@ -7,9 +7,9 @@
 #include "tweedledum/algorithms/simulation/simulate_classically.hpp"
 #include "tweedledum/algorithms/synthesis/stg.hpp"
 #include "tweedledum/gates/gate.hpp"
-#include "tweedledum/gates/wn32_op.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
+#include "tweedledum/operations/wn32_op.hpp"
 
 #include <catch.hpp>
 

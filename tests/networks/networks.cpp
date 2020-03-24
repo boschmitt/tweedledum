@@ -3,11 +3,11 @@
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
 #include "tweedledum/gates/gate.hpp"
-#include "tweedledum/gates/w3_op.hpp"
-#include "tweedledum/gates/wn32_op.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
 #include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/operations/w3_op.hpp"
+#include "tweedledum/operations/wn32_op.hpp"
 
 #include <catch.hpp>
 

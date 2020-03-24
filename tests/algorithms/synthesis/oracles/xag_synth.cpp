@@ -8,8 +8,8 @@
 #include "tweedledum/algorithms/synthesis/oracles/xag_synth.hpp"
 
 #include "tweedledum/algorithms/generic/to_logic_network.hpp"
-#include "tweedledum/gates/w3_op.hpp"
-#include "tweedledum/gates/wn32_op.hpp"
+#include "tweedledum/operations/w3_op.hpp"
+#include "tweedledum/operations/wn32_op.hpp"
 #include "tweedledum/io/write_utf8.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"

@@ -4,9 +4,9 @@
 *-------------------------------------------------------------------------------------------------*/
 #include "tweedledum/algorithms/synthesis/esop_phase_synth.hpp"
 
-#include "tweedledum/gates/wn32_op.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
+#include "tweedledum/operations/wn32_op.hpp"
 
 #include <catch.hpp>
 #include <kitty/constructors.hpp>
