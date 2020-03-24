@@ -4,10 +4,11 @@
 **/_*
 
 .*/
+!.gitignore
 
 build/
 docs/.venv
-docs/_build
+!docs/_static
 docs/doxyxml
 examples/*
 !examples/CMakeLists.txt
