@@ -26,9 +26,10 @@ NewNetwork reverse(Network const& original)
 	static_assert(std::is_same_v<typename Network::gate_type, typename NewNetwork::gate_type>,
 	              "Gate type _must_ be the same");
 
+	using op_type = typename Network::op_type;
 	NewNetwork result = shallow_duplicate<NewNetwork>(original);
-	original.foreach_rop([&](auto const& node) {
-		result.emplace_gate(node.operation);
+	original.foreach_rop([&](op_type const& op) {
+		result.emplace_gate(op);
 	});
 	return result;
 }
@@ -41,9 +42,10 @@ NewNetwork reverse(Network const& original)
 template<class Network>
 Network reverse(Network const& original)
 {
+	using op_type = typename Network::op_type;
 	Network result = shallow_duplicate(original);
-	original.foreach_rop([&](auto const& node) {
-		result.emplace_op(node.operation);
+	original.foreach_rop([&](op_type const& op) {
+		result.emplace_op(op);
 	});
 	return result;
 }

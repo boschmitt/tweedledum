@@ -19,6 +19,7 @@ using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("DotQC reader", "[dotqc][template]",
                            (netlist, op_dag), (wn32_op, w3_op))
 {
+	using op_type = typename TestType::op_type;
 	std::istringstream input;
 	input.str(".v a b c\n"
 	          ".i a b c\n"
@@ -52,9 +53,8 @@ TEMPLATE_PRODUCT_TEST_CASE("DotQC reader", "[dotqc][template]",
 	                        gate_lib::cy,  gate_lib::cz};
 
 	uint32_t i = 0u;
-	network.foreach_op([&](auto const& node) {
-		auto const& operation = node.operation;
-		CHECK(operation.gate.id() == gs.at(i++).id());
+	network.foreach_op([&](op_type const& op) {
+		CHECK(op.id() == gs.at(i++).id());
 	});
 }
 

@@ -72,8 +72,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[networks][
 		for (uint32_t i = 0; i < gates.size(); ++i) {
 			node_id n_id = network.create_op(gates.at(i), qubit);
 			auto node = network.node(n_id);
-			CHECK(node.operation.gate.id() == gates.at(i).id());
-			CHECK(node.operation.target() == qubit);
+			CHECK(node.op.id() == gates.at(i).id());
+			CHECK(node.op.target() == qubit);
 			CHECK(network.num_operations() == (i + 1));
 		}
 	}
@@ -84,13 +84,13 @@ TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[networks][
 		for (uint32_t i = 0; i < gates.size(); ++i) {
 			node_id n_id = network.create_op(gates.at(i), q0, q1);
 			auto node = network.node(n_id);
-			CHECK(node.operation.gate.id() == gates.at(i).id());
+			CHECK(node.op.id() == gates.at(i).id());
 			if (gates.at(i).id() == gate_ids::swap) {
-				CHECK(node.operation.target(0) == q0);
-				CHECK(node.operation.target(1) == q1);
+				CHECK(node.op.target(0) == q0);
+				CHECK(node.op.target(1) == q1);
 			} else {
-				CHECK(node.operation.control() == q0);
-				CHECK(node.operation.target() == q1);
+				CHECK(node.op.control() == q0);
+				CHECK(node.op.target() == q1);
 			}
 			CHECK(network.num_operations() == (i + 1));
 		}
@@ -103,10 +103,10 @@ TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[networks][
 		for (uint32_t i = 0; i < gates.size(); ++i) {
 			node_id n_id = network.create_op(gates.at(i), q0, q1, q2);
 			auto node = network.node(n_id);
-			CHECK(node.operation.gate.id() == gates.at(i).id());
-			CHECK(node.operation.control(0) == q0);
-			CHECK(node.operation.control(1) == q1);
-			CHECK(node.operation.target() == q2);
+			CHECK(node.op.id() == gates.at(i).id());
+			CHECK(node.op.control(0) == q0);
+			CHECK(node.op.control(1) == q1);
+			CHECK(node.op.target() == q2);
 			CHECK(network.num_operations() == (i + 1));
 		}
 	}

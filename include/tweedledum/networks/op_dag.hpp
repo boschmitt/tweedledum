@@ -211,12 +211,12 @@ public:
 
 #pragma region Creating operations (using wire ids)
 private:
-	void connect_node(wire_id wire, node_type& n)
+	void connect_node(wire_id wire, node_type& node)
 	{
 		assert(storage_->outputs.at(wire) != node::invalid);
-		uint32_t position = n.operation.position(wire);
-		n.children.at(position) = storage_->outputs.at(wire);
-		storage_->outputs.at(wire) = id(n);
+		uint32_t position = node.op.position(wire);
+		node.children.at(position) = storage_->outputs.at(wire);
+		storage_->outputs.at(wire) = id(node);
 		return;
 	}
 
@@ -225,11 +225,11 @@ public:
 	node_id emplace_op(Op&& op)
 	{
 		node_id id(storage_->nodes.size());
-		node_type& n = storage_->nodes.emplace_back(std::forward<Op>(op),
+		node_type& node = storage_->nodes.emplace_back(std::forward<Op>(op),
 		                                               storage_->default_value);
-		storage_->gate_set |= (1 << static_cast<uint32_t>(op.gate.id()));
-		n.operation.foreach_control([&](wire_id wire) { connect_node(wire, n); });
-		n.operation.foreach_target([&](wire_id wire) { connect_node(wire, n); });
+		storage_->gate_set |= (1 << static_cast<uint32_t>(op.id()));
+		node.op.foreach_control([&](wire_id wire) { connect_node(wire, node); });
+		node.op.foreach_target([&](wire_id wire) { connect_node(wire, node); });
 		return id;
 	}
 
@@ -359,26 +359,40 @@ public:
 	template<typename Fn>
 	void foreach_op(Fn&& fn) const
 	{
-		static_assert(std::is_invocable_r_v<void, Fn, node_type const&>);
+		// clang-format off
+		static_assert(std::is_invocable_r_v<void, Fn, op_type const&> ||
+		              std::is_invocable_r_v<void, Fn, op_type const&, node_type const&>);
+		// clang-format on
 		for (uint32_t i = 0u, i_limit = storage_->nodes.size(); i < i_limit; ++i) {
-			node_type const& n = storage_->nodes.at(i);
-			if (n.operation.gate.is_meta()) {
+			node_type const& node = storage_->nodes.at(i);
+			if (node.op.is_meta()) {
 				continue;
 			}
-			fn(n);
+			if constexpr (std::is_invocable_r_v<void, Fn, op_type const&>) {
+				fn(node.op);
+			} else {
+				fn(node.op, node);
+			}
 		}
 	}
 
 	template<typename Fn>
 	void foreach_rop(Fn&& fn) const
 	{
-		static_assert(std::is_invocable_r_v<void, Fn, node_type const&>);
+		// clang-format off
+		static_assert(std::is_invocable_r_v<void, Fn, op_type const&> ||
+		              std::is_invocable_r_v<void, Fn, op_type const&, node_type const&>);
+		// clang-format on
 		for (uint32_t i = storage_->nodes.size(); i --> 0u;) {
-			node_type const& n = storage_->nodes.at(i);
-			if (n.operation.gate.is_meta()) {
+			node_type const& node = storage_->nodes.at(i);
+			if (node.op.is_meta()) {
 				continue;
 			}
-			fn(n);
+			if constexpr (std::is_invocable_r_v<void, Fn, op_type const&>) {
+				fn(node.op);
+			} else {
+				fn(node.op, node);
+			}
 		}
 	}
 #pragma endregion

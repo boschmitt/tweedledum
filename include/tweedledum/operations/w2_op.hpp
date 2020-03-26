@@ -15,14 +15,14 @@
 namespace tweedledum {
 
 /*! \brief Three-wire operation */
-class w2_op {
+class w2_op : public gate {
 	using gate_type = tweedledum::gate;
 
 #pragma region Helper functions (Init)
 	void init_one_io(wire_id target)
 	{
 		assert(target.is_qubit() && target != wire::invalid && !target.is_complemented());
-		assert(gate.is_one_qubit());
+		assert(is_one_qubit());
 		wires_ = {target, wire::invalid};
 	}
 
@@ -34,12 +34,12 @@ class w2_op {
 		assert(w0.is_qubit() && w0 != wire::invalid);
 		assert(w1 != wire::invalid);
 		assert(w0 != w1 && "The wires must be different");
-		assert(gate.is_two_qubit() || gate.is_measurement());
+		assert(is_two_qubit() || is_measurement());
 		// In a measurement gate the second I/O must be a cbit:
-		assert((gate.is_measurement() && !w1.is_qubit()) || !gate.is_measurement());
+		assert((is_measurement() && !w1.is_qubit()) || !is_measurement());
 
 		wires_ = {w0, w1};
-		if (gate.is_measurement()) {
+		if (is_measurement()) {
 			assert(!w0.is_complemented());
 			assert(!w1.is_qubit());
 			num_controls_ = 0;
@@ -50,7 +50,7 @@ class w2_op {
 		// If we reach this point, then w1 is guaranteed to be a target qubit, so it cannot
 		// be complemented!
 		assert(w1.is_qubit() && !w1.is_complemented());
-		if (gate.is(gate_ids::swap)) {
+		if (is(gate_ids::swap)) {
 			assert(!w0.is_complemented());
 			num_controls_ = 0;
 			num_targets_ = 2;
@@ -75,7 +75,7 @@ public:
 	    , wires_({target.wire(), wire::invalid})
 	{
 		assert(target != wire::invalid && !target.is_complemented());
-		assert(gate.is_meta() || (gate.is_one_qubit() && target.is_qubit()));
+		assert(is_meta() || (is_one_qubit() && target.is_qubit()));
 	}
 
 	// When dealing with controlled gates (e.g. CX) id0 is the control and id1 the target
@@ -181,9 +181,9 @@ public:
 
 	bool is_adjoint(w2_op const& other) const
 	{
-		assert(!gate.is_meta() && !other.gate.is_meta());
-		assert(!gate.is_measurement() && !other.gate.is_measurement());
-		if (gate.is_adjoint(other.gate) == false) {
+		assert(!is_meta() && !other.is_meta());
+		assert(!is_measurement() && !other.is_measurement());
+		if (_gate().is_adjoint(other) == false) {
 			return false;
 		}
 		if (num_controls() != other.num_controls()) {
@@ -199,7 +199,7 @@ public:
 	{
 		// First, we deal with the easy cases:
 		// If one of the gates is a meta gate, then we act conservativaly and return true.
-		if (gate.is_meta() || other.gate.is_meta()) {
+		if (is_meta() || other.is_meta()) {
 			return true;
 		}
 		// When the gates are equal, they are _not_ dependent.
@@ -207,11 +207,11 @@ public:
 			return false;
 		}
 		// If one of the gates is an identity gate, they are _not_ dependent.
-		if (gate.is(gate_ids::i) || other.gate.is(gate_ids::i)) {
+		if (is(gate_ids::i) || other.is(gate_ids::i)) {
 			return false;
 		}
 
-		if (gate.is_two_qubit()|| other.gate.is_two_qubit()) {
+		if (is_two_qubit()|| other.is_two_qubit()) {
 			// Check if wires intersect
 			bool wires_intersec = false;
 			if (wires_.at(0u).id() == other.wires_.at(0u).id()) {
@@ -230,31 +230,31 @@ public:
 			// Both have one wire
 			// If targets are the same, then I just need to worry about the axis
 			if (target() == other.target()) {
-				return gate.axis() != other.gate.axis();
+				return axis() != other.axis();
 			}
 			return false;
 		}
 		// If one of the gates is a swap gate, they I need to check if the set qubits
 		// intersect. If they do, then the gates are dependent.
-		if (gate.is(gate_ids::swap) || other.gate.is(gate_ids::swap)) {
+		if (is(gate_ids::swap) || other.is(gate_ids::swap)) {
 			return true;
 		}
 		// If targets are the same, then I just need to worry about the axis
 		if (target() == other.target()) {
-			return gate.axis() != other.gate.axis();
+			return axis() != other.axis();
 		}
 
 		// Well, targets are not the same
-		if (gate.is_one_qubit()) {
-			return (gate.axis() != rot_axis::z);
+		if (is_one_qubit()) {
+			return (axis() != rot_axis::z);
 		}
-		if (other.gate.is_one_qubit()) {
-			return (other.gate.axis() != rot_axis::z);
+		if (other.is_one_qubit()) {
+			return (other.axis() != rot_axis::z);
 		}
 		if (control().id() == other.control().id()) {
 			return false;
 		}
-		return (other.gate.axis() != rot_axis::z) || (gate.axis() != rot_axis::z);
+		return (other.axis() != rot_axis::z) || (axis() != rot_axis::z);
 	}
 #pragma endregion
 
@@ -280,7 +280,7 @@ public:
 #pragma region Overloads
 	bool operator==(w2_op const& other) const
 	{
-		if (gate != other.gate) {
+		if (_gate() != other._gate()) {
 			return false;
 		}
 		if (num_controls() != other.num_controls()) {
@@ -293,8 +293,11 @@ public:
 	}
 #pragma endregion
 
-public:
-	gate const gate;
+private:
+	gate const& _gate() const
+	{
+		return static_cast<gate const&>(*this);
+	}
 
 private:
 	uint32_t num_controls_ : 16;

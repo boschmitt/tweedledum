@@ -28,26 +28,26 @@ std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire_id>
 {
 	assert(init.size() == network.num_qubits());
 	using node_type = typename Network::node_type;
+	using op_type = typename Network::op_type;
 	constexpr uint32_t qid_max = std::numeric_limits<uint32_t>::max();
 
 	std::vector<uint32_t> wire_to_qid(network.num_wires(), qid_max);
 	std::vector<sum_type> fake_pathsum;
 
 	network.foreach_input([&](node_type const& node) {
-		wire_id w_id = node.operation.target();
+		wire_id w_id = node.op.target();
 		if (!w_id.is_qubit()) {
 			return;
 		};
 		wire_to_qid.at(w_id) = fake_pathsum.size();
 		fake_pathsum.emplace_back(1u, init.at(fake_pathsum.size()));
 	});
-	network.foreach_op([&](auto const& node) {
-		auto const& op = node.operation;
-		if (!op.gate.is_two_qubit()) {
+	network.foreach_op([&](op_type const& op) {
+		if (!op.is_two_qubit()) {
 			return;
 		}
 		uint32_t t_qid = wire_to_qid.at(op.target());
-		if (op.gate.is(gate_ids::swap)) {
+		if (op.is(gate_ids::swap)) {
 			uint32_t t1_qid = wire_to_qid.at(op.target(1u));
 			std::swap(fake_pathsum.at(t_qid), fake_pathsum.at(t1_qid));
 			return;

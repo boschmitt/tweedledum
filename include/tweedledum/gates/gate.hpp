@@ -46,7 +46,7 @@ constexpr gate_table_entry gate_info[] = {
 // I do not want to have different classes for the different gate categories (Meta,
 // non-parameterisable, and parameterisable), so I will define one that can represent all of them.
 //
-// TODO: Should ``input`` and ``output`` be considered one-qubit gates ?
+// TODO: Should ``input`` be considered one-qubit gates ?
 
 /*! \brief Simple class to hold information about the gate */
 class gate {

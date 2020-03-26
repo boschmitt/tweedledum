@@ -220,7 +220,7 @@ public:
 	node_id emplace_op(Op&& op)
 	{
 		node_id id(storage_->nodes.size());
-		storage_->gate_set |= (1 << static_cast<uint32_t>(op.gate.id()));
+		storage_->gate_set |= (1 << static_cast<uint32_t>(op.id()));
 		storage_->nodes.emplace_back(std::forward<Op>(op), storage_->default_value);
 		return id;
 	}
@@ -351,26 +351,40 @@ public:
 	template<typename Fn>
 	void foreach_op(Fn&& fn) const
 	{
-		static_assert(std::is_invocable_r_v<void, Fn, node_type const&>);
+		// clang-format off
+		static_assert(std::is_invocable_r_v<void, Fn, op_type const&> ||
+		              std::is_invocable_r_v<void, Fn, op_type const&, node_type const&>);
+		// clang-format on
 		for (uint32_t i = 0u, i_limit = storage_->nodes.size(); i < i_limit; ++i) {
-			node_type const& n = storage_->nodes.at(i);
-			if (n.operation.gate.is_meta()) {
+			node_type const& node = storage_->nodes.at(i);
+			if (node.op.is_meta()) {
 				continue;
 			}
-			fn(n);
+			if constexpr (std::is_invocable_r_v<void, Fn, op_type const&>) {
+				fn(node.op);
+			} else {
+				fn(node.op, node);
+			}
 		}
 	}
 
 	template<typename Fn>
 	void foreach_rop(Fn&& fn) const
 	{
-		static_assert(std::is_invocable_r_v<void, Fn, node_type const&>);
+		// clang-format off
+		static_assert(std::is_invocable_r_v<void, Fn, op_type const&> ||
+		              std::is_invocable_r_v<void, Fn, op_type const&, node_type const&>);
+		// clang-format on
 		for (uint32_t i = storage_->nodes.size(); i --> 0u;) {
-			node_type const& n = storage_->nodes.at(i);
-			if (n.operation.gate.is_meta()) {
+			node_type const& node = storage_->nodes.at(i);
+			if (node.op.is_meta()) {
 				continue;
 			}
-			fn(n);
+			if constexpr (std::is_invocable_r_v<void, Fn, op_type const&>) {
+				fn(node.op);
+			} else {
+				fn(node.op, node);
+			}
 		}
 	}
 #pragma endregion

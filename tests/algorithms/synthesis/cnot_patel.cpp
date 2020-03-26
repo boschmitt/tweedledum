@@ -18,6 +18,7 @@ using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
                            (op_dag, netlist), (wn32_op, w3_op))
 {
+	using op_type = typename TestType::op_type;
 	std::vector<uint32_t> rows = {0b000011, 0b011001, 0b010010, 0b111111, 0b111011, 0b011100};
 	bit_matrix_rm matrix(6, rows);
 	SECTION("Check example from paper")
@@ -31,11 +32,11 @@ TEMPLATE_PRODUCT_TEST_CASE("CNOT patel synthesis", "[cnot_patel][template]",
 		bit_matrix_rm id_matrix(6, 6);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_op([&](auto const& node) {
-			if (!node.operation.gate.is(gate_ids::cx)) {
+		network.foreach_op([&](op_type const& op) {
+			if (!op.is(gate_ids::cx)) {
 				return;
 			}
-			id_matrix.row(node.operation.target()) ^= id_matrix.row(node.operation.control());
+			id_matrix.row(op.target()) ^= id_matrix.row(op.control());
 		});
 		// Check if network realizes original matrix
 		for (auto row_index = 0u; row_index < matrix.num_rows(); ++row_index) {

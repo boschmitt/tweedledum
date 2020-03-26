@@ -29,6 +29,9 @@ class xag_synth {
 	using xag_node = typename LogicNtk::node;
 	using xag_signal = typename LogicNtk::signal;
 
+	using q_node = typename QuantumNtk::node_type;
+	using q_op = typename QuantumNtk::op_type;
+
 	struct gate_info {
 		wire_id control;
 		wire_id target;
@@ -75,9 +78,9 @@ public:
 			quantum_ntk_.reserve(2 * quantum_ntk_.size());
 		}
 		// Uncompute AND gates
-		quantum_ntk_.foreach_rop([&](auto const& node) {
+		quantum_ntk_.foreach_rop([&](q_op const& op, q_node const& node) {
 			if (must_uncompute_.at(quantum_ntk_.value(node))) {
-				quantum_ntk_.emplace_op(node.operation);
+				quantum_ntk_.emplace_op(op);
 			}
 		});
 		quantum_ntk_.clear_values();

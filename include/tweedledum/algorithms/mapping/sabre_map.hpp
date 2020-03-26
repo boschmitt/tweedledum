@@ -57,10 +57,10 @@ public:
 
 		original.clear_values();
 		original.foreach_output([&](node_type const& node, node_id id) {
-			if (node.operation.gate.is_meta()) {
+			if (node.op.is_meta()) {
 				return;
 			}
-			if (original.incr_value(node) == node.operation.num_wires()) {
+			if (original.incr_value(node) == node.op.num_wires()) {
 				front_layer_.push_back(id);
 			}
 		});
@@ -91,13 +91,13 @@ private:
 		std::vector<node_id> new_front_layer;
 		for (node_id n_id : front_layer_) {
 			node_type const& node = original.node(n_id);
-			op_type const& op = node.operation;
-			if (op.gate.is_meta()) {
+			op_type const& op = node.op;
+			if (op.is_meta()) {
 				continue;
 			} 
-			if (op.gate.is_one_qubit()) {
-				mapped.add_op(op.gate, op.target());
-			} else if (mapped.add_op(op.gate, op.control(), op.target()) == node::invalid) {
+			if (op.is_one_qubit()) {
+				mapped.add_op(op, op.target());
+			} else if (mapped.add_op(op, op.control(), op.target()) == node::invalid) {
 				new_front_layer.push_back(n_id);
 				phy_qubits.emplace(mapped.wire_to_phy(op.control()));
 				phy_qubits.emplace(mapped.wire_to_phy(op.target()));
@@ -105,10 +105,10 @@ private:
 			}
 			executed = true;
 			original.foreach_child(node, [&](node_type const& child, node_id child_id) {
-				if (child.operation.gate.is_meta()) {
+				if (child.op.is_meta()) {
 					return;
 				}
-				if (original.incr_value(child) == child.operation.num_wires()) {
+				if (original.incr_value(child) == child.op.num_wires()) {
 					new_front_layer.push_back(child_id);
 				}
 			});
@@ -161,7 +161,7 @@ private:
 	{
 		double score = 0.0;
 		for (node_id n_id : gates) {
-			op_type const& op = original.node(n_id).operation;
+			op_type const& op = original.node(n_id).op;
 			auto [q0, q1] = v_to_pos(mapping, mapped.wire_to_v(op.control()),
 			                         mapped.wire_to_v(op.target()));
 			score += (distances_.at(q0).at(q1) - 1);
@@ -197,14 +197,14 @@ private:
 			for (node_id n_id : tmp_e_layer) {
 				node_type const& node = original.node(n_id);
 				original.foreach_child(node, [&](node_type const& child, node_id child_id) {
-					if (child.operation.gate.is_meta()) {
+					if (child.op.is_meta()) {
 						return;
 					}
 					tmp_incremented.emplace_back(child_id);
-					assert(original.value(child) < child.operation.num_wires());
-					if (original.incr_value(child) == child.operation.num_wires()) {
+					assert(original.value(child) < child.op.num_wires());
+					if (original.incr_value(child) == child.op.num_wires()) {
 						tmp.emplace_back(child_id);
-						if (!child.operation.gate.is_two_qubit()) {
+						if (!child.op.is_two_qubit()) {
 							return;
 						}
 						e_layer_.emplace_back(child_id);

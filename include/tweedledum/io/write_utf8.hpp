@@ -286,128 +286,128 @@ private:
 template<typename Network, typename Builder>
 auto to_utf8_str(Network const& network, Builder builder)
 {
-	network.foreach_op([&](auto const& node) {
+	using op_type = typename Network::op_type;
+	network.foreach_op([&](op_type const& op) {
 		std::vector<wire_id> cs;
 		std::vector<wire_id> ts;
-		auto const& operation = node.operation;
-		switch (operation.gate.id()) {
+		switch (op.id()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
 			break;
 
 		case gate_ids::h:
-			builder.add_op("H", operation.target());
+			builder.add_op("H", op.target());
 			break;
 		
 		case gate_ids::x:
-			builder.add_op("X", operation.target());
+			builder.add_op("X", op.target());
 			break;
 
 		case gate_ids::y:
-			builder.add_op("Y", operation.target());
+			builder.add_op("Y", op.target());
 			break;
 
 		case gate_ids::z:
-			builder.add_op("Z", operation.target());
+			builder.add_op("Z", op.target());
 			break;
 
 		case gate_ids::s:
-			builder.add_op("S", operation.target());
+			builder.add_op("S", op.target());
 			break;
 
 		case gate_ids::sdg:
-			builder.add_op("S†", operation.target());
+			builder.add_op("S†", op.target());
 			break;
 
 		case gate_ids::t:
-			builder.add_op("T", operation.target());
+			builder.add_op("T", op.target());
 			break;
 
 		case gate_ids::tdg:
-			builder.add_op("T†", operation.target());
+			builder.add_op("T†", op.target());
 			break;
 
 		case gate_ids::r1:
-			builder.add_op("R1", operation.target());
+			builder.add_op("R1", op.target());
 			return;
 
 		case gate_ids::rx:
-			builder.add_op("Rx", operation.target());
+			builder.add_op("Rx", op.target());
 			return;
 
 		case gate_ids::ry:
-			builder.add_op("Ry", operation.target());
+			builder.add_op("Ry", op.target());
 			return;
 
 		case gate_ids::rz:
-			builder.add_op("Rz", operation.target());
+			builder.add_op("Rz", op.target());
 			return;
 
 		case gate_ids::u3:
-			builder.add_op("U3", operation.target());
+			builder.add_op("U3", op.target());
 			return;
 		
 		case gate_ids::cx:
-			builder.add_op("X", operation.control(), operation.target());
+			builder.add_op("X", op.control(), op.target());
 			return;
 
 		case gate_ids::cy:
-			builder.add_op("Y", operation.control(), operation.target());
+			builder.add_op("Y", op.control(), op.target());
 			return;
 
 		case gate_ids::cz:
-			builder.add_op("Z", operation.control(), operation.target());
+			builder.add_op("Z", op.control(), op.target());
 			return;
 
 		case gate_ids::swap:
-			builder.add_swap(operation.target(0u), operation.target(1u));
+			builder.add_swap(op.target(0u), op.target(1u));
 			return;
 
 		case gate_ids::crx:
-			builder.add_op("Rx", operation.control(), operation.target());
+			builder.add_op("Rx", op.control(), op.target());
 			return;
 
 		case gate_ids::cry:
-			builder.add_op("Ry", operation.control(), operation.target());
+			builder.add_op("Ry", op.control(), op.target());
 			return;
 
 		case gate_ids::crz:
-			builder.add_op("Rz", operation.control(), operation.target());
+			builder.add_op("Rz", op.control(), op.target());
 			return;
 
 		case gate_ids::ncx:
-			operation.foreach_control([&](wire_id c) { cs.push_back(c); });
-			operation.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire_id c) { cs.push_back(c); });
+			op.foreach_target([&](wire_id t) { ts.push_back(t); });
 			builder.add_op("X", cs, ts);
 			return;
 
 		case gate_ids::ncy:
-			operation.foreach_control([&](wire_id c) { cs.push_back(c); });
-			operation.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire_id c) { cs.push_back(c); });
+			op.foreach_target([&](wire_id t) { ts.push_back(t); });
 			builder.add_op("Y", cs, ts);
 			return;
 
 		case gate_ids::ncz:
-			operation.foreach_control([&](wire_id c) { cs.push_back(c); });
-			operation.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire_id c) { cs.push_back(c); });
+			op.foreach_target([&](wire_id t) { ts.push_back(t); });
 			builder.add_op("Z", cs, ts);
 			return;
 
 		case gate_ids::ncrx:
-			operation.foreach_control([&](wire_id c) { cs.push_back(c); });
-			operation.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire_id c) { cs.push_back(c); });
+			op.foreach_target([&](wire_id t) { ts.push_back(t); });
 			builder.add_op("Rx", cs, ts);
 			return;
 
 		case gate_ids::ncry:
-			operation.foreach_control([&](wire_id c) { cs.push_back(c); });
-			operation.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire_id c) { cs.push_back(c); });
+			op.foreach_target([&](wire_id t) { ts.push_back(t); });
 			builder.add_op("Ry", cs, ts);
 			return;
 
 		case gate_ids::ncrz:
-			operation.foreach_control([&](wire_id c) { cs.push_back(c); });
-			operation.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire_id c) { cs.push_back(c); });
+			op.foreach_target([&](wire_id t) { ts.push_back(t); });
 			builder.add_op("Rz", cs, ts);
 			return;
 		}
@@ -439,7 +439,11 @@ void write_utf8(Network const& network, std::ostream& os = std::cout)
 		return;
 	}
 	std::string utf8_str;
-	detail::string_builder builder(network.wiring_map());
+	std::vector<wire_id> qubits;
+	network.foreach_wire([&](wire_id id) {
+		qubits.emplace_back(id);
+	});
+	detail::string_builder builder(qubits);
 	utf8_str = detail::to_utf8_str(network, builder);
 	os << utf8_str;
 }

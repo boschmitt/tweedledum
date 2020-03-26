@@ -21,7 +21,7 @@ namespace tweedledum {
  * This class represents a gate which can act upon up to 32 qubits of a quantum network. This gate
  * type needs the network itself to have a maximum number o qubits of 32.
  */
-class wn32_op {
+class wn32_op : public gate {
 public:
 #pragma region Constants
 	constexpr static auto max_num_wires = 32u;
@@ -37,7 +37,7 @@ public:
 	    , targets_(1u << target)
 	{
 		assert(target != wire::invalid && !target.is_complemented());
-		assert(gate.is_meta() || (gate.is_one_qubit() && target.is_qubit()));
+		assert(is_meta() || (is_one_qubit() && target.is_qubit()));
 	}
 
 	wn32_op(gate const& g, wire_id w0, wire_id w1)
@@ -51,7 +51,7 @@ public:
 		assert(w1 != wire::invalid);
 		assert(w0.id() != w1.id());
 
-		if (gate.is(gate_ids::swap)) {
+		if (is(gate_ids::swap)) {
 			targets_ |= (1 << w0);
 			polarity_ = 0u;
 			controls_ = 0u;
@@ -70,8 +70,8 @@ public:
 		assert(c1 != wire::invalid);
 		assert(target != wire::invalid);
 		assert(c0.id() != c1.id() && c0.id() != target.id() && c1.id() != target.id());
-		assert(!gate.is_meta() && !gate.is_measurement());
-		assert(!gate.is_one_qubit() && !gate.is_two_qubit());
+		assert(!is_meta() && !is_measurement());
+		assert(!is_one_qubit() && !is_two_qubit());
 	}
 
 	wn32_op(gate const& g, std::vector<wire_id> const& controls,
@@ -164,9 +164,9 @@ public:
 
 	bool is_adjoint(wn32_op const& other) const
 	{
-		assert(!gate.is_meta() && !other.gate.is_meta());
-		assert(!gate.is_measurement() && !other.gate.is_measurement());
-		if (gate.is_adjoint(other.gate) == false) {
+		assert(!is_meta() && !other.is_meta());
+		assert(!is_measurement() && !other.is_measurement());
+		if (_gate().is_adjoint(other) == false) {
 			return false;
 		}
 		bool not_adj = false;
@@ -180,7 +180,7 @@ public:
 	{
 		// First, we deal with the easy cases:
 		// If one of the gates is a meta gate, then we act conservativaly and return true.
-		if (gate.is_meta() || other.gate.is_meta()) {
+		if (is_meta() || other.is_meta()) {
 			return true;
 		}
 		// When the gates are equal, they are _not_ dependent.
@@ -188,32 +188,32 @@ public:
 			return false;
 		}
 		// If one of the gates is an identity gate, they are _not_ dependent.
-		if (gate.is(gate_ids::i) || other.gate.is(gate_ids::i)) {
+		if (is(gate_ids::i) || other.is(gate_ids::i)) {
 			return false;
 		}
 		if (((controls_ | targets_) & (other.controls_ | other.targets_)) == 0u) {
 			return false;
 		}
-		if (gate.is(gate_ids::swap) || other.gate.is(gate_ids::swap)) {
+		if (is(gate_ids::swap) || other.is(gate_ids::swap)) {
 			return true;
 		}
 		
 		uint32_t tt = targets_ & other.targets_;
 		uint32_t ct = controls_ & other.targets_;
 		uint32_t tc = targets_ & other.controls_;
-		if (gate.axis() == rot_axis::z) {
-			if (other.gate.axis() == rot_axis::z) {
+		if (axis() == rot_axis::z) {
+			if (other.axis() == rot_axis::z) {
 				return false;
 			}
 			return (ct | tt);
 		}
-		if (other.gate.axis() == rot_axis::z) {
+		if (other.axis() == rot_axis::z) {
 			return (tc | tt);
 		}
 		if ((ct | tc) == 0u) {
 			// If have at least one target in common, and their rotation axis are
 			// different, then they are dependent:
-			return (tt && (gate.axis() != other.gate.axis()));
+			return (tt && (axis() != other.axis()));
 			// Otherwise they are _not_ dependent
 		}
 		return true;
@@ -250,7 +250,7 @@ public:
 #pragma region Overloads
 	bool operator==(wn32_op const& other) const
 	{
-		if (gate != other.gate) {
+		if (_gate() != other._gate()) {
 			return false;
 		}
 		bool equal = true;
@@ -262,8 +262,11 @@ public:
 	}
 #pragma endregion
 
-public:
-	gate const gate;
+private:
+	gate const& _gate() const
+	{
+		return static_cast<gate const&>(*this);
+	}
 
 private:
 	/*! \brief bitmap which indicates which wire in the network are the qubits. */

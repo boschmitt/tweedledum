@@ -22,15 +22,15 @@ namespace tweedledum {
 template<typename Network>
 uint64_t simulate_classically(Network const& network, uint64_t pattern)
 {
+	using op_type = typename Network::op_type;
 	assert(network.check_gate_set(gate_set::classic_rev));
 	assert(network.num_qubits() <= 64);
-	network.foreach_op([&](auto const& node) {
-		auto const& op = node.operation;
+	network.foreach_op([&](op_type const& op) {
 		uint64_t temp_pattern = pattern;
 		uint64_t control_mask = 0ull;
 		uint64_t target_mask = 0ull;
 
-		switch (op.gate.id()) {
+		switch (op.id()) {
 		default:
 			std::cerr << "[w] non-classical gate, abort simulation\n";
 			pattern = 0ull;

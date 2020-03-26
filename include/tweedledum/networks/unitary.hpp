@@ -96,12 +96,12 @@ public:
 		, qubit_buffers_(num_qubits(), i_matrix)
 		, has_buffered_gates_(num_qubits(), 0u)
 	{
-		network.foreach_op([&](auto const& node) {
-			auto const& op = node.operation;
-			if (op.gate.is_one_qubit()) {
-				create_op(op.gate, op.target());
-			} else if (node.operation.gate.is_two_qubit()) {
-				create_op(op.gate, op.control(), op.target());
+		using op_type = typename Network::op_type;
+		network.foreach_op([&](op_type const& op) {
+			if (op.is_one_qubit()) {
+				create_op(op, op.target());
+			} else if (op.is_two_qubit()) {
+				create_op(op, op.control(), op.target());
 			}
 		});
 	}

@@ -269,15 +269,15 @@ private:
 template<typename Network>
 Network decompose(Network const& network, decomp_params params = {})
 {
+	using op_type = typename Network::op_type;
 	Network result = shallow_duplicate(network);
 	detail::decomp_builder decomp(result, params);
 
-	network.foreach_op([&](auto const& node) {
-		auto const& op = node.operation;
-		if (op.gate.is_one_qubit()) {
-			decomp.create_op(op.gate, op.target());
-		} else if (node.operation.gate.is_two_qubit()) {
-			decomp.create_op(op.gate, op.control(), op.target());
+	network.foreach_op([&](op_type const& op) {
+		if (op.is_one_qubit()) {
+			decomp.create_op(op, op.target());
+		} else if (op.is_two_qubit()) {
+			decomp.create_op(op, op.control(), op.target());
 		} else {
 			std::vector<wire_id> controls;
 			std::vector<wire_id> targets;
@@ -287,7 +287,7 @@ Network decompose(Network const& network, decomp_params params = {})
 			op.foreach_target([&](wire_id target) {
 				targets.push_back(target);
 			});
-			decomp.create_op(op.gate, controls, targets);
+			decomp.create_op(op, controls, targets);
 		}
 	});
 	return result;

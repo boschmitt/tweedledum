@@ -30,13 +30,13 @@ TEMPLATE_PRODUCT_TEST_CASE("Operations DAG 'foreach_input' iterator", "[op_dag][
 		});
 		i = 0u;
 		network.foreach_input([&] (node_type const& node, node_id id) {
-			CHECK(node.operation.gate.is(gate_ids::input));
+			CHECK(node.op.is(gate_ids::input));
 			CHECK(id == i);
 			++i;
 		});
 		i = 0u;
 		network.foreach_input([&] (node_type const& node) {
-			CHECK(node.operation.gate.is(gate_ids::input));
+			CHECK(node.op.is(gate_ids::input));
 		});
 	}
 	SECTION("Output iterator") {
@@ -50,18 +50,18 @@ TEMPLATE_PRODUCT_TEST_CASE("Operations DAG 'foreach_input' iterator", "[op_dag][
 		});
 		i = 0u;
 		network.foreach_output([&] (node_type const& node, node_id id) {
-			CHECK(node.operation.gate.is(gate_ids::input));
+			CHECK(node.op.is(gate_ids::input));
 			CHECK(id == i);
 			++i;
 		});
 		i = 0u;
 		network.foreach_output([&] (node_type const& node) {
-			CHECK(node.operation.gate.is(gate_ids::input));
+			CHECK(node.op.is(gate_ids::input));
 		});
 
 		node_id n = network.create_op(gate_lib::ncx, q0, q1, q2);
 		network.foreach_output([&] (node_type const& node, node_id id) {
-			CHECK(node.operation.gate.is(gate_ids::ncx));
+			CHECK(node.op.is(gate_ids::ncx));
 			CHECK(id == n);
 		});
 	}
@@ -83,19 +83,19 @@ TEMPLATE_PRODUCT_TEST_CASE("Operations 'foreach_output' iterator", "[op_dag][tem
 		});
 		i = 0u;
 		network.foreach_output([&] (node_type const& node, node_id id) {
-			CHECK(node.operation.gate.is(gate_ids::input));
+			CHECK(node.op.is(gate_ids::input));
 			CHECK(id == i);
 			++i;
 		});
 		i = 0u;
 		network.foreach_output([&] (node_type const& node) {
-			CHECK(node.operation.gate.is(gate_ids::input));
+			CHECK(node.op.is(gate_ids::input));
 		});
 	}
 	SECTION("One operation") {
 		node_id n = network.create_op(gate_lib::ncx, q0, q1, q2);
 		network.foreach_output([&] (node_type const& node, node_id id) {
-			CHECK(node.operation.gate.is(gate_ids::ncx));
+			CHECK(node.op.is(gate_ids::ncx));
 			CHECK(id == n);
 		});
 	}
@@ -107,7 +107,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Operations 'foreach_output' iterator", "[op_dag][tem
 		uint32_t i = 0;
 		std::array<node_id, 3> node_ids = {n2, n1 , n2};
 		network.foreach_output([&] (node_type const& node, node_id id) {
-			CHECK(node.operation.gate.is(gate_ids::cx));
+			CHECK(node.op.is(gate_ids::cx));
 			CHECK(id == node_ids.at(i));
 			++i;
 		});

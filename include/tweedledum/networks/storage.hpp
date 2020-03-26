@@ -41,52 +41,52 @@ constexpr node_id invalid = node_id(std::numeric_limits<uint32_t>::max());
 // NOTE:  This is used to wrap `gates` in the `netlist` represention of a quantum circuit.
 template<typename Operation>
 struct node_wrapper {
-	Operation operation;
+	Operation op;
 	mutable uint32_t data;
 
 	node_wrapper(Operation const& op, uint32_t data_value)
-	    : operation(op)
+	    : op(op)
 	    , data(data_value)
 	{}
 
 	bool operator==(node_wrapper const& other) const
 	{
-		return operation == other.operation;
+		return op == other.op;
 	}
 };
 
 template<typename Operation>
 struct node_regular {
-	Operation operation;
+	Operation op;
 	mutable uint32_t data;
 	std::array<node_id, Operation::max_num_wires> children;
 
 	node_regular(Operation const& op, uint32_t data_value)
-	    : operation(op)
+	    : op(op)
 	    , data(data_value)
 	{}
 
 	bool operator==(node_regular const& other) const
 	{
-		return operation == other.operation;
+		return op == other.op;
 	}
 };
 
 template<typename Operation>
 struct node_irregular {
-	Operation operation;
+	Operation op;
 	mutable uint32_t data;
 	std::vector<node_id> children;
 
 	node_irregular(Operation const& op, uint32_t data_value)
-	    : operation(op)
+	    : op(op)
 	    , data(data_value)
 	    , children(op.num_wires())
 	{}
 
 	bool operator==(node_irregular const& other) const
 	{
-		return operation == other.operation;
+		return op == other.op;
 	}
 };
 

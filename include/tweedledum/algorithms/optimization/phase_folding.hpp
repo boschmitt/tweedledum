@@ -20,6 +20,7 @@ namespace tweedledum {
 template<typename Network>
 Network phase_folding(Network const& original)
 {
+	using op_type = typename Network::op_type;
 	using sum_type = std::vector<uint32_t>;
 	constexpr uint32_t qid_max = std::numeric_limits<uint32_t>::max();
 
@@ -39,13 +40,12 @@ Network phase_folding(Network const& original)
 	});
 
 	parity_terms<sum_type> parities;
-	original.foreach_op([&](auto const& node) {
-		auto const& op = node.operation;
+	original.foreach_op([&](op_type const& op) {
 		uint32_t t_qid = wire_to_qid.at(op.target());
-		if (op.gate.axis() == rot_axis::z) {
-			parities.add_term(qubit_pathsum.at(t_qid), op.gate.rotation_angle());
+		if (op.axis() == rot_axis::z) {
+			parities.add_term(qubit_pathsum.at(t_qid), op.rotation_angle());
 		}
-		if (op.gate.id() == gate_ids::x) {
+		if (op.id() == gate_ids::x) {
 			if (qubit_pathsum.at(t_qid).at(0) == 1u) {
 				qubit_pathsum.at(t_qid).erase(qubit_pathsum.at(t_qid).begin());
 				return;
@@ -53,7 +53,7 @@ Network phase_folding(Network const& original)
 			qubit_pathsum.at(t_qid).insert(qubit_pathsum.at(t_qid).begin(), 1u);
 			return;
 		}
-		if (op.gate.id() == gate_ids::cx) {
+		if (op.id() == gate_ids::cx) {
 			uint32_t c_qid = wire_to_qid.at(op.control());
 			std::vector<uint32_t> optmized;
 			std::set_symmetric_difference(qubit_pathsum.at(c_qid).begin(),
@@ -64,7 +64,7 @@ Network phase_folding(Network const& original)
 			qubit_pathsum.at(t_qid) = optmized;
 			return;
 		}
-		if (op.gate.id() == gate_ids::swap) {
+		if (op.id() == gate_ids::swap) {
 			uint32_t t1_qid = wire_to_qid.at(op.target(1u));
 			std::swap(qubit_pathsum.at(t_qid), qubit_pathsum.at(t1_qid));
 			return;
@@ -73,22 +73,21 @@ Network phase_folding(Network const& original)
 		qubit_pathsum.at(t_qid).emplace_back((num_path_vars++ << 1));
 	});
 
-	original.foreach_op([&](auto const& node) {
-		auto const& op = node.operation;
-		if (op.gate.axis() == rot_axis::z) {
+	original.foreach_op([&](op_type const& op) {
+		if (op.axis() == rot_axis::z) {
 			return;
 		}
 		optmized.emplace_op(op);
 
 		// Could do better that recalculate this
 		uint32_t t_qid = wire_to_qid.at(op.target());
-		if (op.gate.id() == gate_ids::x) {
+		if (op.id() == gate_ids::x) {
 			if (qubit_pathsum.at(t_qid).at(0) == 1u) {
 				qubit_pathsum.at(t_qid).erase(qubit_pathsum.at(t_qid).begin());
 			} else {
 				qubit_pathsum.at(t_qid).insert(qubit_pathsum.at(t_qid).begin(), 1u);
 			}
-		} else if (op.gate.id() == gate_ids::cx) {
+		} else if (op.id() == gate_ids::cx) {
 			uint32_t c_qid = wire_to_qid.at(op.control());
 			std::vector<uint32_t> optmized;
 			std::set_symmetric_difference(qubit_pathsum.at(c_qid).begin(),
@@ -97,7 +96,7 @@ Network phase_folding(Network const& original)
 			                              qubit_pathsum.at(t_qid).end(),
 			                              std::back_inserter(optmized));
 			qubit_pathsum.at(t_qid) = optmized;
-		} else if (op.gate.id() == gate_ids::swap) {
+		} else if (op.id() == gate_ids::swap) {
 			uint32_t t1_qid = wire_to_qid.at(op.target(1u));
 			std::swap(qubit_pathsum.at(t_qid), qubit_pathsum.at(t1_qid));
 			return; // No need to add a angle, would alredy have done it!

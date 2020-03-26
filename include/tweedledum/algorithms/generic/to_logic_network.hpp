@@ -37,6 +37,7 @@ LogicNtk to_logic_network(QuantumNtk const& quantum_ntk)
 	              "Logic network does not implement the create_xor method");
 
 	using signal_type = typename LogicNtk::signal; 
+	using op_type = typename QuantumNtk::op_type;
 	// TODO: make sure the network only uses X, CX or MCX gates
 
 	LogicNtk logic_ntk;
@@ -58,16 +59,16 @@ LogicNtk to_logic_network(QuantumNtk const& quantum_ntk)
 		}
 	});
 
-	quantum_ntk.foreach_op([&](auto const& node) {
+	quantum_ntk.foreach_op([&](op_type const& op) {
 		std::vector<signal_type> controls;
 
-		node.operation.foreach_control([&](wire_id control) { 
+		op.foreach_control([&](wire_id control) { 
 			controls.push_back(qubit_to_signal[control] ^ control.is_complemented());
 		});
 
-		const auto ctrl_signal = logic_ntk.create_nary_and(controls);
+		auto const ctrl_signal = logic_ntk.create_nary_and(controls);
 
-		node.operation.foreach_target([&](wire_id target) {
+		op.foreach_target([&](wire_id target) {
 			qubit_to_signal[target] = logic_ntk.create_xor(qubit_to_signal[target], ctrl_signal);
 		});
 	});

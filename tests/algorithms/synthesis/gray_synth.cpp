@@ -19,6 +19,7 @@ using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
                            (op_dag, netlist), (wn32_op, w3_op))
 {
+	using op_type = typename TestType::op_type;
 	SECTION("Check simple example from Amy paper")
 	{
 		parity_terms<uint32_t> parities;
@@ -33,9 +34,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Gray synthesis", "[gray_synth][template]",
 		bit_matrix_rm id_matrix(4, 4);
 		id_matrix.foreach_row([](auto& row, const auto row_index) { row[row_index] = 1; });
 
-		network.foreach_op([&](auto const& node) {
-			if (node.operation.gate.is(gate_ids::cx)) {
-				id_matrix.row(node.operation.target()) ^= id_matrix.row(node.operation.control());
+		network.foreach_op([&](op_type const& op) {
+			if (op.is(gate_ids::cx)) {
+				id_matrix.row(op.target()) ^= id_matrix.row(op.control());
 			}
 		});
 	}

@@ -184,6 +184,7 @@ Network read_qasm_from_file(std::string const& path)
 template<typename Network>
 void write_qasm(Network const& network, std::ostream& os)
 {
+	using op_type = typename Network::op_type;
 	// header
 	os << "OPENQASM 2.0;\n";
 	os << "include \"qelib1.inc\";\n";
@@ -192,88 +193,87 @@ void write_qasm(Network const& network, std::ostream& os)
 		os << fmt::format("creg c[{}];\n", network.num_cbits());
 	}
 
-	network.foreach_op([&](auto const& node) {
-		auto const& operation = node.operation;
-		switch (operation.gate.id()) {
+	network.foreach_op([&](op_type const& op) {
+		switch (op.id()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
 			return true;
 		// Non-parameterisable gates
 		case gate_ids::i:
-			os << fmt::format("id q[{}];\n", operation.target().id());
+			os << fmt::format("id q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::h:
-			os << fmt::format("h q[{}];\n", operation.target().id());
+			os << fmt::format("h q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::x:
-			os << fmt::format("x q[{}];\n", operation.target().id());
+			os << fmt::format("x q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::y:
-			os << fmt::format("y q[{}];\n", operation.target().id());
+			os << fmt::format("y q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::z:
-			os << fmt::format("z q[{}];\n", operation.target().id());
+			os << fmt::format("z q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::s:
-			os << fmt::format("s q[{}];\n", operation.target().id());
+			os << fmt::format("s q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::sdg:
-			os << fmt::format("sdg q[{}];\n", operation.target().id());
+			os << fmt::format("sdg q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::t:
-			os << fmt::format("t q[{}];\n", operation.target().id());
+			os << fmt::format("t q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::tdg:
-			os << fmt::format("tdg q[{}];\n", operation.target().id());
+			os << fmt::format("tdg q[{}];\n", op.target().id());
 			break;
 
 		case gate_ids::cx:
-			os << fmt::format("cx q[{}], q[{}];\n", operation.control().id(),
-			                  operation.target().id());
+			os << fmt::format("cx q[{}], q[{}];\n", op.control().id(),
+			                  op.target().id());
 			break;
 
 		case gate_ids::cy:
-			os << fmt::format("cy q[{}], q[{}];\n", operation.control().id(),
-			                  operation.target().id());
+			os << fmt::format("cy q[{}], q[{}];\n", op.control().id(),
+			                  op.target().id());
 			break;
 
 		case gate_ids::cz:
-			os << fmt::format("cz q[{}], q[{}];\n", operation.control().id(),
-			                  operation.target().id());
+			os << fmt::format("cz q[{}], q[{}];\n", op.control().id(),
+			                  op.target().id());
 			break;
 
 		case gate_ids::swap:
-			os << fmt::format("swap q[{}], q[{}];\n", operation.target(0u).id(),
-			                  operation.target(1u).id());
+			os << fmt::format("swap q[{}], q[{}];\n", op.target(0u).id(),
+			                  op.target(1u).id());
 			break;
 
 		case gate_ids::ncx:
-			os << fmt::format("ccx q[{}], q[{}], q[{}];\n", operation.control(0u),
-			                  operation.control(1u).id(), operation.target());
+			os << fmt::format("ccx q[{}], q[{}], q[{}];\n", op.control(0u),
+			                  op.control(1u).id(), op.target());
 			break;
 		// Parameterisable gates
 		case gate_ids::r1:
-			os << fmt::format("u1({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			os << fmt::format("u1({}) q[{}];\n", op.rotation_angle(), op.target());
 			break;
 
 		case gate_ids::rx:
-			os << fmt::format("rx({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			os << fmt::format("rx({}) q[{}];\n", op.rotation_angle(), op.target());
 			break;
 
 		case gate_ids::ry:
-			os << fmt::format("ry({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			os << fmt::format("ry({}) q[{}];\n", op.rotation_angle(), op.target());
 			break;
 
 		case gate_ids::rz:
-			os << fmt::format("rz({}) q[{}];\n", operation.gate.rotation_angle(), operation.target());
+			os << fmt::format("rz({}) q[{}];\n", op.rotation_angle(), op.target());
 			break;
 		}
 		return true;

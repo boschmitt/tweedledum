@@ -20,6 +20,7 @@ class map_cnf_encoder {
 	using lbool_type = bill::lbool_type;
 	using lit_type = bill::lit_type;
 	using var_type = bill::var_type;
+	using op_type = typename Network::op_type;
 
 public:
 	map_cnf_encoder(Network const& network, device const& device, Solver& solver)
@@ -41,12 +42,12 @@ public:
 	{
 		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
-		network_.foreach_op([&](auto const& node) {
-			if (!node.operation.gate.is_two_qubit()) {
+		network_.foreach_op([&](op_type const& op) {
+			if (!op.is_two_qubit()) {
 				return true;
 			}
-			wire_id control = wire_to_v_.at(node.operation.control());
-			wire_id target = wire_to_v_.at(node.operation.target());
+			wire_id control = wire_to_v_.at(op.control());
+			wire_id target = wire_to_v_.at(op.target());
 			if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
 				gate_constraints(control, target);
 			}
@@ -67,12 +68,12 @@ public:
 	{
 		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
-		network_.foreach_op([&](auto const& node) {
-			if (!node.operation.gate.is_two_qubit()) {
+		network_.foreach_op([&](op_type const& op) {
+			if (!op.is_two_qubit()) {
 				return;
 			}
-			wire_id control = wire_to_v_.at(node.operation.control());
-			wire_id target = wire_to_v_.at(node.operation.target());
+			wire_id control = wire_to_v_.at(op.control());
+			wire_id target = wire_to_v_.at(op.target());
 			++pairs_[triangle_to_vector_idx(control, target)];
 		});
 
@@ -107,12 +108,12 @@ public:
 	{
 		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
-		network_.foreach_op([&](auto const& node) {
-			if (!node.operation.gate.is_two_qubit()) {
+		network_.foreach_op([&](op_type const& op) {
+			if (!op.is_two_qubit()) {
 				return;
 			}
-			wire_id control = wire_to_v_.at(node.operation.control());
-			wire_id target = wire_to_v_.at(node.operation.target());
+			wire_id control = wire_to_v_.at(op.control());
+			wire_id target = wire_to_v_.at(op.target());
 			if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
 				gate_constraints(control, target);
 			}
@@ -296,6 +297,7 @@ std::vector<wire_id> map_without_swaps(Network const& network, device const& dev
 template<typename Network>
 mapped_dag sat_map(Network const& original, device const& device)
 {
+	using op_type = typename Network::op_type;
 	mapped_dag mapped(original, device);
 
 	std::vector<wire_id> mapping = detail::map_without_swaps(original, device);
@@ -303,15 +305,13 @@ mapped_dag sat_map(Network const& original, device const& device)
 		return mapped;
 	}
 	mapped.v_to_phy(mapping);
-	original.foreach_op([&](auto const& node) {
-		auto const& op = node.operation;
-		if (op.gate.is_one_qubit()) {
-			mapped.add_op(op.gate, op.target());
-		} else if (node.operation.gate.is_two_qubit()) {
-			mapped.add_op(op.gate, op.control(), op.target());
+	original.foreach_op([&](op_type const& op) {
+		if (op.is_one_qubit()) {
+			mapped.add_op(op, op.target());
+		} else if (op.is_two_qubit()) {
+			mapped.add_op(op, op.control(), op.target());
 		}
 	});
-
 	return mapped;
 }
 
