@@ -33,7 +33,7 @@ represented by a double line in quantum circuit diagrams.
 
 In a quantum network, each wire has a ``wire_id``.  The ``wire_id`` is used to uniquely identify a 
 wire, and to it indicate whether the wire is *quantum* or *classical*.  Wires are by calling one 
-of the ``add_qubit()`` or ``add_cbit()`` methods from a ``network``.  We can also directly 
+of the ``create_qubit()`` or ``create_cbit()`` methods from a ``network``.  We can also directly 
 instantiate a ``wire_id`` object.  A wire created by direct instantiation, however, won't be part of
 a quantum network. Indeed, even it the API is weird:
 
@@ -63,7 +63,7 @@ Gates
 
 A ``gate`` describes the effect of the operation on the wires.  Most often this effect is an unitary
 evolution, hence the gate is a *quantum gate*.  In our small example, we have two 'pure' quantum
-gates: the Hadamard gate :math:`\mathrm{H}`, and the CNOT gate :math:`\mathrm{CX}`.
+gates: the Hadamard gate :math:`\mathrm{H}`, and the :math:`\mathrm{CNOT}` gate :math:`\mathrm{CX}`.
 
 .. image:: /_static/concept_gates.svg
    :width: 50%
@@ -91,22 +91,21 @@ Networks
 =========
 
 - A **netlist** represents the circuit as a list of gates to be applied sequentially. It is
-convenient because each range in the array represents a valid sub-circuit.
+  convenient because each range in the array represents a valid sub-circuit.
 
-- **Directed acyclic graph (DAG)** representation. The vertices of the DAG are the gates of the
-circuit and the edges encode their relationships. The DAG representation has the advantage of making
-adjacency between gates easy to access.
+- **Directed acyclic graph (DAG)** representation, ``op_dag``.  The vertices of the DAG are the
+  operations of the circuit and the edges encode their relationships. The DAG representation has the
+  advantage of making adjacency between gates easy to access.
+
+- **Mapped DAG** representation, ``mapped_dag``.  The same as ``op_dag`` but mapped to a particular
+  device architecture.
+
+- **Unitary** representation.  A unitary matrix representation of the circuit.  Not scalable at all,
+  the unitary is literally represented as a :math:`2^n \times 2^n` matrix, where :math:`n` is the
+  number of qubits.
 
 - **Phase polynomials** representation. (work-in-progress)
 
 - **Path polynomials** representation. (work-in-progress)
 
 - **Exponents of Pauli** representation. (work-in-progress)
-
-Any of these circuit representations is efficiently convertible to the other in linear time with respect to the number of gates in
-the circuit. For example, given a netlist, it is possible to straightforwardly
-construct a directed acyclic graph by iterating over all gates. A simple
-topological order of the directed acyclic graph nodes is a valid netlist.
-
-A circuit in tweedledum is defined by combining a gate representation with
-a network representation.

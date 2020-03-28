@@ -5,8 +5,8 @@ The Gate Library
 *****************
 
 An ``operation`` is ``gate`` that is applied to a collection of I/O's, i.e., objects with a
-``io_id`` given by a ``network``. A ``gate`` can be applied to qubit(s) by direcetly constructing a 
-``operation`` object, or by calling one of the ``add_gate`` methods from a ``network``---this will 
+``wire_id`` given by a ``network``.  A ``gate`` can be applied to qubit(s) by direcetly constructing a 
+``operation`` object, or by calling one of the ``create_op`` methods from a ``network``---this will 
 also create an ``operation`` object. For example:
 
 .. code-block:: c++
@@ -16,17 +16,17 @@ also create an ``operation`` object. For example:
   int main(int argc, char** argv)
   {
       using namespace tweedledum;
-      netlist<io3_op> network;
+      netlist<w3_op> network;
 
-      io_id q0 = network.add_qubit();
-      io_id q1 = network.add_qubit();
-      operation op(gate::cx, q0, q1);
-      auto node = network.add_operation(gate::cx, q0, q1);
+      wire_id q0 = network.create_qubit();
+      wire_id q1 = network.create_qubit();
+      operation op(gate_lib::cx, q0, q1);
+      auto node = network.create_operation(gate_lib::cx, q0, q1);
   }
 
 .. note::
-   When using a network ``add_operation`` methdos, the returned value is a ``network::node``
-   reference, which basically encapsulate the operation.
+   When using a network ``create_operation`` methdos, the returned value is a ``node_id``, 
+   which is basically a identifier to a network node that encapsulates the operation.
 
 Gates are classified into three categories: **Meta**, **non-parameterisable**, and 
 **parameterisable**.  Meta gates are internal helpers.  Non-parameterisable gates are uniquely 
@@ -55,11 +55,9 @@ Meta gates
 +=========================================+========================+
 | Undefined                               | ``gate_lib::undefined``|
 +-----------------------------------------+------------------------+
-| Unknown                                 | ``gate_lib::unknown``  |
+| Opaque                                  | ``gate_lib::opaque``   |
 +-----------------------------------------+------------------------+
 | Input                                   | ``gate_lib::input``    |
-+-----------------------------------------+------------------------+
-| Output                                  | ``gate_lib::output``   |
 +-----------------------------------------+------------------------+
 
 Non-parameterisable gates
@@ -96,20 +94,20 @@ One-qubit gates
 +--------------------------------+--------+----------------------------+
 | Pauli Z, Phase flip            | |Z|    | ``gate_lib::z``            |
 +--------------------------------+--------+----------------------------+
-| Phase                          | |S|    | ``gate_lib::phase``        |
+| Phase                          | |S|    | ``gate_lib::s``            |
 +--------------------------------+--------+----------------------------+
-| Adjoint Phase                  | |Sd|   | ``gate_lib::phase_dagger`` |
+| Adjoint Phase                  | |Sd|   | ``gate_lib::sdg``          |
 +--------------------------------+--------+----------------------------+
 | T                              | |T|    | ``gate_lib::t``            |
 +--------------------------------+--------+----------------------------+
-| Adjoint T                      | |Td|   | ``gate_lib::t_dagger``     |
+| Adjoint T                      | |Td|   | ``gate_lib::tdg``          |
 +--------------------------------+--------+----------------------------+
 
 Hadamard
 ^^^^^^^^^
 
-The Hadamard is a half rotation of the Bloch sphere. It rotates around an axis located halfway
-between the x and z axis. This gives it the effect of rotating states that point along the z axis
+The Hadamard is a half rotation of the Bloch sphere.  It rotates around an axis located halfway
+between the x and z axis.  This gives it the effect of rotating states that point along the z axis
 to those pointing along x, and vice versa.
 
 .. math::
@@ -118,7 +116,7 @@ to those pointing along x, and vice versa.
 
 .. note::
 
-   The Hadamard gates is central in quantum computing. I can be used to create states in
+   The Hadamard gates is central in quantum computing.  I can be used to create states in
    superposition from classical base states:
 
    .. math::
@@ -151,7 +149,7 @@ it can be perceived as the absence of a gate.
 Pauli-X
 ^^^^^^^^^
 
-The Pauli X gate swaps the amplitudes of the quantum base states. As :math:`X|0\rangle = |1\rangle`
+The Pauli X gate swaps the amplitudes of the quantum base states.  As :math:`X|0\rangle = |1\rangle`
 and :math:`X|1\rangle = |0\rangle`, this gate is also known as :math:`\mathrm{NOT}`.
 
 .. math::
@@ -191,17 +189,17 @@ T
 Two-qubit gates
 ----------------
 
-+--------------------------------+--------+------------------------+
-| Name(s)                        | Symbol | tweedledum symbol      |
-+================================+========+========================+
-| Control X, Control NOT, CNOT   | |CX|   | ``gate_lib::cx``       |
-+--------------------------------+--------+------------------------+
-| Control Y                      | |CY|   | ``gate_lib::cy``       |
-+--------------------------------+--------+------------------------+
-| Control Z                      | |CZ|   | ``gate_lib::cz``       |
-+--------------------------------+--------+------------------------+
-| Swap                           | |SWAP| | ``gate_lib::swap``     |
-+--------------------------------+--------+------------------------+
++------------------------------------+--------+------------------------+
+| Name(s)                            | Symbol | tweedledum symbol      |
++====================================+========+========================+
+| Controlled X, Controlled NOT, CNOT | |CX|   | ``gate_lib::cx``       |
++------------------------------------+--------+------------------------+
+| Controlled Y                       | |CY|   | ``gate_lib::cy``       |
++------------------------------------+--------+------------------------+
+| Controlled Z                       | |CZ|   | ``gate_lib::cz``       |
++------------------------------------+--------+------------------------+
+| Swap                               | |SWAP| | ``gate_lib::swap``     |
++------------------------------------+--------+------------------------+
 
 CX
 ^^^^^^^^^
@@ -237,11 +235,11 @@ N-qubit gates
 +--------------------------------+--------+------------------------+
 | Name(s)                        | Symbol | tweedledum symbol      |
 +================================+========+========================+
-| Multiple Control NOT, Toffoli  |        | ``gate_lib::mcx``      |
+| n-Controlled NOT, Toffoli      |        | ``gate_lib::ncx``      |
 +--------------------------------+--------+------------------------+
-| Multiple Control Y             |        | ``gate_lib::mcy``      |
+| n-Controlled Y                 |        | ``gate_lib::ncy``      |
 +--------------------------------+--------+------------------------+
-| Multiple Control Z             |        | ``gate_lib::mcz``      |
+| n-Controlled Z                 |        | ``gate_lib::ncz``      |
 +--------------------------------+--------+------------------------+
 
 MCX
@@ -278,9 +276,9 @@ Parameterisable gates
 .. |CRx| replace:: :math:`\mathrm{CR}_x`
 .. |CRy| replace:: :math:`\mathrm{CR}_y`
 .. |CRz| replace:: :math:`\mathrm{CR}_z`
-.. |MCRx| replace:: :math:`\mathrm{MCR}_x`
-.. |MCRy| replace:: :math:`\mathrm{MCR}_y`
-.. |MCRz| replace:: :math:`\mathrm{MCR}_z`
+.. |NCRx| replace:: :math:`\mathrm{MCR}_x`
+.. |NCRy| replace:: :math:`\mathrm{MCR}_y`
+.. |NCRz| replace:: :math:`\mathrm{MCR}_z`
 
 One-qubit gates
 ----------------
@@ -305,7 +303,7 @@ R1
 This is a parameterisable conditional phase shift gate.  This gate leaves the basis state 
 :math:`|0\rangle` unchanged and map :math:`|1\rangle` to :math:`e^{{i\theta }}|1\rangle`.  It
 **does not** affect probability of measuring a :math:`|0\rangle` or :math:`|1\rangle`, however it
-modifies the phase of the quantum state. The angle of rotation must be specified in radians and can
+modifies the phase of the quantum state.  The angle of rotation must be specified in radians and can
 be positive or negative.  It's matrix form is:
 
 .. math::
@@ -337,7 +335,7 @@ Note that one can obtain it's adjoint by changing the sign of :math:`\theta`, i.
       \mathrm{R}_1(\theta) = e^{i\frac{\theta}{2}}\mathrm{R}_z(\theta).
 
    This means that :math:`\mathrm{R}_1(\theta)` is up to global phase equal to 
-   :math:`\mathrm{R}_z(\theta)`. As long as we don't do anything that could make the global phases
+   :math:`\mathrm{R}_z(\theta)`.  As long as we don't do anything that could make the global phases
    relevant, e.g. adding a control to |Rz|, those gates can have the same implementation.
 
 
@@ -345,8 +343,8 @@ Rx
 ^^^^^^^^^
 
 On the Bloch sphere, this gate corresponds to rotating the qubit state around the x axis by the
-given angle :math:`\theta`. The angle of rotation must be specified in radians and can be positive
-or negative. It's matrix form is:
+given angle :math:`\theta`.  The angle of rotation must be specified in radians and can be positive
+or negative.  It's matrix form is:
 
 .. math::
 
@@ -356,8 +354,8 @@ Ry
 ^^^^^^^^^
 
 On the Bloch sphere, this gate corresponds to rotating the qubit state around the y axis by the
-given angle :math:`\theta`. The angle of rotation must be specified in radians and can be positive
-or negative. It's matrix form is:
+given angle :math:`\theta`.  The angle of rotation must be specified in radians and can be positive
+or negative.  It's matrix form is:
 
 .. math::
 
@@ -367,8 +365,8 @@ Rz
 ^^^^^^^^^
 
 On the Bloch sphere, this gate corresponds to rotating the qubit state around the z axis by the
-given angle :math:`\theta`. The angle of rotation must be specified in radians and can be positive
-or negative. It's matrix form is
+given angle :math:`\theta`.  The angle of rotation must be specified in radians and can be positive
+or negative.  It's matrix form is
 
 .. math::
 
@@ -381,7 +379,7 @@ U
 
    \mathrm{U}(\theta, \phi, \lambda) = \pmatrix{\cos\frac\theta2 & -e^{i\lambda}\sin\frac\theta2 \\ e^{i\phi}\sin\frac\theta2 & e^{i(\lambda + \phi)}\cos\frac\theta2}
 
-Most single-qubti gates can be implemented using this gates:
+Most one-qubit gates can be implemented using this gates:
 
 .. math::
 
@@ -439,28 +437,28 @@ N-qubit gates
 +--------------------------------+--------+------------------------+
 | Name(s)                        | Symbol | tweedledum symbol      |
 +================================+========+========================+
-| Controlled rotation X          | |MCRx| | ``gate_lib::mcrx``     |
+| n-Controlled rotation X        | |NCRx| | ``gate_lib::ncrx``     |
 +--------------------------------+--------+------------------------+
-| Controlled rotation Y          | |MCRy| | ``gate_lib::mcry``     |
+| n-Controlled rotation Y        | |NCRy| | ``gate_lib::ncry``     |
 +--------------------------------+--------+------------------------+
-| Controlled rotation Z          | |MCRz| | ``gate_lib::mcrz``     |
+| n-Controlled rotation Z        | |NCRz| | ``gate_lib::ncrz``     |
 +--------------------------------+--------+------------------------+
 
-MCRx
+NCRx
 ^^^^^^^^^
 
 .. math::
 
    \mathrm{MCR}_x = \pmatrix{1&&&0&0 \\ &\ddots&&\vdots&\vdots \\ &&1&0&0 \\ 0&\cdots&0&\cos\frac\theta2&-i\sin\frac\theta2 \\ 0&\cdots&0&-i\sin\frac\theta2&\cos\frac\theta2 }
 
-MCRy
+NCRy
 ^^^^^^^^^
 
 .. math::
 
    \mathrm{MCR}_y = \pmatrix{1&&&0&0 \\ &\ddots&&\vdots&\vdots \\ &&1&0&0 \\ 0&\cdots&0&\cos\frac\theta2&-\sin\frac\theta2 \\ 0&\cdots&0&\sin\frac\theta2&\cos\frac\theta2 }
 
-MCRz
+NCRz
 ^^^^^^^^^
 
 .. math::
