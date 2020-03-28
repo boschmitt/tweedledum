@@ -28,6 +28,7 @@ struct gray_synth_params {
 		/*allow_rewiring*/ false,
 		/*best_partition_size*/ true
 	};
+	bool try_identify_r1 = true;
 };
 
 namespace detail {
@@ -127,7 +128,13 @@ public:
 			qubits_states.emplace_back((1u << i));
 			auto rotation_angle = parities_.extract_term(qubits_states[i]);
 			if (rotation_angle != 0.0) {
-				network_.create_op(gate_lib::r1(rotation_angle), qubits_[i]);
+				if (parameters_.try_identify_r1) {
+					network_.create_op(gate_lib::identified_r1(rotation_angle),
+					                   qubits_[i]);
+				} else {
+					network_.create_op(gate_lib::r1(rotation_angle),
+					                   qubits_[i]);
+				}
 			}
 		}
 
@@ -136,7 +143,13 @@ public:
 			network_.create_op(gate_lib::cx, qubits_[control], qubits_[target]);
 			auto rotation_angle = parities_.extract_term(qubits_states[target]);
 			if (rotation_angle != 0.0) {
-				network_.create_op(gate_lib::r1(rotation_angle), qubits_[target]);
+				if (parameters_.try_identify_r1) {
+					network_.create_op(gate_lib::identified_r1(rotation_angle),
+					                   qubits_[target]);
+				} else {
+					network_.create_op(gate_lib::r1(rotation_angle),
+					                   qubits_[target]);
+				}
 			}
 		}
 

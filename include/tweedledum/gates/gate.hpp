@@ -395,6 +395,24 @@ inline gate r1(angle const& lambda)
 	return gate(gate_ids::r1, sym_angle::zero, sym_angle::zero, lambda);
 }
 
+inline gate identified_r1(angle const& lambda)
+{
+	if (!lambda.is_numerically_defined()) {
+		if (lambda == sym_angle::pi_quarter) {
+			return t;
+		} else if (lambda == -sym_angle::pi_quarter) {
+			return tdg;
+		} else if (lambda == sym_angle::pi_half) {
+			return s;
+		} else if (lambda == -sym_angle::pi_half) {
+			return sdg;
+		} else if (lambda == sym_angle::pi || lambda == -sym_angle::pi) {
+			return z;
+		}
+	}
+	return gate(gate_ids::r1, sym_angle::zero, sym_angle::zero, lambda);
+}
+
 inline gate rx(angle const& theta)
 {
 	return gate(gate_ids::rx, theta, -sym_angle::pi_half, sym_angle::pi_half);
@@ -472,9 +490,10 @@ constexpr uint64_t classic_rev = create(gate_ids::x, gate_ids::cx, gate_ids::ncx
 constexpr uint64_t cnot_rz = create(gate_ids::x, gate_ids::z, gate_ids::s, gate_ids::t, gate_ids::sdg,
                                     gate_ids::tdg, gate_ids::cx, gate_ids::r1, gate_ids::rz);
 
-constexpr uint64_t clifford_t = create(gate_ids::i, gate_ids::h, gate_ids::x, gate_ids::y, gate_ids::z,
-                                       gate_ids::s, gate_ids::t, gate_ids::sdg, gate_ids::tdg,
-                                       gate_ids::cx, gate_ids::cy, gate_ids::cz, gate_ids::swap);
+constexpr uint64_t clifford_t = create(gate_ids::i, gate_ids::h, gate_ids::x, gate_ids::y,
+                                       gate_ids::z, gate_ids::s, gate_ids::t, gate_ids::sdg,
+                                       gate_ids::tdg, gate_ids::cx, gate_ids::cy, gate_ids::cz,
+                                       gate_ids::swap);
 
 } // namespace gate_set
 } // namespace tweedledum
