@@ -5,4 +5,3 @@
 #pragma once
 
 #include "ccz.hpp"
-#include "ccx.hpp"

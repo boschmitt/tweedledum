@@ -47,13 +47,12 @@ void diagonal_synth(Network& network, std::vector<wire_id> const& qubits,
                     std::vector<angle> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
-	assert(!angles.empty() && !((angles.size() + 1) & angles.size()));
+	assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
 	assert(!qubits.empty() && qubits.size() <= 32);
-	assert((1u << qubits.size()) == (angles.size() + 1u));
+	assert((1u << qubits.size()) == angles.size());
 
 	// Normalize input angles
 	std::vector<angle> norm_angles;
-	norm_angles.emplace_back(sym_angle::zero);
 	std::transform(angles.begin(), angles.end(), std::back_inserter(norm_angles),
 	               [](angle a) { return -a; });
 
@@ -94,8 +93,8 @@ template<class Network>
 Network diagonal_synth(std::vector<angle> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
-	assert(!angles.empty() && !((angles.size() + 1) & angles.size()));
-	uint32_t num_qubits = __builtin_ctz(angles.size() + 1);
+	assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
+	uint32_t num_qubits = __builtin_ctz(angles.size());
 	assert(num_qubits <= 32u);
 
 	Network network;

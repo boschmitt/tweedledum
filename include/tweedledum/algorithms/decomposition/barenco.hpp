@@ -21,7 +21,8 @@ template<class Network>
 void barenco_decomp(Network& network, std::vector<wire_id> const& controls, wire_id target,
                     uint32_t controls_threshold)
 {
-	const uint32_t num_controls = controls.size();
+	assert(controls_threshold >= 2);
+	uint32_t const num_controls = controls.size();
 	assert(num_controls >= 2);
 
 	if (num_controls <= controls_threshold) {

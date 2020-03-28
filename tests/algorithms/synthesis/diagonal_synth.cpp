@@ -20,31 +20,33 @@ TEMPLATE_PRODUCT_TEST_CASE("Synthesize diagonal unitaries", "[diagonal_synth][te
                            (netlist, op_dag), (w3_op, wn32_op))
 {
 	SECTION("One-qubit"){
-		std::vector<angle> angles = {sym_angle::pi};
+		std::vector<angle> angles = {sym_angle::zero, sym_angle::pi};
 		TestType network = diagonal_synth<TestType>(angles);
 		// CHECK(network.num_qubits() == 1u);
 		// CHECK(network.num_operations() == 1u);
 	}
 	SECTION("Two-qubit controlled r1(pi)") {
-		std::vector<angle> angles = {sym_angle::zero, sym_angle::zero, sym_angle::pi};
+		std::vector<angle> angles = {sym_angle::zero, sym_angle::zero, sym_angle::zero,
+		                             sym_angle::pi};
 		TestType network = diagonal_synth<TestType>(angles);
 		// CHECK(network.num_qubits() == 2u);
 		// CHECK(network.num_operations() == 5u);
 	}
 	SECTION("Two-qubit controlled rz(pi/2)") {
-		std::vector<angle> angles = {sym_angle::zero, -sym_angle::pi_half, sym_angle::pi_half};
+		std::vector<angle> angles = {sym_angle::zero, sym_angle::zero, -sym_angle::pi_half,
+		                             sym_angle::pi_half};
 		TestType network = diagonal_synth<TestType>(angles);
 		// CHECK(network.num_qubits() == 2u);
 		// CHECK(network.num_operations() == 2u);
 	}
 	SECTION("Three-qubit Toffoli") {
-		std::vector<angle> angles(6, sym_angle::zero);
+		std::vector<angle> angles(7, sym_angle::zero);
 		angles.push_back(sym_angle::pi_half);
 		TestType network = diagonal_synth<TestType>(angles);
 		// CHECK(network.num_qubits() == 3u);
 	}
 	SECTION("Three-qubit Toffoli") {
-		std::vector<angle> angles(5, sym_angle::zero);
+		std::vector<angle> angles(6, sym_angle::zero);
 		angles.push_back(-sym_angle::pi);
 		angles.push_back(sym_angle::pi);
 		TestType network = diagonal_synth<TestType>(angles);

@@ -8,6 +8,7 @@
 #include "../../networks/wire_id.hpp"
 #include "../../utils/angle.hpp"
 #include "../generic/rewrite.hpp"
+#include "../synthesis/diagonal_synth.hpp"
 #include "gates/database.hpp"
 #include "barenco.hpp"
 
@@ -21,6 +22,8 @@ namespace tweedledum {
 struct decomp_params {
 	uint64_t gate_set = gate_set::clifford_t;
 	uint32_t controls_threshold = 2u;
+	bool allow_ancilla = true;
+	bool use_barenco = true;
 	bool use_t_par = false;
 	bool use_relative_phase = false;
 };
@@ -172,14 +175,25 @@ public:
 		switch (g.id()) {
 		// Non-parameterisable gates
 		case gate_ids::ncx:
+			create_op(gate_lib::h, t);
 			if (params_.use_t_par) {
-				ccx_tpar(*this, c0, c1, t);
+				ccz_tpar(*this, c0, c1, t);
 			} else {
-				ccx(*this, c0, c1, t);
+				ccz(*this, c0, c1, t);
 			}
+			create_op(gate_lib::h, t);
 			return;
 
 		case gate_ids::ncy:
+			create_op(gate_lib::sdg, t);
+			create_op(gate_lib::h, t);
+			if (params_.use_t_par) {
+				ccz_tpar(*this, c0, c1, t);
+			} else {
+				ccz(*this, c0, c1, t);
+			}
+			create_op(gate_lib::h, t);
+			create_op(gate_lib::s, t);
 			break;
 
 		case gate_ids::ncz:
@@ -206,7 +220,8 @@ public:
 		this->emplace_op(op_type(g, c0, c1, t));
 	}
 
-	void create_op(gate const& g, std::vector<wire_id> controls, std::vector<wire_id> targets)
+	void create_op(gate const& g, std::vector<wire_id> const& controls,
+	               std::vector<wire_id> const& targets)
 	{
 		if (params_.gate_set & (1ull << static_cast<uint32_t>(g.id()))) {
 			if (controls.size() <= params_.controls_threshold) {
@@ -214,42 +229,101 @@ public:
 				return;
 			}
 		}
+
+		if (controls.size() == 2u) {
+			create_op(g, controls.at(0), controls.at(1), targets.at(0));
+			return;
+		}
+
+		if (params_.use_barenco) {
+			barenco_create_op(g, controls, targets.at(0));
+			return;
+		}
+		diagonal_create_op(g, controls, targets.at(0));
+	}
+#pragma endregion
+
+private:
+	void barenco_create_op(gate const& g, std::vector<wire_id> const& controls, wire_id target)
+	{
+		if (controls.size() + 1u == this->num_qubits()) {
+			this->create_qubit(wire_modes::ancilla);
+		}
 		switch (g.id()) {
 		// Non-parameterisable gates
 		case gate_ids::ncx:
-			if (controls.size() + targets.size() == this->num_qubits()) {
-				this->create_qubit();
-			}
-			barenco_decomp(*this, controls, targets.back(), params_.controls_threshold);
+			barenco_decomp(*this, controls, target, params_.controls_threshold);
 			return;
 
 		case gate_ids::ncy:
-			// TODO: H
+			create_op(gate_lib::sdg, target);
+			barenco_decomp(*this, controls, target, params_.controls_threshold);
+			create_op(gate_lib::s, target);
 			break;
 
-		case gate_ids::ncz:
-			// TODO: H
+		case gate_ids::ncz: 
+			create_op(gate_lib::h, target);
+			barenco_decomp(*this, controls, target, params_.controls_threshold);
+			create_op(gate_lib::h, target);
 			break;
 
 		// Parameterisable gates
 		case gate_ids::ncrx:
-			// TODO: H
 			break;
 
 		case gate_ids::ncry:
-			// TODO: HS
 			break;
 
 		case gate_ids::ncrz:
-			// TODO
 			break;
 
 		default:
 			break;
 		}
-		this->emplace_op(op_type(g, controls, targets));
 	}
-#pragma endregion
+
+	void diagonal_create_op(gate const& g, std::vector<wire_id> controls, wire_id target)
+	{
+		controls.emplace_back(target);
+		std::vector<angle> angles((1 << controls.size()), sym_angle::zero);
+
+		switch (g.id()) {
+		// Non-parameterisable gates
+		case gate_ids::ncx:
+			angles.back() = sym_angle::pi;
+			create_op(gate_lib::h, target);
+			diagonal_synth(*this, controls, angles);
+			create_op(gate_lib::h, target);
+			return;
+
+		case gate_ids::ncy:
+			angles.back() = sym_angle::pi;
+			create_op(gate_lib::sdg, target);
+			create_op(gate_lib::h, target);
+			diagonal_synth(*this, controls, angles);
+			create_op(gate_lib::h, target);
+			create_op(gate_lib::s, target);
+			break;
+
+		case gate_ids::ncz:
+			angles.back() = sym_angle::pi;
+			diagonal_synth(*this, controls, angles);
+			break;
+
+		// Parameterisable gates
+		case gate_ids::ncrx:
+			break;
+
+		case gate_ids::ncry:
+			break;
+
+		case gate_ids::ncrz:
+			break;
+
+		default:
+			break;
+		}
+	}
 
 private:
 	decomp_params params_;
@@ -259,8 +333,6 @@ private:
 #pragma endregion
 
 /*! \brief 
-
-   \endverbatim
  * 
  * \algtype decomposition
  * \algexpects A network

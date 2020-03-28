@@ -27,18 +27,18 @@ void ccz(Network& network, wire_id x, wire_id y, wire_id z)
 {
 	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());
-	network.create_op(gate_lib::cx, y.id(), z);
+	network.create_op(gate_lib::cx, y.wire(), z);
 	network.create_op(x.is_complemented() ? gate_lib::t : gate_lib::tdg, z);
-	network.create_op(gate_lib::cx, x.id(), z);
+	network.create_op(gate_lib::cx, x.wire(), z);
 	network.create_op(gate_lib::t, z);
-	network.create_op(gate_lib::cx, y.id(), z);
+	network.create_op(gate_lib::cx, y.wire(), z);
 	network.create_op(y.is_complemented() ? gate_lib::t : gate_lib::tdg, z);
-	network.create_op(gate_lib::cx, x.id(), z);
+	network.create_op(gate_lib::cx, x.wire(), z);
 	network.create_op(x.is_complemented() && !y.is_complemented()? gate_lib::tdg : gate_lib::t, z);
 	
-	network.create_op(gate_lib::cx, x.id(), y);
+	network.create_op(gate_lib::cx, x.wire(), y);
 	network.create_op(gate_lib::tdg, y);
-	network.create_op(gate_lib::cx, x.id(), y);
+	network.create_op(gate_lib::cx, x.wire(), y);
 	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x);
 	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y);
 }
@@ -63,23 +63,23 @@ void ccz_tpar(Network& network, wire_id x, wire_id y, wire_id z)
 {
 	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());
-	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x.id());
-	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y.id());
+	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x.wire());
+	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y.wire());
 	network.create_op(x.is_complemented() && !y.is_complemented() ? gate_lib::tdg : gate_lib::t, z);
 
-	network.create_op(gate_lib::cx, x.id(), y.id());
-	network.create_op(gate_lib::cx, y.id(), z);
-	network.create_op(gate_lib::cx, z, x.id());
+	network.create_op(gate_lib::cx, x.wire(), y.wire());
+	network.create_op(gate_lib::cx, y.wire(), z);
+	network.create_op(gate_lib::cx, z, x.wire());
 
 	network.create_op(x.is_complemented() ? gate_lib::t : gate_lib::tdg, x);
-	network.create_op(gate_lib::tdg, y.id());
+	network.create_op(gate_lib::tdg, y.wire());
 	network.create_op(gate_lib::t, z);
 
-	network.create_op(gate_lib::cx, y.id(), x.id());
+	network.create_op(gate_lib::cx, y.wire(), x.wire());
 	network.create_op(y.is_complemented() ? gate_lib::t : gate_lib::tdg, x);
-	network.create_op(gate_lib::cx, y.id(), z);
-	network.create_op(gate_lib::cx, z, x.id());
-	network.create_op(gate_lib::cx, x.id(), y.id());
+	network.create_op(gate_lib::cx, y.wire(), z);
+	network.create_op(gate_lib::cx, z, x.wire());
+	network.create_op(gate_lib::cx, x.wire(), y.wire());
 }
 
 } // namespace tweedledum::detail
