@@ -40,7 +40,6 @@
 #include "events.hpp"
 #include "storage.hpp"
 
-#include <ez/direct_iterator.hpp>
 #include <kitty/constructors.hpp>
 #include <kitty/dynamic_truth_table.hpp>
 
@@ -469,6 +468,11 @@ signal create_maj( signal a, signal b, signal c )
     return static_cast<uint32_t>( _storage->outputs.size() );
   }
 
+  uint32_t num_latches() const
+  {
+      return _storage->data.latches.size();
+  }
+
   auto num_pis() const
   {
     return _storage->data.num_pis;
@@ -643,7 +647,7 @@ signal create_maj( signal a, signal b, signal c )
 
   node ri_to_ro( signal const& s ) const
   {
-    return *( _storage->inputs.begin() + ri_index( s ) );
+    return *( _storage->inputs.begin() + _storage->data.num_pis + ri_index( s ) );
   }
 #pragma endregion
 
@@ -651,9 +655,8 @@ signal create_maj( signal a, signal b, signal c )
   template<typename Fn>
   void foreach_node( Fn&& fn ) const
   {
-    detail::foreach_element( ez::make_direct_iterator<uint64_t>( 0 ),
-                             ez::make_direct_iterator<uint64_t>( _storage->nodes.size() ),
-                             fn );
+    auto r = range<uint64_t>( _storage->nodes.size() );
+    detail::foreach_element( r.begin(), r.end(), fn );
   }
 
   template<typename Fn>
@@ -743,8 +746,8 @@ signal create_maj( signal a, signal b, signal c )
   template<typename Fn>
   void foreach_gate( Fn&& fn ) const
   {
-    detail::foreach_element_if( ez::make_direct_iterator<uint64_t>( 2 ), /* start from 2 to avoid constants */
-                                ez::make_direct_iterator<uint64_t>( _storage->nodes.size() ),
+    auto r = range<uint64_t>( 2u, _storage->nodes.size() ); /* start from 2 to avoid constants */
+    detail::foreach_element_if( r.begin(), r.end(),
                                 [this]( auto n ) { return !is_ci( n ); },
                                 fn );
   }
