@@ -1,5 +1,5 @@
 /* kitty: C++ truth table library
- * Copyright (C) 2017-2019  EPFL
+ * Copyright (C) 2017-2020  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -31,11 +31,13 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cinttypes>
 #include <utility>
 #include <vector>
 
 #include "bit_operations.hpp"
+#include "esop.hpp"
 #include "operations.hpp"
 #include "operators.hpp"
 
@@ -288,6 +290,24 @@ std::vector<uint32_t> runlength_pattern( const TT& tt )
     pattern.push_back( length );
   } );
   return pattern;
+}
+
+/*! \brief Compute polynomial degree
+  The polyomial degree is the number of variables in the largest monomial in
+  the functoons ANF (PPRM).
+  \param tt Truth table
+*/
+template<typename TT>
+inline uint32_t polynomial_degree( const TT& tt )
+{
+  const auto cubes = esop_from_pprm( tt );
+  if ( cubes.empty() ) /* zero function */
+  {
+    return 0u;
+  }
+  const auto max = std::max_element( cubes.begin(), cubes.end(),
+                                     []( auto const& c1, auto const& c2 ) { return c1.num_literals() < c2.num_literals(); } );
+  return max->num_literals();
 }
 
 /*! \brief Returns the absolute distinguishing power of a function
