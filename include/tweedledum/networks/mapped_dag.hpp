@@ -44,6 +44,16 @@ public:
 	using dstrg_type = storage<node_type>;
 	using wstrg_type = wire::storage;
 
+	mapped_dag(device const& arch)
+	    : data_(std::make_shared<dstrg_type>("tweedledum_mapd_network"))
+	    , wires_(std::make_shared<wstrg_type>())
+	    , map_(std::make_shared<mstrg_type>(arch.num_vertices(), arch))
+	{
+		for (uint32_t i = 0; i < arch.num_vertices(); ++i) {
+			create_qubit();
+		}
+	}
+
 	template<typename Network>
 	mapped_dag(Network const& network, device const& arch)
 	    : data_(std::make_shared<dstrg_type>("tweedledum_mapd_network"))

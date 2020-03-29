@@ -4,9 +4,11 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../../networks/mapped_dag.hpp"
+#include "../../networks/wire_id.hpp"
 #include "../../utils/device.hpp"
-#include "token_swap/parameters.hpp"
 #include "token_swap/a_star_swap.hpp"
+#include "token_swap/parameters.hpp"
 #include "token_swap/sat_swap.hpp"
 
 #include <utility>
@@ -14,31 +16,27 @@
 
 namespace tweedledum {
 
-template<typename Network>
-void swap_network(Network& network, device& topology, std::vector<uint32_t> const& final_mapping,
+void swap_network(mapped_dag& network, device& topology, std::vector<wire_id> const& phy_to_v,
 		  swap_network_params params = {})
 {
-	std::vector<uint32_t> init_mapping = network.phy_virtual_map();
+	std::vector<wire_id> const init = network.phy_to_v();
 	std::vector<std::pair<uint32_t, uint32_t>> swaps;
+
+	std::vector<uint32_t> initial(init.begin(), init.end());
+	std::vector<uint32_t> final(phy_to_v.begin(), phy_to_v.end());
+
 	switch (params.method) {
 	case swap_network_params::methods::admissible:
 	case swap_network_params::methods::non_admissible:
-		swaps = detail::a_star_swap(topology, init_mapping, final_mapping, params);
+		swaps = detail::a_star_swap(topology, initial, final, params);
 		break;
 
 	case swap_network_params::methods::sat:
-		swaps = detail::sat_swap(topology, init_mapping, final_mapping, params);
+		swaps = detail::sat_swap(topology, initial, final, params);
 		break;
 	}
 	for (auto [x, y] : swaps) {
-		network.add_swap(x, y);
-	}
-	// assert(network.phy_virtual_map() == final_mapping);
-	if (network.phy_virtual_map() != final_mapping) {
-		auto map = network.phy_virtual_map();
-		fmt::print("Mapped: {}\n", fmt::join(map.begin(), map.end(), ", "));
-		fmt::print("Final:  {}\n", fmt::join(final_mapping.begin(), final_mapping.end(), ", "));
-		std::abort();
+		network.create_swap(wire_id(x, true), wire_id(y, true));
 	}
 }
 

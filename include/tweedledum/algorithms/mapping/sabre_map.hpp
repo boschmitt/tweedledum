@@ -258,7 +258,7 @@ private:
  */
 template<typename Network>
 mapped_dag sabre_map(Network const& original, device const& device,
-                                sabre_map_params const& params = {})
+                     sabre_map_params const& params = {})
 {
 	detail::sabre_mapper<Network> mapper(device, params);
 	// Heuristic v0

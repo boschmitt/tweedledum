@@ -119,7 +119,7 @@ public:
 			node = nodes.at(node.previous);
 		}
 		if (closed_nodes.size() > 1) {
-			swaps.push_back(topology_.edges[node.swap]);
+			swaps.emplace_back(topology_.edges[node.swap]);
 		}
 		std::reverse(swaps.begin(), swaps.end());
 		return swaps;
@@ -129,7 +129,8 @@ private:
 	device const& topology_;
 };
 
-auto a_star_swap(device const& topology, std::vector<uint32_t> const& init_mapping, std::vector<uint32_t> const& final_mapping, swap_network_params params)
+auto a_star_swap(device const& topology, std::vector<uint32_t> const& init_mapping,
+                 std::vector<uint32_t> const& final_mapping, swap_network_params params)
 {
 	a_star_swapper swapper(topology);
 	if (params.method == swap_network_params::methods::non_admissible) {
