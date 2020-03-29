@@ -17,7 +17,7 @@ class immutable_view : public Network {
 public:
 	using gate_type = typename Network::gate_type;
 	using node_type = typename Network::node_type;
-	using storage_type = typename Network::storage_type;
+	using dstrg_type = typename Network::dstrg_type;
 
 	/*! \brief Default constructor.
 	 *

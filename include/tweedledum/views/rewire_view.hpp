@@ -17,7 +17,7 @@ class rewire_view : public Network {
 public:
 	using op_type = typename Network::op_type;
 	using node_type = typename Network::node_type;
-	using storage_type = typename Network::storage_type;
+	using dstrg_type = typename Network::dstrg_type;
 
 	explicit rewire_view(Network& network)
 	    : Network(network)

@@ -36,12 +36,12 @@ class decomp_builder : public Network {
 public:
 	using op_type = typename Network::op_type;
 	using node_type = typename Network::node_type;
-	using storage_type = typename Network::storage_type;
+	using dstrg_type = typename Network::dstrg_type;
 
 	explicit decomp_builder(Network& network, decomp_params const& params)
 	    : Network(network)
 	    , params_(params)
-	{}
+	{ }
 
 public:
 #pragma region Creating operations (using wire ids)
@@ -117,6 +117,12 @@ public:
 		switch (g.id()) {
 		// Non-parameterisable gates
 		case gate_ids::cx:
+			if (params_.gate_set & (1ull << static_cast<uint32_t>(gate_ids::cz))) {
+				create_op(gate_lib::h, w1);
+				create_op(gate_lib::cz, w0, w1);
+				create_op(gate_lib::h, w1);
+				return;
+			}
 			break;
 
 		case gate_ids::cy:
@@ -143,7 +149,9 @@ public:
 			create_op(gate_lib::cx, w0, w1);
 			create_op(gate_lib::ry(-g.rotation_angle() / 2), w1);
 			create_op(gate_lib::cx, w0, w1);
-			create_op(gate_lib::u3(g.rotation_angle() / 2, -sym_angle::pi_half, sym_angle::zero), w1);
+			create_op(gate_lib::u3(g.rotation_angle() / 2, -sym_angle::pi_half,
+			                       sym_angle::zero),
+			          w1);
 			return;
 
 		case gate_ids::cry:
@@ -318,6 +326,9 @@ private:
 			break;
 
 		case gate_ids::ncrz:
+			angles.at(angles.size() - 2u) = -g.rotation_angle();
+			angles.back() = g.rotation_angle();
+			diagonal_synth(*this, controls, angles);
 			break;
 
 		default:

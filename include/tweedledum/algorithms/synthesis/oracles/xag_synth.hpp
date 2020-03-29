@@ -246,7 +246,7 @@ private:
 			quantum_ntk_.wire_mode(output_qubit, mode);
 			// I need to set a internal qubit name, so I can equivalence check the
 			// result.  This hack make sure the outputs are not permuted:
-			quantum_ntk_.wire_label(output_qubit, fmt::format("__o_{}", index));
+			quantum_ntk_.wire_name(output_qubit, fmt::format("__o_{}", index));
 		});
 	}
 

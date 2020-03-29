@@ -34,6 +34,19 @@ TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[networks][
 		CHECK(network.num_cbits() == 0u);
 		CHECK(network.num_operations() == 0u);
 	}
+	SECTION("Create one of each wire type") {
+		network.create_qubit();
+		CHECK(network.size() == 1u);
+		CHECK(network.num_wires() == 1u);
+		CHECK(network.num_qubits() == 1u);
+		CHECK(network.num_cbits() == 0);
+
+		network.create_cbit();
+		CHECK(network.size() == 2u);
+		CHECK(network.num_wires() == 2u);
+		CHECK(network.num_qubits() == 1u);
+		CHECK(network.num_cbits() == 1u);
+	}
 	SECTION("Creating wires") {
 		for (uint32_t i = 0u; i < 8u; ++i) {
 			std::string qname = fmt::format("q{}", i);
@@ -48,15 +61,15 @@ TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[networks][
 			CHECK(network.num_qubits() == ((i + 1) * 2));
 			CHECK(network.num_cbits() == ((i + 1) * 2));
 
-			CHECK(network.wire_label(nqubit) == qname);
-			CHECK(network.wire_label(qubit) == fmt::format("__q{}", (2 * i) + 1));
-			CHECK(network.wire_label(!nqubit) == network.wire_label(nqubit));
-			CHECK(network.wire_label(!qubit) == network.wire_label(qubit));
+			CHECK(network.wire_name(nqubit) == qname);
+			CHECK(network.wire_name(qubit) == fmt::format("__dum_q{}", (2 * i) + 1));
+			CHECK(network.wire_name(!nqubit) == network.wire_name(nqubit));
+			CHECK(network.wire_name(!qubit) == network.wire_name(qubit));
 
-			CHECK(network.wire_label(ncbit) == cname);
-			CHECK(network.wire_label(cbit) == fmt::format("__c{}", (2 * i) + 1));
-			CHECK(network.wire_label(!ncbit) == network.wire_label(ncbit));
-			CHECK(network.wire_label(!cbit) == network.wire_label(cbit));
+			CHECK(network.wire_name(ncbit) == cname);
+			CHECK(network.wire_name(cbit) == fmt::format("__dum_c{}", (2 * i) + 1));
+			CHECK(network.wire_name(!ncbit) == network.wire_name(ncbit));
+			CHECK(network.wire_name(!cbit) == network.wire_name(cbit));
 		}
 		CHECK(network.size() == 32u);
 		CHECK(network.num_wires() == 32u);
