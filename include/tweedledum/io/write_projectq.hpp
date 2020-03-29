@@ -135,9 +135,9 @@ void write_projectq(Network const& network, std::ostream& os = std::cout)
  * \param filename Filename
  */
 template<typename Network>
-void write_projectq(Network const& network, std::string const& filename)
+void write_projectq(Network const& network, std::string_view filename)
 {
-	std::ofstream os(filename.c_str(), std::ofstream::out);
+	std::ofstream os(filename, std::ofstream::out);
 	write_projectq(network, os);
 }
 

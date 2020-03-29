@@ -107,9 +107,9 @@ void write_qpic(Network const& network, std::ostream& os, bool color_marked_gate
  * \param color_marked_gates Flag to draw marked nodes in red
  */
 template<typename Network>
-void write_qpic(Network const& network, std::string const& filename, bool color_marked_gates = false)
+void write_qpic(Network const& network, std::string_view filename, bool color_marked_gates = false)
 {
-	std::ofstream os(filename.c_str(), std::ofstream::out);
+	std::ofstream os(filename, std::ofstream::out);
 	write_qpic(network, os, color_marked_gates);
 }
 

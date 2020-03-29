@@ -62,25 +62,12 @@ public:
 	    : network_(network)
 	{}
 
-	void on_qubit(std::string qubit_label)
+	void on_qubit(std::string_view name)
 	{
-		network_.create_qubit(qubit_label);
+		network_.create_qubit(name);
 	}
 
-	void on_input(std::string qubit_label)
-	{
-		(void) qubit_label;
-		// network_.mark_as_input(qubit_label);
-	}
-
-	void on_output(std::string qubit_label)
-	{
-		(void) qubit_label;
-		// network_.mark_as_output(qubit_label);
-	}
-
-	void on_gate(gate g, std::string const& target)
-
+	void on_gate(gate g, std::string_view target)
 	{
 		network_.create_op(g, target);
 	}
@@ -150,6 +137,23 @@ private:
 	Network& network_;
 };
 
+template<typename Network>
+void read_dotqc_from_file(Network network, std::string_view path)
+{
+	dotqc_reader reader(network);
+	dotqc_read(path, reader, identify_gate());
+}
+
+/*! \brief Reads dotQC format
+ */
+template<typename Network>
+Network read_dotqc_from_file(std::string_view path)
+{
+	Network network;
+	read_dotqc_from_file(network, path);
+	return network;
+}
+
 /*! \brief Writes network in dotQC format into output stream
  *
  * An overloaded variant exists that writes the network into a file.
@@ -172,62 +176,62 @@ void write_dotqc(Network const& network, std::ostream& os)
 	network.foreach_op([&](op_type const& op) {
 		switch (op.id()) {
 		case gate_ids::h:
-			os << fmt::format("H {}\n", network.wire_label(op.target()));
+			os << fmt::format("H {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::x:
-			os << fmt::format("X {}\n", network.wire_label(op.target()));
+			os << fmt::format("X {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::y:
-			os << fmt::format("Y {}\n", network.wire_label(op.target()));
+			os << fmt::format("Y {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::z:
-			os << fmt::format("Z {}\n", network.wire_label(op.target()));
+			os << fmt::format("Z {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::s:
-			os << fmt::format("S {}\n", network.wire_label(op.target()));
+			os << fmt::format("S {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::sdg:
-			os << fmt::format("S* {}\n", network.wire_label(op.target()));
+			os << fmt::format("S* {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::t:
-			os << fmt::format("T {}\n", network.wire_label(op.target()));
+			os << fmt::format("T {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::tdg:
-			os << fmt::format("T* {}\n", network.wire_label(op.target()));
+			os << fmt::format("T* {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::cx:
 		case gate_ids::ncx:
 			os << fmt::format("X");
 			op.foreach_control([&](wire_id c) {
-				os << fmt::format(" {}", network.wire_label(c));
+				os << fmt::format(" {}", network.wire_name(c));
 			});
-			os << fmt::format(" {}\n", network.wire_label(op.target()));
+			os << fmt::format(" {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::cy:
 		case gate_ids::ncy:
 			os << fmt::format("Y");
 			op.foreach_control([&](wire_id c) {
-				os << fmt::format(" {}", network.wire_label(c));
+				os << fmt::format(" {}", network.wire_name(c));
 			});
-			os << fmt::format(" {}\n", network.wire_label(op.target()));
+			os << fmt::format(" {}\n", network.wire_name(op.target()));
 			break;
 
 		case gate_ids::cz:
 		case gate_ids::ncz:
 			os << fmt::format("Z");
 			op.foreach_control([&](wire_id c) {
-				os << fmt::format(" {}", network.wire_label(c));
+				os << fmt::format(" {}", network.wire_name(c));
 			});
-			os << fmt::format(" {}\n", network.wire_label(op.target()));
+			os << fmt::format(" {}\n", network.wire_name(op.target()));
 			break;
 
 		default:
@@ -243,9 +247,9 @@ void write_dotqc(Network const& network, std::ostream& os)
  * \param filename Filename
  */
 template<typename Network>
-void write_dotqc(Network const& network, std::string const& filename)
+void write_dotqc(Network const& network, std::string_view filename)
 {
-	std::ofstream os(filename.c_str(), std::ofstream::out);
+	std::ofstream os(filename, std::ofstream::out);
 	write_dotqc(network, os);
 }
 

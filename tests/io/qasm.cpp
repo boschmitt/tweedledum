@@ -38,9 +38,9 @@ TEMPLATE_PRODUCT_TEST_CASE("QASM Reader", "[qasm][template]", (netlist, op_dag),
 		CHECK(network.num_wires() == 32u);
 		CHECK(network.num_qubits() == 32u);
 		CHECK(network.num_cbits() == 0u);
-		network.foreach_wire([](wire_id wire, std::string const& label) {
-			std::string name = fmt::format("q_{}", wire.id());
-			CHECK(label == name);
+		network.foreach_wire([](wire_id wire, std::string_view name) {
+			std::string n = fmt::format("q_{}", wire.id());
+			CHECK(name == n);
 		}); 
 	}
 }

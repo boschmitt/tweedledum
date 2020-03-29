@@ -29,7 +29,7 @@ inline void left_trim(std::string& str, const char* chars = " \t\n\v\f\r")
 	}
 }
 
-inline auto split(std::string const& str)
+inline auto split(std::string_view str)
 {
 	std::vector<std::string> split_string;
 	std::istringstream iss(str);
@@ -80,7 +80,7 @@ inline device read_device(std::istream& in = std::cin)
  * \param filename Filename string
  * \returns A device
  */
-inline device read_device(std::string const& filename)
+inline device read_device(std::string_view filename)
 {
 	std::ifstream in(filename.c_str(), std::ios::in);
 	return read_device(in);

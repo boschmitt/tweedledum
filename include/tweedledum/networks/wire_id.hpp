@@ -136,7 +136,7 @@ class storage {
 		wire_modes mode;
 		std::string name;
 
-		wire_info(wire_id id, wire_modes mode, std::string const& name)
+		wire_info(wire_id id, wire_modes mode, std::string_view name)
 		    : id(id)
 		    , mode(mode)
 		    , name(name)
@@ -160,26 +160,26 @@ public:
 		return num_wires() - num_qubits();
 	}
 
-	wire_id create_qubit(std::string const& name, wire_modes mode)
+	wire_id create_qubit(std::string_view name, wire_modes mode)
 	{
 		wire_id id(wires_.size(), /* is_qubit */ true);
-		name_to_wire_.emplace(name, id);
 		wires_.emplace_back(id, mode, name);
+		name_to_wire_.emplace(name, id);
 		++num_qubits_;
 		return id;
 	}
 
-	wire_id create_cbit(std::string const& name, wire_modes mode)
+	wire_id create_cbit(std::string_view name, wire_modes mode)
 	{
 		wire_id id(wires_.size(), /* is_qubit */ false);
-		name_to_wire_.emplace(name, id);
 		wires_.emplace_back(id, mode, name);
+		name_to_wire_.emplace(name, id);
 		return id;
 	}
 
-	wire_id wire(std::string const& name) const
+	wire_id wire(std::string_view name) const
 	{
-		return name_to_wire_.at(name);
+		return name_to_wire_.at(std::string(name));
 	}
 
 	std::string wire_name(wire_id id) const
@@ -192,7 +192,7 @@ public:
 	 * \param rename If true, this flag indicates that `new_name` must substitute the previous
 	 *               name. (default: `true`) 
 	 */
-	void wire_name(wire_id id, std::string const& new_name, bool rename)
+	void wire_name(wire_id id, std::string_view new_name, bool rename)
 	{
 		if (rename) {
 			name_to_wire_.erase(wires_.at(id).name);
@@ -216,7 +216,7 @@ public:
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, wire_id> ||
-			      std::is_invocable_r_v<void, Fn, wire_id, std::string const&>);
+			      std::is_invocable_r_v<void, Fn, wire_id, std::string_view>);
 		// clang-format on
 		for (uint32_t i = 0u; i < wires_.size(); ++i) {
 			if constexpr (std::is_invocable_r_v<void, Fn, wire_id>) {

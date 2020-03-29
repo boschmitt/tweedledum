@@ -35,7 +35,7 @@ public:
 		new_column();
 	}
 
-	void add_gate(std::string const& op, io_id target)
+	void add_gate(std::string_view op, io_id target)
 	{
 		if (columns_.back()[target] != "1") {
 			new_column();
@@ -43,7 +43,7 @@ public:
 		columns_.back()[target] = op;
 	}
 
-	void add_gate(std::string const& op, io_id control, io_id target)
+	void add_gate(std::string_view op, io_id control, io_id target)
 	{
 		if (!is_last_column_empty()) {
 			new_column();
@@ -63,7 +63,7 @@ public:
 		new_column();
 	}
 
-	void add_gate(std::string const& op, std::vector<io_id> controls,
+	void add_gate(std::string_view op, std::vector<io_id> controls,
 	              std::vector<io_id> targets)
 	{
 		if (!is_last_column_empty()) {
@@ -255,9 +255,9 @@ void write_quirk(Network const& network, std::ostream& os = std::cout)
  * \param filename Filename
  */
 template<class Network>
-void write_quirk(Network const& network, std::string const& filename)
+void write_quirk(Network const& network, std::string_view filename)
 {
-	std::ofstream os(filename.c_str(), std::ofstream::out);
+	std::ofstream os(filename, std::ofstream::out);
 	write_quirk(network, os);
 }
 

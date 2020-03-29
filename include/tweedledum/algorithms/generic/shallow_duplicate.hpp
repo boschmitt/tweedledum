@@ -24,11 +24,11 @@ template<class NetworkOriginal, class Network>
 Network shallow_duplicate(NetworkOriginal const& original, std::string_view name = {})
 {
 	Network duplicate(name.empty() ? original.name() : name);
-	original.foreach_wire([&](wire_id wire, std::string const& label) {
+	original.foreach_wire([&](wire_id wire, std::string_view name) {
 		if (wire.is_qubit()) {
-			duplicate.create_qubit(label, original.wire_mode(wire));
+			duplicate.create_qubit(name, original.wire_mode(wire));
 		} else {
-			duplicate.create_cbit(label);
+			duplicate.create_cbit(name);
 		}
 	});
 	return duplicate;
@@ -44,11 +44,11 @@ template<class Network>
 Network shallow_duplicate(Network const& original, std::string_view name = {})
 {
 	Network duplicate(name.empty() ? original.name() : name);
-	original.foreach_wire([&](wire_id wire, std::string const& label) {
+	original.foreach_wire([&](wire_id wire, std::string_view name) {
 		if (wire.is_qubit()) {
-			duplicate.create_qubit(label, original.wire_mode(wire));
+			duplicate.create_qubit(name, original.wire_mode(wire));
 		} else {
-			duplicate.create_cbit(label);
+			duplicate.create_cbit(name);
 		}
 	});
 	return duplicate;

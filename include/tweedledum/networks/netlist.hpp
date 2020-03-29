@@ -145,18 +145,11 @@ public:
 		return wires_->num_cbits();
 	}
 
-	wire_id create_qubit(std::string const& name, wire_modes mode = wire_modes::inout)
+	wire_id create_qubit(std::string_view name, wire_modes mode = wire_modes::inout)
 	{
 		wire_id w_id = wires_->create_qubit(name, mode);
 		connect_wire(w_id);
 		return w_id;
-	}
-
-	// This function is needed otherwise I cannot call create_qubit("<qubit_name>")
-	wire_id create_qubit(char const* cstr_name, wire_modes mode = wire_modes::inout)
-	{
-		std::string name(cstr_name);
-		return create_qubit(name, mode);
 	}
 
 	wire_id create_qubit(wire_modes mode = wire_modes::inout)
@@ -165,7 +158,7 @@ public:
 		return create_qubit(name, mode);
 	}
 
-	wire_id create_cbit(std::string const& name, wire_modes mode = wire_modes::inout)
+	wire_id create_cbit(std::string_view name, wire_modes mode = wire_modes::inout)
 	{
 		wire_id w_id = wires_->create_cbit(name, mode);
 		connect_wire(w_id);
@@ -184,7 +177,7 @@ public:
 		return create_cbit(name, mode);
 	}
 
-	wire_id wire(std::string const& name) const
+	wire_id wire(std::string_view name) const
 	{
 		return wires_->wire(name);
 	}
@@ -199,7 +192,7 @@ public:
 	 * \param rename If true, this flag indicates that `new_name` must substitute the previous
 	 *               name. (default: `true`) 
 	 */
-	void wire_name(wire_id w_id, std::string const& new_name, bool rename = true)
+	void wire_name(wire_id w_id, std::string_view new_name, bool rename = true)
 	{
 		wires_->wire_name(w_id, new_name, rename);
 	}
@@ -247,18 +240,17 @@ public:
 #pragma endregion
 
 #pragma region Creating operations (using wire names)
-	node_id create_op(gate const& g, std::string const& target)
+	node_id create_op(gate const& g, std::string_view target)
 	{
 		return create_op(g, wire(target));
 	}
 
-	node_id create_op(gate const& g, std::string const& l0, std::string const& l1)
+	node_id create_op(gate const& g, std::string_view l0, std::string_view l1)
 	{
 		return create_op(g, wire(l0), wire(l1));
 	}
 
-	node_id create_op(gate const& g, std::string const& c0, std::string const& c1,
-	                  std::string const& t)
+	node_id create_op(gate const& g, std::string_view c0, std::string_view c1, std::string_view t)
 	{
 		return create_op(g, wire(c0), wire(c1), wire(t));
 	}
@@ -267,11 +259,11 @@ public:
 	                  std::vector<std::string> const& ts)
 	{
 		std::vector<wire_id> controls;
-		for (std::string const& control : cs) {
+		for (std::string_view control : cs) {
 			controls.push_back(wire(control));
 		}
 		std::vector<wire_id> targets;
-		for (std::string const& target : ts) {
+		for (std::string_view target : ts) {
 			targets.push_back(wire(target));
 		}
 		return create_op(g, controls, targets);

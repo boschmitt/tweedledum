@@ -30,3 +30,31 @@ TEST_CASE("Wire id constructors", "[wire_id]")
 		CHECK(cmpl_id.is_complemented());
 	}
 }
+
+TEST_CASE("Wire storage", "[wire_id]")
+{
+	using namespace tweedledum;
+	
+	wire::storage storage;
+	SECTION("Using const literal strings") {
+		wire_id qubit = storage.create_qubit("q0", wire_modes::inout);
+		wire_id qubit_found = storage.wire("q0");
+		CHECK(qubit == qubit_found);
+
+		wire_id cbit = storage.create_cbit("c0", wire_modes::inout);
+		wire_id cbit_found = storage.wire("c0");
+		CHECK(cbit == cbit_found);
+	}
+	SECTION("Using strings") {
+		std::string qubit_name = "__dum_q0";
+		std::string cbit_name = "c0";
+
+		wire_id qubit = storage.create_qubit(qubit_name, wire_modes::inout);
+		wire_id cbit = storage.create_cbit(cbit_name, wire_modes::inout);
+		wire_id qubit_found = storage.wire(qubit_name);
+		wire_id cbit_found = storage.wire(cbit_name);
+		CHECK(qubit == qubit_found);
+		CHECK(cbit == cbit_found);
+	}
+
+}

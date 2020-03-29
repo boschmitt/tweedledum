@@ -20,7 +20,7 @@ namespace tweedledum {
 /*! \brief Reads OPENQASM 2.0 format
  */
 template<typename Network>
-Network read_quil_from_file(std::string const& path)
+Network read_quil_from_file(std::string_view path)
 {
 	using namespace tweedledee::quil;
 	Network network;
@@ -190,7 +190,7 @@ void write_quil(Network const& network, std::ostream& os)
  * \param filename Filename
  */
 template<typename Network>
-void write_quil(Network const& network, std::string const& filename)
+void write_quil(Network const& network, std::string_view filename)
 {
 	std::ofstream os(filename.c_str(), std::ofstream::out);
 	write_quil(network, os);

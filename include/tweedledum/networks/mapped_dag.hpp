@@ -50,17 +50,17 @@ public:
 	    , wires_(std::make_shared<wstrg_type>())
 	    , map_(std::make_shared<mstrg_type>(network.num_wires(), arch))
 	{
-		network.foreach_wire([&](wire_id wire, std::string const& label) {
+		network.foreach_wire([&](wire_id wire, std::string_view name) {
 			if (wire.is_qubit()) {
-				map_->wire_to_v.at(wire) = create_qubit(label);
+				map_->wire_to_v.at(wire) = create_qubit(name);
 			}
 		});
 		for (uint32_t i = network.num_qubits(); i < arch.num_vertices(); ++i) {
 			create_qubit();
 		}
-		network.foreach_wire([&](wire_id wire, std::string const& label) {
+		network.foreach_wire([&](wire_id wire, std::string_view name) {
 			if (!wire.is_qubit()) {
-				map_->wire_to_v.at(wire) = create_cbit(label);
+				map_->wire_to_v.at(wire) = create_cbit(name);
 			}
 		});
 	}
@@ -157,18 +157,11 @@ private:
 		map_->v_to_phy.push_back(w_id);
 	}
 
-	wire_id create_qubit(std::string const& name, wire_modes mode = wire_modes::inout)
+	wire_id create_qubit(std::string_view name, wire_modes mode = wire_modes::inout)
 	{
 		wire_id w_id = wires_->create_qubit(name, mode);
 		connect_wire(w_id);
 		return w_id;
-	}
-
-	// This function is needed otherwise I cannot call create_qubit("<qubit_name>")
-	wire_id create_qubit(char const* cstr_name, wire_modes mode = wire_modes::inout)
-	{
-		std::string name(cstr_name);
-		return create_qubit(name, mode);
 	}
 
 	wire_id create_qubit(wire_modes mode = wire_modes::inout)
@@ -193,7 +186,7 @@ public:
 		return wires_->num_cbits();
 	}
 
-	wire_id create_cbit(std::string const& name, wire_modes mode = wire_modes::inout)
+	wire_id create_cbit(std::string_view name, wire_modes mode = wire_modes::inout)
 	{
 		wire_id w_id = wires_->create_cbit(name, mode);
 		connect_wire(w_id);
@@ -212,7 +205,7 @@ public:
 		return create_cbit(name, mode);
 	}
 
-	wire_id wire(std::string const& name) const
+	wire_id wire(std::string_view name) const
 	{
 		return wires_->wire(name);
 	}
@@ -227,7 +220,7 @@ public:
 	 * \param rename If true, this flag indicates that `new_name` must substitute the previous
 	 *               name. (default: `true`) 
 	 */
-	void wire_name(wire_id w_id, std::string const& new_name, bool rename = true)
+	void wire_name(wire_id w_id, std::string_view new_name, bool rename = true)
 	{
 		wires_->wire_name(w_id, new_name, rename);
 	}

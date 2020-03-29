@@ -143,6 +143,7 @@ namespace tweedledum {
 
 /*! \brief Reads OPENQASM 2.0 format
  */
+//TODO: use string_view
 template<typename Network>
 Network read_qasm_from_buffer(std::string const& buffer)
 {
@@ -156,21 +157,25 @@ Network read_qasm_from_buffer(std::string const& buffer)
 	return network;
 }
 
-/*! \brief Reads OPENQASM 2.0 format
- */
+//TODO: use string_view
 template<typename Network>
-Network read_qasm_from_file(std::string const& path)
+void read_qasm_from_file(Network network, std::string const& path)
 {
 	using namespace tweedledee::qasm;
-	Network network;
 	auto program_ast = read_from_file(path);
 	if (program_ast) {
-		// ast_printer printer;
-		// printer.visit(*program_ast);
-
 		tweedledum_visitor network_builder(network);
 		network_builder.visit(*program_ast);
 	}
+}
+
+/*! \brief Reads OPENQASM 2.0 format
+ */
+template<typename Network>
+Network read_qasm_from_file(std::string_view path)
+{
+	Network network;
+	read_qasm_from_file(network, path);
 	return network;
 }
 
@@ -286,9 +291,9 @@ void write_qasm(Network const& network, std::ostream& os)
  * \param filename Filename
  */
 template<typename Network>
-void write_qasm(Network const& network, std::string const& filename)
+void write_qasm(Network const& network, std::string_view filename)
 {
-	std::ofstream os(filename.c_str(), std::ofstream::out);
+	std::ofstream os(filename, std::ofstream::out);
 	write_qasm(network, os);
 }
 

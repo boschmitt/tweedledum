@@ -82,22 +82,22 @@ struct identify_gate_kind {
 template<typename GateKind = gate_kinds>
 class dotqc_reader {
 public:
-	virtual void on_qubit(std::string label)
+	virtual void on_qubit(std::string_view name)
 	{
-		(void) label;
+		(void) name;
 	}
 
-	virtual void on_input(std::string label)
+	virtual void on_input(std::string_view name)
 	{
-		(void) label;
+		(void) name;
 	}
 
-	virtual void on_output(std::string label)
+	virtual void on_output(std::string_view name)
 	{
-		(void) label;
+		(void) name;
 	}
 
-	virtual void on_gate(GateKind kind, std::string const& target)
+	virtual void on_gate(GateKind kind, std::string_view target)
 	{
 		(void) kind;
 		(void) target;

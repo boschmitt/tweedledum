@@ -29,12 +29,12 @@ Network phase_folding(Network const& original)
 	std::vector<uint32_t> wire_to_qid(original.num_wires(), qid_max);
 	std::vector<sum_type> qubit_pathsum;
 
-	original.foreach_wire([&](wire_id w_id, std::string const& label) {
+	original.foreach_wire([&](wire_id w_id, std::string_view name) {
 		if (!w_id.is_qubit()) {
-			optmized.create_cbit(label);
+			optmized.create_cbit(name);
 			return;
 		};
-		optmized.create_qubit(label);
+		optmized.create_qubit(name);
 		wire_to_qid.at(w_id) = qubit_pathsum.size();
 		qubit_pathsum.emplace_back(1u, (num_path_vars++ << 1));
 	});

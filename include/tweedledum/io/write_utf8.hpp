@@ -44,7 +44,7 @@ public:
 		max_num_glyphs_ = 7u + id_size;
 	}
 
-	void add_op(std::string const& gate, wire_id target)
+	void add_op(std::string_view gate, wire_id target)
 	{
 		uint32_t line = wires_.size() - (target + 1);
 		uint32_t gate_len = utf8_strlen(gate);
@@ -59,7 +59,7 @@ public:
 		max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(line));
 	}
 
-	void add_op(std::string const& gate, wire_id control, wire_id target)
+	void add_op(std::string_view gate, wire_id control, wire_id target)
 	{
 		uint32_t c_line = wires_.size() - (control + 1);
 		uint32_t t_line = wires_.size() - (target + 1);
@@ -139,7 +139,7 @@ public:
 		max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(q0_line));
 	}
 
-	void add_op(std::string const& gate, std::vector<wire_id> const& cs,
+	void add_op(std::string_view gate, std::vector<wire_id> const& cs,
 	            std::vector<wire_id> const& ts)
 	{
 		uint32_t gate_len = utf8_strlen(gate);
@@ -212,7 +212,7 @@ public:
 	}
 
 private:
-	uint32_t utf8_strlen(std::string const& str)
+	uint32_t utf8_strlen(std::string_view str)
 	{
 		uint32_t num_glyphs = 0u;
 		uint32_t end = str.length();
