@@ -192,7 +192,7 @@ public:
 		std::abort();
 	}
 
-	uint32_t wire(uint32_t position) const
+	wire_id wire(uint32_t position) const
 	{
 		assert(position < max_num_wires);
 		assert(wires_.at(position) != wire::invalid);

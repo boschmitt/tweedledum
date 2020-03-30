@@ -430,21 +430,21 @@ public:
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, wire_id>);
-		// clang-format on
+		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const> ||
+		              std::is_invocable_r_v<void, Fn, node_type const&, wire_id const>);
 		for (uint32_t position = 0u; position < n.children.size(); ++position) {
 			if (n.children[position] == node::invalid) {
 				continue;
 			}
 			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(n.children[position]));
-			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node_id>) {
+			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node_id const>) {
 				fn(node(n.children[position]), n.children[position]);
-			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire_id>) {
+			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire_id const>) {
 				fn(node(n.children[position]), n.op.wire(position));
 			}
 		}
+		// clang-format on
 	}
 #pragma endregion
 
