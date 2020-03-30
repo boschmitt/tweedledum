@@ -16,21 +16,20 @@ namespace tweedledum {
  *
  * The layers are computed at construction and can be recomputed by calling the `update` method.
  * 
- * NOTE: The 0th and the last layers correspond to the input and output nodes, respectively.
+ * NOTE: The 0th layer correspond to the input nodes.
  */
 template<typename Network>
 class layers_view : public immutable_view<Network> {
 public:
-	using gate_type = typename Network::gate_type;
+	using base_type = typename Network::base_type;
+	using op_type = typename Network::op_type;
 	using node_type = typename Network::node_type;
-	using link_type = typename Network::link_type;
-	using dstrg_type = typename Network::dstrg_type;
 
 	explicit layers_view(Network const& network)
 	    : immutable_view<Network>(network)
 	    , node_layer_(network)
 	{
-		if (this->num_io()) {
+		if (this->num_wires()) {
 			update();
 		}
 	}
@@ -38,10 +37,7 @@ public:
 	// NOTE: the depth of a quantum circuit is the number layers with gates.
 	uint32_t depth() const
 	{
-		// Since the adition of a qubit (or cbit) adds an input and an output node to the
-		// network, the number of layers must never be 1.
-		assert(layer_nodes_.size() == 0 || layer_nodes_.size() >= 2);
-		return layer_nodes_.empty() ? 0u : layer_nodes_.size() - 2;
+		return layer_nodes_.empty() ? 0u : layer_nodes_.size() - 1;
 	}
 
 	uint32_t num_layers() const
@@ -49,14 +45,19 @@ public:
 		return layer_nodes_.size();
 	}
 
-	uint32_t layer(node_type const& node) const
+	uint32_t layer(node_id const nid) const
 	{
-		return node_layer_[node];
+		return node_layer_.at(nid);
 	}
 
-	std::vector<uint32_t> layer(uint32_t index) const
+	uint32_t layer(node_type const& node) const
 	{
-		return layer_nodes_[index];
+		return node_layer_.at(node);
+	}
+
+	std::vector<node_id> layer(uint32_t const i) const
+	{
+		return layer_nodes_[i];
 	}
 
 	void update()
@@ -71,7 +72,7 @@ private:
 	{
 		node_layer_.reset(0);
 		layer_nodes_.clear();
-		if (this->num_io() > 0) {
+		if (this->num_wires() > 0) {
 			layer_nodes_.resize(1);
 		}
 		this->clear_values();
@@ -79,14 +80,16 @@ private:
 
 	void compute_layers()
 	{
-		this->foreach_input([&](auto const& node) {
-			layer_nodes_.at(0).push_back(this->index(node));
-			node_layer_[node] = 0u;
+		this->foreach_input([&](node_id const nid) {
+			layer_nodes_.at(0).push_back(nid);
+			node_layer_[nid] = 0u;
 		});
-		this->foreach_gate([&](auto const& node, auto node_index) {
+		this->foreach_node([&](node_type const& node, node_id const nid) {
+			if (node.op.is_meta()) {
+				return;
+			}
 			uint32_t layer = 0u;
-			this->foreach_child(node, [&](auto child_index) {
-				auto& child = this->get_node(child_index);
+			this->foreach_child(node, [&](node_type const& child) {
 				layer = std::max(layer, node_layer_[child]);
 			});
 			layer += 1;
@@ -94,18 +97,13 @@ private:
 				layer_nodes_.emplace_back();
 			}
 			node_layer_[node] = layer;
-			layer_nodes_.at(layer).push_back(node_index);
-		});
-		layer_nodes_.emplace_back();
-		this->foreach_output([&](auto const& node) {
-			layer_nodes_.back().push_back(this->index(node));
-			node_layer_[node] = layer_nodes_.size() - 1;
+			layer_nodes_.at(layer).push_back(nid);
 		});
 	}
 
 private:
 	node_map<uint32_t, Network> node_layer_;
-	std::vector<std::vector<uint32_t>> layer_nodes_;
+	std::vector<std::vector<node_id>> layer_nodes_;
 };
 
 } // namespace tweedledum

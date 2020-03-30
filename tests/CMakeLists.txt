@@ -42,7 +42,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/networks/wire_id.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/operations/operations.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/utils/angle.cpp"
-  # # "${CMAKE_CURRENT_SOURCE_DIR}/views/layers_view.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/views/layers_view.cpp"
   )
 
 # if(TWEEDLEDUM_BLAS)
