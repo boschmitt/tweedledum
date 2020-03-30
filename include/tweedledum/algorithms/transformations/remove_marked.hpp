@@ -10,7 +10,7 @@
 
 namespace tweedledum {
 
-/*! \brief Generic function to remove marked gates.
+/*! \brief Function to remove marked gates.
  *
  * For this function a node is marked when its value, returned by `netwokr.value(node)`, is not 0.
  * The orignal network is not modified.  A _new_ network is created and all nodes that are not
@@ -19,7 +19,7 @@ namespace tweedledum {
  * NOTE: This function requires a template parameter that cannot be inferred.  This is useful when
  * removing nodes and createing a different network format, e.g. `op_dag` <-> `netlist`
  * 
- * NOTE: Gate type _must_ be the same.
+ * NOTE: Operation type _must_ be the same.
  * 
  * \param original The original quantum network (will not be modified)
  * \return A _new_ network without the marked gates.
@@ -31,7 +31,7 @@ NewNetwork remove_marked(Network const& original)
 	using node_type = typename Network::node_type;
 
 	static_assert(std::is_same_v<typename Network::op_type, typename NewNetwork::op_type>,
-	              "Gate type _must_ be the same");
+	              "Operation type _must_ be the same");
 
 	NewNetwork result = shallow_duplicate<NewNetwork>(original);
 	original.foreach_op([&](op_type const& op, node_type const& node) {
@@ -43,7 +43,7 @@ NewNetwork remove_marked(Network const& original)
 	return result;
 }
 
-/*! \brief Generic function to remove marked gates.
+/*! \brief Function to remove marked gates.
  *
  * For this function a node is marked when its value, returned by `netwokr.value(node)`, is not 0.
  * The orignal network is not modified.  A _new_ network is created and all nodes that are not
