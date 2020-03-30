@@ -16,13 +16,12 @@ namespace tweedledum {
 namespace detail {
 using sum_type = std::vector<uint32_t>;
 
-// Fake pathsums can be employed to verify mappings.  Assuming that the mapping do not
-// screw-up adding single qubit gates, we can safely ignore them and verify if the set of
-// output path sums of the original circuit mataches the set of output path sums of the
-// mapped circuit.
+// Fake pathsums can be employed to verify mappings.  Assuming that the mapping do not screw-up
+// adding single qubit gates, we can safely ignore them and verify if the set of output path sums of
+// the original circuit mataches the set of output path sums of the mapped circuit.
 //
-// The user need to pass the _initial_ virtual->physical mapping so that the path literals
-// can be placed correctly.
+// The user need to pass the _initial_ virtual->physical mapping so that the path literals can be
+// placed correctly.
 template<typename Network>
 std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire_id> const& init)
 {
