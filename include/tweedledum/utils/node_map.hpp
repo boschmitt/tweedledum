@@ -71,7 +71,7 @@ public:
 	/*! \brief Constant access to value by node. */
 	const_reference at(node_type const& node) const
 	{
-		assert(network_.index(node) < data_->size() && "index out of bounds");
+		assert(network_.id(node) < data_->size() && "index out of bounds");
 		return (*data_)[network_.id(node)];
 	}
 #pragma endregion
