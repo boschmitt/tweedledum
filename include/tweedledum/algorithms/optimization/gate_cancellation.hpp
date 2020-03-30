@@ -4,17 +4,12 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../generic/remove_marked.hpp"
-#include "../../gates/gate_lib.hpp"
-#include "../../utils/stopwatch.hpp"
+#include "../../gates/gate.hpp"
+#include "../../networks/storage.hpp"
+#include "../transformations/remove_marked.hpp"
 
-#include <vector>
-#include <set>
 #include <cassert>
-
-#include <fmt/format.h>
-#include <fmt/ostream.h>
-#include <nlohmann/json.hpp>
+#include <vector>
 
 namespace tweedledum {
 
@@ -22,54 +17,56 @@ namespace tweedledum {
  */
 // TODO: still feels a bit hacky
 template<typename Network>
-Network gate_cancellation(Network const& network, nlohmann::json* stats = nullptr)
+Network gate_cancellation(Network const& network)
 {
-	using link_type = typename Network::link_type;
+	using op_type = typename Network::op_type;
+	using node_type = typename Network::node_type;
+
 	uint32_t num_deletions = 0u;
 	network.clear_values();
-
-	auto start = std::chrono::steady_clock::now();
-	network.foreach_gate([&](auto const& node) {
-		std::vector<link_type> children;
-		std::set<uint32_t> qubits;
-		network.foreach_child(node, [&](link_type child_index, io_id io) {
+	network.foreach_op([&](op_type const& op, node_type const& node) {
+		std::vector<node_id> children;
+		network.foreach_child(node, [&](node_type const& child, wire_id const cwid) {
+			node_id temp_nid = network.id(child);
 			do {
-				auto prev_node = network.get_node(child_index);
-				if (network.value(prev_node) == 1) {
-					child_index = prev_node.children[prev_node.gate.qubit_slot(io)];
+				node_type const& ancestor = network.node(temp_nid);
+				if (network.value(ancestor) == 1) {
+					temp_nid = ancestor.children.at(ancestor.op.position(cwid));
 					continue;
 				}
-				if (node.gate.is_adjoint(prev_node.gate) || node.gate.is_dependent(prev_node.gate)) {
-					children.emplace_back(child_index);
+				if (ancestor.op.is_meta() || ancestor.op.is_measurement()) {
+					children.emplace_back(network.id(ancestor));
 					return;
 				}
-				child_index = prev_node.children[prev_node.gate.qubit_slot(io)];
+				if (op.is_adjoint(ancestor.op) || op.is_dependent(ancestor.op)) {
+					children.emplace_back(network.id(ancestor));
+					return;
+				}
+				temp_nid = ancestor.children.at(ancestor.op.position(cwid));
 			} while (1);
 		});
-		assert(children.size() == node.gate.num_io());
+		assert(children.size() == node.op.num_wires());
 		bool do_remove = true;
-		for (uint32_t i = 1; i < children.size(); ++i) {
+		// Check if all children are equal
+		for (uint32_t i = 1u; i < children.size(); ++i) {
 			if (children.at(i - 1) != children.at(i)) {
 				do_remove = false;
 				break;
 			}
 		}
 		if (do_remove) {
-			auto& adj_node = network.get_node(children[0]);
-			if (!node.gate.is_adjoint(adj_node.gate)) {
+			node_type const& child = network.node(children.at(0u));
+			if (child.op.is_meta() || child.op.is_measurement()) {
 				return;
 			}
-			network.set_value(node, 1);
-			network.set_value(adj_node, 1);
+			if (!op.is_adjoint(child.op)) {
+				return;
+			}
+			network.value(node, 1u);
+			network.value(child, 1u);
 			num_deletions += 2;
 		}
 	});
-	auto elapsed_time = std::chrono::steady_clock::now() - start;
-	if (stats) {
-		(*stats)["passes"] += { {"pass", "gate_cancellation"}, 
-		                        {"time", to_seconds(elapsed_time) },
-					{"deletions", num_deletions } };
-	}
 	if (num_deletions == 0) {
 		return network;
 	}

@@ -16,7 +16,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/sabre_map.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/sat_map.cpp"
   # "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/zdd_map.cpp"
-  # "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/gate_cancellation.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/gate_cancellation.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/optimization/phase_folding.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/oracles/xag_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/cnot_patel.cpp"
