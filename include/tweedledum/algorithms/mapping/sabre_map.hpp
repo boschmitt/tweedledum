@@ -6,7 +6,7 @@
 
 #include "../../networks/mapped_dag.hpp"
 #include "../../utils/device.hpp"
-#include "../generic/reverse.hpp"
+#include "../transformations/reverse.hpp"
 #include "sat_map.hpp"
 
 #include <set>
