@@ -13,7 +13,7 @@
 
 namespace tweedledum {
 
-/*! \brief As soon as possible (ASAP) reschuduler
+/*! \brief As soon as possible (ASAP) rescheduler
  *
  * Move operations closer to inputs
  */
