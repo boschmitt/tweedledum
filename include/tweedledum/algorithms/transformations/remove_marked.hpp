@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "shallow_duplicate.hpp"
+#include "../generic/shallow_duplicate.hpp"
 
 #include <type_traits>
 
