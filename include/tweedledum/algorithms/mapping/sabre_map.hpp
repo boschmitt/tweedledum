@@ -56,7 +56,7 @@ public:
 		}
 
 		original.clear_values();
-		original.foreach_output([&](node_type const& node, node_id id) {
+		original.foreach_output([&](node_type const& node, node_id const id) {
 			if (node.op.is_meta()) {
 				return;
 			}

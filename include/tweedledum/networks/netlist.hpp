@@ -56,7 +56,7 @@ public:
 		return data_->nodes.capacity();
 	}
 
-	void reserve(uint32_t new_cap)
+	void reserve(uint32_t const new_cap)
 	{
 		data_->nodes.reserve(new_cap);
 	}
@@ -66,7 +66,7 @@ public:
 		return (data_->nodes.size() - data_->inputs.size());
 	}
 
-	bool check_gate_set(uint64_t allowed_gates) const
+	bool check_gate_set(uint64_t const allowed_gates) const
 	{
 		return (data_->gate_set & ~allowed_gates) == 0ull;
 	}
@@ -78,14 +78,14 @@ public:
 		return node_id(static_cast<uint32_t>(&n - data_->nodes.data()));
 	}
 
-	node_type const& node(node_id id) const
+	node_type const& node(node_id const id) const
 	{
 		return data_->nodes.at(id);
 	}
 #pragma endregion
 
 #pragma region Node custom values
-	void default_value(uint32_t value) const
+	void default_value(uint32_t const value) const
 	{
 		data_->default_value = value;
 	}
@@ -101,7 +101,7 @@ public:
 		return node.data;
 	}
 
-	void value(node_type const& node, uint32_t value) const
+	void value(node_type const& node, uint32_t const value) const
 	{
 		node.data = value;
 	}
@@ -145,33 +145,27 @@ public:
 		return wires_->num_cbits();
 	}
 
-	wire_id create_qubit(std::string_view name, wire_modes mode = wire_modes::inout)
+	wire_id create_qubit(std::string_view name, wire_modes const mode = wire_modes::inout)
 	{
 		wire_id w_id = wires_->create_qubit(name, mode);
 		connect_wire(w_id);
 		return w_id;
 	}
 
-	wire_id create_qubit(wire_modes mode = wire_modes::inout)
+	wire_id create_qubit(wire_modes const mode = wire_modes::inout)
 	{
 		std::string name = fmt::format("__dum_q{}", num_qubits());
 		return create_qubit(name, mode);
 	}
 
-	wire_id create_cbit(std::string_view name, wire_modes mode = wire_modes::inout)
+	wire_id create_cbit(std::string_view name, wire_modes const mode = wire_modes::inout)
 	{
 		wire_id w_id = wires_->create_cbit(name, mode);
 		connect_wire(w_id);
 		return w_id;
 	}
 
-	wire_id create_cbit(char const* cstr_name,  wire_modes mode = wire_modes::inout)
-	{
-		std::string name(cstr_name);
-		return create_cbit(name, mode);
-	}
-
-	wire_id create_cbit(wire_modes mode = wire_modes::inout)
+	wire_id create_cbit(wire_modes const mode = wire_modes::inout)
 	{
 		std::string name = fmt::format("__dum_c{}", num_cbits());
 		return create_cbit(name, mode);
@@ -182,27 +176,22 @@ public:
 		return wires_->wire(name);
 	}
 
-	std::string wire_name(wire_id w_id) const
+	std::string wire_name(wire_id const w_id) const
 	{
 		return wires_->wire_name(w_id);
 	}
 
-	/* \brief Add a new name to identify a wire.
-	 *
-	 * \param rename If true, this flag indicates that `new_name` must substitute the previous
-	 *               name. (default: `true`) 
-	 */
-	void wire_name(wire_id w_id, std::string_view new_name, bool rename = true)
+	void wire_name(wire_id const w_id, std::string_view new_name, bool const rename = true)
 	{
 		wires_->wire_name(w_id, new_name, rename);
 	}
 
-	wire_modes wire_mode(wire_id w_id) const
+	wire_modes wire_mode(wire_id const w_id) const
 	{
 		return wires_->wire_mode(w_id);
 	}
 
-	void wire_mode(wire_id w_id, wire_modes new_mode)
+	void wire_mode(wire_id const w_id, wire_modes const new_mode)
 	{
 		wires_->wire_mode(w_id, new_mode);
 	}
@@ -218,22 +207,23 @@ public:
 		return id;
 	}
 
-	node_id create_op(gate const& g, wire_id t)
+	node_id create_op(gate const& g, wire_id const t)
 	{
 		return emplace_op(op_type(g, t));
 	}
 
-	node_id create_op(gate const& g, wire_id w0, wire_id w1)
+	node_id create_op(gate const& g, wire_id const w0, wire_id const w1)
 	{
 		return emplace_op(op_type(g, w0, w1));
 	}
 
-	node_id create_op(gate const& g, wire_id c0, wire_id c1, wire_id t)
+	node_id create_op(gate const& g, wire_id const c0, wire_id const c1, wire_id const t)
 	{
 		return emplace_op(op_type(g, c0, c1, t));
 	}
 
-	node_id create_op(gate const& g, std::vector<wire_id> cs, std::vector<wire_id> ts)
+	node_id create_op(gate const& g, std::vector<wire_id> const& cs,
+	                  std::vector<wire_id> const& ts)
 	{
 		return emplace_op(op_type(g, cs, ts));
 	}
@@ -281,12 +271,12 @@ public:
 	void foreach_input(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_id> ||
+		static_assert(std::is_invocable_r_v<void, Fn, node_id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->inputs.size(); i < i_limit; ++i) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_id>) {
+			if constexpr (std::is_invocable_r_v<void, Fn, node_id const>) {
 				fn(data_->inputs.at(i));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(data_->inputs.at(i)));
@@ -300,12 +290,12 @@ public:
 	void foreach_output(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_id> ||
+		static_assert(std::is_invocable_r_v<void, Fn, node_id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->outputs.size(); i < i_limit; ++i) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_id>) {
+			if constexpr (std::is_invocable_r_v<void, Fn, node_id const>) {
 				fn(data_->outputs.at(i));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(data_->outputs.at(i)));
@@ -351,6 +341,21 @@ public:
 				fn(node.op);
 			} else {
 				fn(node.op, node);
+			}
+		}
+	}
+	template<typename Fn>
+	void foreach_node(Fn&& fn) const
+	{
+		// clang-format off
+		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
+		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
+		// clang-format on
+		for (uint32_t i = 0u, i_limit = data_->nodes.size(); i < i_limit; ++i) {
+			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
+				fn(data_->nodes.at(i));
+			} else {
+				fn(data_->nodes.at(i), node_id(i));
 			}
 		}
 	}

@@ -7,6 +7,7 @@
 /* Taken from mockturtle (: */
 
 #include "../traits.hpp"
+#include "../networks/storage.hpp"
 
 #include <cassert>
 #include <memory>
@@ -16,20 +17,18 @@ namespace tweedledum {
 
 /*! \brief Associative container for network nodes
  *
- * This container helps to store values associated to nodes in a network.  The
- * container is initialized with a network to derive the size according to the
- * number of nodes. The container can be accessed via nodes, or indirectly
- * via `link_type`, from which the corresponding node is derived.
+ * This container helps to store values associated to nodes in a network.  The container is
+ * initialized with a network to derive the size according to the number of nodes.  The container
+ * can be accessed via nodes, or indirectly via `node_id`, from which the corresponding node is
+ * derived.
  *
- * The implementation uses a vector as underlying data_ structure which is
- * indexed by the node's index.
- *
+ * The implementation uses a vector as underlying data structure
  */
 template<class T, class Network>
 class node_map {
 public:
 	using node_type = typename Network::node_type;
-	using link_type = typename Network::link_type;
+	// using link_type = typename Network::link_type;
 	using reference = typename std::vector<T>::reference;
 	using const_reference = typename std::vector<T>::const_reference;
 
@@ -49,67 +48,66 @@ public:
 	    , data_(std::make_shared<std::vector<T>>(network.size(), init_value))
 	{}
 
+#pragma region Access using node reference
 	/*! \brief Mutable access to value by node. */
 	reference operator[](node_type const& node)
 	{
-		return (*data_)[network_.index(node)];
+		return (*data_)[network_.id(node)];
 	}
 
 	/*! \brief Constant access to value by node. */
 	const_reference operator[](node_type const& node) const
 	{
-		return (*data_)[network_.index(node)];
+		return (*data_)[network_.id(node)];
 	}
 
 	/*! \brief Mutable access to value by node. */
 	reference at(node_type const& node)
 	{
-		assert(network_.index(node) < data_->size() && "index out of bounds");
-		return (*data_)[network_.index(node)];
+		assert(network_.id(node) < data_->size() && "index out of bounds");
+		return (*data_)[network_.id(node)];
 	}
 
 	/*! \brief Constant access to value by node. */
 	const_reference at(node_type const& node) const
 	{
 		assert(network_.index(node) < data_->size() && "index out of bounds");
-		return (*data_)[network_.index(node)];
+		return (*data_)[network_.id(node)];
+	}
+#pragma endregion
+
+#pragma region Access using node identifier
+	/*! \brief Mutable access to value by `node_id`. */
+	reference operator[](node_id const nid)
+	{
+		return (*data_)[nid];
 	}
 
-	/*! \brief Mutable access to value by `link_type`.
-	 *
-	 * This method derives the node from the `link_type`.  If the node and `link_type` type
-	 * are the same in the network implementation, this method is disabled.
-	 */
-	template<typename _Ntk = Network,
-	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::link_type,
-		                                             typename _Ntk::node_type>>>
-	reference operator[](link_type const& f)
+	/*! \brief Constant access to value by `node_id`. */
+	const_reference operator[](node_id const nid) const
 	{
-		assert(network_.node_to_index(network_.get_node(f)) < data_->size()
-		       && "index out of bounds");
-		return (*data_)[network_.node_to_index(network_.get_node(f))];
+		return (*data_)[nid];
 	}
 
-	/*! \brief Constant access to value by `link_type`.
-	 *
-	 * This method derives the node from the `link_type`.  If the node and `link_type` type
-	 * are the same in the network implementation, this method is disabled.
-	 */
-	template<typename _Ntk = Network,
-	         typename = std::enable_if_t<!std::is_same_v<typename _Ntk::link_type,
-		                                             typename _Ntk::node_type>>>
-	const_reference operator[](link_type const& f) const
+		/*! \brief Mutable access to value by `node_id`. */
+	reference at(node_id const nid)
 	{
-		assert(network_.node_to_index(network_.get_node(f)) < data_->size()
-		       && "index out of bounds");
-		return (*data_)[network_.node_to_index(network_.get_node(f))];
+		assert(nid < data_->size() && "index out of bounds");
+		return (*data_)[nid];
 	}
+
+	/*! \brief Constant access to value by `node_id`. */
+	const_reference at(node_id const nid) const
+	{
+		assert(nid < data_->size() && "index out of bounds");
+		return (*data_)[nid];
+	}
+#pragma endregion
 
 	/*! \brief Resets the size of the map.
 	 *
-	 * This function should be called, if the network changed in size. Then,
-	 * the map is cleared, and resized to the current network's size.  All
-	 * values are initialized with `init_value`.
+	 * This function should be called, if the network changed in size.  Then the map is cleared
+	 * and resized to the current network's size.  All values are initialized with `init_value`.
 	 *
 	 * \param init_value Initialization value after resize
 	 */
@@ -121,8 +119,8 @@ public:
 
 	/*! \brief Resizes the map.
 	 *
-	 * This function should be called, if the node_map's size needs to
-	 * be changed without clearing its data.
+	 * This function should be called, if the node_map's size needs to be changed without
+	 * clearing its data.
 	 *
 	 * \param init_value Initialization value after resize
 	 */

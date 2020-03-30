@@ -32,14 +32,14 @@ constexpr std::array<complex_type, 4> sdg = {{{1., 0.}, {0., 0.}, {0., 0.}, {0.,
 constexpr std::array<complex_type, 4> t = {{{1., 0.}, {0., 0.}, {0., 0.}, {sqrt_1_2, sqrt_1_2}}};
 constexpr std::array<complex_type, 4> tdg = {{{1., 0.}, {0., 0.}, {0., 0.}, {sqrt_1_2, -sqrt_1_2}}};
 
-inline std::array<complex_type, 4> r1(angle lambda)
+inline std::array<complex_type, 4> r1(angle const lambda)
 {
 	std::array<complex_type, 4> matrix = i;
 	matrix.at(3) = std::exp(complex_type(0., lambda.numeric_value()));
 	return matrix;
 }
 
-inline std::array<complex_type, 4> rx(angle theta)
+inline std::array<complex_type, 4> rx(angle const theta)
 {
 	std::array<complex_type, 4> matrix = i;
 	matrix.at(0) = {std::cos(theta.numeric_value() / 2.), 0.};
@@ -49,7 +49,7 @@ inline std::array<complex_type, 4> rx(angle theta)
 	return matrix;
 }
 
-inline std::array<complex_type, 4> ry(angle theta)
+inline std::array<complex_type, 4> ry(angle const theta)
 {
 	std::array<complex_type, 4> matrix = i;
 	matrix.at(0) = {std::cos(theta.numeric_value() / 2.), 0.};
@@ -59,7 +59,7 @@ inline std::array<complex_type, 4> ry(angle theta)
 	return matrix;
 }
 
-inline std::array<complex_type, 4> rz(angle lambda)
+inline std::array<complex_type, 4> rz(angle const lambda)
 {
 	std::array<complex_type, 4> matrix = i;
 	matrix.at(0) = std::exp(complex_type(0., -lambda.numeric_value()));
@@ -67,7 +67,7 @@ inline std::array<complex_type, 4> rz(angle lambda)
 	return matrix;
 }
 
-inline std::array<complex_type, 4> u3(angle theta, angle phi, angle lambda)
+inline std::array<complex_type, 4> u3(angle const theta, angle const phi, angle const lambda)
 {
 	using namespace std::complex_literals;
 	std::array<complex_type, 4> matrix = i;
@@ -185,14 +185,14 @@ public:
 		return 0u;
 	}
 
-	wire_id create_qubit(std::string_view name, wire_modes mode = wire_modes::inout)
+	wire_id create_qubit(std::string_view name, wire_modes const mode = wire_modes::inout)
 	{
 		wire_id w_id = wires_->create_qubit(name, mode);
 		grow_unitary();
 		return w_id;
 	}
 
-	wire_id create_qubit(wire_modes mode = wire_modes::inout)
+	wire_id create_qubit(wire_modes const mode = wire_modes::inout)
 	{
 		std::string name = fmt::format("__dum_q{}", num_qubits());
 		return create_qubit(name, mode);
@@ -203,22 +203,22 @@ public:
 		return wires_->wire(name);
 	}
 
-	std::string wire_name(wire_id w_id) const
+	std::string wire_name(wire_id const w_id) const
 	{
 		return wires_->wire_name(w_id);
 	}
 
-	void wire_name(wire_id w_id, std::string_view new_name, bool rename = true)
+	void wire_name(wire_id const w_id, std::string_view new_name, bool const rename = true)
 	{
 		wires_->wire_name(w_id, new_name, rename);
 	}
 
-	wire_modes wire_mode(wire_id w_id) const
+	wire_modes wire_mode(wire_id const w_id) const
 	{
 		return wires_->wire_mode(w_id);
 	}
 
-	void wire_mode(wire_id w_id, wire_modes new_mode)
+	void wire_mode(wire_id const w_id, wire_modes const new_mode)
 	{
 		wires_->wire_mode(w_id, new_mode);
 	}
@@ -326,7 +326,7 @@ private:
 	}
 
 public:
-	void create_op(gate const& g, wire_id t)
+	void create_op(gate const& g, wire_id const t)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -391,7 +391,7 @@ public:
 		}
 	}
 
-	void create_op(gate const& g, wire_id c, wire_id t)
+	void create_op(gate const& g, wire_id const c, wire_id const t)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -425,7 +425,7 @@ public:
 		}
 	}
 
-	void create_op(gate const& g, wire_id c0, wire_id c1, wire_id t)
+	void create_op(gate const& g, wire_id const c0, wire_id const c1, wire_id const t)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -456,7 +456,7 @@ public:
 		}
 	}
 
-	void create_op(gate const& g, std::vector<wire_id> cs, std::vector<wire_id> ts)
+	void create_op(gate const& g, std::vector<wire_id> const& cs, std::vector<wire_id> const& ts)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -520,17 +520,20 @@ public:
 #pragma endregion
 
 #pragma region Comparator
-	// rtol : Relative tolerance 
-	// atol : Absolute tolerance 
-	bool is_apprx_equal(unitary const& other, double rtol = 1e-05, double atol = 1e-08) const
+	// rtol : Relative tolerance
+	// atol : Absolute tolerance
+	bool is_apprx_equal(unitary const& other, double const rtol = 1e-05,
+	                    double const atol = 1e-08) const
 	{
 		assert(data_->matrix.size() == other.data_->matrix.size());
 		uint32_t const end = data_->matrix.size();
 		bool is_close = true;
 		for (uint32_t i = 0u; i < end && is_close; ++i) {
-			is_close &= std::abs(data_->matrix.at(i).real() - other.data_->matrix.at(i).real())
+			is_close &= std::abs(data_->matrix.at(i).real()
+			                     - other.data_->matrix.at(i).real())
 			            <= (atol + rtol * std::abs(other.data_->matrix.at(i).real()));
-			is_close &= std::abs(data_->matrix.at(i).imag() - other.data_->matrix.at(i).imag())
+			is_close &= std::abs(data_->matrix.at(i).imag()
+			                     - other.data_->matrix.at(i).imag())
 			            <= (atol + rtol * std::abs(other.data_->matrix.at(i).imag()));
 		}
 		return is_close;
@@ -539,7 +542,7 @@ public:
 
 #pragma region Debug
 	// Threshold for rounding small values to zero when printing
-	void print(double threshold = 1e-10) const
+	void print(double const threshold = 1e-10) const
 	{
 		for (uint32_t i = 0u; i < data_->num_rows; ++i) {
 			for (uint32_t j = 0; j < data_->matrix.size(); j += data_->num_rows) {
