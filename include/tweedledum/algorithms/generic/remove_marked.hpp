@@ -17,7 +17,7 @@ namespace tweedledum {
  * marked will be copied into it.
  * 
  * NOTE: This function requires a template parameter that cannot be inferred.  This is useful when
- * removing nodes and createing a different network format, e.g. `gg_network` <-> `netlist`
+ * removing nodes and createing a different network format, e.g. `op_dag` <-> `netlist`
  * 
  * NOTE: Gate type _must_ be the same.
  * 
@@ -27,48 +27,19 @@ namespace tweedledum {
 template<class NewNetwork, class Network>
 NewNetwork remove_marked(Network const& original)
 {
-	static_assert(std::is_same_v<typename Network::gate_type, typename NewNetwork::gate_type>,
+	using op_type = typename Network::op_type;
+	using node_type = typename Network::node_type;
+
+	static_assert(std::is_same_v<typename Network::op_type, typename NewNetwork::op_type>,
 	              "Gate type _must_ be the same");
 
 	NewNetwork result = shallow_duplicate<NewNetwork>(original);
-	original.foreach_gate([&](auto const& node) {
+	original.foreach_op([&](op_type const& op, node_type const& node) {
 		if (original.value(node)) {
 			return;
 		}
-		result.emplace_gate(node.gate);
+		result.emplace_op(op);
 	});
-	result.rewire(original.wiring_map());
-	return result;
-}
-
-/*! \brief Generic function to remove marked gates.
- *
- * The orignal network is not modified.  A _new_ network is created and all nodes that are not
- * marked will be copied into it.
- * 
- * NOTE: This function requires a template parameter that cannot be inferred.  This is useful when
- * removing nodes and createing a different network format, e.g. `gg_network` <-> `netlist``
- * 
- * NOTE: Gate type _must_ be the same.
- * 
- * \param original The original quantum network (will not be modified)
- * \param mark The mark the identifies nodes to be removed
- * \return A _new_ network without the marked gates.
-*/
-template<class NewNetwork, class Network>
-NewNetwork remove_marked(Network const& original, uint32_t mark)
-{
-	static_assert(std::is_same_v<typename Network::gate_type, typename NewNetwork::gate_type>,
-	              "Gate type _must_ be the same");
-
-	NewNetwork result = shallow_duplicate<NewNetwork>(original);
-	original.foreach_gate([&](auto const& node) {
-		if (original.value(node) == mark) {
-			return;
-		}
-		result.emplace_gate(node.gate);
-	});
-	result.rewire(original.wiring_map());
 	return result;
 }
 
@@ -86,40 +57,7 @@ NewNetwork remove_marked(Network const& original, uint32_t mark)
 template<class Network>
 Network remove_marked(Network const& original)
 {
-	Network result = shallow_duplicate(original);
-	original.foreach_gate([&](auto const& node) {
-		if (original.value(node)) {
-			return;
-		}
-		result.emplace_gate(node.gate);
-	});
-	result.rewire(original.wiring_map());
-	return result;
-}
-
-/*! \brief Generic function to remove marked gates.
- *
- * The orignal network is not modified.  A _new_ network is created and all nodes that are not
- * marked will be copied into it.
- * 
- * NOTE: the input and output networs are of the same type.
- * 
- * \param original The original quantum network (will not be modified)
- * \param mark The mark the identifies nodes to be removed
- * \return A _new_ network without the marked gates.
- */
-template<class Network>
-Network remove_marked(Network const& original, uint32_t mark)
-{
-	Network result = shallow_duplicate(original);
-	original.foreach_gate([&](auto const& node) {
-		if (original.value(node) == mark) {
-			return;
-		}
-		result.emplace_gate(node.gate);
-	});
-	result.rewire(original.wiring_map());
-	return result;
+	return remove_marked<Network, Network>(original);
 }
 
 } // namespace tweedledum
