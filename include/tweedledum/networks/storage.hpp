@@ -15,6 +15,7 @@
 
 namespace tweedledum {
 
+// NOTE: When casted to an `uint32_t` this must return an index to the node
 class node_id {
 public:
 	constexpr node_id()
