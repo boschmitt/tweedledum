@@ -68,8 +68,8 @@ public:
 			assert(node.mapping.size() == init_mapping.size());
 			for (uint32_t i = 0; i < topology_.num_edges(); ++i) {
 				map_type new_mapping = node.mapping;
-				std::swap(new_mapping.at(topology_.edges[i].first),
-					  new_mapping.at(topology_.edges[i].second));
+				std::swap(new_mapping.at(topology_.edge(i).first),
+					  new_mapping.at(topology_.edge(i).second));
 
 				// Try to add new mapping to the mappings database
 				auto [it, was_added] = mappings.emplace(new_mapping, nodes.size());
@@ -115,11 +115,11 @@ public:
 		std::vector<swap_type> swaps;
 		auto& node = nodes.at(closed_nodes.back());
 		while (node.previous) {
-			swaps.emplace_back(topology_.edges[node.swap]);
+			swaps.emplace_back(topology_.edge(node.swap));
 			node = nodes.at(node.previous);
 		}
 		if (closed_nodes.size() > 1) {
-			swaps.emplace_back(topology_.edges[node.swap]);
+			swaps.emplace_back(topology_.edge(node.swap));
 		}
 		std::reverse(swaps.begin(), swaps.end());
 		return swaps;

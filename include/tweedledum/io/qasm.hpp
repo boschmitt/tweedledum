@@ -171,8 +171,9 @@ void read_qasm_from_file(Network network, std::string const& path)
 
 /*! \brief Reads OPENQASM 2.0 format
  */
+//TODO: use string_view
 template<typename Network>
-Network read_qasm_from_file(std::string_view path)
+Network read_qasm_from_file(std::string const& path)
 {
 	Network network;
 	read_qasm_from_file(network, path);

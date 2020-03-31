@@ -19,8 +19,8 @@
 namespace tweedledum {
 
 /*! \brief Column-major matrix of bits */
-template<class WordType = uint32_t>
-class bit_matrix_cm final {
+template<typename WordType = uint32_t>
+class bit_matrix_cm {
 public:
 	using word_type = WordType;
 	using row_type = dynamic_bitset<WordType>;

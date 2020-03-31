@@ -36,7 +36,7 @@ class sabre_mapper {
 public:
 	sabre_mapper(device const& device, sabre_map_params const& params)
 	    : device_(device)
-	    , distances_(device.get_distance_matrix())
+	    , distances_(device.distance_matrix())
 	    // Parameters
 	    , e_set_size_(params.e_set_size)
 	    , e_score_weight_(params.e_score_weight)
@@ -45,7 +45,7 @@ public:
 	    , randomize_initial_map_(params.randomize_initial_map)
 	    , use_look_ahead_(params.use_look_ahead) 
 	    // Temporary data
-	    , qubits_decay_(device.num_vertices(), 1.0)
+	    , qubits_decay_(device.num_qubits(), 1.0)
 	{}
 
 	mapped_dag run(Network const& original, std::vector<wire_id> initial_mapping = {})
@@ -122,7 +122,7 @@ private:
 	{
 		// Obtain SWAP candidates
 		std::vector<swap_type> swap_candidates;
-		for (auto [w, u] : device_.edges) {
+		for (auto [w, u] : device_.coupling_map()) {
 			wire_id w_phy(w, true);
 			wire_id u_phy(u, true);
 			auto search_v = phy_qubits.find(w_phy);

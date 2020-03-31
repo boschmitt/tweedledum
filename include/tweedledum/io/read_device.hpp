@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <istream>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -29,7 +30,7 @@ inline void left_trim(std::string& str, const char* chars = " \t\n\v\f\r")
 	}
 }
 
-inline auto split(std::string_view str)
+inline auto split(std::string const& str)
 {
 	std::vector<std::string> split_string;
 	std::istringstream iss(str);
@@ -55,16 +56,16 @@ inline device read_device(std::istream& in = std::cin)
 	std::string line;
 	std::getline(in, line);
 
-	const auto num_nodes = std::stoll(line);
+	auto const num_nodes = std::stoll(line);
 	device arch(num_nodes);
 	while (std::getline(in, line)) {
 		left_trim(line);
 		if (line.empty()) {
 			continue;
 		}
-		const auto s = split(line);
-		const auto v = std::stoi(s[0]);
-		const auto w = std::stoi(s[1]);
+		auto const s = split(line);
+		auto const v = std::stoi(s[0]);
+		auto const w = std::stoi(s[1]);
 		arch.add_edge(v, w);
 	}
 	return arch;
@@ -82,8 +83,32 @@ inline device read_device(std::istream& in = std::cin)
  */
 inline device read_device(std::string_view filename)
 {
-	std::ifstream in(filename.c_str(), std::ios::in);
+	std::ifstream in(filename, std::ios::in);
 	return read_device(in);
+}
+
+/*! \brief Parse device information from a JSON file
+ *
+ * \param filename JSON file name
+ * \returns A device
+ */
+inline device read_device_from_json(std::string_view filename)
+{
+	using json = nlohmann::json;
+
+	std::ifstream input(filename, std::ios::in);
+	json device_info;
+	input >> device_info;
+
+	uint32_t num_qubits = device_info["n_qubits"];
+	std::string name = device_info["backend_name"];
+	device d(num_qubits, name);
+	for (auto value : device_info["coupling_map"]) {
+		uint32_t v = value[0];
+		uint32_t w = value[1];
+		d.add_edge(v, w);
+	}
+	return d;
 }
 
 } // namespace tweedledum

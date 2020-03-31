@@ -20,8 +20,8 @@
 namespace tweedledum {
 
 /*! \brief Row-major matrix of bits */
-template<class WordType = uint32_t>
-class bit_matrix_rm final {
+template<typename WordType = uint32_t>
+class bit_matrix_rm {
 public:
 	using word_type = WordType;
 	using row_type = dynamic_bitset<WordType>;

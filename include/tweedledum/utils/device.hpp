@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cstdint>
 #include <random>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -22,23 +23,8 @@ namespace tweedledum {
 struct device {
 	using edge_type = std::pair<uint32_t, uint32_t>;
 
-	/*! \brief Pairs of qubit connections in the coupling graph. */
-	std::vector<edge_type> edges;
-
-	/*! \brief Number of qubits. */
-	uint32_t num_vertices_;
-
-	/*! \brief Distance matrix (lazy) */
-	mutable std::vector<std::vector<uint32_t>> distance_matrix;
-
-	device(uint32_t num_qubits = 0)
-	    : num_vertices_(num_qubits)
-	{}
-
-	/*! \brief Create a device for a path topology.
-	 *
-	 * \param num_qubits Number of qubits
-	 */
+#pragma region Generic topologies
+	/*! \brief Create a device for a path topology. */
 	static device path(uint32_t num_qubits)
 	{
 		device topology(num_qubits);
@@ -48,10 +34,7 @@ struct device {
 		return topology;
 	}
 
-	/*! \brief Create a device for a ring topology.
-	 *
-	 * \param num_qubits Number of qubits
-	 */
+	/*! \brief Create a device for a ring topology. */
 	static device ring(uint32_t num_qubits)
 	{
 		device topology(num_qubits);
@@ -61,10 +44,7 @@ struct device {
 		return topology;
 	}
 
-	/*! \brief Create a device for a star topology.
-	 *
-	 * \param num_qubits Number of qubits
-	 */
+	/*! \brief Create a device for a star topology. */
 	static device star(uint32_t num_qubits)
 	{
 		device topology(num_qubits);
@@ -100,8 +80,7 @@ struct device {
 
 	/*! \brief Creates a device with a random topology.
 	 *
-	 * \param num_qubits Number of qubits
-	 * \param num_edges Number of edges in coupling graph
+	 * \param num_edges Number of coupling_map_ in coupling graph
 	 */
 	static device random(uint32_t num_qubits, uint32_t num_edges)
 	{
@@ -111,45 +90,58 @@ struct device {
 		std::uniform_int_distribution<uint32_t> d2(1, num_qubits - 2);
 
 		device topology(num_qubits);
-		while (topology.edges.size() != num_edges) {
+		while (topology.coupling_map_.size() != num_edges) {
 			uint32_t p = d1(gen);
 			uint32_t q = (p + d2(gen)) % num_qubits;
 			topology.add_edge(p, q);
 		}
 		return topology;
 	}
+#pragma endregion
 
-	uint32_t num_vertices() const
+	device(uint32_t const num_qubits = 0, std::string_view name = {})
+	    : num_qubits_(num_qubits)
+	    , name_(name)
+	{}
+
+	uint32_t num_qubits() const
 	{
-		return num_vertices_;
+		return num_qubits_;
 	}
 
 	uint32_t num_edges() const
 	{
-		return edges.size();
-
+		return coupling_map_.size();
 	}
 
-	/*! \brief Add an edge between two vertices
-	 *
-	 * \param v Vertice identifier
-	 * \param w Vertice identifier
-	 */
-	void add_edge(uint32_t v, uint32_t w)
+	/*! \brief Add an _undirected_ edge between two qubits */
+	void add_edge(uint32_t const v, uint32_t const w)
 	{
-		assert(v <= num_vertices() && w <= num_vertices());
-		edge_type edge = {std::min(v, w), std::max(w, v)};
-		if (std::find(edges.begin(), edges.end(), edge) == edges.end()) {
-			edges.emplace_back(edge);
+		assert(v <= num_qubits() && w <= num_qubits());
+		edge_type const edge = {std::min(v, w), std::max(w, v)};
+		auto const search = std::find(coupling_map_.begin(), coupling_map_.end(), edge);
+		if (search == coupling_map_.end()) {
+			coupling_map_.emplace_back(edge);
 		}
 	}
 
-	/*! \brief Returns adjacency matrix of coupling graph. */
-	bit_matrix_rm<> get_coupling_matrix() const
+	edge_type const& edge(uint32_t const i) const
 	{
-		bit_matrix_rm<> matrix(num_vertices(), num_vertices());
+		return coupling_map_.at(i);
+	}
 
-		for (auto const& [v, w] : edges) {
+	/*! \brief Returns adjacency matrix of coupling graph. */
+	auto coupling_map() const
+	{
+		return coupling_map_;
+	}
+
+	/*! \brief Returns adjacency matrix of coupling graph. */
+	bit_matrix_rm<uint32_t> coupling_matrix() const
+	{
+		bit_matrix_rm<uint32_t> matrix(num_qubits(), num_qubits());
+
+		for (auto const& [v, w] : coupling_map_) {
 			matrix.at(v, w) = true;
 			matrix.at(w, v) = true;
 		}
@@ -157,47 +149,54 @@ struct device {
 	}
 
 	/*! \brief Returns the distance between nodes `v` and `u`. */
-	uint32_t distance(uint32_t v, uint32_t u) const
+	uint32_t distance(uint32_t const v, uint32_t const u) const
 	{
-		assert(v < num_vertices() && u < num_vertices());
-		if (distance_matrix.empty()) {
+		assert(v < num_qubits() && u < num_qubits());
+		if (dist_matrix_.empty()) {
 			compute_distance_matrix();
 		}
-		return distance_matrix[v][u];
+		return dist_matrix_[v][u];
 	}
 
 	/*! \brief Returns distance matrix of coupling graph. */
-	std::vector<std::vector<uint32_t>> get_distance_matrix() const
+	std::vector<std::vector<uint32_t>> distance_matrix() const
 	{
-		if (distance_matrix.empty()) {
+		if (dist_matrix_.empty()) {
 			compute_distance_matrix();
 		}
-		return distance_matrix;
+		return dist_matrix_;
 	}
 
 private:
 	/*! \brief Returns distance matrix of coupling graph. */
 	void compute_distance_matrix() const
 	{
-		distance_matrix.resize(num_vertices(), std::vector<uint32_t>(num_vertices(), num_vertices() + 1));
-		for (auto const& [v, w] : edges) {
-			distance_matrix[v][w] = 1;
-			distance_matrix[w][v] = 1;
+		dist_matrix_.resize(num_qubits(),
+		                    std::vector<uint32_t>(num_qubits(), num_qubits() + 1));
+		for (auto const& [v, w] : coupling_map_) {
+			dist_matrix_[v][w] = 1;
+			dist_matrix_[w][v] = 1;
 		}
-		for (auto v = 0u; v < num_vertices(); ++v) {
-			distance_matrix[v][v] = 0;
+		for (uint32_t v = 0u; v < num_qubits(); ++v) {
+			dist_matrix_[v][v] = 0;
 		}
-		for (auto k = 0u; k < num_vertices(); ++k) {
-			for (auto i = 0u; i < num_vertices(); ++i) {
-				for (auto j = 0u; j < num_vertices(); ++j) {
-					if (distance_matrix[i][j] > distance_matrix[i][k] + distance_matrix[k][j]) {
-						distance_matrix[i][j] = distance_matrix[i][k]
-						                        + distance_matrix[k][j];
+		for (uint32_t k = 0u; k < num_qubits(); ++k) {
+			for (uint32_t i = 0u; i < num_qubits(); ++i) {
+				for (uint32_t j = 0u; j < num_qubits(); ++j) {
+					if (dist_matrix_[i][j] > dist_matrix_[i][k] + dist_matrix_[k][j]) {
+						dist_matrix_[i][j] = dist_matrix_[i][k]
+						                     + dist_matrix_[k][j];
 					}
 				}
 			}
 		}
 	}
+
+private:
+	uint32_t num_qubits_;
+	std::string name_;
+	std::vector<edge_type> coupling_map_;
+	mutable std::vector<std::vector<uint32_t>> dist_matrix_;
 };
 
 } // namespace tweedledum

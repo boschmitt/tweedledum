@@ -175,7 +175,7 @@ public:
 private:
 	uint32_t num_phy() const
 	{
-		return device_.num_vertices();
+		return device_.num_qubits();
 	}
 
 	uint32_t num_v() const
@@ -213,7 +213,7 @@ private:
 	// - t_phy (target, physical qubit identifier)
 	void gate_constraints(uint32_t c_v, uint32_t t_v)
 	{
-		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.get_coupling_matrix();
+		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.coupling_matrix();
 		std::vector<bill::lit_type> clause;
 		for (uint32_t t_phy = 0; t_phy < num_phy(); ++t_phy) {
 			uint32_t t_v_phy_var = v_to_phy_var(t_v, t_phy);
@@ -232,7 +232,7 @@ private:
 
 	var_type gate_act_constraints(uint32_t c_v, uint32_t t_v)
 	{
-		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.get_coupling_matrix();
+		bit_matrix_rm<uint32_t> const& coupling_matrix = device_.coupling_matrix();
 		std::vector<bill::lit_type> clause;
 		var_type act_var = solver_.add_variable();
 		for (uint32_t t_phy = 0; t_phy < num_phy(); ++t_phy) {

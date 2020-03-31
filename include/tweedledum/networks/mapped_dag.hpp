@@ -29,11 +29,11 @@ class mapped_dag {
 		std::vector<wire_id> wire_to_v;
 		std::vector<wire_id> init_v_to_phy;
 		std::vector<wire_id> v_to_phy;
-		bit_matrix_rm<> coupling_matrix;
+		bit_matrix_rm<uint32_t> coupling_matrix;
 
 		mstrg_type(uint32_t num_wires, device const& arch)
 		    : wire_to_v(num_wires, wire::invalid)
-		    , coupling_matrix(arch.get_coupling_matrix())
+		    , coupling_matrix(arch.coupling_matrix())
 		{}
 	};
 
@@ -47,9 +47,9 @@ public:
 	mapped_dag(device const& arch)
 	    : data_(std::make_shared<dstrg_type>("tweedledum_mapd_network"))
 	    , wires_(std::make_shared<wstrg_type>())
-	    , map_(std::make_shared<mstrg_type>(arch.num_vertices(), arch))
+	    , map_(std::make_shared<mstrg_type>(arch.num_qubits(), arch))
 	{
-		for (uint32_t i = 0; i < arch.num_vertices(); ++i) {
+		for (uint32_t i = 0; i < arch.num_qubits(); ++i) {
 			create_qubit();
 		}
 	}
@@ -65,7 +65,7 @@ public:
 				map_->wire_to_v.at(wire) = create_qubit(name);
 			}
 		});
-		for (uint32_t i = network.num_qubits(); i < arch.num_vertices(); ++i) {
+		for (uint32_t i = network.num_qubits(); i < arch.num_qubits(); ++i) {
 			create_qubit();
 		}
 		network.foreach_wire([&](wire_id wire, std::string_view name) {

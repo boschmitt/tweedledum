@@ -42,7 +42,7 @@ public:
 			init_t2v_[init_cfg[i]] = i;
 		}
 		for (uint32_t i = 0; i < num_edges(); ++i) {
-			auto& [u, v] = graph_.edges[i];
+			auto& [u, v] = graph_.edge(i);
 			vertice_egdes_map_[u].emplace_back(i);
 			vertice_egdes_map_[v].emplace_back(i);
 		}
@@ -103,7 +103,7 @@ public:
 			for (uint32_t edge = 0; edge < num_edges(); ++edge) {
 				var_type var = swap_var(moment, edge);
 				if (model.at(var) == lbool_type::true_) {
-					swaps.push_back(graph_.edges.at(edge));
+					swaps.push_back(graph_.edge(edge));
 				}
 			}
 		}
@@ -171,7 +171,7 @@ private:
 
 	uint32_t num_vertices() const
 	{
-		return graph_.num_vertices();
+		return graph_.num_qubits();
 	}
 
 private:
@@ -265,8 +265,8 @@ private:
 			}
 		}
 		// *) Condition 2:
-		for (uint32_t vertice = 0; vertice < graph_.num_vertices(); ++vertice) {
-			for (uint32_t token = 0; token < graph_.num_vertices(); ++token) {
+		for (uint32_t vertice = 0; vertice < graph_.num_qubits(); ++vertice) {
+			for (uint32_t token = 0; token < graph_.num_qubits(); ++token) {
 				var_type prev_var = token_vertice_var(num_moments_ - 1, token, vertice);
 				var_type current_var = token_vertice_var(num_moments_, token, vertice);
 				std::vector<var_type> edge_vars;
@@ -275,7 +275,7 @@ private:
 				for (uint32_t edge : vertice_egdes_map_[vertice]) {
 					edge_vars.emplace_back(swap_var(num_moments_ - 1, edge));
 					edge_lits.emplace_back(edge_vars.back(), bill::positive_polarity);
-					auto [u, v] = graph_.edges[edge];
+					auto [u, v] = graph_.edge(edge);
 					if (u != vertice) {
 						token_lits.emplace_back(
 						    token_vertice_var(num_moments_ - 1, token, u),
@@ -315,10 +315,10 @@ private:
 	{
 		// std::cout <<  fmt::format("{}, {}\n", prev_moment, current_moment);
 		std::vector<lit_type> clause;
-		for (uint32_t i = 0; i < graph_.edges.size(); ++i) {
-			auto& [u_i, v_i] = graph_.edges[i];
-			for (uint32_t j = i + 1; j < graph_.edges.size(); ++j) {
-				auto& [u_j, v_j] = graph_.edges[j];
+		for (uint32_t i = 0; i < graph_.num_edges(); ++i) {
+			auto& [u_i, v_i] = graph_.edge(i);
+			for (uint32_t j = i + 1; j < graph_.num_edges(); ++j) {
+				auto& [u_j, v_j] = graph_.edge(j);
 				if (u_i == u_j || u_i == v_j || v_i == u_j || v_i == v_j) {
 					continue;
 				}
