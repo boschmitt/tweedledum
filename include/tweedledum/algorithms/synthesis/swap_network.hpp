@@ -19,7 +19,7 @@ namespace tweedledum {
 void swap_network(mapped_dag& network, device& topology, std::vector<wire_id> const& phy_to_v,
 		  swap_network_params params = {})
 {
-	std::vector<wire_id> const init = network.phy_to_v();
+	std::vector<wire_id> init = network.phy_to_v();
 	std::vector<std::pair<uint32_t, uint32_t>> swaps;
 
 	std::vector<uint32_t> initial(init.begin(), init.end());
@@ -36,8 +36,14 @@ void swap_network(mapped_dag& network, device& topology, std::vector<wire_id> co
 		break;
 	}
 	for (auto [x, y] : swaps) {
-		network.create_swap(wire_id(x, true), wire_id(y, true));
+		network.create_op(gate_lib::swap, wire_id(x, true), wire_id(y, true));
+		std::swap(init.at(x), init.at(y));
 	}
+	std::vector<wire_id> v_to_phy(topology.num_qubits(), wire::invalid);
+	for (uint32_t i = 0u; i < phy_to_v.size(); ++i) {
+		v_to_phy.at(phy_to_v.at(i)) = wire_id(i, true);
+	}
+	network.v_to_phy(v_to_phy);
 }
 
 } // namespace tweedledum

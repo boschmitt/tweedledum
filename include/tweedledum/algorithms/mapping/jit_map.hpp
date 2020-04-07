@@ -8,32 +8,27 @@
 #include "../../networks/wire_id.hpp"
 #include "../../utils/device.hpp"
 #include "../transformations/reverse.hpp"
-#include "placement/sat_placement.hpp"
-#include "routing/sabre_router.hpp"
+#include "placement/line_placement.hpp"
+#include "routing/jit_router.hpp"
 
 #include <vector>
 
 namespace tweedledum {
 
-/*! \brief SABRE-base mappper
- *
-   \verbatim embed:rst
-
-   Mapper based on the SABRE algorithm :cite:`SABRE19`.
-
-   \endverbatim
+/*! \brief Just-in-time mapping strategy
  *
  * \algtype mapping
  * \algexpects A original
  * \algreturns A mapped original
  */
 template<typename Network>
-mapped_dag sabre_map(Network const& original, device const& device, sabre_config const& config = {})
+mapped_dag jit_map(Network const& original, device const& device, jit_config const& config = {})
 {
-	detail::sabre_router<Network> router(device, config);
-	std::vector<wire_id> placement = detail::sat_placement(original, device);
-	mapped_dag mapped = router.route(original, placement);
-	mapped = router.route(reverse(original), mapped.v_to_phy());
+	detail::jit_router<Network> router(device, config);
+	auto reversed = reverse(original);
+	std::vector<wire_id> placement = detail::line_placement(reversed, device);
+	mapped_dag mapped = router.route(original, placement, false);
+	mapped = router.route(reversed, mapped.v_to_phy());
 	return mapped;
 }
 

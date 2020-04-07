@@ -17,13 +17,13 @@
 
 using namespace tweedledum;
 
-TEMPLATE_PRODUCT_TEST_CASE("Test for SAT mapper", "[sat_map][template]", (netlist, op_dag),
+TEMPLATE_PRODUCT_TEST_CASE("Test for SAT mapper", "[sat_map][mapping]", (netlist, op_dag),
                            (w3_op, wn32_op))
 {
 	TestType network;
 	SECTION("Empty network") {
-		device arch = device::path(network.num_qubits());
-		auto mapped_ntk = sat_map(network, arch);
+		device device = device::path(network.num_qubits());
+		auto mapped_ntk = sat_map(network, device);
 		CHECK(mapped_ntk.size() == 0u);
 		CHECK(mapped_ntk.num_wires() == 0u);
 		CHECK(mapped_ntk.num_qubits() == 0u);
@@ -37,8 +37,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for SAT mapper", "[sat_map][template]", (netlis
 		network.create_cbit();
 		network.create_qubit();
 		network.create_cbit();
-		device arch = device::path(network.num_qubits());
-		auto mapped_ntk = sat_map(network, arch);
+		device device = device::path(network.num_qubits());
+		auto mapped_ntk = sat_map(network, device);
 		CHECK(mapped_ntk.size() == network.size());
 		CHECK(mapped_ntk.num_wires() == network.num_wires());
 		CHECK(mapped_ntk.num_qubits() == network.num_qubits());
@@ -56,10 +56,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for SAT mapper", "[sat_map][template]", (netlis
 		network.create_op(gate_lib::cx, q1, q0);
 		network.create_op(gate_lib::cx, q2, q0);
 
-		device arch = device::path(network.num_qubits());
-		auto mapped_ntk = sat_map(network, arch);
+		device device = device::path(network.num_qubits());
+		auto mapped_ntk = sat_map(network, device);
 		CHECK(mapped_ntk.num_operations() == 2u);
-		CHECK(mapped_ntk.v_to_phy(q0) == 1u);
 	}
 	SECTION("Simple circuit (UNSAT)") {
 		wire_id q0 = network.create_qubit();
@@ -73,36 +72,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for SAT mapper", "[sat_map][template]", (netlis
 		network.create_op(gate_lib::cx, q1, q2);
 		network.create_op(gate_lib::cx, q2, q0);
 
-		device arch = device::path(network.num_qubits());
-		auto mapped_ntk = sat_map(network, arch);
+		device device = device::path(network.num_qubits());
+		auto mapped_ntk = sat_map(network, device);
 		CHECK(mapped_ntk.num_operations() == 0u);
-	}
-}
-
-TEMPLATE_PRODUCT_TEST_CASE("Test for intial map heuristic", "[sat_map][template]",
-                           (netlist, op_dag), (w3_op, wn32_op))
-{
-	TestType network;
-	SECTION("Empty network") {
-		device arch = device::path(network.num_qubits());
-		std::vector<wire_id> initial_map = sat_initial_map(network, arch);
-		CHECK(initial_map.size() == 0u);
-	}
-	SECTION("Simple circuit (UNSAT)") {
-		wire_id q0 = network.create_qubit();
-		network.create_cbit();
-		wire_id q1 = network.create_qubit();
-		network.create_cbit();
-		wire_id q2 = network.create_qubit();
-		network.create_cbit();
-
-		network.create_op(gate_lib::cx, q1, q0);
-		network.create_op(gate_lib::cx, q1, q2);
-		network.create_op(gate_lib::cx, q2, q0);
-
-		device arch = device::path(network.num_qubits());
-		auto mapped_ntk = sat_map(network, arch);
-		std::vector<wire_id> initial_map = sat_initial_map(network, arch);
-		CHECK(initial_map.size() == 3u);
 	}
 }
