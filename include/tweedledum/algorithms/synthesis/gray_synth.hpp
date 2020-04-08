@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/bit_matrix_cm.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
@@ -45,7 +45,7 @@ class gray_synth_ftor {
 	};
 
 public:
-	gray_synth_ftor(Network& network, std::vector<wire_id> const& qubits,
+	gray_synth_ftor(Network& network, std::vector<wire::id> const& qubits,
 	                parity_terms<uint32_t> const& parities, gray_synth_params params)
 	    : network_(network)
 	    , qubits_(qubits)
@@ -138,7 +138,7 @@ public:
 			}
 		}
 
-		for (const auto [control, target] : gates) {
+		for (auto const& [control, target] : gates) {
 			qubits_states[target] ^= qubits_states[control];
 			network_.create_op(gate_lib::cx, qubits_[control], qubits_[target]);
 			auto rotation_angle = parities_.extract_term(qubits_states[target]);
@@ -160,7 +160,7 @@ public:
 		});
 
 		std::reverse(gates.begin(), gates.end());
-		for (const auto [control, target] : gates) {
+		for (auto const& [control, target] : gates) {
 			transformation.row(target) ^= transformation.row(control);
 		}
 		cnot_patel(network_, qubits_, transformation, parameters_.cp_params);
@@ -196,7 +196,7 @@ private:
 
 private:
 	Network& network_;
-	std::vector<wire_id> qubits_;
+	std::vector<wire::id> qubits_;
 	parity_terms<uint32_t> parities_;
 	matrix_type parity_matrix_;
 	std::vector<state_type> state_stack_;
@@ -218,7 +218,7 @@ private:
  *                 See `gray_synth_params` for details.
  */
 template<class Network>
-void gray_synth(Network& network, std::vector<wire_id> const& qubits,
+void gray_synth(Network& network, std::vector<wire::id> const& qubits,
                 parity_terms<uint32_t> const& parities, gray_synth_params params = {})
 {
 	assert(qubits.size() <= 32u);
@@ -253,7 +253,7 @@ Network gray_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities, 
 {
 	assert(num_qubits <= 32);
 	Network network;
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

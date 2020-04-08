@@ -7,7 +7,7 @@
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 
@@ -38,8 +38,8 @@ TEMPLATE_PRODUCT_TEST_CASE("QASM Reader", "[qasm][template]", (netlist, op_dag),
 		CHECK(network.num_wires() == 32u);
 		CHECK(network.num_qubits() == 32u);
 		CHECK(network.num_cbits() == 0u);
-		network.foreach_wire([](wire_id wire, std::string_view name) {
-			std::string n = fmt::format("q_{}", wire.id());
+		network.foreach_wire([](wire::id wire, std::string_view name) {
+			std::string n = fmt::format("q_{}", wire.uid());
 			CHECK(name == n);
 		}); 
 	}
@@ -54,9 +54,9 @@ TEMPLATE_PRODUCT_TEST_CASE("QASM Writer", "[qasm][template]", (netlist, op_dag),
 	std::vector<gate> three_qubit = {gate_lib::ncx};
 
 	TestType network;
-	wire_id q0 = network.create_qubit();
-	wire_id q1 = network.create_qubit();
-	wire_id q2 = network.create_qubit();
+	wire::id q0 = network.create_qubit();
+	wire::id q1 = network.create_qubit();
+	wire::id q2 = network.create_qubit();
 
 	for (auto const& gate : one_qubit) {
 		network.create_op(gate, q0);

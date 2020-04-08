@@ -8,7 +8,7 @@
 #include "tweedledum/networks/mapped_dag.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 #include "tweedledum/utils/device.hpp"
@@ -23,15 +23,15 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for random intial placement heuristic", "[rando
 	TestType network;
 	SECTION("Empty network") {
 		device device = device::path(network.num_qubits());
-		std::vector<wire_id> placement = detail::random_placement(device);
+		std::vector<wire::id> placement = detail::random_placement(device);
 		CHECK(placement.size() == 0u);
 	}
 	SECTION("Simple circuit (UNSAT)") {
-		wire_id q0 = network.create_qubit();
+		wire::id q0 = network.create_qubit();
 		network.create_cbit();
-		wire_id q1 = network.create_qubit();
+		wire::id q1 = network.create_qubit();
 		network.create_cbit();
-		wire_id q2 = network.create_qubit();
+		wire::id q2 = network.create_qubit();
 		network.create_cbit();
 
 		network.create_op(gate_lib::cx, q1, q0);
@@ -39,7 +39,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for random intial placement heuristic", "[rando
 		network.create_op(gate_lib::cx, q2, q0);
 
 		device device = device::path(network.num_qubits());
-		std::vector<wire_id> placement = detail::random_placement(device);
+		std::vector<wire::id> placement = detail::random_placement(device);
 		CHECK(placement.size() == 3u);
 	}
 }

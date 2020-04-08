@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../../gates/gate.hpp"
-#include "../../../networks/wire_id.hpp"
+#include "../../../networks/wire.hpp"
 
 #include <fmt/format.h>
 #include <mockturtle/networks/xag.hpp>
@@ -33,10 +33,10 @@ class xag_synth {
 	using q_op = typename QuantumNtk::op_type;
 
 	struct gate_info {
-		wire_id control;
-		wire_id target;
+		wire::id control;
+		wire::id target;
 
-		gate_info(wire_id c, wire_id t)
+		gate_info(wire::id c, wire::id t)
 		    : control(c)
 		    , target(t)
 		{}
@@ -48,7 +48,7 @@ public:
 	    : quantum_ntk_(quantum_ntk)
 	    , xag_ntk_(xag_ntk)
 	    , params_(params)
-	    , node_to_qubit_(xag_ntk, wire::invalid)
+	    , node_to_qubit_(xag_ntk, wire::invalid_id)
 	    , node_ltfi_(xag_ntk)
 	    , must_uncompute_(xag_ntk.size(), 0)
 	{}
@@ -167,14 +167,14 @@ private:
 	}
 
 private:
-	wire_id request_ancilla()
+	wire::id request_ancilla()
 	{
 		if (free_ancillae_.empty()) {
-			wire_id qubit = quantum_ntk_.create_qubit(wire_modes::ancilla);
+			wire::id qubit = quantum_ntk_.create_qubit(wire::modes::ancilla);
 			qubit_usage_.emplace_back(0);
 			return qubit;
 		} else {
-			wire_id qubit = free_ancillae_.top();
+			wire::id qubit = free_ancillae_.top();
 			free_ancillae_.pop();
 			return qubit;
 		}
@@ -187,7 +187,7 @@ private:
 	{
 		xag_ntk_.foreach_pi([&](xag_node const& node, auto index) {
 			node_to_qubit_[node] = quantum_ntk_.create_qubit(fmt::format("i_{}", index),
-			                                                 wire_modes::in);
+			                                                 wire::modes::in);
 			node_ltfi_[node].emplace_back(xag_ntk_.make_signal(node));
 			qubit_usage_.emplace_back(0u);
 		});
@@ -208,8 +208,8 @@ private:
 
 		xag_ntk_.foreach_po([&](xag_signal const signal, uint32_t index) {
 			xag_node const& node = xag_ntk_.get_node(signal);
-			wire_id output_qubit = node_to_qubit_[node];
-			wire_modes mode = wire_modes::out;
+			wire::id output_qubit = node_to_qubit_[node];
+			wire::modes mode = wire::modes::out;
 
 			// Deal with constants. Here I assume all qubits are initialized with |0>
 			if (xag_ntk_.is_constant(node)) {
@@ -220,10 +220,10 @@ private:
 			} else if (xag_ntk_.is_and(node)) {
 				must_uncompute_.at(xag_ntk_.node_to_index(node)) = 0;
 			} else if (xag_ntk_.is_xor(node)) {
-				std::vector<wire_id> controls;
+				std::vector<wire::id> controls;
 				bool found_output = false;
 				for (auto in : node_ltfi_[node]) {
-					const wire_id qubit = node_to_qubit_[in];
+					const wire::id qubit = node_to_qubit_[in];
 					auto in_node = xag_ntk_.get_node(in);
 					if (!found_output && xag_ntk_.is_and(in_node) && xag_ntk_.value(in_node) == index) {
 						output_qubit = qubit;
@@ -233,7 +233,7 @@ private:
 						controls.emplace_back(qubit);
 					}
 				}
-				if (output_qubit == wire::invalid) {
+				if (output_qubit == wire::invalid_id) {
 					output_qubit = quantum_ntk_.create_qubit();
 				}
 				node_to_qubit_[node] = output_qubit;
@@ -242,7 +242,7 @@ private:
 			if (xag_ntk_.is_complemented(signal)) {
 				quantum_ntk_.create_op(gate_lib::x, output_qubit);
 			}
-			assert(quantum_ntk_.wire_mode(output_qubit) != wire_modes::in);
+			assert(quantum_ntk_.wire_mode(output_qubit) != wire::modes::in);
 			quantum_ntk_.wire_mode(output_qubit, mode);
 			// I need to set a internal qubit name, so I can equivalence check the
 			// result.  This hack make sure the outputs are not permuted:
@@ -250,12 +250,12 @@ private:
 		});
 	}
 
-	void create_and(std::vector<wire_id> const& controls, wire_id target)
+	void create_and(std::vector<wire::id> const& controls, wire::id target)
 	{
-		quantum_ntk_.create_op(gate_lib::ncx, controls, std::vector<wire_id>({target}));
+		quantum_ntk_.create_op(gate_lib::ncx, controls, std::vector<wire::id>({target}));
 	}
 
-	void create_xor(wire_id control, wire_id target)
+	void create_xor(wire::id control, wire::id target)
 	{
 		quantum_ntk_.create_op(gate_lib::cx, control.wire(), target);
 		if (control.is_complemented()) {
@@ -263,7 +263,7 @@ private:
 		}
 	}
 
-	void create_xor(std::vector<wire_id> const& controls, wire_id target)
+	void create_xor(std::vector<wire::id> const& controls, wire::id target)
 	{
 		bool invert = false;
 		for (auto& control : controls) {
@@ -296,12 +296,12 @@ private:
 	}
 
 	// Return the control qubits
-	std::vector<wire_id> control_qubits(xag_node const& node)
+	std::vector<wire::id> control_qubits(xag_node const& node)
 	{
-		std::vector<wire_id> controls;
+		std::vector<wire::id> controls;
 		xag_ntk_.foreach_fanin(node, [&](xag_signal const& signal) {
-			const wire_id qubit = node_to_qubit_[signal];
-			assert(qubit != wire::invalid);
+			const wire::id qubit = node_to_qubit_[signal];
+			assert(qubit != wire::invalid_id);
 			if (xag_ntk_.is_complemented(signal)) {
 				controls.emplace_back(!qubit);
 			} else {
@@ -311,27 +311,27 @@ private:
 		return controls;
 	}
 
-	wire_id choose_target(std::vector<xag_signal> const& ltfi)
+	wire::id choose_target(std::vector<xag_signal> const& ltfi)
 	{
 		assert(ltfi.size());
-		wire_id chosen_qubit = node_to_qubit_[ltfi.at(0)];
+		wire::id chosen_qubit = node_to_qubit_[ltfi.at(0)];
 		std::for_each(ltfi.begin() + 1, ltfi.end(), [&](xag_signal const& signal) {
-			wire_id qubit = node_to_qubit_[signal];
+			wire::id qubit = node_to_qubit_[signal];
 			if (qubit_usage_.at(chosen_qubit) < qubit_usage_.at(qubit)) {
 				chosen_qubit = qubit;
 			}
 		});
-		assert(chosen_qubit != wire::invalid);
+		assert(chosen_qubit != wire::invalid_id);
 		qubit_usage_.at(chosen_qubit) += 1;
 		return chosen_qubit;
 	}
 
-	void compute_xor_ios(std::vector<xag_signal> const& ltfi, wire_id target,
+	void compute_xor_ios(std::vector<xag_signal> const& ltfi, wire::id target,
 	                     std::vector<gate_info>& gates)
 	{
 		std::for_each(ltfi.begin(), ltfi.end(), [&](xag_signal const& signal) {
-			wire_id control = node_to_qubit_[signal]; 
-			assert( control != wire::invalid);
+			wire::id control = node_to_qubit_[signal]; 
+			assert( control != wire::invalid_id);
 			if (control == target) {
 				return;
 			}
@@ -402,10 +402,10 @@ private:
 		std::vector<xag_signal> intersection_in01;
 		compute_sets(*ltfi_0, *ltfi_1, in0, in1, intersection_in01);
 
-		wire_id target_0 = choose_target(in0);
+		wire::id target_0 = choose_target(in0);
 
 		if (both_xor == false) {
-			assert(target_0 != wire::invalid);
+			assert(target_0 != wire::invalid_id);
 			compute_xor_ios(*ltfi_0, target_0, gates);
 			node_to_qubit_[fanins.at(0)] = target_0;
 			return gates;
@@ -413,7 +413,7 @@ private:
 
 		compute_xor_ios(in0, target_0, gates);
 
-		wire_id target_1 = wire::invalid;
+		wire::id target_1 = wire::invalid_id;
 		if (!intersection_in01.empty()) {
 			target_1 = choose_target(intersection_in01);
 			compute_xor_ios(intersection_in01, target_1, gates);
@@ -439,8 +439,8 @@ private:
 			create_xor(gate.control, gate.target);
 		});
 
-		std::vector<wire_id> controls = control_qubits(node);
-		wire_id target = request_ancilla();
+		std::vector<wire::id> controls = control_qubits(node);
+		wire::id target = request_ancilla();
 		node_to_qubit_[node] = target;
 		create_and(controls, target);
 
@@ -457,10 +457,10 @@ private:
 	xag_synth_params params_;
 
 	// Internal
-	mockturtle::node_map<wire_id, LogicNtk> node_to_qubit_;
+	mockturtle::node_map<wire::id, LogicNtk> node_to_qubit_;
 	mockturtle::node_map<std::vector<xag_signal>, LogicNtk> node_ltfi_;
 	std::vector<uint32_t> qubit_usage_;
-	std::stack<wire_id> free_ancillae_;
+	std::stack<wire::id> free_ancillae_;
 	std::vector<uint8_t> must_uncompute_;
 };
 

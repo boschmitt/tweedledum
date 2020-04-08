@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../../gates/gate.hpp"
-#include "../../../networks/wire_id.hpp"
+#include "../../../networks/wire.hpp"
 
 namespace tweedledum::detail {
 
@@ -23,7 +23,7 @@ namespace tweedledum::detail {
  * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
-void ccz(Network& network, wire_id x, wire_id y, wire_id z)
+void ccz(Network& network, wire::id const x, wire::id const y, wire::id const z)
 {
 	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());
@@ -59,7 +59,7 @@ void ccz(Network& network, wire_id x, wire_id y, wire_id z)
  * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
-void ccz_tpar(Network& network, wire_id x, wire_id y, wire_id z)
+void ccz_tpar(Network& network, wire::id const x, wire::id const y, wire::id const z)
 {
 	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());

@@ -4,7 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../../networks/wire_id.hpp"
+#include "../../../networks/wire.hpp"
 #include "../../../utils/device.hpp"
 
 #include <bill/sat/cardinality.hpp>
@@ -25,17 +25,17 @@ public:
 	    , device_(device)
 	    , pairs_(network_.num_qubits() * (network_.num_qubits() + 1) / 2, 0u)
 	    , solver_(solver)
-	    , wire_to_v_(network.num_wires(), wire::invalid)
+	    , wire_to_v_(network.num_wires(), wire::invalid_id)
 	{
-		network.foreach_wire([&](wire_id id) {
+		network.foreach_wire([&](wire::id id) {
 			if (id.is_qubit()) {
-				wire_to_v_.at(id) = wire_id(v_to_wire_.size(), true);
+				wire_to_v_.at(id) = wire::make_qubit(v_to_wire_.size());
 				v_to_wire_.push_back(id);
 			}
 		});
 	}
 
-	std::vector<wire_id> run()
+	std::vector<wire::id> run()
 	{
 		solver_.add_variables(num_v() * num_phy());
 		qubits_constraints();
@@ -43,8 +43,8 @@ public:
 			if (!op.is_two_qubit()) {
 				return;
 			}
-			wire_id control = wire_to_v_.at(op.control());
-			wire_id target = wire_to_v_.at(op.target());
+			wire::id control = wire_to_v_.at(op.control());
+			wire::id target = wire_to_v_.at(op.target());
 			if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
 				gate_constraints(control, target);
 			}
@@ -58,14 +58,14 @@ public:
 		return {};
 	}
 
-	std::vector<wire_id> decode(std::vector<lbool_type> const& model)
+	std::vector<wire::id> decode(std::vector<lbool_type> const& model)
 	{
-		std::vector<wire_id> mapping(network_.num_qubits(), wire::invalid);
+		std::vector<wire::id> mapping(network_.num_qubits(), wire::invalid_id);
 		for (uint32_t v_qid = 0; v_qid < num_v(); ++v_qid) {
 			for (uint32_t phy_qid = 0; phy_qid < num_phy(); ++phy_qid) {
 				var_type var = v_to_phy_var(v_qid, phy_qid);
 				if (model.at(var) == lbool_type::true_) {
-					mapping.at(v_qid) = wire_id(phy_qid, true);
+					mapping.at(v_qid) = wire::make_qubit(phy_qid);
 					break;
 				}
 			}
@@ -168,12 +168,12 @@ private:
 	std::vector<lbool_type> model_;
 
 	// Qubit normalization
-	std::vector<wire_id> wire_to_v_;
-	std::vector<wire_id> v_to_wire_;
+	std::vector<wire::id> wire_to_v_;
+	std::vector<wire::id> v_to_wire_;
 };
 
 template<typename Network>
-std::vector<wire_id> sat_route(Network const& network, device const& device)
+std::vector<wire::id> sat_route(Network const& network, device const& device)
 {
 	bill::solver solver;
 	router_cnf_encoder encoder(network, device, solver);

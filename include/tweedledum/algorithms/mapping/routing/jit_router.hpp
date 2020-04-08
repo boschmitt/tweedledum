@@ -7,7 +7,7 @@
 #include "../../../gates/gate.hpp"
 #include "../../../networks/storage.hpp"
 #include "../../../networks/mapped_dag.hpp"
-#include "../../../networks/wire_id.hpp"
+#include "../../../networks/wire.hpp"
 #include "../../../utils/device.hpp"
 #include "../../transformations/reverse.hpp"
 
@@ -45,7 +45,7 @@ public:
 	    , unexectued_(device.num_qubits())
 	{}
 
-	mapped_dag route(Network const& original, std::vector<wire_id> const& placement,
+	mapped_dag route(Network const& original, std::vector<wire::id> const& placement,
 	                 bool finalize = true)
 	{
 		assert(placement.size() == device_.num_qubits());
@@ -78,7 +78,7 @@ public:
 					phy_decay_.at(phy0) += config_.decay_delta;
 					phy_decay_.at(phy1) += config_.decay_delta;
 				}
-				add_swap(wire_id(phy0, true), wire_id(phy1, 1));
+				add_swap(wire::make_qubit(phy0), wire::make_qubit(phy1));
 				std::fill(involved_phy_.begin(), involved_phy_.end(), 0);
 			}
 		}
@@ -87,14 +87,14 @@ public:
 		// print_phy_to_v();
 
 		if (finalize) {
-			std::vector<wire_id> free_phy = find_free_phy();
+			std::vector<wire::id> free_phy = find_free_phy();
 			for (uint32_t i = 0; i < v_to_phy_.size(); ++i) {
-				if (v_to_phy_.at(i) == wire::invalid) {
+				if (v_to_phy_.at(i) == wire::invalid_id) {
 					assert(!free_phy.empty());
-					wire_id phy = free_phy.back();
+					wire::id phy = free_phy.back();
 					free_phy.pop_back();
 					v_to_phy_.at(i) = phy;
-					jit_add(wire_id(i, true));
+					jit_add(wire::make_qubit(i));
 				} 
 			}
 		}
@@ -111,11 +111,11 @@ private:
 		std::fill(phy_decay_.begin(), phy_decay_.end(), 1.0);
 	}
 
-	void new_mapping(std::vector<wire_id> const& placement)
+	void new_mapping(std::vector<wire::id> const& placement)
 	{
 		// original circuit wire -> mapped virtual qubit
-		wire_to_v_.resize(original_->num_wires(), wire::invalid);
-		original_->foreach_wire([&](wire_id wire, std::string_view name) {
+		wire_to_v_.resize(original_->num_wires(), wire::invalid_id);
+		original_->foreach_wire([&](wire::id wire, std::string_view name) {
 			wire_to_v_.at(wire) = mapped_->wire(name);
 		});
 
@@ -123,36 +123,36 @@ private:
 		v_to_phy_ = placement;
 		mapped_->v_to_phy(v_to_phy_);
 		// Placement: mapped physical qubit -> mapped virtual qubit
-		phy_to_v_.resize(device_.num_qubits(), wire::invalid);
+		phy_to_v_.resize(device_.num_qubits(), wire::invalid_id);
 		for (uint32_t i = 0; i < v_to_phy_.size(); ++i) {
-			if (v_to_phy_.at(i) == wire::invalid) {
+			if (v_to_phy_.at(i) == wire::invalid_id) {
 				continue;
 			} 
-			phy_to_v_.at(v_to_phy_.at(i)) = wire_id(i, true);
+			phy_to_v_.at(v_to_phy_.at(i)) = wire::make_qubit(i);
 		}
 	}
 
 private:
-	wire_id wire_to_phy(wire_id const w0) const
+	wire::id wire_to_phy(wire::id const w0) const
 	{
 		return v_to_phy_.at(wire_to_v_.at(w0));
 	}
 
-	void jit_add(wire_id const v)
+	void jit_add(wire::id const v)
 	{
 		assert(v < unexectued_.size());
 		for (gate const* g : unexectued_.at(v)) {
-			wire_id const phy = v_to_phy_.at(v);
+			wire::id const phy = v_to_phy_.at(v);
 			mapped_->create_op(*g, phy);
 		}
 		unexectued_.at(v).clear();
 	}
 
 	// One-qubit operations can always be mapped
-	bool add_op(gate const& g, wire_id const w0)
+	bool add_op(gate const& g, wire::id const w0)
 	{
-		wire_id const phy0 = wire_to_phy(w0);
-		if (phy0 == wire::invalid) {
+		wire::id const phy0 = wire_to_phy(w0);
+		if (phy0 == wire::invalid_id) {
 			unexectued_.at(wire_to_v_.at(w0)).emplace_back(&g);
 		} else {
 			mapped_->create_op(g, phy0);
@@ -160,36 +160,36 @@ private:
 		return true;
 	}
 
-	void add_swap(wire_id const phy0, wire_id const phy1)
+	void add_swap(wire::id const phy0, wire::id const phy1)
 	{
 		assert(device_.are_connected(phy0, phy1));
-		wire_id const v0 = phy_to_v_.at(phy0);
-		wire_id const v1 = phy_to_v_.at(phy1);
-		if (v0 != wire::invalid) {
+		wire::id const v0 = phy_to_v_.at(phy0);
+		wire::id const v1 = phy_to_v_.at(phy1);
+		if (v0 != wire::invalid_id) {
 			v_to_phy_.at(v0) = phy1;
 		}
-		if (v1 != wire::invalid) {
+		if (v1 != wire::invalid_id) {
 			v_to_phy_.at(v1) = phy0;
 		}
 		std::swap(phy_to_v_.at(phy0), phy_to_v_.at(phy1));
 		mapped_->create_op(gate_lib::swap, phy0, phy1);
 	}
 
-	std::vector<wire_id> find_free_phy() const
+	std::vector<wire::id> find_free_phy() const
 	{
-		std::vector<wire_id> free_phy;
+		std::vector<wire::id> free_phy;
 		for (uint32_t i = 0; i < phy_to_v_.size(); ++i) {
-			if (phy_to_v_.at(i) == wire::invalid) {
+			if (phy_to_v_.at(i) == wire::invalid_id) {
 				free_phy.emplace_back(i, true);
 			}
 		}
 		return free_phy;
 	}
 
-	void place_two_v(wire_id const v0, wire_id const v1) {
-		wire_id phy0 = v_to_phy_.at(v0);
-		wire_id phy1 = v_to_phy_.at(v1);
-		std::vector<wire_id> const free_phy = find_free_phy();
+	void place_two_v(wire::id const v0, wire::id const v1) {
+		wire::id phy0 = v_to_phy_.at(v0);
+		wire::id phy1 = v_to_phy_.at(v1);
+		std::vector<wire::id> const free_phy = find_free_phy();
 		assert(free_phy.size() >= 2u);
 		if (free_phy.size() == 2u) {
 			phy0 = free_phy.at(0);
@@ -198,8 +198,8 @@ private:
 			uint32_t min_dist = std::numeric_limits<uint32_t>::max();
 			for (uint32_t i = 0u; i < free_phy.size(); ++i) {
 				for (uint32_t j = i + 1u; j < free_phy.size(); ++j) {
-					wire_id const i_phy = free_phy.at(i);
-					wire_id const j_phy = free_phy.at(j);
+					wire::id const i_phy = free_phy.at(i);
+					wire::id const j_phy = free_phy.at(j);
 					if (min_dist < device_.distance(i_phy, j_phy)) {
 						continue;
 					}
@@ -217,12 +217,12 @@ private:
 		jit_add(v1);
 	}
 
-	void place_one_v(wire_id v0, wire_id v1) {
-		wire_id phy0 = v_to_phy_.at(v0);
-		wire_id phy1 = v_to_phy_.at(v1);
-		std::vector<wire_id> const free_phy = find_free_phy();
+	void place_one_v(wire::id v0, wire::id v1) {
+		wire::id phy0 = v_to_phy_.at(v0);
+		wire::id phy1 = v_to_phy_.at(v1);
+		std::vector<wire::id> const free_phy = find_free_phy();
 		assert(free_phy.size() >= 1u);
-		if (phy1 == wire::invalid) {
+		if (phy1 == wire::invalid_id) {
 			std::swap(v0, v1);
 			std::swap(phy0, phy1);
 		}
@@ -239,15 +239,15 @@ private:
 		jit_add(v0);
 	}
 
-	bool try_add_op(gate const& g, wire_id const w0, wire_id const w1)
+	bool try_add_op(gate const& g, wire::id const w0, wire::id const w1)
 	{
-		wire_id phy0 = wire_to_phy(w0);
-		wire_id phy1 = wire_to_phy(w1);
-		if (phy0 == wire::invalid && phy1 == wire::invalid) {
+		wire::id phy0 = wire_to_phy(w0);
+		wire::id phy1 = wire_to_phy(w1);
+		if (phy0 == wire::invalid_id && phy1 == wire::invalid_id) {
 			place_two_v(wire_to_v_.at(w0), wire_to_v_.at(w1));
 			phy0 = wire_to_phy(w0);
 			phy1 = wire_to_phy(w1);
-		} else if (phy0 == wire::invalid || phy1 == wire::invalid) {
+		} else if (phy0 == wire::invalid_id || phy1 == wire::invalid_id) {
 			place_one_v(wire_to_v_.at(w0), wire_to_v_.at(w1));
 			phy0 = wire_to_phy(w0);
 			phy1 = wire_to_phy(w1);
@@ -313,14 +313,14 @@ private:
 		// Compute cost
 		std::vector<double> cost;
 		for (auto& [phy0, phy1] : swap_candidates) {
-			std::vector<wire_id> tmp_v_to_phy = v_to_phy_;
-			wire_id const v0 = phy_to_v_.at(phy0);
-			wire_id const v1 = phy_to_v_.at(phy1);
-			if (v0 != wire::invalid) {
-				tmp_v_to_phy.at(v0) = wire_id(phy1, 1);
+			std::vector<wire::id> tmp_v_to_phy = v_to_phy_;
+			wire::id const v0 = phy_to_v_.at(phy0);
+			wire::id const v1 = phy_to_v_.at(phy1);
+			if (v0 != wire::invalid_id) {
+				tmp_v_to_phy.at(v0) = wire::make_qubit(phy1);
 			}
-			if (v1 != wire::invalid) {
-				tmp_v_to_phy.at(v1) = wire_id(phy0, 1);
+			if (v1 != wire::invalid_id) {
+				tmp_v_to_phy.at(v1) = wire::make_qubit(phy0);
 			}
 			double swap_cost = compute_cost(tmp_v_to_phy, front_layer_);
 			double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
@@ -345,31 +345,15 @@ private:
 		return swap_candidates.at(min);
 	}
 
-	// double compute_cost(std::vector<wire_id> const& tmp_v_to_phy,
-	//                     std::vector<node_id> const& gates)
-	// {
-	// 	double cost = 0.0;
-	// 	for (node_id n_id : gates) {
-	// 		op_type const& op = original_->node(n_id).op;
-	// 		wire_id const phy0 = tmp_v_to_phy.at(wire_to_v_.at(op.control()));
-	// 		wire_id const phy1 = tmp_v_to_phy.at(wire_to_v_.at(op.target()));
-	// 		if (phy0 == wire::invalid || phy1 == wire::invalid) {
-	// 			continue;
-	// 		}
-	// 		cost += (device_.distance(phy0, phy1) - 1);
-	// 	}
-	// 	return cost;
-	// }
-
-	double compute_cost(std::vector<wire_id> const& tmp_v_to_phy,
+	double compute_cost(std::vector<wire::id> const& tmp_v_to_phy,
 	                    std::vector<node_id> const& gates)
 	{
 		double cost = 0.0;
 		for (node_id n_id : gates) {
 			op_type const& op = original_->node(n_id).op;
-			wire_id const phy0 = tmp_v_to_phy.at(wire_to_v_.at(op.control()));
-			wire_id const phy1 = tmp_v_to_phy.at(wire_to_v_.at(op.target()));
-			if (phy0 == wire::invalid || phy1 == wire::invalid) {
+			wire::id const phy0 = tmp_v_to_phy.at(wire_to_v_.at(op.control()));
+			wire::id const phy1 = tmp_v_to_phy.at(wire_to_v_.at(op.target()));
+			if (phy0 == wire::invalid_id || phy1 == wire::invalid_id) {
 				continue;
 			}
 			cost += (device_.distance(phy0, phy1) - 1);
@@ -426,7 +410,7 @@ private:
 	void print_v_to_phy() const
 	{
 		fmt::print("v_to_phy: [{}] {{", v_to_phy_.size());
-		for (wire_id const& phy : v_to_phy_) {
+		for (wire::id const& phy : v_to_phy_) {
 			fmt::print(" {}", phy);
 		}
 		fmt::print(" }}\n");
@@ -435,7 +419,7 @@ private:
 	void print_phy_to_v() const
 	{
 		fmt::print("phy_to_v: [{}] {{", phy_to_v_.size());
-		for (wire_id const& v : phy_to_v_) {
+		for (wire::id const& v : phy_to_v_) {
 			fmt::print(" {}", v);
 		}
 		fmt::print(" }}\n");
@@ -466,9 +450,9 @@ private:
 	std::vector<std::vector<gate const*>> unexectued_;
 
 	// Placement info
-	std::vector<wire_id> wire_to_v_;
-	std::vector<wire_id> v_to_phy_;
-	std::vector<wire_id> phy_to_v_;
+	std::vector<wire::id> wire_to_v_;
+	std::vector<wire::id> v_to_phy_;
+	std::vector<wire::id> phy_to_v_;
 };
 
 } // namespace detail

@@ -5,7 +5,7 @@
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 
@@ -35,15 +35,15 @@ TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[common][ne
 		CHECK(network.num_operations() == 0u);
 	}
 	SECTION("Create one of each wire type") {
-		wire_id qubit = network.create_qubit("qubit");
+		wire::id qubit = network.create_qubit("qubit");
 		CHECK(network.size() == 1u);
 		CHECK(network.num_wires() == 1u);
 		CHECK(network.num_qubits() == 1u);
 		CHECK(network.num_cbits() == 0);
-		wire_id find = network.wire("qubit");
+		wire::id find = network.wire("qubit");
 		CHECK(find == qubit);
 
-		wire_id cbit = network.create_cbit("cbit");
+		wire::id cbit = network.create_cbit("cbit");
 		CHECK(network.size() == 2u);
 		CHECK(network.num_wires() == 2u);
 		CHECK(network.num_qubits() == 1u);
@@ -55,10 +55,10 @@ TEMPLATE_PRODUCT_TEST_CASE("Common functionality for all networks", "[common][ne
 		for (uint32_t i = 0u; i < 8u; ++i) {
 			std::string qname = fmt::format("q{}", i);
 			std::string cname = fmt::format("c{}", i);
-			wire_id nqubit = network.create_qubit(qname);
-			wire_id qubit = network.create_qubit();
-			wire_id ncbit = network.create_cbit(cname);
-			wire_id cbit = network.create_cbit();
+			wire::id nqubit = network.create_qubit(qname);
+			wire::id qubit = network.create_qubit();
+			wire::id ncbit = network.create_cbit(cname);
+			wire::id cbit = network.create_cbit();
 
 			CHECK(network.size() == ((i + 1) * 4));
 			CHECK(network.num_wires() == ((i + 1) * 4));
@@ -91,7 +91,7 @@ TEMPLATE_PRODUCT_TEST_CASE("One-qubit operations", "[one-qubit][networks]", (net
 	                           gate_lib::t, gate_lib::sdg, gate_lib::tdg};
 
 	TestType network;
-	wire_id qubit = network.create_qubit("qubit_0");
+	wire::id qubit = network.create_qubit("qubit_0");
 	SECTION("Using wire identifier") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
 			node_id n_id = network.create_op(gates.at(i), qubit);
@@ -118,8 +118,8 @@ TEMPLATE_PRODUCT_TEST_CASE("Two-qubit operations", "[two-qubit][networks]", (net
 	std::vector<gate> gates = {gate_lib::cx, gate_lib::cy, gate_lib::cz, gate_lib::swap};
 		
 	TestType network;
-	wire_id q0 = network.create_qubit("__dum_q0");
-	wire_id q1 = network.create_qubit("__dum_q1");
+	wire::id q0 = network.create_qubit("__dum_q0");
+	wire::id q1 = network.create_qubit("__dum_q1");
 	SECTION("Using wire identifier") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
 			node_id n_id = network.create_op(gates.at(i), q0, q1);
@@ -158,9 +158,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Three-qubit operations", "[three-qubit][networks]", 
 	std::vector<gate> gates = {gate_lib::ncx, gate_lib::ncy, gate_lib::ncz};
 		
 	TestType network;
-	wire_id q0 = network.create_qubit("__dum_q0");
-	wire_id q1 = network.create_qubit("__dum_q1");
-	wire_id q2 = network.create_qubit("q2");
+	wire::id q0 = network.create_qubit("__dum_q0");
+	wire::id q1 = network.create_qubit("__dum_q1");
+	wire::id q2 = network.create_qubit("q2");
 	SECTION("Using wire identifier") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
 			node_id n_id = network.create_op(gates.at(i), q0, q1, q2);

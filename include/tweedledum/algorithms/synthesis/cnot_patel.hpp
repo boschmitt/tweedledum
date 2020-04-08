@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/dynamic_bitset.hpp"
 
@@ -25,7 +25,7 @@ class cnot_patel_ftor {
 	using qubit_pair_type = std::pair<uint32_t, uint32_t>;
 
 public:
-	cnot_patel_ftor(network_type& network, std::vector<wire_id> const& qubits,
+	cnot_patel_ftor(network_type& network, std::vector<wire::id> const& qubits,
 	                matrix_type const& matrix, uint32_t partition_size)
 	    : network_(network)
 	    , qubits_(qubits)
@@ -111,7 +111,7 @@ private:
 
 private:
 	network_type& network_;
-	std::vector<wire_id> qubits_;
+	std::vector<wire::id> qubits_;
 	matrix_type matrix_;
 	uint32_t partition_size_;
 };
@@ -129,7 +129,7 @@ struct cnot_patel_params {
 // TODO:
 // /*! \brief */
 // template<class Network, class Matrix>
-// void cnot_patel_rewire(Network& network, std::vector<wire_id> const& qubits, Matrix const& matrix,
+// void cnot_patel_rewire(Network& network, std::vector<wire::id> const& qubits, Matrix const& matrix,
 //                 cnot_patel_params params = {})
 // {
 // 	assert(network.num_qubits() >= qubits.size());
@@ -199,7 +199,7 @@ struct cnot_patel_params {
  *                See `cnot_patel_params` for details.
  */
 template<class Network, class Matrix>
-void cnot_patel(Network& network, std::vector<wire_id> const& qubits, Matrix const& matrix,
+void cnot_patel(Network& network, std::vector<wire::id> const& qubits, Matrix const& matrix,
                 cnot_patel_params params = {})
 {
 	assert(network.num_qubits() >= qubits.size());
@@ -278,7 +278,7 @@ Network cnot_patel(Matrix const& matrix, cnot_patel_params params = {})
 
 	Network network;
 	const uint32_t num_qubits = matrix.num_rows();
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

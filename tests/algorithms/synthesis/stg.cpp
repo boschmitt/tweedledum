@@ -7,7 +7,7 @@
 #include "tweedledum/algorithms/simulation/simulate_classically.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 
 #include <catch.hpp>
@@ -21,7 +21,7 @@ template<class Network>
 inline auto circuit_and_map(uint32_t num_qubits)
 {
 	Network network;
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

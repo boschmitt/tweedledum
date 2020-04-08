@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../generic/rewrite.hpp"
 
 #include <cstdint>
@@ -18,7 +18,7 @@ namespace detail {
 // Barenco, A., Bennett, C.H., Cleve, R., DiVincenzo, D.P., Margolus, N., Shor, P., Sleator, T., Smolin,
 // J.A. and Weinfurter, H., 1995. Elementary gates for quantum computation. Physical review A, 52(5), p.3457.
 template<class Network>
-void barenco_decomp(Network& network, std::vector<wire_id> const& controls, wire_id target,
+void barenco_decomp(Network& network, std::vector<wire::id> const& controls, wire::id target,
                     uint32_t controls_threshold)
 {
 	assert(controls_threshold >= 2);
@@ -26,20 +26,20 @@ void barenco_decomp(Network& network, std::vector<wire_id> const& controls, wire
 	assert(num_controls >= 2);
 
 	if (num_controls <= controls_threshold) {
-		network.create_op(gate_lib::ncx, controls, std::vector<wire_id>({target}));
+		network.create_op(gate_lib::ncx, controls, std::vector<wire::id>({target}));
 		return;
 	}
 
-	std::vector<wire_id> workspace;
-	network.foreach_wire([&](wire_id wire) {
+	std::vector<wire::id> workspace;
+	network.foreach_wire([&](wire::id wire) {
 		if (!wire.is_qubit()) {
 			return;
 		}
 		if (wire == target) {
 			return;
 		}
-		for (wire_id control : controls) {
-			if (wire.id() == control.id()) {
+		for (wire::id control : controls) {
+			if (wire.uid() == control.uid()) {
 				return;
 			}
 		}
@@ -86,15 +86,15 @@ void barenco_decomp(Network& network, std::vector<wire_id> const& controls, wire
 	// Not enough qubits in the workspace, extra decomposition step
 	// Lemma 7.3: For any n ≥ 5, and m ∈ {2, ... , n − 3} a (n−2)-toffoli gate can be simulated
 	// by a network consisting of two m-toffoli gates and two (n−m−1)-toffoli gates
-	std::vector<wire_id> controls0;
-	std::vector<wire_id> controls1;
+	std::vector<wire::id> controls0;
+	std::vector<wire::id> controls1;
 	for (auto i = 0u; i < (num_controls >> 1); ++i) {
 		controls0.push_back(controls[i]);
 	}
 	for (auto i = (num_controls >> 1); i < num_controls; ++i) {
 		controls1.push_back(controls[i]);
 	}
-	wire_id free_qubit = workspace.front();
+	wire::id free_qubit = workspace.front();
 	controls1.push_back(free_qubit);
 	barenco_decomp(network, controls0, free_qubit, controls_threshold);
 	barenco_decomp(network, controls1, target, controls_threshold);

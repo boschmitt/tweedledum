@@ -6,7 +6,7 @@
 
 #include "../gates/gate.hpp"
 #include "../networks/storage.hpp"
-#include "../networks/wire_id.hpp"
+#include "../networks/wire.hpp"
 
 namespace tweedledum {
 
@@ -31,20 +31,20 @@ public:
 	    : Network(network)
 	{}
 
-	wire_id create_qubit(std::string_view name, wire_modes const mode = wire_modes::inout) = delete;
-	wire_id create_qubit(wire_modes const mode = wire_modes::inout) = delete;
-	wire_id create_cbit(std::string_view name, wire_modes const mode = wire_modes::inout) = delete;
-	wire_id create_cbit(wire_modes const mode = wire_modes::inout) = delete;
-	void wire_name(wire_id const w_id, std::string_view new_name, bool const rename = true) = delete;
-	void wire_mode(wire_id const w_id, wire_modes const new_mode) = delete;
+	wire::id create_qubit(std::string_view name, wire::modes const mode = wire::modes::inout) = delete;
+	wire::id create_qubit(wire::modes const mode = wire::modes::inout) = delete;
+	wire::id create_cbit(std::string_view name, wire::modes const mode = wire::modes::inout) = delete;
+	wire::id create_cbit(wire::modes const mode = wire::modes::inout) = delete;
+	void wire_name(wire::id const w_id, std::string_view new_name, bool const rename = true) = delete;
+	void wire_mode(wire::id const w_id, wire::modes const new_mode) = delete;
 
 	template<typename Op>
 	node_id emplace_op(Op&& op) = delete;
-	node_id create_op(gate const& g, wire_id const t) = delete;
-	node_id create_op(gate const& g, wire_id const w0, wire_id const w1) = delete;
-	node_id create_op(gate const& g, wire_id const c0, wire_id const c1, wire_id const t) = delete;
-	node_id create_op(gate const& g, std::vector<wire_id> const& controls,
-	                  std::vector<wire_id> const& targets)
+	node_id create_op(gate const& g, wire::id const t) = delete;
+	node_id create_op(gate const& g, wire::id const w0, wire::id const w1) = delete;
+	node_id create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t) = delete;
+	node_id create_op(gate const& g, std::vector<wire::id> const& controls,
+	                  std::vector<wire::id> const& targets)
 	    = delete;
 };
 

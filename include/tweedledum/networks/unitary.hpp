@@ -6,7 +6,7 @@
 
 #include "../gates/gate.hpp"
 #include "storage.hpp"
-#include "wire_id.hpp"
+#include "wire.hpp"
 
 #include <cassert>
 #include <fmt/core.h>
@@ -114,7 +114,7 @@ public:
 	{
 		for (uint32_t i = 0u; i < num_qubits; ++i) {
 			std::string name = fmt::format("__dum_q{}", i);
-			wires_->create_qubit(name, wire_modes::inout);
+			wires_->create_qubit(name, wire::modes::inout);
 		}
 	}
 
@@ -129,12 +129,12 @@ public:
 			} else if (op.is_two_qubit()) {
 				create_op(op, op.control(), op.target());
 			} else {
-				std::vector<wire_id> controls;
-				std::vector<wire_id> targets;
-				op.foreach_control([&](wire_id control) {
+				std::vector<wire::id> controls;
+				std::vector<wire::id> targets;
+				op.foreach_control([&](wire::id control) {
 					controls.push_back(control);
 				});
-				op.foreach_target([&](wire_id target) {
+				op.foreach_target([&](wire::id target) {
 					targets.push_back(target);
 				});
 				create_op(op, controls, targets);
@@ -185,40 +185,40 @@ public:
 		return 0u;
 	}
 
-	wire_id create_qubit(std::string_view name, wire_modes const mode = wire_modes::inout)
+	wire::id create_qubit(std::string_view name, wire::modes const mode = wire::modes::inout)
 	{
-		wire_id w_id = wires_->create_qubit(name, mode);
+		wire::id const w_id = wires_->create_qubit(name, mode);
 		grow_unitary();
 		return w_id;
 	}
 
-	wire_id create_qubit(wire_modes const mode = wire_modes::inout)
+	wire::id create_qubit(wire::modes const mode = wire::modes::inout)
 	{
-		std::string name = fmt::format("__dum_q{}", num_qubits());
+		std::string const name = fmt::format("__dum_q{}", num_qubits());
 		return create_qubit(name, mode);
 	}
 
-	wire_id wire(std::string_view name) const
+	wire::id wire(std::string_view name) const
 	{
 		return wires_->wire(name);
 	}
 
-	std::string wire_name(wire_id const w_id) const
+	std::string wire_name(wire::id const w_id) const
 	{
 		return wires_->wire_name(w_id);
 	}
 
-	void wire_name(wire_id const w_id, std::string_view new_name, bool const rename = true)
+	void wire_name(wire::id const w_id, std::string_view new_name, bool const rename = true)
 	{
 		wires_->wire_name(w_id, new_name, rename);
 	}
 
-	wire_modes wire_mode(wire_id const w_id) const
+	wire::modes wire_mode(wire::id const w_id) const
 	{
 		return wires_->wire_mode(w_id);
 	}
 
-	void wire_mode(wire_id const w_id, wire_modes const new_mode)
+	void wire_mode(wire::id const w_id, wire::modes const new_mode)
 	{
 		wires_->wire_mode(w_id, new_mode);
 	}
@@ -254,7 +254,7 @@ private:
 		return result;
 	}
 
-	void apply_matrix(std::array<complex_type, 4> const& matrix, wire_id target)
+	void apply_matrix(std::array<complex_type, 4> const& matrix, wire::id target)
 	{
 		uint32_t const k_end = (data_->matrix.size() >> 1u);
 		std::vector<uint32_t> qubits(1, target);
@@ -272,7 +272,7 @@ private:
 		}
 	}
 
-	void apply_ncx_matrix(std::vector<wire_id> const& controls, wire_id target)
+	void apply_ncx_matrix(std::vector<wire::id> const& controls, wire::id target)
 	{
 		std::vector<uint32_t> qubits(controls.begin(), controls.end());
 		qubits.emplace_back(target);
@@ -289,7 +289,7 @@ private:
 		}
 	}
 
-	void apply_ncy_matrix(std::vector<wire_id> const& controls, wire_id target)
+	void apply_ncy_matrix(std::vector<wire::id> const& controls, wire::id target)
 	{
 		std::vector<uint32_t> qubits(controls.begin(), controls.end());
 		qubits.emplace_back(target);
@@ -308,7 +308,7 @@ private:
 		}
 	}
 
-	void apply_ncr1_matrix(std::vector<wire_id> const& controls, wire_id target,
+	void apply_ncr1_matrix(std::vector<wire::id> const& controls, wire::id target,
 	                       complex_type phase)
 	{
 		std::vector<uint32_t> qubits(controls.begin(), controls.end());
@@ -326,7 +326,7 @@ private:
 	}
 
 public:
-	void create_op(gate const& g, wire_id const t)
+	void create_op(gate const& g, wire::id const t)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -391,20 +391,20 @@ public:
 		}
 	}
 
-	void create_op(gate const& g, wire_id const c, wire_id const t)
+	void create_op(gate const& g, wire::id const c, wire::id const t)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
 		case gate_ids::cx:
-			apply_ncx_matrix(std::vector<wire_id>({c}), t);
+			apply_ncx_matrix(std::vector<wire::id>({c}), t);
 			break;
 
 		case gate_ids::cy:
-			apply_ncy_matrix(std::vector<wire_id>({c}), t);
+			apply_ncy_matrix(std::vector<wire::id>({c}), t);
 			break;
 
 		case gate_ids::cz:
-			apply_ncr1_matrix(std::vector<wire_id>({c}), t, complex_type(-1., 0.));
+			apply_ncr1_matrix(std::vector<wire::id>({c}), t, complex_type(-1., 0.));
 			break;
 
 		case gate_ids::swap:
@@ -425,7 +425,7 @@ public:
 		}
 	}
 
-	void create_op(gate const& g, wire_id const c0, wire_id const c1, wire_id const t)
+	void create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -456,7 +456,7 @@ public:
 		}
 	}
 
-	void create_op(gate const& g, std::vector<wire_id> const& cs, std::vector<wire_id> const& ts)
+	void create_op(gate const& g, std::vector<wire::id> const& cs, std::vector<wire::id> const& ts)
 	{
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -489,29 +489,29 @@ public:
 #pragma endregion
 
 #pragma region Creating operations (using wire names)
-	void create_op(gate const& g, std::string_view target)
+	void create_op(gate const& g, std::string_view n)
 	{
-		create_op(g, wire(target));
+		create_op(g, wire(n));
 	}
 
-	void create_op(gate const& g, std::string_view l0, std::string_view l1)
+	void create_op(gate const& g, std::string_view n0, std::string_view n1)
 	{
-		create_op(g, wire(l0), wire(l1));
+		create_op(g, wire(n0), wire(n1));
 	}
 
-	void create_op(gate const& g, std::string_view c0, std::string_view c1, std::string_view t)
+	void create_op(gate const& g, std::string_view n0, std::string_view n1, std::string_view n2)
 	{
-		create_op(g, wire(c0), wire(c1), wire(t));
+		create_op(g, wire(n0), wire(n1), wire(n2));
 	}
 
 	void create_op(gate const& g, std::vector<std::string> const& cs,
 	               std::vector<std::string> const& ts)
 	{
-		std::vector<wire_id> controls;
+		std::vector<wire::id> controls;
 		for (std::string_view control : cs) {
 			controls.push_back(wire(control));
 		}
-		std::vector<wire_id> targets;
+		std::vector<wire::id> targets;
 		for (std::string_view target : ts) {
 			targets.push_back(wire(target));
 		}

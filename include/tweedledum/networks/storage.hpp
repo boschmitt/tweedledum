@@ -4,8 +4,6 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "wire_id.hpp"
-
 #include <array>
 #include <cstdint>
 #include <limits>

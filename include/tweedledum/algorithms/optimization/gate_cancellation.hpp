@@ -6,6 +6,7 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/storage.hpp"
+#include "../../networks/wire.hpp"
 #include "../transformations/remove_marked.hpp"
 
 #include <cassert>
@@ -26,7 +27,7 @@ Network gate_cancellation(Network const& network)
 	network.clear_values();
 	network.foreach_op([&](op_type const& op, node_type const& node) {
 		std::vector<node_id> children;
-		network.foreach_child(node, [&](node_type const& child, wire_id const cwid) {
+		network.foreach_child(node, [&](node_type const& child, wire::id const cwid) {
 			node_id temp_nid = network.id(child);
 			do {
 				node_type const& ancestor = network.node(temp_nid);

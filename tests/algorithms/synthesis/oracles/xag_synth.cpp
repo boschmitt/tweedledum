@@ -13,7 +13,6 @@
 #include "tweedledum/io/write_utf8.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
 
 #include <catch.hpp>
 #include <mockturtle/algorithms/miter.hpp>

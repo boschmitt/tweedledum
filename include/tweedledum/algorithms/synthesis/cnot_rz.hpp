@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/parity_terms.hpp"
 
 #include <bill/sat/cardinality.hpp>
@@ -95,7 +95,7 @@ public:
 	}
 	
 	template<class Network>
-	void decode(Network& network, std::vector<wire_id> const& qubits, std::vector<lbool_type> const& model)
+	void decode(Network& network, std::vector<wire::id> const& qubits, std::vector<lbool_type> const& model)
 	{
 		std::vector<uint32_t> qubits_states;
 		for (uint32_t i = 0u; i < num_qubits(); ++i) {
@@ -380,7 +380,7 @@ private:
 /*! \brief .
  */
 template<class Network, class Matrix>
-void cnot_rz(Network& network, std::vector<wire_id> const& qubits,
+void cnot_rz(Network& network, std::vector<wire::id> const& qubits,
              Matrix const& matrix, parity_terms<uint32_t> const& parities,
              cnot_rz_params params = {})
 {
@@ -410,7 +410,7 @@ Network cnot_rz(Matrix const& matrix, parity_terms<uint32_t> const& parities, cn
 	assert(matrix.num_rows() <= 32);
 	assert(matrix.is_square());
 	Network network;
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < matrix.num_rows(); ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

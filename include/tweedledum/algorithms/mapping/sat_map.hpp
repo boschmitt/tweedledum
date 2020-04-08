@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../networks/mapped_dag.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/device.hpp"
 #include "routing/sat_router.hpp"
 
@@ -19,23 +19,23 @@ mapped_dag sat_map(Network const& original, device const& device)
 	using op_type = typename Network::op_type;
 	mapped_dag mapped(original, device);
 	
-	std::vector<wire_id> v_to_phy = detail::sat_route(original, device);
+	std::vector<wire::id> v_to_phy = detail::sat_route(original, device);
 	if (v_to_phy.empty()) {
 		return mapped;
 	}
 
-	std::vector<wire_id> wire_to_v(original.num_wires(), wire::invalid);
-	original.foreach_wire([&](wire_id wire, std::string_view name) {
+	std::vector<wire::id> wire_to_v(original.num_wires(), wire::invalid_id);
+	original.foreach_wire([&](wire::id wire, std::string_view name) {
 		wire_to_v.at(wire) = mapped.wire(name);
 	});
 
 	mapped.v_to_phy(v_to_phy);
 	original.foreach_op([&](op_type const& op) {
-		wire_id const phy0 = v_to_phy.at(wire_to_v.at(op.target()));
+		wire::id const phy0 = v_to_phy.at(wire_to_v.at(op.target()));
 		if (op.is_one_qubit()) {
 			mapped.create_op(op, phy0);
 		} else if (op.is_two_qubit()) {
-			wire_id const phy1 = v_to_phy.at(wire_to_v.at(op.control()));
+			wire::id const phy1 = v_to_phy.at(wire_to_v.at(op.control()));
 			mapped.create_op(op, phy1, phy0);
 		}
 	});

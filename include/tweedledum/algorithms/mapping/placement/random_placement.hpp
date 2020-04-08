@@ -4,7 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../../networks/wire_id.hpp"
+#include "../../../networks/wire.hpp"
 #include "../../../utils/device.hpp"
 
 #include <random>
@@ -12,9 +12,9 @@
 
 namespace tweedledum::detail {
 
-inline std::vector<wire_id> random_placement(device const& device, uint32_t seed = 17u)
+inline std::vector<wire::id> random_placement(device const& device, uint32_t seed = 17u)
 {
-	std::vector<wire_id> placement;
+	std::vector<wire::id> placement;
 	for (uint32_t i = 0u; i < device.num_qubits(); ++i) {
 		placement.emplace_back(i, /* is_qubit */ true);
 	}

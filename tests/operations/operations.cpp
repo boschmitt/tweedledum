@@ -3,7 +3,7 @@
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
 #include "tweedledum/gates/gate.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w2_op.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
@@ -15,47 +15,47 @@ using namespace tweedledum;
 
 TEMPLATE_TEST_CASE("Check correct instantiation of meta ops", "[ops][inst]", w2_op, w3_op, wn32_op)
 {
-	wire_id qubit(0, true);
-	wire_id cbit(1, false);
+	wire::id const qubit = wire::make_qubit(0);
+	wire::id const cbit = wire::make_cbit(1);
 
 	TestType q_input(gate_lib::input, qubit);
 	TestType c_input(gate_lib::input, cbit);
 }
 
 template<class Op>
-void check_one_wire(gate const& g, wire_id const& target)
+void check_one_wire(gate const& g, wire::id const& t)
 {
-	Op o(g, target);
+	Op const o(g, t);
 	// Non-vector constructor
 	CHECK(o.num_controls() == 0u);
 	CHECK(o.num_targets() == 1u);
-	CHECK(o.target() == target);
+	CHECK(o.target() == t);
 
 	// Vector constructor
-	Op o_vec(g, std::vector<wire_id>({}), std::vector<wire_id>({target}));
+	Op const o_vec(g, std::vector<wire::id>({}), std::vector<wire::id>({t}));
 	CHECK(o_vec.num_controls() == 0u);
 	CHECK(o_vec.num_targets() == 1u);
-	CHECK(o_vec.target() == target);
+	CHECK(o_vec.target() == t);
 
 	CHECK(o == o_vec);
 }
 
 template<class Op>
-void check_two_wire(gate const& g, wire_id const& control, wire_id const& target)
+void check_two_wire(gate const& g, wire::id const& c, wire::id const& t)
 {
-	Op o(g, control, target);
+	Op const o(g, c, t);
 	// Non-vector constructor
 	CHECK(o.num_controls() == 1u);
 	CHECK(o.num_targets() == 1u);
-	CHECK(o.control() == control);
-	CHECK(o.target() == target);
+	CHECK(o.control() == c);
+	CHECK(o.target() == t);
 
 	// Vector constructor
-	Op o_vec(g, std::vector<wire_id>({control}), std::vector<wire_id>({target}));
+	Op const o_vec(g, std::vector<wire::id>({c}), std::vector<wire::id>({t}));
 	CHECK(o_vec.num_controls() == 1u);
 	CHECK(o_vec.num_targets() == 1u);
-	CHECK(o_vec.control() == control);
-	CHECK(o_vec.target() == target);
+	CHECK(o_vec.control() == c);
+	CHECK(o_vec.target() == t);
 
 	CHECK(o == o_vec);
 }
@@ -63,121 +63,120 @@ void check_two_wire(gate const& g, wire_id const& control, wire_id const& target
 TEMPLATE_TEST_CASE("Check correct instantiation of non-parameterasible 1 and 2 wires operations",
                    "[ops][inst]", w2_op, w3_op, wn32_op)
 {
-	wire_id control(0, true);
-	wire_id target(15, true);
+	wire::id const w0 = wire::make_qubit(0);
+	wire::id const w1 = wire::make_qubit(15);
 	std::vector<gate> one_wire = {gate_lib::i, gate_lib::h,   gate_lib::x,
 	                              gate_lib::y, gate_lib::z,   gate_lib::s,
 	                              gate_lib::t, gate_lib::sdg, gate_lib::tdg};
 	std::vector<gate> two_wire = {gate_lib::cx, gate_lib::cy, gate_lib::cz};
 
 	for (gate const& g : one_wire) {
-		check_one_wire<TestType>(g, target);
+		check_one_wire<TestType>(g, w1);
 	}
 
 	for (gate const& g : two_wire) {
-		check_two_wire<TestType>(g, control, target);
+		check_two_wire<TestType>(g, w0, w1);
 	}
 
-	TestType swap(gate_lib::swap, control, target);
+	TestType swap(gate_lib::swap, w0, w1);
 	CHECK(swap.num_controls() == 0u);
 	CHECK(swap.num_targets() == 2u);
-	CHECK(swap.target(0) == control);
-	CHECK(swap.target(1) == target);
+	CHECK(swap.target(0) == w0);
+	CHECK(swap.target(1) == w1);
 
-	TestType swap_10(gate_lib::swap, target, control);
+	TestType swap_10(gate_lib::swap, w1, w0);
 	CHECK(swap == swap_10);
 
-	TestType swap_v(gate_lib::swap, std::vector<wire_id>({}),
-	                std::vector<wire_id>({control, target}));
+	TestType swap_v(gate_lib::swap, std::vector<wire::id>({}), std::vector<wire::id>({w0, w1}));
 	CHECK(swap_v.num_controls() == 0u);
 	CHECK(swap_v.num_targets() == 2u);
-	CHECK(swap_v.target(0) == control);
-	CHECK(swap_v.target(1) == target);
+	CHECK(swap_v.target(0) == w0);
+	CHECK(swap_v.target(1) == w1);
 
-	TestType swap_v_10(gate_lib::swap, std::vector<wire_id>({}),
-	                   std::vector<wire_id>({target, control}));
+	TestType swap_v_10(gate_lib::swap, std::vector<wire::id>({}),
+	                   std::vector<wire::id>({w1, w0}));
 	CHECK(swap_v == swap_v_10);
 }
 
 TEMPLATE_TEST_CASE("Check correct instantiation of parameterasible 1 and 2 wires operations",
                    "[ops][inst]", w2_op, w3_op, wn32_op)
 {
-	wire_id control0(0, true);
-	wire_id target(2, true);
+	wire::id const c = wire::make_qubit(0);
+	wire::id const t = wire::make_qubit(2);
 	std::vector<angle> commmon_angles = {sym_angle::zero, sym_angle::pi, sym_angle::pi_half,
 	                                     sym_angle::pi_quarter};
 	for (angle const& a : commmon_angles) {
-		check_one_wire<TestType>(gate_lib::r1(a), target);
-		check_one_wire<TestType>(gate_lib::rx(a), target);
-		check_one_wire<TestType>(gate_lib::ry(a), target);
-		check_one_wire<TestType>(gate_lib::rz(a), target);
-		check_two_wire<TestType>(gate_lib::crx(a), control0, target);
-		check_two_wire<TestType>(gate_lib::cry(a), control0, target);
-		check_two_wire<TestType>(gate_lib::crz(a), control0, target);
+		check_one_wire<TestType>(gate_lib::r1(a), t);
+		check_one_wire<TestType>(gate_lib::rx(a), t);
+		check_one_wire<TestType>(gate_lib::ry(a), t);
+		check_one_wire<TestType>(gate_lib::rz(a), t);
+		check_two_wire<TestType>(gate_lib::crx(a), c, t);
+		check_two_wire<TestType>(gate_lib::cry(a), c, t);
+		check_two_wire<TestType>(gate_lib::crz(a), c, t);
 	}
 }
 
 template<class Op>
-void check_three_wire(gate const& g, wire_id const& c0, wire_id const& c1, wire_id const& target)
+void check_three_wire(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 {
-	Op o(g, c0, c1, target);
+	Op const o(g, c0, c1, t);
 	// Non-vector constructor
 	CHECK(o.num_controls() == 2u);
 	CHECK(o.num_targets() == 1u);
 	CHECK(o.control(0) == c0);
 	CHECK(o.control(1) == c1);
-	CHECK(o.target() == target);
+	CHECK(o.target() == t);
 
-	Op o_norm(g, c1, c0, target);
+	Op const o_norm(g, c1, c0, t);
 	CHECK(o == o_norm);
 
 	// Vector constructor
-	Op o_vec(g, std::vector<wire_id>({c0, c1}), std::vector<wire_id>({target}));
+	Op const o_vec(g, std::vector<wire::id>({c0, c1}), std::vector<wire::id>({t}));
 	CHECK(o_vec.num_controls() == 2u);
 	CHECK(o_vec.num_targets() == 1u);
 	CHECK(o_vec.control(0) == c0);
 	CHECK(o_vec.control(1) == c1);
-	CHECK(o_vec.target() == target);
+	CHECK(o_vec.target() == t);
 
 	CHECK(o == o_vec);
 
-	Op o_vec_norm(g, std::vector<wire_id>({c1, c0}), std::vector<wire_id>({target}));
+	Op o_vec_norm(g, std::vector<wire::id>({c1, c0}), std::vector<wire::id>({t}));
 	CHECK(o_vec == o_vec_norm);
 }
 
 TEMPLATE_TEST_CASE("Check correct instantiation of non-parameterasible 3 wires operations",
                    "[ops][inst]", w3_op, wn32_op)
 {
-	wire_id control0(0, true);
-	wire_id control1(8, true);
-	wire_id target(15, true);
+	wire::id const c0 = wire::make_qubit(0);
+	wire::id const c1 = wire::make_qubit(8);
+	wire::id const t = wire::make_qubit(15);
 	std::vector<gate> three_wire = {gate_lib::ncx, gate_lib::ncy, gate_lib::ncz};
 
 	for (gate const& g : three_wire) {
-		check_three_wire<TestType>(g, control0, control1, target);
+		check_three_wire<TestType>(g, c0, c1, t);
 	}
 }
 
 TEMPLATE_TEST_CASE("Check correct instantiation of parameterasible 3 wires operations",
                    "[ops][inst]", w3_op, wn32_op)
 {
-	wire_id control0(0, true);
-	wire_id control1(1, true);
-	wire_id target(2, true);
+	wire::id const c0 = wire::make_qubit(0);
+	wire::id const c1 = wire::make_qubit(1);
+	wire::id const t = wire::make_qubit(2);
 	std::vector<angle> commmon_angles = {sym_angle::zero, sym_angle::pi, sym_angle::pi_half,
 	                                     sym_angle::pi_quarter};
 	for (angle const& a : commmon_angles) {
-		check_three_wire<TestType>(gate_lib::ncrx(a), control0, control1, target);
-		check_three_wire<TestType>(gate_lib::ncry(a), control0, control1, target);
-		check_three_wire<TestType>(gate_lib::ncrz(a), control0, control1, target);
+		check_three_wire<TestType>(gate_lib::ncrx(a), c0, c1, t);
+		check_three_wire<TestType>(gate_lib::ncry(a), c0, c1, t);
+		check_three_wire<TestType>(gate_lib::ncrz(a), c0, c1, t);
 	}
 }
 
 TEMPLATE_TEST_CASE("Check 1 and 2 wires operations adjointness", "[ops][adj]", w2_op)
 {
-	wire_id q0(0, true);
-	wire_id q1(9, true);
-	wire_id q2(19, true);
+	wire::id const q0 = wire::make_qubit(0);
+	wire::id const q1 = wire::make_qubit(9);
+	wire::id const q2 = wire::make_qubit(19);
 
 	std::vector<gate> gs = {gate_lib::i, gate_lib::h, gate_lib::x,  gate_lib::y,  gate_lib::z,
 	                        gate_lib::s, gate_lib::t, gate_lib::cx, gate_lib::cy, gate_lib::cz};
@@ -248,9 +247,9 @@ TEMPLATE_TEST_CASE("Check 1 and 2 wires operations adjointness", "[ops][adj]", w
 
 TEMPLATE_TEST_CASE("Check 1, 2 and 3 wires operations adjointness", "[ops][adj]", w3_op, wn32_op)
 {
-	wire_id q0(0, true);
-	wire_id q1(9, true);
-	wire_id q2(19, true);
+	wire::id const q0 = wire::make_qubit(0);
+	wire::id const q1 = wire::make_qubit(9);
+	wire::id const q2 = wire::make_qubit(19);
 
 	std::vector<gate> gs = {gate_lib::i,  gate_lib::h,  gate_lib::x,   gate_lib::y,
 	                        gate_lib::z,  gate_lib::s,  gate_lib::t,   gate_lib::cx,
@@ -336,24 +335,24 @@ TEMPLATE_TEST_CASE("Check 1, 2 and 3 wires operations adjointness", "[ops][adj]"
 }
 
 template<class Op>
-Op create_op(gate const& g, wire_id const& c0, wire_id const& c1, wire_id const& target)
+Op create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 {
 	if (g.is_one_qubit()) {
-		return Op(g, target);
+		return Op(g, t);
 	} else if (g.is_two_qubit()) {
-		return Op(g, c0, target);
+		return Op(g, c0, t);
 	}
-	return Op(g, c0, c1, target);
+	return Op(g, c0, c1, t);
 }
 
 TEMPLATE_TEST_CASE("Check 1 and 2 wires operations dependency", "[ops][dep]", w2_op)
 {
-	wire_id q0(0, true);
-	wire_id q1(11, true);
-	wire_id q2(12, true);
-	wire_id q3(23, true);
-	wire_id q4(24, true);
-	wire_id q5(25, true);
+	wire::id const q0 = wire::make_qubit(0);
+	wire::id const q1 = wire::make_qubit(11);
+	wire::id const q2 = wire::make_qubit(12);
+	wire::id const q3 = wire::make_qubit(23);
+	wire::id const q4 = wire::make_qubit(24);
+	wire::id const q5 = wire::make_qubit(25);
 	std::vector<gate> gs = {gate_lib::h,  gate_lib::x,  gate_lib::y,   gate_lib::z,
 	                        gate_lib::s,  gate_lib::t,  gate_lib::sdg, gate_lib::tdg,
 	                        gate_lib::cx, gate_lib::cy, gate_lib::cz};
@@ -435,12 +434,12 @@ TEMPLATE_TEST_CASE("Check 1 and 2 wires operations dependency", "[ops][dep]", w2
 
 TEMPLATE_TEST_CASE("Check 1, 2 and 3 wires dependency", "[ops][dep]", w3_op, wn32_op)
 {
-	wire_id q0(0, true);
-	wire_id q1(11, true);
-	wire_id q2(12, true);
-	wire_id q3(23, true);
-	wire_id q4(24, true);
-	wire_id q5(25, true);
+	wire::id const q0 = wire::make_qubit(0);
+	wire::id const q1 = wire::make_qubit(11);
+	wire::id const q2 = wire::make_qubit(12);
+	wire::id const q3 = wire::make_qubit(23);
+	wire::id const q4 = wire::make_qubit(24);
+	wire::id const q5 = wire::make_qubit(25);
 	std::vector<gate> gs = {gate_lib::h,   gate_lib::x,  gate_lib::y,   gate_lib::z,
 	                        gate_lib::s,   gate_lib::t,  gate_lib::sdg, gate_lib::tdg,
 	                        gate_lib::cx,  gate_lib::cy, gate_lib::cz,  gate_lib::ncx,

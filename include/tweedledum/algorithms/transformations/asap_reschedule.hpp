@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
 #include "../../views/layers_view.hpp"
 #include "../generic/shallow_duplicate.hpp"
 

@@ -180,7 +180,7 @@ inline void dotqc_read(std::istream& buffer, dotqc_reader<GateKind>& reader, Fn&
 }
 
 template<typename GateKind, class Fn = detail::identify_gate_kind>
-inline void dotqc_read(std::string const& path, dotqc_reader<GateKind>& reader, Fn&& fn = {})
+inline void dotqc_read(std::string_view path, dotqc_reader<GateKind>& reader, Fn&& fn = {})
 {
 	// Load the whole file into a buffer
 	std::ifstream input_file(path);

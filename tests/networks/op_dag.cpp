@@ -5,7 +5,7 @@
 #include "tweedledum/networks/op_dag.hpp"
 
 #include "tweedledum/gates/gate.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 
@@ -40,9 +40,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Operations DAG 'foreach_input' iterator", "[op_dag][
 		});
 	}
 	SECTION("Output iterator") {
-		wire_id q0 = network.create_qubit();
-		wire_id q1 = network.create_qubit();
-		wire_id q2 = network.create_qubit();
+		wire::id q0 = network.create_qubit();
+		wire::id q1 = network.create_qubit();
+		wire::id q2 = network.create_qubit();
 		uint32_t i = 0u;
 		network.foreach_output([&] (node_id const id) {
 			CHECK(id == i);
@@ -72,9 +72,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Operations 'foreach_output' iterator", "[op_dag][tem
 {
 	using node_type = typename TestType::node_type;
 	TestType network;
-	wire_id q0 = network.create_qubit();
-	wire_id q1 = network.create_qubit();
-	wire_id q2 = network.create_qubit();
+	wire::id q0 = network.create_qubit();
+	wire::id q1 = network.create_qubit();
+	wire::id q2 = network.create_qubit();
 	SECTION("No operations") {
 		uint32_t i = 0u;
 		network.foreach_output([&] (node_id const id) {

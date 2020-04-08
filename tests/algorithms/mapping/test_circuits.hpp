@@ -3,7 +3,7 @@
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
 #include "tweedledum/gates/gate.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 
 
 template<typename Network>
@@ -11,11 +11,11 @@ Network test_circuit_00()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
 
 	circuit.create_op(gate_lib::cx, q1, q0);
@@ -30,12 +30,12 @@ Network test_circuit_01()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q3 = circuit.create_qubit();
+	wire::id q3 = circuit.create_qubit();
 	circuit.create_cbit();
 
 	circuit.create_op(gate_lib::cx, q0, q1);
@@ -60,12 +60,12 @@ Network test_circuit_02()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q3 = circuit.create_qubit();
+	wire::id q3 = circuit.create_qubit();
 	circuit.create_cbit();
 
 	circuit.create_qubit();
@@ -88,12 +88,12 @@ Network test_circuit_03()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q3 = circuit.create_qubit();
+	wire::id q3 = circuit.create_qubit();
 	circuit.create_cbit();
 
 	circuit.create_op(gate_lib::cx, q0, q1);
@@ -121,20 +121,20 @@ Network test_circuit_04()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q3 = circuit.create_qubit();
+	wire::id q3 = circuit.create_qubit();
 	circuit.create_cbit();
 
-	wire_id q4 = circuit.create_qubit();
-	wire_id q5 = circuit.create_qubit();
-	wire_id q6 = circuit.create_qubit();
-	wire_id q7 = circuit.create_qubit();
-	wire_id q8 = circuit.create_qubit();
-	wire_id q9 = circuit.create_qubit();
+	wire::id q4 = circuit.create_qubit();
+	wire::id q5 = circuit.create_qubit();
+	wire::id q6 = circuit.create_qubit();
+	wire::id q7 = circuit.create_qubit();
+	wire::id q8 = circuit.create_qubit();
+	wire::id q9 = circuit.create_qubit();
 
 	circuit.create_op(gate_lib::cx, q0, q1);
 	circuit.create_op(gate_lib::cx, q1, q2);
@@ -160,18 +160,18 @@ Network test_circuit_05()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q3 = circuit.create_qubit();
+	wire::id q3 = circuit.create_qubit();
 	circuit.create_cbit();
 
-	wire_id q4 = circuit.create_qubit();
-	wire_id q5 = circuit.create_qubit();
-	wire_id q6 = circuit.create_qubit();
-	wire_id q7 = circuit.create_qubit();
+	wire::id q4 = circuit.create_qubit();
+	wire::id q5 = circuit.create_qubit();
+	wire::id q6 = circuit.create_qubit();
+	wire::id q7 = circuit.create_qubit();
 
 	circuit.create_op(gate_lib::cx, q0, q1);
 	circuit.create_op(gate_lib::cx, q1, q2);
@@ -188,16 +188,16 @@ Network test_circuit_06()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q3 = circuit.create_qubit();
+	wire::id q3 = circuit.create_qubit();
 	circuit.create_cbit();
 
-	wire_id q4 = circuit.create_qubit();
-	wire_id q5 = circuit.create_qubit();
+	wire::id q4 = circuit.create_qubit();
+	wire::id q5 = circuit.create_qubit();
 
 	circuit.create_op(gate_lib::cx, q0, q2);
 	circuit.create_op(gate_lib::cx, q2, q1);
@@ -213,15 +213,15 @@ Network test_circuit_07()
 {
 	using namespace tweedledum;
 	Network circuit;
-	wire_id q0 = circuit.create_qubit();
+	wire::id q0 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q1 = circuit.create_qubit();
-	wire_id q2 = circuit.create_qubit();
+	wire::id q1 = circuit.create_qubit();
+	wire::id q2 = circuit.create_qubit();
 	circuit.create_cbit();
-	wire_id q3 = circuit.create_qubit();
+	wire::id q3 = circuit.create_qubit();
 	circuit.create_cbit();
 
-	wire_id q4 = circuit.create_qubit();
+	wire::id q4 = circuit.create_qubit();
 
 	circuit.create_op(gate_lib::cx, q0, q1);
 	circuit.create_op(gate_lib::cx, q1, q2);

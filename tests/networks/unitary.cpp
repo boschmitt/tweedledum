@@ -6,7 +6,7 @@
 
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 
 #include <catch.hpp>
 
@@ -46,7 +46,7 @@ TEST_CASE("Basic unitary functionality", "[unitary][networks]")
 	}
 	SECTION("Two-qubit unitary") {
 		unitary u0;
-		wire_id q0 = u0.create_qubit();
+		wire::id q0 = u0.create_qubit();
 		u0.create_op(gate_lib::x, q0);
 		u0.create_qubit();
 

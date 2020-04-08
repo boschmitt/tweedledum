@@ -5,7 +5,7 @@
 #include "tweedledum/views/layers_view.hpp"
 
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w2_op.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
@@ -23,9 +23,9 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][views]", (op_dag), (w2_
 		CHECK(layered_ntk.num_layers() == 0u);
 	}
 
-	wire_id const q0 = network.create_qubit();
-	wire_id const q1 = network.create_qubit();
-	wire_id const q2 = network.create_qubit();
+	wire::id const q0 = network.create_qubit();
+	wire::id const q1 = network.create_qubit();
+	wire::id const q2 = network.create_qubit();
 	SECTION("With qubits, but no gates") {
 		layers_view layered_ntk(network);
 		CHECK(layered_ntk.depth() == 0u);
@@ -56,7 +56,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Layers view", "[layers_view][views]", (op_dag), (w2_
 		CHECK(layered_ntk.layer(2).size() == 2u);
 	}
 	SECTION("All outputs are in the last layer") {
-		wire_id const q3 = network.create_qubit();
+		wire::id const q3 = network.create_qubit();
 		network.create_op(gate_lib::cx, q1, q2);
 		network.create_op(gate_lib::cx, q2, q3);
 		network.create_op(gate_lib::cx, q0, q3);

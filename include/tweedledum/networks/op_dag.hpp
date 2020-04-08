@@ -6,7 +6,7 @@
 
 #include "../gates/gate.hpp"
 #include "storage.hpp"
-#include "wire_id.hpp"
+#include "wire.hpp"
 
 namespace tweedledum {
 
@@ -114,7 +114,7 @@ public:
 
 #pragma region Wires
 private:
-	void connect_wire(wire_id const w_id)
+	void connect_wire(wire::id const w_id)
 	{
 		node_id const n_id(data_->nodes.size());
 		op_type const input(gate_lib::input, w_id);
@@ -139,53 +139,53 @@ public:
 		return wires_->num_cbits();
 	}
 
-	wire_id create_qubit(std::string_view name, wire_modes const mode = wire_modes::inout)
+	wire::id create_qubit(std::string_view name, wire::modes const mode = wire::modes::inout)
 	{
-		wire_id const w_id = wires_->create_qubit(name, mode);
+		wire::id const w_id = wires_->create_qubit(name, mode);
 		connect_wire(w_id);
 		return w_id;
 	}
 
-	wire_id create_qubit(wire_modes const mode = wire_modes::inout)
+	wire::id create_qubit(wire::modes const mode = wire::modes::inout)
 	{
 		std::string const name = fmt::format("__dum_q{}", num_qubits());
 		return create_qubit(name, mode);
 	}
 
-	wire_id create_cbit(std::string_view name, wire_modes const mode = wire_modes::inout)
+	wire::id create_cbit(std::string_view name, wire::modes const mode = wire::modes::inout)
 	{
-		wire_id const w_id = wires_->create_cbit(name, mode);
+		wire::id const w_id = wires_->create_cbit(name, mode);
 		connect_wire(w_id);
 		return w_id;
 	}
 
-	wire_id create_cbit(wire_modes const mode = wire_modes::inout)
+	wire::id create_cbit(wire::modes const mode = wire::modes::inout)
 	{
 		std::string const name = fmt::format("__dum_c{}", num_cbits());
 		return create_cbit(name, mode);
 	}
 
-	wire_id wire(std::string_view name) const
+	wire::id wire(std::string_view name) const
 	{
 		return wires_->wire(name);
 	}
 
-	std::string wire_name(wire_id const w_id) const
+	std::string wire_name(wire::id const w_id) const
 	{
 		return wires_->wire_name(w_id);
 	}
 
-	void wire_name(wire_id const w_id, std::string_view new_name, bool const rename = true)
+	void wire_name(wire::id const w_id, std::string_view new_name, bool const rename = true)
 	{
 		wires_->wire_name(w_id, new_name, rename);
 	}
 
-	wire_modes wire_mode(wire_id const w_id) const
+	wire::modes wire_mode(wire::id const w_id) const
 	{
 		return wires_->wire_mode(w_id);
 	}
 
-	void wire_mode(wire_id const w_id, wire_modes const new_mode)
+	void wire_mode(wire::id const w_id, wire::modes const new_mode)
 	{
 		wires_->wire_mode(w_id, new_mode);
 	}
@@ -193,12 +193,12 @@ public:
 
 #pragma region Creating operations (using wire ids)
 private:
-	void connect_node(wire_id const wire, node_type& node)
+	void connect_node(wire::id const w_id, node_type& node)
 	{
-		assert(data_->outputs.at(wire) != node::invalid);
-		uint32_t const position = node.op.position(wire);
-		node.children.at(position) = data_->outputs.at(wire);
-		data_->outputs.at(wire) = id(node);
+		assert(data_->outputs.at(w_id) != node::invalid);
+		uint32_t const position = node.op.position(w_id);
+		node.children.at(position) = data_->outputs.at(w_id);
+		data_->outputs.at(w_id) = id(node);
 		return;
 	}
 
@@ -210,58 +210,58 @@ public:
 		node_type& node = data_->nodes.emplace_back(std::forward<Op>(op),
 		                                            data_->default_value);
 		data_->gate_set |= (1 << static_cast<uint32_t>(op.id()));
-		node.op.foreach_control([&](wire_id wire) { connect_node(wire, node); });
-		node.op.foreach_target([&](wire_id wire) { connect_node(wire, node); });
+		node.op.foreach_control([&](wire::id wire) { connect_node(wire, node); });
+		node.op.foreach_target([&](wire::id wire) { connect_node(wire, node); });
 		return id;
 	}
 
-	node_id create_op(gate const& g, wire_id const t)
+	node_id create_op(gate const& g, wire::id const t)
 	{
 		return emplace_op(op_type(g, t));
 	}
 
-	node_id create_op(gate const& g, wire_id const w0, wire_id const w1)
+	node_id create_op(gate const& g, wire::id const w0, wire::id const w1)
 	{
 		return emplace_op(op_type(g, w0, w1));
 	}
 
-	node_id create_op(gate const& g, wire_id const c0, wire_id const c1, wire_id const t)
+	node_id create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 	{
 		return emplace_op(op_type(g, c0, c1, t));
 	}
 
-	node_id create_op(gate const& g, std::vector<wire_id> const& controls,
-	                  std::vector<wire_id> const& targets)
+	node_id create_op(gate const& g, std::vector<wire::id> const& controls,
+	                  std::vector<wire::id> const& targets)
 	{
 		return emplace_op(op_type(g, controls, targets));
 	}
 #pragma endregion
 
 #pragma region Creating operations (using wire labels)
-	node_id create_op(gate const& g, std::string_view target)
+	node_id create_op(gate const& g, std::string_view n)
 	{
-		return create_op(g, wire(target));
+		return create_op(g, wire(n));
 	}
 
-	node_id create_op(gate const& g, std::string_view l0, std::string_view l1)
+	node_id create_op(gate const& g, std::string_view n0, std::string_view n1)
 	{
-		return create_op(g, wire(l0), wire(l1));
+		return create_op(g, wire(n0), wire(n1));
 	}
 
-	node_id create_op(gate const& g, std::string_view c0, std::string_view c1, std::string_view t)
+	node_id create_op(gate const& g, std::string_view n0, std::string_view n1, std::string_view n2)
 	{
-		return create_op(g, wire(c0), wire(c1), wire(t));
+		return create_op(g, wire(n0), wire(n1), wire(n2));
 	}
 
-	node_id create_op(gate const& g, std::vector<std::string> const& c_labels,
-	                  std::vector<std::string> const& t_labels)
+	node_id create_op(gate const& g, std::vector<std::string> const& cs,
+	                  std::vector<std::string> const& ts)
 	{
-		std::vector<wire_id> controls;
-		for (std::string_view control : c_labels) {
+		std::vector<wire::id> controls;
+		for (std::string_view control : cs) {
 			controls.push_back(wire(control));
 		}
-		std::vector<wire_id> targets;
-		for (std::string_view target : t_labels) {
+		std::vector<wire::id> targets;
+		for (std::string_view target : ts) {
 			targets.push_back(wire(target));
 		}
 		return create_op(g, controls, targets);
@@ -377,7 +377,7 @@ public:
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, wire_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>);
 		for (uint32_t position = 0u; position < n.children.size(); ++position) {
 			if (n.children[position] == node::invalid) {
 				continue;
@@ -386,7 +386,7 @@ public:
 				fn(node(n.children[position]));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node_id const>) {
 				fn(node(n.children[position]), n.children[position]);
-			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire_id const>) {
+			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>) {
 				fn(node(n.children[position]), n.op.wire(position));
 			}
 		}

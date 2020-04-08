@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/wire_id.hpp"
+#include "../networks/wire.hpp"
 #include "../gates/gate.hpp"
 
 #include <algorithm>
@@ -29,27 +29,27 @@ public:
 #pragma endregion
 
 #pragma region Constructors
-	wn32_op(gate const& g, wire_id target)
+	wn32_op(gate const& g, wire::id const t)
 	    : gate(g)
-	    , is_qubit_(target.is_qubit() << target)
+	    , is_qubit_(t.is_qubit() << t)
 	    , polarity_(0)
 	    , controls_(0)
-	    , targets_(1u << target)
+	    , targets_(1u << t)
 	{
-		assert(target != wire::invalid && !target.is_complemented());
-		assert(is_meta() || (is_one_qubit() && target.is_qubit()));
+		assert(t!= wire::invalid_id && !t.is_complemented());
+		assert(is_meta() || (is_one_qubit() && t.is_qubit()));
 	}
 
-	wn32_op(gate const& g, wire_id w0, wire_id w1)
+	wn32_op(gate const& g, wire::id const w0, wire::id const w1)
 	    : gate(g)
 	    , is_qubit_((w0.is_qubit() << w0) | (w1.is_qubit() << w1))
 	    , polarity_(w0.is_complemented() << w0)
 	    , controls_(1u << w0)
 	    , targets_(1u << w1)
 	{
-		assert(w0 != wire::invalid);
-		assert(w1 != wire::invalid);
-		assert(w0.id() != w1.id());
+		assert(w0 != wire::invalid_id);
+		assert(w1 != wire::invalid_id);
+		assert(w0.uid() != w1.uid());
 
 		if (is(gate_ids::swap)) {
 			targets_ |= (1 << w0);
@@ -58,39 +58,37 @@ public:
 		}
 	}
 
-	wn32_op(gate const& g, wire_id c0, wire_id c1, wire_id target)
+	wn32_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 	    : gate(g)
-	    , is_qubit_((c0.is_qubit() << c0) | (c1.is_qubit() << c1)
-	                | (target.is_qubit() << target))
+	    , is_qubit_((c0.is_qubit() << c0) | (c1.is_qubit() << c1) | (t.is_qubit() << t))
 	    , polarity_((c0.is_complemented() << c0) | (c1.is_complemented() << c1))
 	    , controls_((1u << c0) | (1u << c1))
-	    , targets_(1u << target)
+	    , targets_(1u << t)
 	{
-		assert(c0 != wire::invalid);
-		assert(c1 != wire::invalid);
-		assert(target != wire::invalid);
-		assert(c0.id() != c1.id() && c0.id() != target.id() && c1.id() != target.id());
+		assert(c0 != wire::invalid_id);
+		assert(c1 != wire::invalid_id);
+		assert(t != wire::invalid_id);
+		assert(c0.uid() != c1.uid() && c0.uid() != t.uid() && c1.uid() != t.uid());
 		assert(!is_meta() && !is_measurement());
 		assert(!is_one_qubit() && !is_two_qubit());
 	}
 
-	wn32_op(gate const& g, std::vector<wire_id> const& controls,
-	        std::vector<wire_id> const& targets)
+	wn32_op(gate const& g, std::vector<wire::id> const& cs, std::vector<wire::id> const& ts)
 	    : gate(g)
 	    , is_qubit_(0)
 	    , polarity_(0)
 	    , controls_(0)
 	    , targets_(0)
 	{
-		assert(!targets.empty());
-		assert(controls.size() + targets.size() <= max_num_wires);
-		for (wire_id control : controls) {
+		assert(!ts.empty());
+		assert(cs.size() + ts.size() <= max_num_wires);
+		for (wire::id control : cs) {
 			assert(control <= network_max_num_wires);
 			controls_ |= (1u << control);
 			polarity_ |= (control.is_complemented() << control);
 			is_qubit_ |= (control.is_qubit() << control);
 		}
-		for (wire_id target : targets) {
+		for (wire::id target : ts) {
 			assert(target <= network_max_num_wires);
 			targets_ |= (1u << target);
 			is_qubit_ |= (target.is_qubit() << target);
@@ -115,12 +113,12 @@ public:
 		return __builtin_popcount(targets_);
 	}
 
-	wire_id control(uint32_t i = 0u) const
+	wire::id control(uint32_t const i = 0u) const
 	{
 		assert(i < num_controls());
 		uint32_t idx = __builtin_ctz(controls_);
 		if (i == 0) {
-			return wire_id(idx, (is_qubit_ >> idx) & 1, (polarity_ >> idx) & 1);
+			return wire::id(idx, (is_qubit_ >> idx) & 1, (polarity_ >> idx) & 1);
 		}
 		uint32_t temp = (controls_ >> (idx + 1));
 		for (uint32_t j = 0; j < i; ++j) {
@@ -128,15 +126,15 @@ public:
 			idx += tmp_idx + 1;
 			temp = (controls_ >> (tmp_idx + 1));
 		}
-		return wire_id(idx, (is_qubit_ >> idx) & 1, (polarity_ >> idx) & 1);
+		return wire::id(idx, (is_qubit_ >> idx) & 1, (polarity_ >> idx) & 1);
 	}
 
-	wire_id target(uint32_t i = 0u) const
+	wire::id target(uint32_t i = 0u) const
 	{
 		assert(i < num_targets());
 		uint32_t idx = __builtin_ctz(targets_);
 		if (i == 0) {
-			return wire_id(idx, (is_qubit_ >> idx) & 1);
+			return wire::id(idx, (is_qubit_ >> idx) & 1);
 		}
 		uint32_t temp = (targets_ >> (idx + 1));
 		for (uint32_t j = 0; j < i; ++j) {
@@ -144,22 +142,22 @@ public:
 			idx += tmp_idx + 1;
 			temp = (targets_ >> (tmp_idx + 1));
 		}
-		return wire_id(idx, (is_qubit_ >> idx) & 1);
+		return wire::id(idx, (is_qubit_ >> idx) & 1);
 	}
 
-	uint32_t position(wire_id wire) const
+	uint32_t position(wire::id const w_id) const
 	{
-		assert(wire != wire::invalid);
-		return wire.id();
+		assert(w_id != wire::invalid_id);
+		return w_id.uid();
 	}
 
-	wire_id wire(uint32_t position) const
+	wire::id wire(uint32_t const position) const
 	{
 		assert(position < max_num_wires);
 		if ((1u << position) & (controls_ | targets_)) {
-			return wire_id(position, (polarity_ >> position) & 1);
+			return wire::id(position, (polarity_ >> position) & 1);
 		}
-		return wire::invalid;
+		return wire::invalid_id;
 	}
 
 	bool is_adjoint(wn32_op const& other) const
@@ -229,7 +227,7 @@ public:
 		uint32_t p = polarity_;
 		for (uint32_t idx = 0u; c; c >>= 1, q >>= 1, p >>= 1, ++idx) {
 			if (c & 1) {
-				fn(wire_id(idx, (q & 1), (p & 1)));
+				fn(wire::id(idx, (q & 1), (p & 1)));
 			}
 		}
 	}
@@ -241,7 +239,7 @@ public:
 		uint32_t q = is_qubit_;
 		for (uint32_t idx = 0u; t; t >>= 1, q >>= 1, ++idx) {
 			if (t & 1) {
-				fn(wire_id(idx, (q & 1)));
+				fn(wire::id(idx, (q & 1)));
 			}
 		}
 	}

@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../networks/netlist.hpp"
 
 #include <cmath>
@@ -56,9 +56,9 @@ namespace detail {
 
 // TODO: maybe take it out from here (put it in 'utils')
 template<class IntType>
-inline std::vector<wire_id> to_qubit_vector(IntType bits, std::vector<wire_id> const& qubits)
+inline std::vector<wire::id> to_qubit_vector(IntType bits, std::vector<wire::id> const& qubits)
 {
-	std::vector<wire_id> ret;
+	std::vector<wire::id> ret;
 	auto index = 0u;
 	while (bits) {
 		if (bits & 1) {
@@ -92,7 +92,7 @@ inline void update_permutation_inv(std::vector<uint32_t>& permutation, uint32_t 
 }
 
 template<typename Network>
-void tbs_unidirectional(Network& network, std::vector<wire_id> const& qubits,
+void tbs_unidirectional(Network& network, std::vector<wire::id> const& qubits,
                         std::vector<uint32_t>& permutation)
 {
 	std::vector<std::pair<uint32_t, uint32_t>> gates;
@@ -116,14 +116,14 @@ void tbs_unidirectional(Network& network, std::vector<wire_id> const& qubits,
 		}
 	}
 	std::reverse(gates.begin(), gates.end());
-	for (const auto [controls, targets] : gates) {
+	for (auto const& [controls, targets] : gates) {
 		network.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
 		                  detail::to_qubit_vector(targets, qubits));
 	}
 }
 
 template<typename Network>
-void tbs_bidirectional(Network& network, std::vector<wire_id> const& qubits,
+void tbs_bidirectional(Network& network, std::vector<wire::id> const& qubits,
                        std::vector<uint32_t>& permutation)
 {
 	std::list<std::pair<uint32_t, uint32_t>> gates;
@@ -164,14 +164,14 @@ void tbs_bidirectional(Network& network, std::vector<wire_id> const& qubits,
 			}
 		}
 	}
-	for (const auto [controls, targets] : gates) {
+	for (auto const& [controls, targets] : gates) {
 		network.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
 		                  detail::to_qubit_vector(targets, qubits));
 	}
 }
 
 template<typename Network>
-void tbs_multidirectional(Network& network, std::vector<wire_id> const& qubits,
+void tbs_multidirectional(Network& network, std::vector<wire::id> const& qubits,
                           std::vector<uint32_t>& permutation, tbs_params params = {})
 {
 	std::list<std::pair<uint32_t, uint32_t>> gates;
@@ -218,7 +218,7 @@ void tbs_multidirectional(Network& network, std::vector<wire_id> const& qubits,
 			pos = gates.emplace(pos, x, t10);
 		}
 	}
-	for (const auto [controls, targets] : gates) {
+	for (auto const& [controls, targets] : gates) {
 		network.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
 		                  detail::to_qubit_vector(targets, qubits));
 	}
@@ -238,7 +238,7 @@ void tbs_multidirectional(Network& network, std::vector<wire_id> const& qubits,
  * \param params Parameters (see ``tbs_params``)
  */
 template<typename Network>
-void tbs(Network& network, std::vector<wire_id> const& qubits, std::vector<uint32_t> permutation,
+void tbs(Network& network, std::vector<wire::id> const& qubits, std::vector<uint32_t> permutation,
          tbs_params params = {})
 {
 	assert(network.num_qubits() >= qubits.size());
@@ -282,7 +282,7 @@ Network tbs(std::vector<uint32_t> permutation, tbs_params params = {})
 {
 	Network network;
 	const uint32_t num_qubits = std::log2(permutation.size());
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

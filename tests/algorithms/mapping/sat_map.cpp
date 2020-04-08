@@ -8,7 +8,7 @@
 #include "tweedledum/networks/mapped_dag.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 #include "tweedledum/utils/device.hpp"
@@ -46,11 +46,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for SAT mapper", "[sat_map][mapping]", (netlist
 		CHECK(mapped_ntk.num_operations() == 0u);
 	}
 	SECTION("Simple circuit (SAT)") {
-		wire_id q0 = network.create_qubit();
+		wire::id q0 = network.create_qubit();
 		network.create_cbit();
-		wire_id q1 = network.create_qubit();
+		wire::id q1 = network.create_qubit();
 		network.create_cbit();
-		wire_id q2 = network.create_qubit();
+		wire::id q2 = network.create_qubit();
 		network.create_cbit();
 
 		network.create_op(gate_lib::cx, q1, q0);
@@ -61,11 +61,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Test for SAT mapper", "[sat_map][mapping]", (netlist
 		CHECK(mapped_ntk.num_operations() == 2u);
 	}
 	SECTION("Simple circuit (UNSAT)") {
-		wire_id q0 = network.create_qubit();
+		wire::id q0 = network.create_qubit();
 		network.create_cbit();
-		wire_id q1 = network.create_qubit();
+		wire::id q1 = network.create_qubit();
 		network.create_cbit();
-		wire_id q2 = network.create_qubit();
+		wire::id q2 = network.create_qubit();
 		network.create_cbit();
 
 		network.create_op(gate_lib::cx, q1, q0);

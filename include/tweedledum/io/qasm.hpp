@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../gates/gate.hpp"
-#include "../networks/wire_id.hpp"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -206,64 +205,64 @@ void write_qasm(Network const& network, std::ostream& os)
 			return true;
 		// Non-parameterisable gates
 		case gate_ids::i:
-			os << fmt::format("id q[{}];\n", op.target().id());
+			os << fmt::format("id q[{}];\n", op.target());
 			break;
 
 		case gate_ids::h:
-			os << fmt::format("h q[{}];\n", op.target().id());
+			os << fmt::format("h q[{}];\n", op.target());
 			break;
 
 		case gate_ids::x:
-			os << fmt::format("x q[{}];\n", op.target().id());
+			os << fmt::format("x q[{}];\n", op.target());
 			break;
 
 		case gate_ids::y:
-			os << fmt::format("y q[{}];\n", op.target().id());
+			os << fmt::format("y q[{}];\n", op.target());
 			break;
 
 		case gate_ids::z:
-			os << fmt::format("z q[{}];\n", op.target().id());
+			os << fmt::format("z q[{}];\n", op.target());
 			break;
 
 		case gate_ids::s:
-			os << fmt::format("s q[{}];\n", op.target().id());
+			os << fmt::format("s q[{}];\n", op.target());
 			break;
 
 		case gate_ids::sdg:
-			os << fmt::format("sdg q[{}];\n", op.target().id());
+			os << fmt::format("sdg q[{}];\n", op.target());
 			break;
 
 		case gate_ids::t:
-			os << fmt::format("t q[{}];\n", op.target().id());
+			os << fmt::format("t q[{}];\n", op.target());
 			break;
 
 		case gate_ids::tdg:
-			os << fmt::format("tdg q[{}];\n", op.target().id());
+			os << fmt::format("tdg q[{}];\n", op.target());
 			break;
 
 		case gate_ids::cx:
-			os << fmt::format("cx q[{}], q[{}];\n", op.control().id(),
-			                  op.target().id());
+			os << fmt::format("cx q[{}], q[{}];\n", op.control(),
+			                  op.target());
 			break;
 
 		case gate_ids::cy:
-			os << fmt::format("cy q[{}], q[{}];\n", op.control().id(),
-			                  op.target().id());
+			os << fmt::format("cy q[{}], q[{}];\n", op.control(),
+			                  op.target());
 			break;
 
 		case gate_ids::cz:
-			os << fmt::format("cz q[{}], q[{}];\n", op.control().id(),
-			                  op.target().id());
+			os << fmt::format("cz q[{}], q[{}];\n", op.control(),
+			                  op.target());
 			break;
 
 		case gate_ids::swap:
-			os << fmt::format("swap q[{}], q[{}];\n", op.target(0u).id(),
-			                  op.target(1u).id());
+			os << fmt::format("swap q[{}], q[{}];\n", op.target(0u),
+			                  op.target(1u));
 			break;
 
 		case gate_ids::ncx:
 			os << fmt::format("ccx q[{}], q[{}], q[{}];\n", op.control(0u),
-			                  op.control(1u).id(), op.target());
+			                  op.control(1u), op.target());
 			break;
 		// Parameterisable gates
 		case gate_ids::r1:

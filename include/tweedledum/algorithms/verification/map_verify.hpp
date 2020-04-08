@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../networks/mapped_dag.hpp"
+#include "../../networks/wire.hpp"
 
 #include <algorithm>
 #include <limits>
@@ -23,7 +24,7 @@ using sum_type = std::vector<uint32_t>;
 // The user need to pass the _initial_ virtual->physical mapping so that the path literals can be
 // placed correctly.
 template<typename Network>
-std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire_id> const& init)
+std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire::id> const& init)
 {
 	assert(init.size() == network.num_qubits());
 	using node_type = typename Network::node_type;
@@ -34,7 +35,7 @@ std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire_id>
 	std::vector<sum_type> fake_pathsum;
 
 	network.foreach_input([&](node_type const& node) {
-		wire_id w_id = node.op.target();
+		wire::id w_id = node.op.target();
 		if (!w_id.is_qubit()) {
 			return;
 		};
@@ -68,9 +69,9 @@ std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire_id>
 template<typename Network>
 bool map_verify(Network const& original, mapped_dag const& mapped)
 {
-	std::vector<wire_id> init_original(original.num_qubits(), wire::invalid);
+	std::vector<wire::id> init_original(original.num_qubits(), wire::invalid_id);
 	for (uint32_t i = 0u; i < init_original.size(); ++i) {
-		init_original.at(i) = wire_id(i, true);
+		init_original.at(i) = wire::make_qubit(i);
 	}
 	auto original_pathsums = detail::fake_pathsums(original, init_original);
 	auto mapped_pathsums = detail::fake_pathsums(mapped, mapped.init_phy_to_v());

@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "gray_synth.hpp"
@@ -43,7 +43,7 @@ inline void fast_hadamard_transform(std::vector<angle>& angles)
  * \param angles Angles for diagonal matrix elements
  */
 template<class Network>
-void diagonal_synth(Network& network, std::vector<wire_id> const& qubits,
+void diagonal_synth(Network& network, std::vector<wire::id> const& qubits,
                     std::vector<angle> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
@@ -98,7 +98,7 @@ Network diagonal_synth(std::vector<angle> const& angles)
 	assert(num_qubits <= 32u);
 
 	Network network;
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

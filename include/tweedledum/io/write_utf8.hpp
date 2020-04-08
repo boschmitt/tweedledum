@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../gates/gate.hpp"
-#include "../networks/wire_id.hpp"
+#include "../networks/wire.hpp"
 
 #include <algorithm>
 #include <cstdint>
@@ -19,7 +19,7 @@ namespace detail {
 
 class string_builder {
 public:
-	string_builder(std::vector<wire_id> const& io)
+	string_builder(std::vector<wire::id> const& io)
 	    : max_num_glyphs_(0u)
 	    , wires_(io)
 	    , occupancy_(io.size(), 0)
@@ -27,11 +27,11 @@ public:
 	    , lines_(3 * io.size())
 	{
 		uint32_t id_size = 0u;
-		for (wire_id id : io) {
+		for (wire::id id : io) {
 			id_size = std::max(id_size, num_digits(id));
 		}
 		for (uint32_t i = 0u; i < wires_.size(); ++i) {
-			wire_id id = wires_.at(wires_.size() - (i + 1));
+			wire::id id = wires_.at(wires_.size() - (i + 1));
 			lines_[(3 * i)] += fmt::format("{:>{}}", "", 7u + id_size);
 			if (id.is_qubit()) {
 				lines_[(3 * i) + 1] += fmt::format("w{:>{}} : ───", id, id_size);
@@ -44,7 +44,7 @@ public:
 		max_num_glyphs_ = 7u + id_size;
 	}
 
-	void add_op(std::string_view gate, wire_id target)
+	void add_op(std::string_view gate, wire::id target)
 	{
 		uint32_t line = wires_.size() - (target + 1);
 		uint32_t gate_len = utf8_strlen(gate);
@@ -59,7 +59,7 @@ public:
 		max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(line));
 	}
 
-	void add_op(std::string_view gate, wire_id control, wire_id target)
+	void add_op(std::string_view gate, wire::id control, wire::id target)
 	{
 		uint32_t c_line = wires_.size() - (control + 1);
 		uint32_t t_line = wires_.size() - (target + 1);
@@ -103,7 +103,7 @@ public:
 		max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(t_line));
 	}
 
-	void add_swap(wire_id q0, wire_id q1)
+	void add_swap(wire::id q0, wire::id q1)
 	{
 		uint32_t q0_line = wires_.size() - (q0 + 1);
 		uint32_t q1_line = wires_.size() - (q1 + 1);
@@ -139,16 +139,16 @@ public:
 		max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(q0_line));
 	}
 
-	void add_op(std::string_view gate, std::vector<wire_id> const& cs,
-	            std::vector<wire_id> const& ts)
+	void add_op(std::string_view gate, std::vector<wire::id> const& cs,
+	            std::vector<wire::id> const& ts)
 	{
 		uint32_t gate_len = utf8_strlen(gate);
 		std::vector<uint32_t> c_lines;
 		std::vector<uint32_t> t_lines;
 		std::transform(cs.begin(), cs.end(), std::back_inserter(c_lines),
-		               [&](wire_id id) { return wires_.size() - (id + 1); });
+		               [&](wire::id id) { return wires_.size() - (id + 1); });
 		std::transform(ts.begin(), ts.end(), std::back_inserter(t_lines),
-		               [&](wire_id id) { return wires_.size() - (id + 1); });
+		               [&](wire::id id) { return wires_.size() - (id + 1); });
 
 		const auto [c_min, c_max] = std::minmax_element(c_lines.begin(), c_lines.end());
 		const auto [t_min, t_max] = std::minmax_element(t_lines.begin(), t_lines.end());
@@ -277,7 +277,7 @@ private:
 
 private:
 	uint32_t max_num_glyphs_;
-	std::vector<wire_id> wires_;
+	std::vector<wire::id> wires_;
 	std::vector<uint8_t> occupancy_;
 	std::vector<uint32_t> num_glyphs_;
 	std::vector<std::string> lines_;
@@ -288,8 +288,8 @@ auto to_utf8_str(Network const& network, Builder builder)
 {
 	using op_type = typename Network::op_type;
 	network.foreach_op([&](op_type const& op) {
-		std::vector<wire_id> cs;
-		std::vector<wire_id> ts;
+		std::vector<wire::id> cs;
+		std::vector<wire::id> ts;
 		switch (op.id()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
@@ -376,38 +376,38 @@ auto to_utf8_str(Network const& network, Builder builder)
 			return;
 
 		case gate_ids::ncx:
-			op.foreach_control([&](wire_id c) { cs.push_back(c); });
-			op.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire::id c) { cs.push_back(c); });
+			op.foreach_target([&](wire::id t) { ts.push_back(t); });
 			builder.add_op("X", cs, ts);
 			return;
 
 		case gate_ids::ncy:
-			op.foreach_control([&](wire_id c) { cs.push_back(c); });
-			op.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire::id c) { cs.push_back(c); });
+			op.foreach_target([&](wire::id t) { ts.push_back(t); });
 			builder.add_op("Y", cs, ts);
 			return;
 
 		case gate_ids::ncz:
-			op.foreach_control([&](wire_id c) { cs.push_back(c); });
-			op.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire::id c) { cs.push_back(c); });
+			op.foreach_target([&](wire::id t) { ts.push_back(t); });
 			builder.add_op("Z", cs, ts);
 			return;
 
 		case gate_ids::ncrx:
-			op.foreach_control([&](wire_id c) { cs.push_back(c); });
-			op.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire::id c) { cs.push_back(c); });
+			op.foreach_target([&](wire::id t) { ts.push_back(t); });
 			builder.add_op("Rx", cs, ts);
 			return;
 
 		case gate_ids::ncry:
-			op.foreach_control([&](wire_id c) { cs.push_back(c); });
-			op.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire::id c) { cs.push_back(c); });
+			op.foreach_target([&](wire::id t) { ts.push_back(t); });
 			builder.add_op("Ry", cs, ts);
 			return;
 
 		case gate_ids::ncrz:
-			op.foreach_control([&](wire_id c) { cs.push_back(c); });
-			op.foreach_target([&](wire_id t) { ts.push_back(t); });
+			op.foreach_control([&](wire::id c) { cs.push_back(c); });
+			op.foreach_target([&](wire::id t) { ts.push_back(t); });
 			builder.add_op("Rz", cs, ts);
 			return;
 		}
@@ -439,8 +439,8 @@ void write_utf8(Network const& network, std::ostream& os = std::cout)
 		return;
 	}
 	std::string utf8_str;
-	std::vector<wire_id> qubits;
-	network.foreach_wire([&](wire_id id) {
+	std::vector<wire::id> qubits;
+	network.foreach_wire([&](wire::id id) {
 		qubits.emplace_back(id);
 	});
 	detail::string_builder builder(qubits);

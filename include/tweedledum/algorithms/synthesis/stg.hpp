@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "gray_synth.hpp"
@@ -33,7 +33,7 @@ struct stg_from_exact_esop {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<wire_id> const& qubits,
+	void operator()(Network& network, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		using exact_synthesizer = easy::esop::esop_from_tt<kitty::dynamic_truth_table,
@@ -46,11 +46,11 @@ struct stg_from_exact_esop {
 		easy::esop::helliwell_maxsat_params ps;
 		exact_synthesizer synthesizer(stats, ps);
 
-		std::vector<wire_id> target = {qubits.back()};
+		std::vector<wire::id> target = {qubits.back()};
 		const auto cubes = synthesizer.synthesize(function);
 		for (auto const& cube : cubes) {
-			std::vector<wire_id> controls;
-			std::vector<wire_id> negations;
+			std::vector<wire::id> controls;
+			std::vector<wire::id> negations;
 			auto bits = cube._bits;
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
@@ -77,16 +77,16 @@ struct stg_from_pkrm {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<wire_id> const& qubits,
+	void operator()(Network& network, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
-		std::vector<wire_id> target = {qubits.back()};
+		std::vector<wire::id> target = {qubits.back()};
 		for (auto const& cube : easy::esop::esop_from_optimum_pkrm(function)) {
-			std::vector<wire_id> controls;
-			std::vector<wire_id> negations;
+			std::vector<wire::id> controls;
+			std::vector<wire::id> negations;
 			auto bits = cube._bits;
 			auto mask = cube._mask;
 			for (auto v = 0; v < num_controls; ++v) {
@@ -115,16 +115,16 @@ struct stg_from_pprm {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<wire_id> const& qubits,
+	void operator()(Network& network, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();
 		assert(qubits.size() >= static_cast<std::size_t>(num_controls) + 1u);
 
-		std::vector<wire_id> target = {qubits.back()};
+		std::vector<wire::id> target = {qubits.back()};
 		for (auto const& cube : easy::esop::esop_from_pprm(function)) {
 			assert(cube._bits == cube._mask); /* PPRM property */
-			std::vector<wire_id> controls;
+			std::vector<wire::id> controls;
 			auto bits = cube._bits;
 			for (auto v = 0; v < num_controls; ++v) {
 				if (bits & 1) {
@@ -161,7 +161,7 @@ struct stg_from_spectrum {
 	 * \param function 
 	 */
 	template<class Network>
-	void operator()(Network& network, std::vector<wire_id> const& qubits,
+	void operator()(Network& network, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();

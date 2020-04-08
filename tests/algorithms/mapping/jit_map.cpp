@@ -9,7 +9,6 @@
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/mapped_dag.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
 #include "tweedledum/operations/w2_op.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"

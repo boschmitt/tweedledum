@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 
 #include <string>
 #include <type_traits>
@@ -24,7 +24,7 @@ template<class NetworkOriginal, class Network>
 Network shallow_duplicate(NetworkOriginal const& original, std::string_view name = {})
 {
 	Network duplicate(name.empty() ? original.name() : name);
-	original.foreach_wire([&](wire_id wire, std::string_view name) {
+	original.foreach_wire([&](wire::id wire, std::string_view name) {
 		if (wire.is_qubit()) {
 			duplicate.create_qubit(name, original.wire_mode(wire));
 		} else {
@@ -44,7 +44,7 @@ template<class Network>
 Network shallow_duplicate(Network const& original, std::string_view name = {})
 {
 	Network duplicate(name.empty() ? original.name() : name);
-	original.foreach_wire([&](wire_id wire, std::string_view name) {
+	original.foreach_wire([&](wire::id wire, std::string_view name) {
 		if (wire.is_qubit()) {
 			duplicate.create_qubit(name, original.wire_mode(wire));
 		} else {

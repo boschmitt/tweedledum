@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/parity_terms.hpp"
 
 #include <algorithm>
@@ -21,7 +21,7 @@ namespace tweedledum {
 namespace detail {
 
 template<class Network>
-void linear_synth_binary(Network& network, std::vector<wire_id> const& qubits, parity_terms<uint32_t> parities)
+void linear_synth_binary(Network& network, std::vector<wire::id> const& qubits, parity_terms<uint32_t> parities)
 {
 	const auto num_qubits = qubits.size();
 
@@ -63,7 +63,7 @@ void linear_synth_binary(Network& network, std::vector<wire_id> const& qubits, p
 }
 
 template<class Network>
-void linear_synth_gray(Network& network, std::vector<wire_id> const& qubits, parity_terms<uint32_t> parities)
+void linear_synth_gray(Network& network, std::vector<wire::id> const& qubits, parity_terms<uint32_t> parities)
 {
 	const auto num_qubits = qubits.size();
 
@@ -130,7 +130,7 @@ struct linear_synth_params {
  *                 See `linear_synth_params` for details.
  */
 template<class Network>
-void linear_synth(Network& network, std::vector<wire_id> const& qubits,
+void linear_synth(Network& network, std::vector<wire::id> const& qubits,
                   parity_terms<uint32_t> const& parities, linear_synth_params params = {})
 {
 	assert(qubits.size() <= 6);
@@ -165,7 +165,7 @@ Network linear_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities
 {
 	assert(num_qubits <= 6);
 	Network network;
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

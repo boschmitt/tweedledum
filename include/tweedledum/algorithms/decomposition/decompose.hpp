@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/angle.hpp"
 #include "../generic/rewrite.hpp"
 #include "../synthesis/diagonal_synth.hpp"
@@ -45,7 +45,7 @@ public:
 
 public:
 #pragma region Creating operations (using wire ids)
-	void create_op(gate const& g, wire_id t)
+	void create_op(gate const& g, wire::id const t)
 	{
 		if (params_.gate_set & (1ull << static_cast<uint32_t>(g.id()))) {
 			this->emplace_op(op_type(g, t));
@@ -108,7 +108,7 @@ public:
 		this->emplace_op(op_type(g, t));
 	}
 
-	void create_op(gate const& g, wire_id w0, wire_id w1)
+	void create_op(gate const& g, wire::id const w0, wire::id const w1)
 	{
 		if (params_.gate_set & (1ull << static_cast<uint32_t>(g.id()))) {
 			this->emplace_op(op_type(g, w0, w1));
@@ -174,7 +174,7 @@ public:
 		this->emplace_op(op_type(g, w0, w1));
 	}
 
-	void create_op(gate const& g, wire_id c0, wire_id c1, wire_id t)
+	void create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 	{
 		if (params_.gate_set & (1ull << static_cast<uint32_t>(g.id()))) {
 			this->emplace_op(op_type(g, c0, c1, t));
@@ -228,8 +228,8 @@ public:
 		this->emplace_op(op_type(g, c0, c1, t));
 	}
 
-	void create_op(gate const& g, std::vector<wire_id> const& controls,
-	               std::vector<wire_id> const& targets)
+	void create_op(gate const& g, std::vector<wire::id> const& controls,
+	               std::vector<wire::id> const& targets)
 	{
 		if (params_.gate_set & (1ull << static_cast<uint32_t>(g.id()))) {
 			if (controls.size() <= params_.controls_threshold) {
@@ -252,10 +252,10 @@ public:
 #pragma endregion
 
 private:
-	void barenco_create_op(gate const& g, std::vector<wire_id> const& controls, wire_id target)
+	void barenco_create_op(gate const& g, std::vector<wire::id> const& controls, wire::id target)
 	{
 		if (controls.size() + 1u == this->num_qubits()) {
-			this->create_qubit(wire_modes::ancilla);
+			this->create_qubit(wire::modes::ancilla);
 		}
 		switch (g.id()) {
 		// Non-parameterisable gates
@@ -290,7 +290,7 @@ private:
 		}
 	}
 
-	void diagonal_create_op(gate const& g, std::vector<wire_id> controls, wire_id target)
+	void diagonal_create_op(gate const& g, std::vector<wire::id> controls, wire::id target)
 	{
 		controls.emplace_back(target);
 		std::vector<angle> angles((1 << controls.size()), sym_angle::zero);
@@ -362,12 +362,12 @@ Network decompose(Network const& network, decomp_params params = {})
 		} else if (op.is_two_qubit()) {
 			decomp.create_op(op, op.control(), op.target());
 		} else {
-			std::vector<wire_id> controls;
-			std::vector<wire_id> targets;
-			op.foreach_control([&](wire_id control) {
+			std::vector<wire::id> controls;
+			std::vector<wire::id> targets;
+			op.foreach_control([&](wire::id control) {
 				controls.push_back(control);
 			});
-			op.foreach_target([&](wire_id target) {
+			op.foreach_target([&](wire::id target) {
 				targets.push_back(target);
 			});
 			decomp.create_op(op, controls, targets);

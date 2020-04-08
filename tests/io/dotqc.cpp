@@ -7,7 +7,7 @@
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 
@@ -66,9 +66,9 @@ TEMPLATE_PRODUCT_TEST_CASE("DotQC writer", "[dotqc][template]", (netlist, op_dag
 	std::vector<gate> three_qubit = {gate_lib::ncx, gate_lib::ncy, gate_lib::ncz};
 
 	TestType network;
-	wire_id q0 = network.create_qubit();
-	wire_id q1 = network.create_qubit();
-	wire_id q2 = network.create_qubit();
+	wire::id q0 = network.create_qubit();
+	wire::id q1 = network.create_qubit();
+	wire::id q2 = network.create_qubit();
 
 	for (auto const& gate : one_qubit) {
 		network.create_op(gate, q0);

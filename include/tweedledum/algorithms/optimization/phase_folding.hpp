@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
 
@@ -29,7 +29,7 @@ Network phase_folding(Network const& original)
 	std::vector<uint32_t> wire_to_qid(original.num_wires(), qid_max);
 	std::vector<sum_type> qubit_pathsum;
 
-	original.foreach_wire([&](wire_id w_id, std::string_view name) {
+	original.foreach_wire([&](wire::id w_id, std::string_view name) {
 		if (!w_id.is_qubit()) {
 			optmized.create_cbit(name);
 			return;

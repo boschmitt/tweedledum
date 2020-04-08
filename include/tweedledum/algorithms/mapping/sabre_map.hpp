@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../networks/mapped_dag.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 #include "../../utils/device.hpp"
 #include "../transformations/reverse.hpp"
 #include "placement/sat_placement.hpp"
@@ -31,7 +31,7 @@ template<typename Network>
 mapped_dag sabre_map(Network const& original, device const& device, sabre_config const& config = {})
 {
 	detail::sabre_router<Network> router(device, config);
-	std::vector<wire_id> placement = detail::sat_placement(original, device);
+	std::vector<wire::id> placement = detail::sat_placement(original, device);
 	mapped_dag mapped = router.route(original, placement);
 	mapped = router.route(reverse(original), mapped.v_to_phy());
 	return mapped;

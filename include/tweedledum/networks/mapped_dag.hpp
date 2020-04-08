@@ -8,7 +8,7 @@
 #include "../operations/w2_op.hpp"
 #include "../utils/device.hpp"
 #include "storage.hpp"
-#include "wire_id.hpp"
+#include "wire.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -26,8 +26,8 @@ class mapped_dag {
 #pragma region Types and constructors
 	struct mstrg_type {
 		// Maps for orignal wire -> new wire
-		std::vector<wire_id> init_v_to_phy;
-		std::vector<wire_id> v_to_phy;
+		std::vector<wire::id> init_v_to_phy;
+		std::vector<wire::id> v_to_phy;
 		device device;
 
 		mstrg_type(class device const& d)
@@ -58,7 +58,7 @@ public:
 	    , wires_(std::make_shared<wstrg_type>())
 	    , map_(std::make_shared<mstrg_type>(device))
 	{
-		network.foreach_wire([&](wire_id wire, std::string_view name) {
+		network.foreach_wire([&](wire::id wire, std::string_view name) {
 			if (wire.is_qubit()) {
 				create_qubit(name);
 			}
@@ -66,7 +66,7 @@ public:
 		for (uint32_t i = network.num_qubits(); i < device.num_qubits(); ++i) {
 			create_qubit();
 		}
-		network.foreach_wire([&](wire_id wire, std::string_view name) {
+		network.foreach_wire([&](wire::id wire, std::string_view name) {
 			if (!wire.is_qubit()) {
 				create_cbit(name);
 			}
@@ -154,7 +154,7 @@ public:
 
 #pragma region Wires
 private:
-	void connect_wire(wire_id const w_id)
+	void connect_wire(wire::id const w_id)
 	{
 		node_id const n_id(data_->nodes.size());
 		op_type const input(gate_lib::input, w_id);
@@ -165,14 +165,14 @@ private:
 		map_->v_to_phy.push_back(w_id);
 	}
 
-	wire_id create_qubit(std::string_view name, wire_modes const mode = wire_modes::inout)
+	wire::id create_qubit(std::string_view name, wire::modes const mode = wire::modes::inout)
 	{
-		wire_id const w_id = wires_->create_qubit(name, mode);
+		wire::id const w_id = wires_->create_qubit(name, mode);
 		connect_wire(w_id);
 		return w_id;
 	}
 
-	wire_id create_qubit(wire_modes const mode = wire_modes::inout)
+	wire::id create_qubit(wire::modes const mode = wire::modes::inout)
 	{
 		std::string const name = fmt::format("__dum_q{}", num_qubits());
 		return create_qubit(name, mode);
@@ -194,40 +194,40 @@ public:
 		return wires_->num_cbits();
 	}
 
-	wire_id create_cbit(std::string_view name, wire_modes const mode = wire_modes::inout)
+	wire::id create_cbit(std::string_view name, wire::modes const mode = wire::modes::inout)
 	{
-		wire_id const w_id = wires_->create_cbit(name, mode);
+		wire::id const w_id = wires_->create_cbit(name, mode);
 		connect_wire(w_id);
 		return w_id;
 	}
 
-	wire_id create_cbit(wire_modes const mode = wire_modes::inout)
+	wire::id create_cbit(wire::modes const mode = wire::modes::inout)
 	{
 		std::string const name = fmt::format("__dum_c{}", num_cbits());
 		return create_cbit(name, mode);
 	}
 
-	wire_id wire(std::string_view name) const
+	wire::id wire(std::string_view name) const
 	{
 		return wires_->wire(name);
 	}
 
-	std::string wire_name(wire_id const w_id) const
+	std::string wire_name(wire::id const w_id) const
 	{
 		return wires_->wire_name(w_id);
 	}
 
-	void wire_name(wire_id const w_id, std::string_view new_name, bool const rename = true)
+	void wire_name(wire::id const w_id, std::string_view new_name, bool const rename = true)
 	{
 		wires_->wire_name(w_id, new_name, rename);
 	}
 
-	wire_modes wire_mode(wire_id const w_id) const
+	wire::modes wire_mode(wire::id const w_id) const
 	{
 		return wires_->wire_mode(w_id);
 	}
 
-	void wire_mode(wire_id const w_id, wire_modes const new_mode)
+	void wire_mode(wire::id const w_id, wire::modes const new_mode)
 	{
 		wires_->wire_mode(w_id, new_mode);
 	}
@@ -235,7 +235,7 @@ public:
 
 #pragma region Creating operations (using wire ids)
 private:
-	void connect_node(wire_id const wire, node_type& node)
+	void connect_node(wire::id const wire, node_type& node)
 	{
 		assert(data_->outputs.at(wire) != node::invalid);
 		uint32_t const position = node.op.position(wire);
@@ -252,17 +252,17 @@ public:
 		node_type& node = data_->nodes.emplace_back(std::forward<Op>(op),
 		                                            data_->default_value);
 		data_->gate_set |= (1 << static_cast<uint32_t>(op.id()));
-		node.op.foreach_control([&](wire_id wire) { connect_node(wire, node); });
-		node.op.foreach_target([&](wire_id wire) { connect_node(wire, node); });
+		node.op.foreach_control([&](wire::id wire) { connect_node(wire, node); });
+		node.op.foreach_target([&](wire::id wire) { connect_node(wire, node); });
 		return id;
 	}
 
-	node_id create_op(gate const& g, wire_id const phy0)
+	node_id create_op(gate const& g, wire::id const phy0)
 	{
 		return emplace_op(op_type(g, phy0));
 	}
 
-	node_id create_op(gate const& g, wire_id const phy0, wire_id const phy1)
+	node_id create_op(gate const& g, wire::id const phy0, wire::id const phy1)
 	{
 		if (!map_->device.are_connected(phy0, phy1)) {
 			return node::invalid;
@@ -270,8 +270,8 @@ public:
 		return emplace_op(op_type(g, phy0, phy1));
 	}
 
-	node_id create_op(gate const& g, std::vector<wire_id> const& controls,
-	                  std::vector<wire_id> const& targets)
+	node_id create_op(gate const& g, std::vector<wire::id> const& controls,
+	                  std::vector<wire::id> const& targets)
 	{
 		if (controls.size() + targets.size() > 2u) {
 			return node::invalid;
@@ -395,7 +395,7 @@ public:
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, wire_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>);
 		for (uint32_t position = 0u; position < n.children.size(); ++position) {
 			if (n.children[position] == node::invalid) {
 				continue;
@@ -404,7 +404,7 @@ public:
 				fn(node(n.children[position]));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node_id const>) {
 				fn(node(n.children[position]), n.children[position]);
-			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire_id const>) {
+			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>) {
 				fn(node(n.children[position]), n.op.wire(position));
 			}
 		}
@@ -413,39 +413,39 @@ public:
 #pragma endregion
 
 #pragma region Mapping
-	void v_to_phy(std::vector<wire_id> const& placement)
+	void v_to_phy(std::vector<wire::id> const& placement)
 	{
 		assert(placement.size() == num_qubits());
 		if (num_operations() == 0) {
 			std::copy(placement.begin(), placement.end(), map_->init_v_to_phy.begin());
 		}
 		for (uint32_t i = 0; i < placement.size(); ++i) {
-			if (map_->init_v_to_phy.at(i) == wire::invalid) {
+			if (map_->init_v_to_phy.at(i) == wire::invalid_id) {
 				map_->init_v_to_phy.at(i) = placement.at(i);
 			}
 			map_->v_to_phy.at(i) = placement.at(i);
 		}
 	}
 
-	std::vector<wire_id> v_to_phy() const
+	std::vector<wire::id> v_to_phy() const
 	{
 		return {map_->v_to_phy.begin(), map_->v_to_phy.begin() + num_qubits()};
 	}
 
-	std::vector<wire_id> init_phy_to_v() const 
+	std::vector<wire::id> init_phy_to_v() const 
 	{
-		std::vector<wire_id> map(num_qubits(), wire::invalid);
+		std::vector<wire::id> map(num_qubits(), wire::invalid_id);
 		for (uint32_t i = 0; i < num_qubits(); ++i) {
-			map[map_->init_v_to_phy[i]] = wire_id(i, true);
+			map[map_->init_v_to_phy[i]] = wire::id(i, true);
 		}
 		return map;
 	}
 
-	std::vector<wire_id> phy_to_v() const 
+	std::vector<wire::id> phy_to_v() const 
 	{
-		std::vector<wire_id> map(num_qubits(), wire::invalid);
+		std::vector<wire::id> map(num_qubits(), wire::invalid_id);
 		for (uint32_t i = 0; i < num_qubits(); ++i) {
-			map[map_->v_to_phy[i]] = wire_id(i, true);
+			map[map_->v_to_phy[i]] = wire::id(i, true);
 		}
 		return map;
 	}

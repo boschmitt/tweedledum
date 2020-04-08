@@ -9,7 +9,7 @@
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
 #include "tweedledum/networks/unitary.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 
@@ -22,7 +22,7 @@ using namespace tweedledum;
 TEMPLATE_PRODUCT_TEST_CASE("Decompose using barenco", "[decomp][template]", (netlist), (wn32_op))
 {
 	TestType network;
-	std::vector<wire_id> qubits(5, wire::invalid);
+	std::vector<wire::id> qubits(5, wire::invalid_id);
 	std::generate(qubits.begin(), qubits.end(), [&] () { return network.create_qubit(); });
 
 	network.create_op(gate_lib::ncx,
@@ -73,7 +73,7 @@ TEMPLATE_PRODUCT_TEST_CASE("IBM", "[decomp][template]", (netlist, op_dag), (w3_o
 	for (gate const& g : one_wire) {
 		// Create quantum network
 		TestType network;
-		wire_id q0 = network.create_qubit();
+		wire::id q0 = network.create_qubit();
 		network.create_op(g, q0);
 		// Decompose
 		TestType decomp_network = decompose(network, params);
@@ -86,8 +86,8 @@ TEMPLATE_PRODUCT_TEST_CASE("IBM", "[decomp][template]", (netlist, op_dag), (w3_o
 	for (gate const& g : two_wire) {
 		// Create quantum network
 		TestType network;
-		wire_id q0 = network.create_qubit();
-		wire_id q1 = network.create_qubit();
+		wire::id q0 = network.create_qubit();
+		wire::id q1 = network.create_qubit();
 		network.create_op(g, q0, q1);
 		// Decompose
 		TestType decomp_network = decompose(network, params);

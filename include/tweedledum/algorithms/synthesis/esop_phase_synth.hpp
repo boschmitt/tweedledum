@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 
 #include <easy/esop/esop_from_pprm.hpp>
 #include <vector>
@@ -23,12 +23,12 @@ namespace tweedledum {
  * \param function A Boolean function
  */
 template<typename Network>
-void esop_phase_synth(Network& network, std::vector<wire_id> const& qubits,
+void esop_phase_synth(Network& network, std::vector<wire::id> const& qubits,
                       kitty::dynamic_truth_table const& function)
 {
 	for (const auto& cube : easy::esop::esop_from_pprm(function)) {
-		std::vector<wire_id> controls;
-		std::vector<wire_id> targets;
+		std::vector<wire::id> controls;
+		std::vector<wire::id> targets;
 		for (auto i = 0; i < function.num_vars(); ++i) {
 			if (!cube.get_mask(i)) {
 				continue;
@@ -66,7 +66,7 @@ Network esop_phase_synth(kitty::dynamic_truth_table const& function)
 {
 	Network network;
 	uint32_t const num_qubits = function.num_vars();
-	std::vector<wire_id> qubits;
+	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		qubits.emplace_back(network.create_qubit());
 	}

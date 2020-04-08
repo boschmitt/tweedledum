@@ -4,7 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/wire_id.hpp"
+#include "../networks/wire.hpp"
 
 #include <vector>
 
@@ -25,44 +25,44 @@ public:
 	}
 
 #pragma region Creating operations (using wire ids)
-	node_id create_op(gate const& g, wire_id t)
+	node_id create_op(gate const& g, wire::id t)
 	{
 		return emplace_op(op_type(g, wire_to_wire_.at(t)));
 	}
 
-	node_id create_op(gate const& g, wire_id w0, wire_id w1)
+	node_id create_op(gate const& g, wire::id w0, wire::id w1)
 	{
 		w0 = w0.is_complemented() ? !wire_to_wire_.at(w0) : wire_to_wire_.at(w0);
 		return emplace_op(op_type(g, w0, wire_to_wire_.at(w1)));
 	}
 
-	node_id create_op(gate const& g, wire_id c0, wire_id c1, wire_id t)
+	node_id create_op(gate const& g, wire::id c0, wire::id c1, wire::id t)
 	{
 		c0 = c0.is_complemented() ? !wire_to_wire_.at(c0) : wire_to_wire_.at(c0);
 		c1 = c1.is_complemented() ? !wire_to_wire_.at(c1) : wire_to_wire_.at(c1);
 		return emplace_op(op_type(g, c0, c1, wire_to_wire_.at(t)));
 	}
 
-	node_id create_op(gate const& g, std::vector<wire_id> controls, std::vector<wire_id> targets)
+	node_id create_op(gate const& g, std::vector<wire::id> controls, std::vector<wire::id> targets)
 	{
 		std::transform(controls.begin(), controls.end(), controls.begin(),
-		               [&](wire_id id) -> wire_id {
-			               const wire_id real_id = wire_to_wire_.at(id);
+		               [&](wire::id id) -> wire::id {
+			               const wire::id real_id = wire_to_wire_.at(id);
 			               return id.is_complemented() ? !real_id : real_id;
 		               });
 		std::transform(targets.begin(), targets.end(), targets.begin(),
-		               [&](wire_id id) -> wire_id { return wire_to_wire_.at(id); });
+		               [&](wire::id id) -> wire::id { return wire_to_wire_.at(id); });
 		return emplace_op(op_type(g, controls, targets));
 	}
 #pragma endregion
 
 #pragma region Rewiring
-	std::vector<wire_id> wire_to_wire_() const
+	std::vector<wire::id> wire_to_wire_() const
 	{
 		return wire_to_wire_;
 	}
 
-	void rewire(std::vector<wire_id> const& new_wiring)
+	void rewire(std::vector<wire::id> const& new_wiring)
 	{
 		wire_to_wire_ = new_wiring;
 	}
@@ -76,8 +76,8 @@ public:
 #pragma endregion
 
 private:
-	std::vector<wire_id> init_wire_to_wire_;
-	std::vector<wire_id> wire_to_wire_;
+	std::vector<wire::id> init_wire_to_wire_;
+	std::vector<wire::id> wire_to_wire_;
 };
 
 } // namespace tweedledum

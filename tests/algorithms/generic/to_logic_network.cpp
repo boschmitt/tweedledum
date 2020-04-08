@@ -6,7 +6,7 @@
 
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"
-#include "tweedledum/networks/wire_id.hpp"
+#include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 
@@ -24,11 +24,11 @@ TEMPLATE_PRODUCT_TEST_CASE("Conver simple quantum circuit to XAG", "[to_logic_ne
                            (op_dag, netlist), (w3_op, wn32_op))
 {
 	TestType quantum_ntk;
-	wire_id q0 = quantum_ntk.create_qubit("__i_0", wire_modes::in);
-	wire_id q1 = quantum_ntk.create_qubit("__i_1", wire_modes::in);
-	wire_id q2 = quantum_ntk.create_qubit("__o_0", wire_modes::out);
+	wire::id q0 = quantum_ntk.create_qubit("__i_0", wire::modes::in);
+	wire::id q1 = quantum_ntk.create_qubit("__i_1", wire::modes::in);
+	wire::id q2 = quantum_ntk.create_qubit("__o_0", wire::modes::out);
 
-	quantum_ntk.create_op(gate_lib::ncx, std::vector<wire_id>({q0, q1}), std::vector<wire_id>({q2}));
+	quantum_ntk.create_op(gate_lib::ncx, std::vector<wire::id>({q0, q1}), std::vector<wire::id>({q2}));
 
 	const auto logic_ntk = to_logic_network<xag_network>(quantum_ntk);
 

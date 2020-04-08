@@ -22,7 +22,7 @@ public:
 	 * \param g A gate from ``gate_lib``.
 	 * \param t Wire identifier of the target.
 	 */
-	operation(gate const& g, wire_id t);
+	operation(gate const& g, wire::id t);
 
 	/*! \brief Construct a two wire operation
 	 *
@@ -30,7 +30,7 @@ public:
 	 * \param w0 Wire identifier.
 	 * \param w1 Wire identifier.
 	 */
-	operation(gate const& g, wire_id w0, wire_id w1);
+	operation(gate const& g, wire::id w0, wire::id w1);
 
 	/*! \brief Construct a two wire operation
 	 *
@@ -39,7 +39,7 @@ public:
 	 * \param c1 Wire identifier of the second control.
 	 * \param t Wire identifier of the target.
 	 */
-	operation(gate const& g, wire_id c0, wire_id c1, wire_id t);
+	operation(gate const& g, wire::id c0, wire::id c1, wire::id t);
 
 	/*! \brief Construct a operation using vectors
 	 *
@@ -47,8 +47,8 @@ public:
 	 * \param controls Wire identifier(s) of the control(s).
 	 * \param targets Wire identifier(s) of the target(s).
 	 */
-	operation(gate const& g, std::vector<wire_id> const& controls,
-	          std::vector<wire_id> const& targets);
+	operation(gate const& g, std::vector<wire::id> const& controls,
+	          std::vector<wire::id> const& targets);
 #pragma endregion
 
 #pragma region Properties
@@ -65,26 +65,26 @@ public:
 	 *
 	 * \param i must be less than ``num_controls()`` (default = 0).
 	 */
-	wire_id control(uint32_t i = 0) const;
+	wire::id control(uint32_t i = 0) const;
 
 	/*! \brief Returns the i-th target wire identifier.
 	 *
 	 * \param i must be less than ``num_targets()`` (default = 0).
 	 */
-	wire_id target(uint32_t i = 0) const;
+	wire::id target(uint32_t i = 0) const;
 
 	/*! \brief Returns the position in which a wire is stored in the operation. 
 	 *
-	 * The poistion of a qubit is unique within the operation and ``wire_id`` is a unique wire
+	 * The poistion of a qubit is unique within the operation and ``wire::id`` is a unique wire
 	 * identifier within the circuit.
 	 */
-	uint32_t position(wire_id wire) const;
+	uint32_t position(wire::id wire) const;
 
 	/*! \brief Returns the wire identifier stored in the i-th position in the operation.
 	 *
 	 * \param i must be less than ``num_wires()``.
 	 */
-	wire_id wire(uint32_t i) const
+	wire::id wire(uint32_t i) const
 
 	/*! \brief Check whether the this operation is adjoint of ``other`` operation.
 	 *
@@ -114,7 +114,7 @@ public:
 	/*! \brief Calls ``fn`` on every target qubit of the operation.
 	 *
 	 * The paramater ``fn`` is any callable that must have the following signatures:
-	 * - ``void(wire_id)``
+	 * - ``void(wire::id)``
 	 */
 	template<typename Fn>
 	void foreach_control(Fn&& fn) const;
@@ -122,7 +122,7 @@ public:
 	/*! \brief Calls ``fn`` on every target qubit of the operation.
 	 *
 	 * The paramater ``fn`` is any callable that must have the following signature:
-	 * - ``void(wire_id)``
+	 * - ``void(wire::id)``
 	 */
 	template<typename Fn>
 	void foreach_target(Fn&& fn) const;

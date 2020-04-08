@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../networks/wire_id.hpp"
+#include "../networks/wire.hpp"
 #include "../gates/gate.hpp"
 
 #include <array>
@@ -19,20 +19,20 @@ class w2_op : public gate {
 	using gate_type = tweedledum::gate;
 
 #pragma region Helper functions (Init)
-	void init_one_io(wire_id target)
+	void init_one_io(wire::id const t)
 	{
-		assert(target.is_qubit() && target != wire::invalid && !target.is_complemented());
+		assert(t.is_qubit() && t != wire::invalid_id && !t.is_complemented());
 		assert(is_one_qubit());
-		wires_ = {target, wire::invalid};
+		wires_ = {t, wire::invalid_id};
 	}
 
 	// When dealing with controlled gates (e.g.CX, CZ) id0 is the control and id1 the target
 	// *) In case of SWAP they are both targets
 	// *) In case of MEASUREMENT they are both targets and id1 _must_ be the cbit
-	void init_two_io(wire_id w0, wire_id w1)
+	void init_two_io(wire::id const w0, wire::id const w1)
 	{
-		assert(w0.is_qubit() && w0 != wire::invalid);
-		assert(w1 != wire::invalid);
+		assert(w0.is_qubit() && w0 != wire::invalid_id);
+		assert(w1 != wire::invalid_id);
 		assert(w0 != w1 && "The wires must be different");
 		assert(is_two_qubit() || is_measurement());
 		// In a measurement gate the second I/O must be a cbit:
@@ -55,7 +55,7 @@ class w2_op : public gate {
 			num_controls_ = 0;
 			num_targets_ = 2;
 			// Normalization step to make SWAP(0, 1) == SWAP(1, 0);
-			if (w1.id() < w0.id()) {
+			if (w1.uid() < w0.uid()) {
 				std::swap(wires_.at(0), wires_.at(1));
 			}
 		}
@@ -68,61 +68,61 @@ public:
 #pragma endregion
 
 #pragma region Constructors
-	w2_op(gate const& g, wire_id target)
+	w2_op(gate const& g, wire::id const t)
 	    : gate(g)
 	    , num_controls_(0)
 	    , num_targets_(1)
-	    , wires_({target.wire(), wire::invalid})
+	    , wires_({t.wire(), wire::invalid_id})
 	{
-		assert(target != wire::invalid && !target.is_complemented());
-		assert(is_meta() || (is_one_qubit() && target.is_qubit()));
+		assert(t != wire::invalid_id && !t.is_complemented());
+		assert(is_meta() || (is_one_qubit() && t.is_qubit()));
 	}
 
 	// When dealing with controlled gates (e.g. CX) id0 is the control and id1 the target
 	// *) In case of SWAP they are both targets
 	// *) In case of MEASUREMENT they are both targets and id1 _must_ be the cbit 
-	w2_op(gate const& g, wire_id w0, wire_id w1)
+	w2_op(gate const& g, wire::id const w0, wire::id const w1)
 	    : gate(g)
 	    , num_controls_(1u)
 	    , num_targets_(1u)
-	    , wires_({wire::invalid, wire::invalid})
+	    , wires_({wire::invalid_id, wire::invalid_id})
 	{
 		init_two_io(w0, w1);
 	}
 
-	w2_op(gate const& g, wire_id control0, wire_id control1, wire_id target)
+	w2_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 	    : gate(g)
-	    , wires_({wire::invalid, wire::invalid})
+	    , wires_({wire::invalid_id, wire::invalid_id})
 	{
-		(void) control0;
-		(void) control1;
-		(void) target;
+		(void) c0;
+		(void) c1;
+		(void) t;
 		// It should never get here
 		std::abort();
 	}
 
-	w2_op(gate const& g, std::vector<wire_id> const& controls, std::vector<wire_id> const& targets)
+	w2_op(gate const& g, std::vector<wire::id> const& cs, std::vector<wire::id> const& ts)
 	    : gate(g)
-	    , num_controls_(controls.size())
-	    , num_targets_(targets.size())
-	    , wires_({wire::invalid, wire::invalid})
+	    , num_controls_(cs.size())
+	    , num_targets_(ts.size())
+	    , wires_({wire::invalid_id, wire::invalid_id})
 	{
-		assert(targets.size() >= 1u && "The gate must have at least one target");
-		assert(targets.size() <= 2u && "The gate must have at most two target");
-		assert(controls.size() + targets.size() > 0u);
-		assert(controls.size() + targets.size() <= max_num_wires);
+		assert(ts.size() >= 1u && "The gate must have at least one target");
+		assert(ts.size() <= 2u && "The gate must have at most two target");
+		assert(cs.size() + ts.size() > 0u);
+		assert(cs.size() + ts.size() <= max_num_wires);
 
-		switch (controls.size()) {
+		switch (cs.size()) {
 		case 0u:
-			if (targets.size() == 1) {
-				init_one_io(targets.at(0));
-			} else if (targets.size() == 2) {
-				init_two_io(targets.at(0), targets.at(1));
+			if (ts.size() == 1) {
+				init_one_io(ts.at(0));
+			} else if (ts.size() == 2) {
+				init_two_io(ts.at(0), ts.at(1));
 			} 
 			return;
 		
 		case 1u:
-			init_two_io(controls.at(0), targets.at(0));
+			init_two_io(cs.at(0), ts.at(0));
 			return;
 
 		default:
@@ -149,33 +149,33 @@ public:
 		return num_targets_;
 	}
 
-	wire_id control(uint32_t i = 0u) const
+	wire::id control(uint32_t const i = 0u) const
 	{
 		assert(i < num_controls());
 		return wires_.at(i);
 	}
 
-	wire_id target(uint32_t i = 0u) const
+	wire::id target(uint32_t const i = 0u) const
 	{
 		assert(i < num_targets());
 		return wires_.at(num_controls() + i);
 	}
 
-	uint32_t position(wire_id wire) const
+	uint32_t position(wire::id const w_id) const
 	{
-		assert(wire != wire::invalid);
-		if (wires_.at(0).id() == wire.id()) {
+		assert(w_id != wire::invalid_id);
+		if (wires_.at(0).uid() == w_id.uid()) {
 			return 0u;
-		} else if (wires_.at(1).id() == wire.id()) {
+		} else if (wires_.at(1).uid() == w_id.uid()) {
 			return 1u;
 		}
 		std::abort();
 	}
 
-	wire_id wire(uint32_t position) const
+	wire::id wire(uint32_t const position) const
 	{
 		assert(position < max_num_wires);
-		assert(wires_.at(position) != wire::invalid);
+		assert(wires_.at(position) != wire::invalid_id);
 		return wires_.at(position);
 	}
 
@@ -214,13 +214,13 @@ public:
 		if (is_two_qubit()|| other.is_two_qubit()) {
 			// Check if wires intersect
 			bool wires_intersec = false;
-			if (wires_.at(0u).id() == other.wires_.at(0u).id()) {
+			if (wires_.at(0u).uid() == other.wires_.at(0u).uid()) {
 				wires_intersec = true;
-			} else if (wires_.at(0u).id() == other.wires_.at(1u).id()) {
+			} else if (wires_.at(0u).uid() == other.wires_.at(1u).uid()) {
 				wires_intersec = true;
-			} else if (wires_.at(1u).id() == other.wires_.at(0u).id()) {
+			} else if (wires_.at(1u).uid() == other.wires_.at(0u).uid()) {
 				wires_intersec = true;
-			} else if (wires_.at(1u).id() == other.wires_.at(1u).id()) {
+			} else if (wires_.at(1u).uid() == other.wires_.at(1u).uid()) {
 				wires_intersec = true;
 			}
 			if (!wires_intersec) {
@@ -251,7 +251,7 @@ public:
 		if (other.is_one_qubit()) {
 			return (other.axis() != rot_axis::z);
 		}
-		if (control().id() == other.control().id()) {
+		if (control().uid() == other.control().uid()) {
 			return false;
 		}
 		return (other.axis() != rot_axis::z) || (axis() != rot_axis::z);
@@ -302,7 +302,7 @@ private:
 private:
 	uint32_t num_controls_ : 16;
 	uint32_t num_targets_ : 16;
-	std::array<wire_id, max_num_wires> wires_;
+	std::array<wire::id, max_num_wires> wires_;
 };
 
 

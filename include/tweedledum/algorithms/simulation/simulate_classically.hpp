@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/wire_id.hpp"
+#include "../../networks/wire.hpp"
 
 #include <cstdint>
 #include <iostream>
@@ -50,13 +50,13 @@ uint64_t simulate_classically(Network const& network, uint64_t pattern)
 			break;
 
 		case gate_ids::ncx:
-			op.foreach_control([&](wire_id wire) {
+			op.foreach_control([&](wire::id wire) {
 				control_mask |= (1ull << wire);
 				if (wire.is_complemented()) {
 					temp_pattern ^= (1ull << wire);
 				}
 			});
-			op.foreach_target([&](wire_id wire) {
+			op.foreach_target([&](wire::id wire) {
 				target_mask |= (1ull << wire);
 			});
 			if ((temp_pattern & control_mask) == control_mask) {
