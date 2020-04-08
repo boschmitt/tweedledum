@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../gates/gate.hpp"
+#include "node.hpp"
 #include "storage.hpp"
 #include "wire.hpp"
 
@@ -13,7 +14,7 @@ namespace tweedledum {
 /*! \brief Class used to represent a quantum circuit as a directed acyclic graph.
  *
  */
-template<typename Operation, typename Node = node_regular<Operation>>
+template<typename Operation, typename Node = node::regular<Operation>>
 class op_dag {
 public:
 #pragma region Types and constructors
@@ -67,12 +68,12 @@ public:
 #pragma endregion
 
 #pragma region Nodes
-	node_id id(node_type const& node) const
+	node::id id(node_type const& node) const
 	{
-		return node_id(static_cast<uint32_t>(&node - data_->nodes.data()));
+		return node::id(static_cast<uint32_t>(&node - data_->nodes.data()));
 	}
 
-	node_type const& node(node_id const id) const
+	node_type const& node(node::id const id) const
 	{
 		return data_->nodes.at(id);
 	}
@@ -116,7 +117,7 @@ public:
 private:
 	void connect_wire(wire::id const w_id)
 	{
-		node_id const n_id(data_->nodes.size());
+		node::id const n_id(data_->nodes.size());
 		op_type const input(gate_lib::input, w_id);
 		data_->nodes.emplace_back(input, data_->default_value);
 		data_->inputs.emplace_back(n_id);
@@ -195,7 +196,7 @@ public:
 private:
 	void connect_node(wire::id const w_id, node_type& node)
 	{
-		assert(data_->outputs.at(w_id) != node::invalid);
+		assert(data_->outputs.at(w_id) != node::invalid_id);
 		uint32_t const position = node.op.position(w_id);
 		node.children.at(position) = data_->outputs.at(w_id);
 		data_->outputs.at(w_id) = id(node);
@@ -204,9 +205,9 @@ private:
 
 public:
 	template<typename Op>
-	node_id emplace_op(Op&& op)
+	node::id emplace_op(Op&& op)
 	{
-		node_id const id(data_->nodes.size());
+		node::id const id(data_->nodes.size());
 		node_type& node = data_->nodes.emplace_back(std::forward<Op>(op),
 		                                            data_->default_value);
 		data_->gate_set |= (1 << static_cast<uint32_t>(op.id()));
@@ -215,22 +216,22 @@ public:
 		return id;
 	}
 
-	node_id create_op(gate const& g, wire::id const t)
+	node::id create_op(gate const& g, wire::id const t)
 	{
 		return emplace_op(op_type(g, t));
 	}
 
-	node_id create_op(gate const& g, wire::id const w0, wire::id const w1)
+	node::id create_op(gate const& g, wire::id const w0, wire::id const w1)
 	{
 		return emplace_op(op_type(g, w0, w1));
 	}
 
-	node_id create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
+	node::id create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t)
 	{
 		return emplace_op(op_type(g, c0, c1, t));
 	}
 
-	node_id create_op(gate const& g, std::vector<wire::id> const& controls,
+	node::id create_op(gate const& g, std::vector<wire::id> const& controls,
 	                  std::vector<wire::id> const& targets)
 	{
 		return emplace_op(op_type(g, controls, targets));
@@ -238,22 +239,22 @@ public:
 #pragma endregion
 
 #pragma region Creating operations (using wire labels)
-	node_id create_op(gate const& g, std::string_view n)
+	node::id create_op(gate const& g, std::string_view n)
 	{
 		return create_op(g, wire(n));
 	}
 
-	node_id create_op(gate const& g, std::string_view n0, std::string_view n1)
+	node::id create_op(gate const& g, std::string_view n0, std::string_view n1)
 	{
 		return create_op(g, wire(n0), wire(n1));
 	}
 
-	node_id create_op(gate const& g, std::string_view n0, std::string_view n1, std::string_view n2)
+	node::id create_op(gate const& g, std::string_view n0, std::string_view n1, std::string_view n2)
 	{
 		return create_op(g, wire(n0), wire(n1), wire(n2));
 	}
 
-	node_id create_op(gate const& g, std::vector<std::string> const& cs,
+	node::id create_op(gate const& g, std::vector<std::string> const& cs,
 	                  std::vector<std::string> const& ts)
 	{
 		std::vector<wire::id> controls;
@@ -279,12 +280,12 @@ public:
 	void foreach_input(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_id const> ||
+		static_assert(std::is_invocable_r_v<void, Fn, node::id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->inputs.size(); i < i_limit; ++i) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_id const>) {
+			if constexpr (std::is_invocable_r_v<void, Fn, node::id const>) {
 				fn(data_->inputs.at(i));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(data_->inputs.at(i)));
@@ -298,12 +299,12 @@ public:
 	void foreach_output(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_id const> ||
+		static_assert(std::is_invocable_r_v<void, Fn, node::id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->outputs.size(); i < i_limit; ++i) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_id const>) {
+			if constexpr (std::is_invocable_r_v<void, Fn, node::id const>) {
 				fn(data_->outputs.at(i));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(data_->outputs.at(i)));
@@ -358,13 +359,13 @@ public:
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->nodes.size(); i < i_limit; ++i) {
 			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(data_->nodes.at(i));
 			} else {
-				fn(data_->nodes.at(i), node_id(i));
+				fn(data_->nodes.at(i), node::id(i));
 			}
 		}
 	}
@@ -376,15 +377,15 @@ public:
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const> ||
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>);
 		for (uint32_t position = 0u; position < n.children.size(); ++position) {
-			if (n.children[position] == node::invalid) {
+			if (n.children[position] == node::invalid_id) {
 				continue;
 			}
 			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(n.children[position]));
-			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node_id const>) {
+			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node::id const>) {
 				fn(node(n.children[position]), n.children[position]);
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>) {
 				fn(node(n.children[position]), n.op.wire(position));

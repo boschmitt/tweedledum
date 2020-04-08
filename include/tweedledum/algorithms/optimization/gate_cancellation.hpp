@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../gates/gate.hpp"
-#include "../../networks/storage.hpp"
+#include "../../networks/node.hpp"
 #include "../../networks/wire.hpp"
 #include "../transformations/remove_marked.hpp"
 
@@ -26,9 +26,9 @@ Network gate_cancellation(Network const& network)
 	uint32_t num_deletions = 0u;
 	network.clear_values();
 	network.foreach_op([&](op_type const& op, node_type const& node) {
-		std::vector<node_id> children;
+		std::vector<node::id> children;
 		network.foreach_child(node, [&](node_type const& child, wire::id const cwid) {
-			node_id temp_nid = network.id(child);
+			node::id temp_nid = network.id(child);
 			do {
 				node_type const& ancestor = network.node(temp_nid);
 				if (network.value(ancestor) == 1) {

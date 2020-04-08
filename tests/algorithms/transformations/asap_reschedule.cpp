@@ -7,6 +7,7 @@
 #include "tweedledum/algorithms/analysis/check_layerized.hpp"
 #include "tweedledum/algorithms/verification/unitary_verify.hpp"
 #include "tweedledum/gates/gate.hpp"
+#include "tweedledum/networks/node.hpp"
 #include "tweedledum/networks/op_dag.hpp"
 #include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w2_op.hpp"
@@ -33,7 +34,7 @@ TEMPLATE_PRODUCT_TEST_CASE("ASAP reschedule", "[asap_reschedule][transformations
 	CHECK_FALSE(check_layerized(network));
 
 	TestType rescheduled = asap_reschedule(network);
-	CHECK(rescheduled.node(node_id(4u)).op.is(gate_ids::h));
+	CHECK(rescheduled.node(node::id(4u)).op.is(gate_ids::h));
 	CHECK(check_layerized(rescheduled));
 	CHECK(unitary_verify(network, rescheduled));
 }

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../../gates/gate.hpp"
-#include "../../../networks/storage.hpp"
+#include "../../../networks/node.hpp"
 #include "../../../networks/mapped_dag.hpp"
 #include "../../../networks/wire.hpp"
 #include "../../../utils/device.hpp"
@@ -57,7 +57,7 @@ public:
 
 		// fmt::print("Sabre rounting: begin.\n");
 		original_->clear_values();
-		original_->foreach_output([&](node_type const& node, node_id const id) {
+		original_->foreach_output([&](node_type const& node, node::id const id) {
 			if (node.op.is_meta()) {
 				return;
 			}
@@ -258,7 +258,7 @@ private:
 		if (w0.is_complemented()) {
 			phy0.complement();
 		}
-		return mapped_->create_op(g, phy0, phy1) != node::invalid;
+		return mapped_->create_op(g, phy0, phy1) != node::invalid_id;
 	}
 
 private:
@@ -266,8 +266,8 @@ private:
 	bool try_add_front_layer()
 	{
 		bool executed = false;
-		std::vector<node_id> new_front_layer;
-		for (node_id n_id : front_layer_) {
+		std::vector<node::id> new_front_layer;
+		for (node::id n_id : front_layer_) {
 			node_type const& node = original_->node(n_id);
 			op_type const& op = node.op;
 			if (op.is_meta()) {
@@ -282,7 +282,7 @@ private:
 				continue;
 			}
 			executed = true;
-			original_->foreach_child(node, [&](node_type const& child, node_id child_id) {
+			original_->foreach_child(node, [&](node_type const& child, node::id child_id) {
 				if (child.op.is_meta()) {
 					return;
 				}
@@ -346,10 +346,10 @@ private:
 	}
 
 	double compute_cost(std::vector<wire::id> const& tmp_v_to_phy,
-	                    std::vector<node_id> const& gates)
+	                    std::vector<node::id> const& gates)
 	{
 		double cost = 0.0;
-		for (node_id n_id : gates) {
+		for (node::id n_id : gates) {
 			op_type const& op = original_->node(n_id).op;
 			wire::id const phy0 = tmp_v_to_phy.at(wire_to_v_.at(op.control()));
 			wire::id const phy1 = tmp_v_to_phy.at(wire_to_v_.at(op.target()));
@@ -364,13 +364,13 @@ private:
 	void select_extended_layer()
 	{
 		extended_layer_.clear();
-		std::vector<node_id> incremented_nodes;
-		std::vector<node_id> tmp_front_layer = front_layer_;
+		std::vector<node::id> incremented_nodes;
+		std::vector<node::id> tmp_front_layer = front_layer_;
 		while (!tmp_front_layer.empty()) {
-			std::vector<node_id> new_tmp_front_layer;
-			for (node_id n_id : tmp_front_layer) {
+			std::vector<node::id> new_tmp_front_layer;
+			for (node::id n_id : tmp_front_layer) {
 				node_type const& node = original_->node(n_id);
-				original_->foreach_child(node, [&](node_type const& child, node_id c_id) {
+				original_->foreach_child(node, [&](node_type const& child, node::id c_id) {
 					if (child.op.is_meta()) {
 						return;
 					}
@@ -390,7 +390,7 @@ private:
 			tmp_front_layer = new_tmp_front_layer;
 		}
 	undo_increment:
-		for (node_id n_id : incremented_nodes) {
+		for (node::id n_id : incremented_nodes) {
 			node_type const& node = original_->node(n_id);
 			original_->decr_value(node); 
 		}
@@ -401,7 +401,7 @@ private:
 	void print_front_layer() const
 	{
 		fmt::print("front layer: [{}] {{", front_layer_.size());
-		for (node_id const& n_id : front_layer_) {
+		for (node::id const& n_id : front_layer_) {
 			fmt::print(" {}", n_id);
 		}
 		fmt::print(" }}\n");
@@ -443,8 +443,8 @@ private:
 	mapped_dag* mapped_;
 
 	jit_config config_;
-	std::vector<node_id> front_layer_;
-	std::vector<node_id> extended_layer_;
+	std::vector<node::id> front_layer_;
+	std::vector<node::id> extended_layer_;
 	std::vector<uint32_t> involved_phy_;
 	std::vector<float> phy_decay_;
 	std::vector<std::vector<gate const*>> unexectued_;

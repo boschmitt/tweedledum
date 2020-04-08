@@ -7,6 +7,7 @@
 #include "../gates/gate.hpp"
 #include "../operations/w2_op.hpp"
 #include "../utils/device.hpp"
+#include "node.hpp"
 #include "storage.hpp"
 #include "wire.hpp"
 
@@ -38,7 +39,7 @@ class mapped_dag {
 public:
 	using base_type = mapped_dag;
 	using op_type = w2_op;
-	using node_type = node_regular<w2_op>;
+	using node_type = node::regular<w2_op>;
 	using dstrg_type = storage<node_type>;
 	using wstrg_type = wire::storage;
 
@@ -107,12 +108,12 @@ public:
 #pragma endregion
 
 #pragma region Nodes
-	node_id id(node_type const& n) const
+	node::id id(node_type const& n) const
 	{
-		return node_id(static_cast<uint32_t>(&n - data_->nodes.data()));
+		return node::id(static_cast<uint32_t>(&n - data_->nodes.data()));
 	}
 
-	node_type const& node(node_id id) const
+	node_type const& node(node::id id) const
 	{
 		return data_->nodes.at(id);
 	}
@@ -156,7 +157,7 @@ public:
 private:
 	void connect_wire(wire::id const w_id)
 	{
-		node_id const n_id(data_->nodes.size());
+		node::id const n_id(data_->nodes.size());
 		op_type const input(gate_lib::input, w_id);
 		data_->nodes.emplace_back(input, data_->default_value);
 		data_->inputs.emplace_back(n_id);
@@ -237,7 +238,7 @@ public:
 private:
 	void connect_node(wire::id const wire, node_type& node)
 	{
-		assert(data_->outputs.at(wire) != node::invalid);
+		assert(data_->outputs.at(wire) != node::invalid_id);
 		uint32_t const position = node.op.position(wire);
 		node.children.at(position) = data_->outputs.at(wire);
 		data_->outputs.at(wire) = id(node);
@@ -246,9 +247,9 @@ private:
 
 public:
 	template<typename Op>
-	node_id emplace_op(Op&& op)
+	node::id emplace_op(Op&& op)
 	{
-		node_id const id(data_->nodes.size());
+		node::id const id(data_->nodes.size());
 		node_type& node = data_->nodes.emplace_back(std::forward<Op>(op),
 		                                            data_->default_value);
 		data_->gate_set |= (1 << static_cast<uint32_t>(op.id()));
@@ -257,30 +258,30 @@ public:
 		return id;
 	}
 
-	node_id create_op(gate const& g, wire::id const phy0)
+	node::id create_op(gate const& g, wire::id const phy0)
 	{
 		return emplace_op(op_type(g, phy0));
 	}
 
-	node_id create_op(gate const& g, wire::id const phy0, wire::id const phy1)
+	node::id create_op(gate const& g, wire::id const phy0, wire::id const phy1)
 	{
 		if (!map_->device.are_connected(phy0, phy1)) {
-			return node::invalid;
+			return node::invalid_id;
 		}
 		return emplace_op(op_type(g, phy0, phy1));
 	}
 
-	node_id create_op(gate const& g, std::vector<wire::id> const& controls,
+	node::id create_op(gate const& g, std::vector<wire::id> const& controls,
 	                  std::vector<wire::id> const& targets)
 	{
 		if (controls.size() + targets.size() > 2u) {
-			return node::invalid;
+			return node::invalid_id;
 		}
 		if (controls.empty() && targets.size() == 1) {
 			return emplace_op(op_type(g, targets.at(0)));
 		}
 		if (!map_->device.are_connected(controls.at(0), targets.at(0))) {
-			return node::invalid;
+			return node::invalid_id;
 		}
 		return emplace_op(op_type(g, controls.at(0), targets.at(0)));
 	}
@@ -297,12 +298,12 @@ public:
 	void foreach_input(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_id const> ||
+		static_assert(std::is_invocable_r_v<void, Fn, node::id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->inputs.size(); i < i_limit; ++i) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_id const>) {
+			if constexpr (std::is_invocable_r_v<void, Fn, node::id const>) {
 				fn(data_->inputs.at(i));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(data_->inputs.at(i)));
@@ -316,12 +317,12 @@ public:
 	void foreach_output(Fn&& fn) const
 	{
 		// clang-format off
-		static_assert(std::is_invocable_r_v<void, Fn, node_id const> ||
+		static_assert(std::is_invocable_r_v<void, Fn, node::id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->outputs.size(); i < i_limit; ++i) {
-			if constexpr (std::is_invocable_r_v<void, Fn, node_id const>) {
+			if constexpr (std::is_invocable_r_v<void, Fn, node::id const>) {
 				fn(data_->outputs.at(i));
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(data_->outputs.at(i)));
@@ -376,13 +377,13 @@ public:
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const>);
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const>);
 		// clang-format on
 		for (uint32_t i = 0u, i_limit = data_->nodes.size(); i < i_limit; ++i) {
 			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(data_->nodes.at(i));
 			} else {
-				fn(data_->nodes.at(i), node_id(i));
+				fn(data_->nodes.at(i), node::id(i));
 			}
 		}
 	}
@@ -394,15 +395,15 @@ public:
 	{
 		// clang-format off
 		static_assert(std::is_invocable_r_v<void, Fn, node_type const&> ||
-		              std::is_invocable_r_v<void, Fn, node_type const&, node_id const> ||
+		              std::is_invocable_r_v<void, Fn, node_type const&, node::id const> ||
 		              std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>);
 		for (uint32_t position = 0u; position < n.children.size(); ++position) {
-			if (n.children[position] == node::invalid) {
+			if (n.children[position] == node::invalid_id) {
 				continue;
 			}
 			if constexpr (std::is_invocable_r_v<void, Fn, node_type const&>) {
 				fn(node(n.children[position]));
-			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node_id const>) {
+			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, node::id const>) {
 				fn(node(n.children[position]), n.children[position]);
 			} else if constexpr (std::is_invocable_r_v<void, Fn, node_type const&, wire::id const>) {
 				fn(node(n.children[position]), n.op.wire(position));

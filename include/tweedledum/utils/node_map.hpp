@@ -7,7 +7,7 @@
 /* Taken from mockturtle (: */
 
 #include "../traits.hpp"
-#include "../networks/storage.hpp"
+#include "../networks/node.hpp"
 
 #include <cassert>
 #include <memory>
@@ -19,7 +19,7 @@ namespace tweedledum {
  *
  * This container helps to store values associated to nodes in a network.  The container is
  * initialized with a network to derive the size according to the number of nodes.  The container
- * can be accessed via nodes, or indirectly via `node_id`, from which the corresponding node is
+ * can be accessed via nodes, or indirectly via `node::id`, from which the corresponding node is
  * derived.
  *
  * The implementation uses a vector as underlying data structure
@@ -77,27 +77,27 @@ public:
 #pragma endregion
 
 #pragma region Access using node identifier
-	/*! \brief Mutable access to value by `node_id`. */
-	reference operator[](node_id const nid)
+	/*! \brief Mutable access to value by `node::id`. */
+	reference operator[](node::id const nid)
 	{
 		return (*data_)[nid];
 	}
 
-	/*! \brief Constant access to value by `node_id`. */
-	const_reference operator[](node_id const nid) const
+	/*! \brief Constant access to value by `node::id`. */
+	const_reference operator[](node::id const nid) const
 	{
 		return (*data_)[nid];
 	}
 
-		/*! \brief Mutable access to value by `node_id`. */
-	reference at(node_id const nid)
+		/*! \brief Mutable access to value by `node::id`. */
+	reference at(node::id const nid)
 	{
 		assert(nid < data_->size() && "index out of bounds");
 		return (*data_)[nid];
 	}
 
-	/*! \brief Constant access to value by `node_id`. */
-	const_reference at(node_id const nid) const
+	/*! \brief Constant access to value by `node::id`. */
+	const_reference at(node::id const nid) const
 	{
 		assert(nid < data_->size() && "index out of bounds");
 		return (*data_)[nid];

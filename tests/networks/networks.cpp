@@ -4,6 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/netlist.hpp"
+#include "tweedledum/networks/node.hpp"
 #include "tweedledum/networks/op_dag.hpp"
 #include "tweedledum/networks/wire.hpp"
 #include "tweedledum/operations/w3_op.hpp"
@@ -94,7 +95,7 @@ TEMPLATE_PRODUCT_TEST_CASE("One-qubit operations", "[one-qubit][networks]", (net
 	wire::id qubit = network.create_qubit("qubit_0");
 	SECTION("Using wire identifier") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
-			node_id n_id = network.create_op(gates.at(i), qubit);
+			node::id n_id = network.create_op(gates.at(i), qubit);
 			auto node = network.node(n_id);
 			CHECK(node.op.id() == gates.at(i).id());
 			CHECK(node.op.target() == qubit);
@@ -103,7 +104,7 @@ TEMPLATE_PRODUCT_TEST_CASE("One-qubit operations", "[one-qubit][networks]", (net
 	}
 	SECTION("Using wire name") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
-			node_id n_id = network.create_op(gates.at(i), "qubit_0");
+			node::id n_id = network.create_op(gates.at(i), "qubit_0");
 			auto node = network.node(n_id);
 			CHECK(node.op.id() == gates.at(i).id());
 			CHECK(node.op.target() == qubit);
@@ -122,7 +123,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Two-qubit operations", "[two-qubit][networks]", (net
 	wire::id q1 = network.create_qubit("__dum_q1");
 	SECTION("Using wire identifier") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
-			node_id n_id = network.create_op(gates.at(i), q0, q1);
+			node::id n_id = network.create_op(gates.at(i), q0, q1);
 			auto node = network.node(n_id);
 			CHECK(node.op.id() == gates.at(i).id());
 			if (gates.at(i).id() == gate_ids::swap) {
@@ -137,7 +138,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Two-qubit operations", "[two-qubit][networks]", (net
 	}
 	SECTION("Using wire name") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
-			node_id n_id = network.create_op(gates.at(i), "__dum_q0", "__dum_q1");
+			node::id n_id = network.create_op(gates.at(i), "__dum_q0", "__dum_q1");
 			auto node = network.node(n_id);
 			CHECK(node.op.id() == gates.at(i).id());
 			if (gates.at(i).id() == gate_ids::swap) {
@@ -163,7 +164,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Three-qubit operations", "[three-qubit][networks]", 
 	wire::id q2 = network.create_qubit("q2");
 	SECTION("Using wire identifier") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
-			node_id n_id = network.create_op(gates.at(i), q0, q1, q2);
+			node::id n_id = network.create_op(gates.at(i), q0, q1, q2);
 			auto node = network.node(n_id);
 			CHECK(node.op.id() == gates.at(i).id());
 			CHECK(node.op.control(0) == q0);
@@ -174,7 +175,7 @@ TEMPLATE_PRODUCT_TEST_CASE("Three-qubit operations", "[three-qubit][networks]", 
 	}
 	SECTION("Using wire name") {
 		for (uint32_t i = 0; i < gates.size(); ++i) {
-			node_id n_id = network.create_op(gates.at(i), "__dum_q0", "__dum_q1", "q2");
+			node::id n_id = network.create_op(gates.at(i), "__dum_q0", "__dum_q1", "q2");
 			auto node = network.node(n_id);
 			CHECK(node.op.id() == gates.at(i).id());
 			CHECK(node.op.control(0) == q0);

@@ -4,6 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../networks/node.hpp"
 #include "../traits.hpp"
 #include "../utils/node_map.hpp"
 #include "immutable_view.hpp"
@@ -45,7 +46,7 @@ public:
 		return layer_nodes_.size();
 	}
 
-	uint32_t layer(node_id const nid) const
+	uint32_t layer(node::id const nid) const
 	{
 		return node_layer_.at(nid);
 	}
@@ -55,7 +56,7 @@ public:
 		return node_layer_.at(node);
 	}
 
-	std::vector<node_id> layer(uint32_t const i) const
+	std::vector<node::id> layer(uint32_t const i) const
 	{
 		return layer_nodes_[i];
 	}
@@ -80,11 +81,11 @@ private:
 
 	void compute_layers()
 	{
-		this->foreach_input([&](node_id const nid) {
+		this->foreach_input([&](node::id const nid) {
 			layer_nodes_.at(0).push_back(nid);
 			node_layer_[nid] = 0u;
 		});
-		this->foreach_node([&](node_type const& node, node_id const nid) {
+		this->foreach_node([&](node_type const& node, node::id const nid) {
 			if (node.op.is_meta()) {
 				return;
 			}
@@ -103,7 +104,7 @@ private:
 
 private:
 	node_map<uint32_t, Network> node_layer_;
-	std::vector<std::vector<node_id>> layer_nodes_;
+	std::vector<std::vector<node::id>> layer_nodes_;
 };
 
 } // namespace tweedledum

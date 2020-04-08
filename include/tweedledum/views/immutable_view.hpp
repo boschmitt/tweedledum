@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../gates/gate.hpp"
-#include "../networks/storage.hpp"
+#include "../networks/node.hpp"
 #include "../networks/wire.hpp"
 
 namespace tweedledum {
@@ -39,12 +39,12 @@ public:
 	void wire_mode(wire::id const w_id, wire::modes const new_mode) = delete;
 
 	template<typename Op>
-	node_id emplace_op(Op&& op) = delete;
-	node_id create_op(gate const& g, wire::id const t) = delete;
-	node_id create_op(gate const& g, wire::id const w0, wire::id const w1) = delete;
-	node_id create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t) = delete;
-	node_id create_op(gate const& g, std::vector<wire::id> const& controls,
-	                  std::vector<wire::id> const& targets)
+	node::id emplace_op(Op&& op) = delete;
+	node::id create_op(gate const& g, wire::id const t) = delete;
+	node::id create_op(gate const& g, wire::id const w0, wire::id const w1) = delete;
+	node::id create_op(gate const& g, wire::id const c0, wire::id const c1, wire::id const t) = delete;
+	node::id create_op(gate const& g, std::vector<wire::id> const& controls,
+	                   std::vector<wire::id> const& targets)
 	    = delete;
 };
 
