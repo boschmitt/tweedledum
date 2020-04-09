@@ -4,6 +4,9 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
+#include "../gates/gate.hpp"
+#include "../networks/wire.hpp"
+
 static_assert(false,
               "file operations/interface.hpp cannot be included, it's only used for documentation");
 
@@ -65,13 +68,13 @@ public:
 	 *
 	 * \param i must be less than ``num_controls()`` (default = 0).
 	 */
-	wire::id control(uint32_t i = 0) const;
+	wire::id control(uint32_t const i = 0u) const;
 
 	/*! \brief Returns the i-th target wire identifier.
 	 *
 	 * \param i must be less than ``num_targets()`` (default = 0).
 	 */
-	wire::id target(uint32_t i = 0) const;
+	wire::id target(uint32_t const i = 0u) const;
 
 	/*! \brief Returns the position in which a wire is stored in the operation. 
 	 *
@@ -84,7 +87,7 @@ public:
 	 *
 	 * \param i must be less than ``num_wires()``.
 	 */
-	wire::id wire(uint32_t i) const
+	wire::id wire(uint32_t const i) const;
 
 	/*! \brief Check whether the this operation is adjoint of ``other`` operation.
 	 *
