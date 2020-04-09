@@ -4,29 +4,34 @@
 The Gate Library
 *****************
 
-An ``operation`` is ``gate`` that is applied to a collection of I/O's, i.e., objects with a
-``wire_id`` given by a ``network``.  A ``gate`` can be applied to qubit(s) by direcetly constructing a 
-``operation`` object, or by calling one of the ``create_op`` methods from a ``network``---this will 
-also create an ``operation`` object. For example:
+An ``operation`` is ``gate`` that is applied to a collection of ``wires``, i.e., objects with a
+``wire::id`` given by a ``circuit``.  A ``gate`` can be applied to wire(s) by directly 
+constructing a ``operation`` object, or by calling one of the ``create_op`` methods from a 
+``circuit``---this will also create an ``operation`` object. For example:
 
 .. code-block:: c++
 
   #include <tweedledum/tweedledum.hpp>
 
-  int main(int argc, char** argv)
+  int main()
   {
       using namespace tweedledum;
-      netlist<w3_op> network;
+      netlist<w3_op> circuit;
 
-      wire_id q0 = network.create_qubit();
-      wire_id q1 = network.create_qubit();
-      operation op(gate_lib::cx, q0, q1);
-      auto node = network.create_operation(gate_lib::cx, q0, q1);
+      wire::id q0 = circuit.create_qubit();
+      wire::id q1 = circuit.create_qubit();
+      
+      // directly constructing an operation object and emplacing it in the circuit
+      w3_op cx_op(gate_lib::cx, q0, q1);
+      circuit.emplace_op(cx_op);
+
+      // directly creating an operation in the circuit
+      circuit.create_op(gate_lib::cx, q0, q1);
   }
 
 .. note::
-   When using a network ``create_operation`` methdos, the returned value is a ``node_id``, 
-   which is basically a identifier to a network node that encapsulates the operation.
+   When using a network ``create_op`` methdos, the returned value is a ``node::id``, which is 
+   basically a identifier to a network node that encapsulates the operation.
 
 Gates are classified into three categories: **Meta**, **non-parameterisable**, and 
 **parameterisable**.  Meta gates are internal helpers.  Non-parameterisable gates are uniquely 

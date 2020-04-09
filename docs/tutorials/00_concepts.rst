@@ -1,15 +1,16 @@
-********************
-Conceptual overview
-********************
+*************************
+00 : Conceptual overview
+*************************
 
 The most commonly used notation for representing quantum algorithms is the quantum circuit model
 introduced by Deutsch.  The model describes the computation as a sequence of elementary quantum
-logic gates acting on a collection of qubits.  
+gates acting on a collection of qubits.  
 
-In tweedledum, the representation of quantum programs is a *quantum network*, hereinafter called
-``network`` (see ).  A ``network`` is a collection of ``operations``.  An ``operation`` is some 
-effect that operates on a specific subset ``wires``.  A ``gate`` describes the effect of the
-operation. Let's analyze a small quantum circuit to illustrate these concetps:
+In tweedledum, the representation of quantum programs is a *quantum circuit*, hereinafter called
+``circuit`` (see ).  A ``circuit`` is a collection of ``gates``.  An ``operation`` is a ``gate``
+that operates on a specific subset of ``wires``.
+
+Let's analyze a small quantum circuit to illustrate these concepts:
 
 .. image:: /_static/concept_back.svg
    :width: 50%
@@ -19,7 +20,7 @@ Wires
 ======
 
 At the very bottom of the layers of abstraction rest concepts of *quantum bit*, ``qubit``, and  
-*classical bit*, ``cbit``. I expect the reader to be familiar with those.  So I will start
+*classical bit*, ``cbit``.  I expect the reader to be already familiar with those.  So I will start
 describing the ``wires``:
 
 .. image:: /_static/concept_wires.svg
@@ -31,11 +32,11 @@ and it is represented by a line in quantum circuit diagrams.  In tweedledum, a q
 equivalent to a qubit.  Similarly, a classical wire holds the state of a ``cbit``, and it is
 represented by a double line in quantum circuit diagrams.
 
-In a quantum network, each wire has a ``wire_id``.  The ``wire_id`` is used to uniquely identify a 
-wire, and to it indicate whether the wire is *quantum* or *classical*.  Wires are by calling one 
-of the ``create_qubit()`` or ``create_cbit()`` methods from a ``network``.  We can also directly 
-instantiate a ``wire_id`` object.  A wire created by direct instantiation, however, won't be part of
-a quantum network. Indeed, even it the API is weird:
+In a quantum circuit, each wire has a ``wire::id``.  The ``wire::id`` is used to uniquely identify a 
+wire, and to it indicate whether the wire is *quantum* or *classical*.  Wires created are by calling
+one of the ``create_qubit()`` or ``create_cbit()`` methods from a ``circuit``.  We can also directly 
+create wire using ``wire::make_qubit`` or ``wire::make_cbit``.  A wire created using these
+functions, however, won't be part of a quantum circuit.
 
 .. code-block:: c++
 
@@ -43,35 +44,35 @@ a quantum network. Indeed, even it the API is weird:
 
   int main(int argc, char** argv)
   {
-      wire_id q0(0, /* is_qubit = */ true);
-      wire_id q1(1, /* is_qubit = */ true);
-      wire_id c0(2, /* is_qubit = */ false);
+      wire::id q0 = wire::make_qubit(0);
+      wire::id q1 = wire::make_qubit(1);
+      wire::id c0 = wire::make_cbit(2);
   }
-
-Operations
-===========
-
-An ``operation`` is some effect that operates on a specific subset ``wires``:
-
-.. image:: /_static/concept_ops.svg
-   :width: 50%
-   :align: center
-
 
 Gates 
 ======
 
-A ``gate`` describes the effect of the operation on the wires.  Most often this effect is an unitary
-evolution, hence the gate is a *quantum gate*.  In our small example, we have two 'pure' quantum
-gates: the Hadamard gate :math:`\mathrm{H}`, and the :math:`\mathrm{CNOT}` gate :math:`\mathrm{CX}`.
+A ``gate`` is an effect that can be applied to a subset of ``wires``.  Most often this effect is an
+unitary evolution, hence the gate is a *quantum gate*.  In our small example, we have two 'pure'
+quantum gates: the Hadamard gate :math:`\mathrm{H}`, and the :math:`\mathrm{CNOT}` gate
+:math:`\mathrm{CX}`.
 
 .. image:: /_static/concept_gates.svg
    :width: 50%
    :align: center
 
 The weird looking 'meter gate' is actually a *measurement gate*.  As measurement is irreversible, 
-it is not a quantum gate. Finaly, the last gate is NOT gate :math:`\mathrm{\oplus}` that is applied
+it is not a quantum gate.  Finaly, the last gate is NOT gate :math:`\mathrm{\oplus}` that is applied
 whenever the state of the `cbit` is `true`.
+
+Operations
+===========
+
+An ``operation`` is a ``gate`` that operates on a specific subset ``wires``:
+
+.. image:: /_static/concept_ops.svg
+   :width: 50%
+   :align: center
 
 .. code-block:: c++
 
@@ -79,9 +80,9 @@ whenever the state of the `cbit` is `true`.
 
   int main(int argc, char** argv)
   {
-      wire_id q0(0, /* is_qubit = */ true);
-      wire_id q1(1, /* is_qubit = */ true);
-      wire_id c0(2, /* is_qubit = */ false);
+      wire::id q0 = wire::make_qubit(0);
+      wire::id q1 = wire::make_qubit(1);
+      wire::id c0 = wire::make_cbit(2);
       operation h_op(gate_lib::h, q1);
       operation cx_op(gate_lib::cx, q1, q0);
       operation m_op(gate_lib::measure_z, q0, c0);

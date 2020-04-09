@@ -1,5 +1,6 @@
+***************************
 Decomposition
--------------
+***************************
 
 **Decomposition**: is the process of breaking down in parts or elements.
 

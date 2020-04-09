@@ -10,11 +10,20 @@ Welcome to tweedledum's documentation!
    :maxdepth: 2
 
    installation
-   concept_overview
-   tutorial
    changelog
    acknowledgments
    references
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   tutorials/00_concepts
+   tutorials/01_basics
+   tutorials/02_param_gates
+   tutorials/03_nqubit_gates
+   tutorials/04_io
+   tutorials/05_iterators
 
 .. toctree::
    :maxdepth: 2
@@ -30,8 +39,15 @@ Welcome to tweedledum's documentation!
    :maxdepth: 2
    :caption: Algorithms
 
+   algorithms/analysis
    algorithms/decomposition
+   algorithms/generic
+   algorithms/mapping
+   algorithms/optimization
+   algorithms/simulation
    algorithms/synthesis
+   algorithms/transformation
+   algorithms/verification
 
 .. toctree::
    :maxdepth: 2

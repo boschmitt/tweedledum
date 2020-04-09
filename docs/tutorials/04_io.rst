@@ -1,0 +1,72 @@
+***************************
+04 : I/O
+***************************
+
+.. todo:: Writing
+
+TLDR
+-------------------
+
+.. code-block:: c++
+
+  #include <CLI11/CLI11.hpp>
+  #include <string>
+  #include <tweedledum/tweedledum.hpp>
+
+  int main()
+  {
+      using namespace tweedledum;
+      CLI::App app("Convert a file");
+
+      std::string filepath;
+      app.add_option("-i", filepath, "Require an input file (*.dotqc)")
+          ->required()
+          ->check(CLI::ExistingFile);
+
+      CLI11_PARSE(app, argc, argv);
+
+      auto circuit = read_dotqc_from_file<netlist<w3_op>>(filepath);
+      write_qasm(circuit);
+
+      return EXIT_SUCCESS
+  }
+
+The circuit::
+
+          ┌───┐     ┌───┐     
+  q5 : ───┤ X ├─────┤ X ├─────
+          └─┬─┘     └─┬─┘     
+            │  ┌───┐  │  ┌───┐
+  q4 : ─────●──┤ X ├──●──┤ X ├
+            │  └─┬─┘  │  └─┬─┘
+            │    │    │    │  
+  q3 : ─────●────┼────●────┼──
+                 │         │  
+                 │         │  
+  q2 : ──────────●─────────●──
+                 │         │  
+                 │         │  
+  q1 : ──────────●─────────●──
+
+The input DotQC::
+
+  .v 1 2 3 4 5
+
+  BEGIN
+
+  tof 3 4 5
+  tof 1 2 4
+  tof 3 4 5
+  tof 1 2 4
+
+  END
+
+The output OpenQASM::
+
+  OPENQASM 2.0;
+  include "qelib1.inc";
+  qreg q[5];
+  ccx q[2], q[3], q[4];
+  ccx q[0], q[1], q[3];
+  ccx q[2], q[3], q[4];
+  ccx q[0], q[1], q[3];

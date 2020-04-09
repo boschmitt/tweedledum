@@ -1,5 +1,6 @@
+***************************
 Synthesis
----------
+***************************
 
 The *tweedledum* library implements several synthesis algorithms. These take as input a function in
 terms of some representation and return a reversible or quantum circuit. The following table lists
