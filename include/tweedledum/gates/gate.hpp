@@ -362,6 +362,11 @@ constexpr gate undefined(sym_angle::zero, sym_angle::zero, sym_angle::zero, gate
 constexpr gate opaque(sym_angle::zero, sym_angle::zero, sym_angle::zero, gate_ids::opaque);
 constexpr gate input(sym_angle::zero, sym_angle::zero, sym_angle::zero, gate_ids::input);
 
+// Measurement gates
+constexpr gate measure_x(sym_angle::zero, sym_angle::zero, sym_angle::zero, gate_ids::measure_x);
+constexpr gate measure_y(sym_angle::zero, sym_angle::zero, sym_angle::zero, gate_ids::measure_y);
+constexpr gate measure_z(sym_angle::zero, sym_angle::zero, sym_angle::zero, gate_ids::measure_z);
+
 // One-qubit gates
 constexpr gate i(sym_angle::zero, sym_angle::zero, sym_angle::zero, gate_ids::i);
 constexpr gate h(sym_angle::pi_half, sym_angle::zero, sym_angle::pi, gate_ids::h);

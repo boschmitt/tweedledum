@@ -103,6 +103,48 @@ public:
 		max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(t_line));
 	}
 
+	void add_measurement(std::string_view gate, wire::id control, wire::id target)
+	{
+		uint32_t c_line = wires_.size() - (control + 1);
+		uint32_t t_line = wires_.size() - (target + 1);
+		uint32_t gate_len = utf8_strlen(gate);
+
+		uint32_t const min = std::min(c_line, t_line);
+		uint32_t const max = std::max(c_line, t_line);
+		if (does_need_new_column(min, max)) {
+			finish_column();
+		}
+		occupancy_[c_line] = 1;
+		occupancy_[t_line] = 1;
+
+		lines_[(3 * c_line)] += fmt::format("  {}{:^{}} ", c_line < t_line ? " " : "║", "",
+		                                    gate_len);
+		lines_[(3 * c_line) + 1] += fmt::format("══{}{:═^{}}═", "■", "", gate_len);
+		lines_[(3 * c_line) + 2] += fmt::format("  {}{:^{}} ", c_line < t_line ? "║" : " ",
+		                                        "", gate_len);
+
+		lines_[(3 * t_line)] += fmt::format("┌─{}{:─^{}}┐", c_line < t_line ? "╨" : "─", "",
+		                                    gate_len);
+		lines_[(3 * t_line) + 1] += fmt::format("┤ {} ├", gate);
+		lines_[(3 * t_line) + 2] += fmt::format("└─{}{:─^{}}┘", c_line < t_line ? "─" : "╥",
+		                                        "", gate_len);
+
+		for (auto i = min + 1; i < max; ++i) {
+			occupancy_[i] = 1;
+			lines_[(3 * i)] += fmt::format("  ║{:^{}} ", "", gate_len);
+			if (wires_[wires_.size() - (i + 1)].is_qubit()) {
+				lines_[(3 * i) + 1] += fmt::format("──╫{:─^{}}─", "", gate_len);
+			} else {
+				lines_[(3 * i) + 1] += fmt::format("══╬{:═^{}}═", "", gate_len);
+			}
+			lines_[(3 * i) + 2] += fmt::format("  ║{:^{}} ", "", gate_len);
+			num_glyphs_.at(i) += 4u + gate_len;
+		}
+		num_glyphs_.at(c_line) += 4u + gate_len;
+		num_glyphs_.at(t_line) += 4u + gate_len;
+		max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(t_line));
+	}
+
 	void add_swap(wire::id q0, wire::id q1)
 	{
 		uint32_t q0_line = wires_.size() - (q0 + 1);
@@ -293,6 +335,18 @@ auto to_utf8_str(Network const& network, Builder builder)
 		switch (op.id()) {
 		default:
 			std::cerr << "[w] unsupported gate type\n";
+			break;
+		
+		case gate_ids::measure_x:
+			builder.add_measurement("Mx", op.target(1), op.target(0));
+			break;
+		
+		case gate_ids::measure_y:
+			builder.add_measurement("My", op.target(1), op.target(0));
+			break;
+
+		case gate_ids::measure_z:
+			builder.add_measurement("Mz", op.target(1), op.target(0));
 			break;
 
 		case gate_ids::h:
