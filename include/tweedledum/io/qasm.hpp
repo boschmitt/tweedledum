@@ -187,7 +187,7 @@ Network read_qasm_from_file(std::string const& path)
  * \param os Output stream
  */
 template<typename Network>
-void write_qasm(Network const& network, std::ostream& os)
+void write_qasm(Network const& network, std::ostream& os = std::cout)
 {
 	using op_type = typename Network::op_type;
 	// header
