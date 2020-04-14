@@ -1,23 +1,19 @@
-Analysis
+Utility
 ***************************
 
-Analysis algorithms compute information that other algorithms can use or for debugging or for
-circuit understanding purposes.
-
-.. note::
-
-   Transformation and optimization algorithms can use (or invalidate) the analysis algorithms.
-
-The table below provide a list of the analysis algorithms.
+Utility algorithms provides some utility but don't fit categorization.
 
 .. toctree::
    :maxdepth: 2
    :hidden:
 
-   analysis/check_layered
+   utility/shallow_duplicate
+   utility/to_logic_network
 
 +---------------------------+----------------------------------------------------------------------+
 | Function                  | Description                                                          |
 +===========================+======================================================================+
-| :ref:`check-layered`      | Check if a DAG circuit representation is layered.                    |
+| :ref:`shallow-duplicate`  | Creates a new circuit with same wires as the original.               |
++---------------------------+----------------------------------------------------------------------+
+| :ref:`to-logic`           | Converts a reversible quantum circuit into logic network.            |
 +---------------------------+----------------------------------------------------------------------+

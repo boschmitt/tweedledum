@@ -41,12 +41,12 @@ Welcome to tweedledum's documentation!
 
    algorithms/analysis
    algorithms/decomposition
-   algorithms/generic
    algorithms/mapping
    algorithms/optimization
    algorithms/simulation
    algorithms/synthesis
    algorithms/transformation
+   algorithms/utility
    algorithms/verification
 
 .. toctree::
