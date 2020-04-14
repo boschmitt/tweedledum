@@ -233,13 +233,13 @@ constexpr gate_base t_dagger(gate_lib::rz, angles::zero, angles::zero, -angles::
 
 /* Double-qubit unitary gates */
 constexpr gate_base cx(gate_lib::cx, angles::pi, angles::zero, angles::pi);
-constexpr gate_base cy(gate_lib::mcz, angles::pi, angles::pi_half, angles::pi_half);
+constexpr gate_base cy(gate_lib::cy, angles::pi, angles::pi_half, angles::pi_half);
 constexpr gate_base cz(gate_lib::cz, angles::zero, angles::zero, angles::pi);
 constexpr gate_base swap(gate_lib::swap);
 
 /* Multiple-qubit unitary gates */
 constexpr gate_base mcx(gate_lib::mcx, angles::pi, angles::zero, angles::pi);
-constexpr gate_base mcy(gate_lib::mcz, angles::pi, angles::pi_half, angles::pi_half);
+constexpr gate_base mcy(gate_lib::mcy, angles::pi, angles::pi_half, angles::pi_half);
 constexpr gate_base mcz(gate_lib::mcz, angles::zero, angles::zero, angles::pi);
 
 /* Single-qubit, single-cbit gate */
