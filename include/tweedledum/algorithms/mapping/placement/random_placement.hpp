@@ -12,6 +12,8 @@
 
 namespace tweedledum::detail {
 
+/*! \brief Yet to be written.
+ */
 inline std::vector<wire::id> random_placement(device const& device, uint32_t seed = 17u)
 {
 	std::vector<wire::id> placement;

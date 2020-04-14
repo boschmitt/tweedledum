@@ -2,9 +2,9 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
-#include "tweedledum/algorithms/transformations/asap_reschedule.hpp"
+#include "tweedledum/algorithms/transformation/asap_reschedule.hpp"
 
-#include "tweedledum/algorithms/analysis/check_layerized.hpp"
+#include "tweedledum/algorithms/analysis/check_layered.hpp"
 #include "tweedledum/algorithms/verification/unitary_verify.hpp"
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/node.hpp"
@@ -31,10 +31,10 @@ TEMPLATE_PRODUCT_TEST_CASE("ASAP reschedule", "[asap_reschedule][transformations
 	network.create_op(gate_lib::cz, q1, q0);
 	network.create_op(gate_lib::h, q0);
 	network.create_op(gate_lib::h, q2);
-	CHECK_FALSE(check_layerized(network));
+	CHECK_FALSE(check_layered(network));
 
 	TestType rescheduled = asap_reschedule(network);
 	CHECK(rescheduled.node(node::id(4u)).op.is(gate_ids::h));
-	CHECK(check_layerized(rescheduled));
+	CHECK(check_layered(rescheduled));
 	CHECK(unitary_verify(network, rescheduled));
 }

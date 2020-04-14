@@ -2,7 +2,7 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
-#include "tweedledum/algorithms/generic/to_logic_network.hpp"
+#include "tweedledum/algorithms/utility/to_logic_network.hpp"
 
 #include "tweedledum/networks/netlist.hpp"
 #include "tweedledum/networks/op_dag.hpp"

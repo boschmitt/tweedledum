@@ -84,10 +84,7 @@ public:
 		return topology;
 	}
 
-	/*! \brief Creates a device with a random topology.
-	 *
-	 * \param num_edges Number of edges_ in coupling graph
-	 */
+	/*! \brief Creates a device with a random topology. */
 	static device random(uint32_t const num_qubits, uint32_t const num_edges)
 	{
 		std::default_random_engine gen(

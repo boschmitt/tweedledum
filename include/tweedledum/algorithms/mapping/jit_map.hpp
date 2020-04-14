@@ -7,7 +7,7 @@
 #include "../../networks/mapped_dag.hpp"
 #include "../../networks/wire.hpp"
 #include "../../utils/device.hpp"
-#include "../transformations/reverse.hpp"
+#include "../transformation/reverse.hpp"
 #include "placement/line_placement.hpp"
 #include "routing/jit_router.hpp"
 
@@ -15,11 +15,7 @@
 
 namespace tweedledum {
 
-/*! \brief Just-in-time mapping strategy
- *
- * \algtype mapping
- * \algexpects A original
- * \algreturns A mapped original
+/*! \brief Yet to be written.
  */
 template<typename Network>
 mapped_dag jit_map(Network const& original, device const& device, jit_config const& config = {})

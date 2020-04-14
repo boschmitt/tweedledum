@@ -6,7 +6,6 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
-#include "../generic/rewrite.hpp"
 
 #include <cstdint>
 #include <iostream>

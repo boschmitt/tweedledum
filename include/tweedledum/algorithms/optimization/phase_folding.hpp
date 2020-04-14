@@ -16,6 +16,8 @@
 namespace tweedledum {
 
 /*! \brief TODO
+ * 
+ * This algorithm merges phase gates that are applied to the same computational paths.
  */
 template<typename Network>
 Network phase_folding(Network const& original)

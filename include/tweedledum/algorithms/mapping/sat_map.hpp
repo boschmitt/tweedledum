@@ -7,11 +7,11 @@
 #include "../../networks/mapped_dag.hpp"
 #include "../../networks/wire.hpp"
 #include "../../utils/device.hpp"
-#include "routing/sat_router.hpp"
+#include "placement/sat_placement.hpp"
 
 namespace tweedledum {
 
-/*! \brief
+/*! \brief Yet to be written.
  */
 template<typename Network>
 mapped_dag sat_map(Network const& original, device const& device)
@@ -19,7 +19,7 @@ mapped_dag sat_map(Network const& original, device const& device)
 	using op_type = typename Network::op_type;
 	mapped_dag mapped(original, device);
 	
-	std::vector<wire::id> v_to_phy = detail::sat_route(original, device);
+	std::vector<wire::id> v_to_phy = detail::sat_place(original, device);
 	if (v_to_phy.empty()) {
 		return mapped;
 	}

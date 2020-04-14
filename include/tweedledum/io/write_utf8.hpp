@@ -483,7 +483,6 @@ auto to_utf8_str(Network const& network, Builder builder)
  * - `num_qubits`
  *
  * \param network A quantum network
- * \param fancy (default: true)
  * \param os Output stream (default: std::cout)
  */
 template<typename Network>

@@ -7,10 +7,10 @@
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
 #include "../../utils/angle.hpp"
-#include "../generic/rewrite.hpp"
 #include "../synthesis/diagonal_synth.hpp"
-#include "gates/database.hpp"
+#include "../utility/shallow_duplicate.hpp"
 #include "barenco.hpp"
+#include "gates/database.hpp"
 
 #include <array>
 #include <iostream>
@@ -344,10 +344,6 @@ private:
 #pragma endregion
 
 /*! \brief 
- * 
- * \algtype decomposition
- * \algexpects A network
- * \algreturns A network
  */
 template<typename Network>
 Network decompose(Network const& network, decomp_params params = {})

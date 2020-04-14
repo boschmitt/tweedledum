@@ -3,26 +3,20 @@
 | See accompanying file /LICENSE for details.
 *-------------------------------------------------------------------------------------------------*/
 #include <iostream>
-#include <tweedledum/gates/io3_gate.hpp>
-#include <tweedledum/io/write_unicode.hpp>
-#include <tweedledum/networks/gg_network.hpp>
+#include <tweedledum/gates/gate.hpp>
+#include <tweedledum/io/write_utf8.hpp>
+#include <tweedledum/networks/netlist.hpp>
+#include <tweedledum/operations/w3_op.hpp>
 
 int main(int argc, char** argv)
 {
-	(void) argc;
-	(void) argv;
 	using namespace tweedledum;
-	gg_network<io3_gate> network;
-	network.add_qubit("q0");
-	network.add_qubit("q1");
-	network.add_cbit("c0");
-	network.add_cbit("c1");
 
-	network.add_gate(gate::hadamard, "q0");
-	network.add_gate(gate::cx, "q0", "q1");
-	network.add_gate(gate::measurement, "q0", "c0");
-	network.add_gate(gate::measurement, "q1", "c1");
-
-	std::cout << "Hello world!\n";
-	write_unicode(network);
+	using namespace tweedledum;
+	netlist<w3_op> circuit;
+	wire::id q0 = circuit.create_qubit("q0");
+	wire::id c0 = circuit.create_cbit("c0");
+	circuit.create_op(gate_lib::h, q0);
+	circuit.create_op(gate_lib::measure_z, q0, c0);
+	write_utf8(circuit);
 }

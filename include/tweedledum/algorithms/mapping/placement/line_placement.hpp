@@ -227,6 +227,9 @@ private:
 
 // From https://drops.dagstuhl.de/opus/volltexte/2019/10397/pdf/LIPIcs-TQC-2019-5.pdf:
 // Side effect: clear node values in the network
+
+/*! \brief Yet to be written.
+ */
 template<typename Network>
 std::vector<wire::id> line_placement(Network const& network, device const& device)
 {

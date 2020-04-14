@@ -8,7 +8,7 @@
 #include "../../utils/device.hpp"
 #include "placement/random_placement.hpp"
 #include "placement/line_placement.hpp"
-#include "placement/sat_placement.hpp"
+#include "placement/hsat_placement.hpp"
 
 namespace tweedledum {
 
@@ -28,7 +28,7 @@ struct placement_config {
 	uint32_t random_seed = 17u;
 };
 
-/*! \brief
+/*! \brief Yet to be written.
  */
 template<typename Network>
 std::vector<wire::id> placement(Network const& network, device const& device,
@@ -41,7 +41,7 @@ std::vector<wire::id> placement(Network const& network, device const& device,
 		return {};
 
 	case methods::greedy_sat:
-		return detail::sat_placement(network, device);
+		return detail::hsat_placement(network, device);
 
 	case methods::line:
 		return detail::line_placement(network, device);

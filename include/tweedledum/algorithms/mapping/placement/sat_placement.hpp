@@ -9,19 +9,18 @@
 
 #include <bill/sat/cardinality.hpp>
 #include <bill/sat/solver.hpp>
-#include <vector>
 
 namespace tweedledum::detail {
 
 template<typename Network, typename Solver>
-class placement_cnf_encoder {
+class place_cnf_encoder {
 	using lbool_type = bill::lbool_type;
 	using lit_type = bill::lit_type;
 	using var_type = bill::var_type;
 	using op_type = typename Network::op_type;
 
 public:
-	placement_cnf_encoder(Network const& network, device const& device, Solver& solver)
+	place_cnf_encoder(Network const& network, device const& device, Solver& solver)
 	    : network_(network)
 	    , device_(device)
 	    , pairs_(network_.num_qubits() * (network_.num_qubits() + 1) / 2, 0u)
@@ -46,34 +45,17 @@ public:
 			}
 			wire::id control = wire_to_v_.at(op.control());
 			wire::id target = wire_to_v_.at(op.target());
+			if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
+				gate_constraints(control, target);
+			}
 			++pairs_[triangle_to_vector_idx(control, target)];
 		});
-
-		std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> aa;
-		for (uint32_t i = 0; i < num_v(); ++i) {
-			for (uint32_t j = 0; j < num_v(); ++j) {
-				if (pairs_[triangle_to_vector_idx(i, j)] != 0) {
-					aa.emplace_back(i, j, pairs_[triangle_to_vector_idx(i, j)]);
-					pairs_[triangle_to_vector_idx(i, j)] = 0;
-				}
-			}
+		solver_.solve();
+		bill::result result = solver_.get_result();
+		if (result.is_satisfiable()) {
+			return decode(result.model());
 		}
-		std::sort(aa.begin(), aa.end(), [&](auto const& c0, auto const& c1) {
-			return std::get<2>(c0) > std::get<2>(c1);
-		});
-		std::vector<lit_type> assumptions;
-		for (auto&& [control, target, score] : aa) {
-			var_type act = gate_constraints(control, target);
-			assumptions.emplace_back(act, bill::positive_polarity);
-			solver_.solve(assumptions);
-			bill::result result = solver_.get_result();
-			if (result) {
-				model_ = result.model();
-			} else {
-				assumptions.back().complement();
-			}
-		}
-		return decode(model_);
+		return {};
 	}
 
 	std::vector<wire::id> decode(std::vector<lbool_type> const& model)
@@ -119,8 +101,8 @@ private:
 	{
 		// Condition 2:
 		std::vector<bill::var_type> variables;
-		for (auto v = 0u; v < num_v(); ++v) {
-			for (auto p = 0u; p < num_phy(); ++p) {
+		for (uint32_t v = 0u; v < num_v(); ++v) {
+			for (uint32_t p = 0u; p < num_phy(); ++p) {
 				variables.emplace_back(v_to_phy_var(v, p));
 			}
 			at_least_one(variables, solver_);
@@ -129,8 +111,8 @@ private:
 		}
 
 		// Condition 3:
-		for (auto p = 0u; p < num_phy(); ++p) {
-			for (auto v = 0u; v < num_v(); ++v) {
+		for (uint32_t p = 0u; p < num_phy(); ++p) {
+			for (uint32_t v = 0u; v < num_v(); ++v) {
 				variables.emplace_back(v_to_phy_var(v, p));
 			}
 			at_most_one_pairwise(variables, solver_);
@@ -143,13 +125,11 @@ private:
 	// - t_v (target, virtual qubit identifier)
 	// - c_phy (control, physical qubit identifier)
 	// - t_phy (target, physical qubit identifier)
-	var_type gate_constraints(uint32_t c_v, uint32_t t_v)
+	void gate_constraints(uint32_t c_v, uint32_t t_v)
 	{
 		std::vector<bill::lit_type> clause;
-		var_type act_var = solver_.add_variable();
 		for (uint32_t t_phy = 0; t_phy < num_phy(); ++t_phy) {
 			uint32_t t_v_phy_var = v_to_phy_var(t_v, t_phy);
-			clause.emplace_back(act_var, bill::negative_polarity);
 			clause.emplace_back(t_v_phy_var, bill::negative_polarity);
 			for (uint32_t c_phy = 0; c_phy < num_phy(); ++c_phy) {
 				if (c_phy == t_phy || !device_.are_connected(c_phy, t_phy)) {
@@ -161,13 +141,12 @@ private:
 			solver_.add_clause(clause);
 			clause.clear();
 		}
-		return act_var;
 	}
 
 private:
-	bill::var_type v_to_phy_var(uint32_t virtual_id, uint32_t physical_id)
+	bill::var_type v_to_phy_var(uint32_t v_id, uint32_t phy_id)
 	{
-		return virtual_id * num_phy() + physical_id;
+		return v_id * num_phy() + phy_id;
 	}
 
 	uint32_t triangle_to_vector_idx(uint32_t i, uint32_t j)
@@ -193,13 +172,13 @@ private:
 	std::vector<wire::id> v_to_wire_;
 };
 
-/*! \brief
+/*! \brief Yet to be written.
  */
 template<typename Network>
-std::vector<wire::id> sat_placement(Network const& network, device const& device)
+std::vector<wire::id> sat_place(Network const& network, device const& device)
 {
 	bill::solver solver;
-	detail::placement_cnf_encoder encoder(network, device, solver);
+	place_cnf_encoder encoder(network, device, solver);
 	return encoder.run();
 }
 

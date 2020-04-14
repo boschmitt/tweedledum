@@ -7,7 +7,7 @@
 
 #include "tweedledum/algorithms/synthesis/oracles/xag_synth.hpp"
 
-#include "tweedledum/algorithms/generic/to_logic_network.hpp"
+#include "tweedledum/algorithms/utility/to_logic_network.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
 #include "tweedledum/io/write_utf8.hpp"
