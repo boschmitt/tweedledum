@@ -207,7 +207,7 @@ public:
     auto const po_index = _storage->outputs.size();
     _storage->outputs.emplace_back( f.index, f.complement );
     ++_storage->data.num_pos;
-    return po_index;
+    return static_cast<uint32_t>( po_index );
   }
 
   signal create_ro( std::string const& name = std::string() )
@@ -230,7 +230,7 @@ public:
     auto const ri_index = _storage->outputs.size();
     _storage->outputs.emplace_back( f.index, f.complement );
     _storage->data.latches.emplace_back( reset );
-    return ri_index;
+    return static_cast<uint32_t>( ri_index );
 
   }
 
@@ -604,7 +604,7 @@ public:
 
   uint32_t num_latches() const
   {
-      return _storage->data.latches.size();
+      return static_cast<uint32_t>( _storage->data.latches.size() );
   }
 
   auto num_pis() const
@@ -680,6 +680,24 @@ public:
   }
 
   bool is_xor3( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nary_and( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nary_or( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nary_xor( node const& n ) const
   {
     (void)n;
     return false;
@@ -761,7 +779,7 @@ public:
   uint32_t ci_index( node const& n ) const
   {
     assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data );
-    return ( _storage->nodes[n].children[0].data );
+    return static_cast<uint32_t>( _storage->nodes[n].children[0].data );
   }
 
   uint32_t co_index( signal const& s ) const
@@ -783,7 +801,7 @@ public:
     assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data );
     assert( _storage->nodes[n].children[0].data < _storage->data.num_pis );
 
-    return ( _storage->nodes[n].children[0].data );
+    return static_cast<uint32_t>( _storage->nodes[n].children[0].data );
   }
 
   uint32_t po_index( signal const& s ) const
@@ -805,7 +823,7 @@ public:
     assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data );
     assert( _storage->nodes[n].children[0].data >= _storage->data.num_pis );
 
-    return ( _storage->nodes[n].children[0].data - _storage->data.num_pis );
+    return static_cast<uint32_t>( _storage->nodes[n].children[0].data - _storage->data.num_pis );
   }
 
   uint32_t ri_index( signal const& s ) const

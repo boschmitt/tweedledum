@@ -203,7 +203,7 @@ public:
 
     /* increase ref-count to children */
     _storage->nodes[f.index].data[0].h1++;
-    auto const po_index = _storage->outputs.size();
+    auto const po_index = static_cast<uint32_t>( _storage->outputs.size() );
     _storage->outputs.emplace_back( f.index, f.complement );
     ++_storage->data.num_pos;
     return po_index;
@@ -226,7 +226,7 @@ public:
 
     /* increase ref-count to children */
     _storage->nodes[f.index].data[0].h1++;
-    auto const ri_index = _storage->outputs.size();
+    auto const ri_index = static_cast<uint32_t>( _storage->outputs.size() );
     _storage->outputs.emplace_back( f.index, f.complement );
     _storage->data.latches.emplace_back( reset );
     return ri_index;
@@ -446,14 +446,15 @@ public:
 #pragma region Create arbitrary functions
   signal clone_node( xag_network const& other, node const& source, std::vector<signal> const& children )
   {
-    (void)other;
-    (void)source;
     assert( children.size() == 2u );
     if ( other.is_and( source ) )
-      //if ( children[0u].index < children[1u].index )
+    {
       return create_and( children[0u], children[1u] );
+    }
     else
+    {
       return create_xor( children[0u], children[1u] );
+    }
   }
 #pragma endregion
 
@@ -644,7 +645,7 @@ public:
 
   uint32_t num_latches() const
   {
-      return _storage->data.latches.size();
+      return static_cast<uint32_t>( _storage->data.latches.size());
   }
 
   auto num_pis() const
@@ -719,6 +720,24 @@ public:
   }
 
   bool is_xor3( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nary_and( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nary_or( node const& n ) const
+  {
+    (void)n;
+    return false;
+  }
+
+  bool is_nary_xor( node const& n ) const
   {
     (void)n;
     return false;
@@ -807,7 +826,7 @@ public:
   uint32_t ci_index( node const& n ) const
   {
     assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data );
-    return ( _storage->nodes[n].children[0].data );
+    return static_cast<uint32_t>( _storage->nodes[n].children[0].data );
   }
 
   uint32_t co_index( signal const& s ) const
@@ -829,7 +848,7 @@ public:
     assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data );
     assert( _storage->nodes[n].children[0].data < _storage->data.num_pis );
 
-    return ( _storage->nodes[n].children[0].data );
+    return static_cast<uint32_t>( _storage->nodes[n].children[0].data );
   }
 
   uint32_t po_index( signal const& s ) const
@@ -851,7 +870,7 @@ public:
     assert( _storage->nodes[n].children[0].data == _storage->nodes[n].children[1].data );
     assert( _storage->nodes[n].children[0].data >= _storage->data.num_pis );
 
-    return ( _storage->nodes[n].children[0].data - _storage->data.num_pis );
+    return static_cast<uint32_t>( _storage->nodes[n].children[0].data - _storage->data.num_pis );
   }
 
   uint32_t ri_index( signal const& s ) const

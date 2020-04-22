@@ -264,7 +264,7 @@ public:
     auto tt = kitty::create<truthtable_t>( max_pis );
     tts[0] = tt;
 
-    for ( auto i = 0; i < tt.num_vars(); ++i )
+    for ( auto i = 0u; i < tt.num_vars(); ++i )
     {
       kitty::create_nth_var( tt, i );
       tts[i + 1] = tt;
@@ -625,7 +625,7 @@ private:
     /* simulate the collected divisors */
     call_with_stopwatch( st.time_simulation, [&]() { simulate( leaves ); } );
 
-    auto care = kitty::create<TT>( leaves.size() );
+    auto care = kitty::create<TT>( static_cast<unsigned int>( leaves.size() ) );
     if ( ps.use_dont_cares )
       care = ~satisfiability_dont_cares( ntk, leaves, ps.window_size );
     else

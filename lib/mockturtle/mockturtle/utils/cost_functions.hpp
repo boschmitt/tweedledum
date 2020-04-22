@@ -71,9 +71,55 @@ struct mc_cost
       }
     }
 
+    if constexpr ( has_is_nary_and_v<Ntk> )
+    {
+      if ( ntk.is_nary_and( node ) )
+      {
+        if ( ntk.fanin_size( node ) > 1u )
+        {
+          return ntk.fanin_size( node ) - 1u;
+        }
+        return 0u;
+      }
+    }
+
+    if constexpr ( has_is_nary_or_v<Ntk> )
+    {
+      if ( ntk.is_nary_or( node ) )
+      {
+        if ( ntk.fanin_size( node ) > 1u )
+        {
+          return ntk.fanin_size( node ) - 1u;
+        }
+        return 0u;
+      }
+    }
+
+    if constexpr ( has_is_nary_xor_v<Ntk> )
+    {
+      if ( ntk.is_nary_xor( node ) )
+      {
+        return 0u;
+      }
+    }
+
     // TODO (Does not take into account general node functions)
     return 1u;
   }
 };
+
+template<class Ntk, class NodeCostFn = unit_cost<Ntk>>
+uint32_t costs( Ntk const& ntk )
+{
+  static_assert( is_network_type_v<Ntk>, "Ntk is not a network type" );
+  static_assert( has_foreach_gate_v<Ntk>, "Ntk does not implement the foreach_gate method" );
+
+  uint32_t total{0u};
+  NodeCostFn cost_fn{};
+  ntk.foreach_gate( [&]( auto const& n ) {
+    total += cost_fn( ntk, n );
+  });
+  return total;
+}
 
 } /* namespace mockturtle */

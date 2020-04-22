@@ -24,53 +24,27 @@
  */
 
 /*!
-  \file akers.hpp
-  \brief Resynthesis with Akers synthesis
+  \file percy.hpp
+  \brief Include percy, disable warnings for Windows
 
   \author Mathias Soeken
-  \author Eleonora Testa
 */
 
 #pragma once
 
-#include <iostream>
-#include <sstream>
-#include <unordered_map>
-#include <vector>
-
-#include <kitty/dynamic_truth_table.hpp>
-#include <kitty/operators.hpp>
-
-#include "../../algorithms/akers_synthesis.hpp"
-
-namespace mockturtle
-{
-
-/*! \brief Resynthesis function based on Akers synthesis.
- *
- * This resynthesis function can be passed to ``node_resynthesis``,
- * ``cut_rewriting``, and ``refactoring``.
- *
-   \verbatim embed:rst
-
-   Example
-
-   .. code-block:: c++
-
-      const klut_network klut = ...;
-      akers_resynthesis<mig_network> resyn;
-      const auto mig = node_resynthesis<mig_network>( klut, resyn );
-   \endverbatim
- */
-template<class Ntk>
-class akers_resynthesis
-{
-public:
-  template<typename LeavesIterator, typename Fn>
-  void operator()( Ntk& ntk, kitty::dynamic_truth_table const& function, LeavesIterator begin, LeavesIterator end, Fn&& fn ) const
-  {
-    fn( akers_synthesis<Ntk>( ntk, function, ~function.construct(), begin, end ) );
-  }
-};
-
-} /* namespace mockturtle */
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4018)
+#pragma warning(disable: 4068)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4267)
+#pragma warning(disable: 4334)
+#pragma warning(disable: 4477)
+#pragma warning(disable: 4566)
+#pragma warning(disable: 4805)
+#pragma warning(disable: 4996)
+#include <percy/percy.hpp>
+#pragma warning(pop)
+#else
+#include <percy/percy.hpp>
+#endif

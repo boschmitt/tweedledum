@@ -325,6 +325,20 @@ public:
         continue;
       }
 
+      if ( true ) // ( ps.fix_bug )
+      {
+        if ( kitty::implies( ~tt_d, tt ) )
+        {
+          udivs.positive_divisors.emplace_back( !ntk.make_signal( d ) );
+          continue;
+        }
+        if ( kitty::implies( tt, ~tt_d ) )
+        {
+          udivs.negative_divisors.emplace_back( !ntk.make_signal( d ) );
+          continue;
+        }
+      }
+
       udivs.next_candidates.emplace_back( ntk.make_signal( d ) );
     }
   }
@@ -747,7 +761,7 @@ void aig_resubstitution( Ntk& ntk, resubstitution_params const& ps = {}, resubst
   resubstitution_stats st;
   if ( ps.max_pis == 8 )
   {
-    using truthtable_t = kitty::static_truth_table<8>;
+    using truthtable_t = kitty::static_truth_table<8u>;
     using truthtable_dc_t = kitty::dynamic_truth_table;
     using simulator_t = detail::simulator<resub_view_t, truthtable_t>;
     using node_mffc_t = detail::node_mffc_inside<Ntk>;
