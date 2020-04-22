@@ -6,6 +6,7 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
+#include "../../utils/bit_matrix_rm.hpp"
 #include "../../utils/parity_terms.hpp"
 
 #include <bill/sat/cardinality.hpp>
@@ -102,7 +103,7 @@ public:
 			qubits_states.emplace_back(1u << i);
 			angle rotation = parities_.extract_term(qubits_states[i]);
 			if (rotation != 0.0) {
-				network.create_op(gate_lib::rz(rotation), qubits.at(i));
+				network.create_op(gate_lib::r1(rotation), qubits.at(i));
 			}
 		}
 		for (uint32_t moment = 0u; moment < (num_moments_ - 1); ++moment) {
@@ -121,7 +122,7 @@ public:
 			qubits_states[target] ^= qubits_states[control];
 			angle rotation = parities_.extract_term(qubits_states[target]);
 			if (rotation != 0.0) {
-				network.create_op(gate_lib::rz(rotation), qubits.at(target));
+				network.create_op(gate_lib::r1(rotation), qubits.at(target));
 			}
 		}
 	}
@@ -400,6 +401,17 @@ void cnot_rz(Network& network, std::vector<wire::id> const& qubits,
 		}
 		encoder.encode_new_moment();
 	} while (1);
+}
+
+template<class Network>
+void cnot_rz(Network& network, std::vector<wire::id> const& qubits,
+             parity_terms<uint32_t> const& parities, cnot_rz_params params = {})
+{
+	bit_matrix_rm<> matrix(qubits.size(), qubits.size());
+	for (uint32_t i = 0; i < qubits.size(); ++i) {
+		matrix.at(i, i) = 1;
+	}
+	cnot_rz(network, qubits, matrix, parities, params);
 }
 
 /*! \brief
