@@ -23,10 +23,12 @@ namespace tweedledum::detail {
  * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
-void ccz(Network& network, wire::id const x, wire::id const y, wire::id const z)
+void ccz(Network& network, wire::id x, wire::id y, wire::id const z)
 {
-	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());
+	if (y.is_complemented() && !x.is_complemented()) {
+		std::swap(x, y);
+	}
 	network.create_op(gate_lib::cx, y.wire(), z);
 	network.create_op(x.is_complemented() ? gate_lib::t : gate_lib::tdg, z);
 	network.create_op(gate_lib::cx, x.wire(), z);
@@ -36,11 +38,11 @@ void ccz(Network& network, wire::id const x, wire::id const y, wire::id const z)
 	network.create_op(gate_lib::cx, x.wire(), z);
 	network.create_op(x.is_complemented() && !y.is_complemented()? gate_lib::tdg : gate_lib::t, z);
 	
-	network.create_op(gate_lib::cx, x.wire(), y);
-	network.create_op(gate_lib::tdg, y);
-	network.create_op(gate_lib::cx, x.wire(), y);
-	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x);
-	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y);
+	network.create_op(gate_lib::cx, x.wire(), y.wire());
+	network.create_op(gate_lib::tdg, y.wire());
+	network.create_op(gate_lib::cx, x.wire(), y.wire());
+	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x.wire());
+	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y.wire());
 }
 
 /* Better T gate parallelization at the expense of an extra CNOT gate.
@@ -59,10 +61,12 @@ void ccz(Network& network, wire::id const x, wire::id const y, wire::id const z)
  * that a complemented `y` implies (->) a complemented `x`.
  */
 template<typename Network>
-void ccz_tpar(Network& network, wire::id const x, wire::id const y, wire::id const z)
+void ccz_tpar(Network& network, wire::id x, wire::id y, wire::id const z)
 {
-	assert(!y.is_complemented() || x.is_complemented());
 	assert(!z.is_complemented());
+	if (y.is_complemented() && !x.is_complemented()) {
+		std::swap(x, y);
+	}
 	network.create_op(y.is_complemented() ? gate_lib::tdg : gate_lib::t, x.wire());
 	network.create_op(x.is_complemented() ? gate_lib::tdg : gate_lib::t, y.wire());
 	network.create_op(x.is_complemented() && !y.is_complemented() ? gate_lib::tdg : gate_lib::t, z);
@@ -71,12 +75,12 @@ void ccz_tpar(Network& network, wire::id const x, wire::id const y, wire::id con
 	network.create_op(gate_lib::cx, y.wire(), z);
 	network.create_op(gate_lib::cx, z, x.wire());
 
-	network.create_op(x.is_complemented() ? gate_lib::t : gate_lib::tdg, x);
+	network.create_op(x.is_complemented() ? gate_lib::t : gate_lib::tdg, x.wire());
 	network.create_op(gate_lib::tdg, y.wire());
 	network.create_op(gate_lib::t, z);
 
 	network.create_op(gate_lib::cx, y.wire(), x.wire());
-	network.create_op(y.is_complemented() ? gate_lib::t : gate_lib::tdg, x);
+	network.create_op(y.is_complemented() ? gate_lib::t : gate_lib::tdg, x.wire());
 	network.create_op(gate_lib::cx, y.wire(), z);
 	network.create_op(gate_lib::cx, z, x.wire());
 	network.create_op(gate_lib::cx, x.wire(), y.wire());
