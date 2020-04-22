@@ -53,7 +53,7 @@ struct stg_from_exact_esop {
 			std::vector<wire::id> negations;
 			auto bits = cube._bits;
 			auto mask = cube._mask;
-			for (auto v = 0; v < num_controls; ++v) {
+			for (uint32_t v = 0u; v < num_controls; ++v) {
 				if (mask & 1) {
 					controls.emplace_back((bits & 1) ? qubits[v] : !qubits[v]);
 				}
@@ -89,7 +89,7 @@ struct stg_from_pkrm {
 			std::vector<wire::id> negations;
 			auto bits = cube._bits;
 			auto mask = cube._mask;
-			for (auto v = 0; v < num_controls; ++v) {
+			for (uint32_t v = 0u; v < num_controls; ++v) {
 				if (mask & 1) {
 					controls.emplace_back((bits & 1) ? qubits[v] : !qubits[v]);
 				}
@@ -126,7 +126,7 @@ struct stg_from_pprm {
 			assert(cube._bits == cube._mask); /* PPRM property */
 			std::vector<wire::id> controls;
 			auto bits = cube._bits;
-			for (auto v = 0; v < num_controls; ++v) {
+			for (uint32_t v = 0u; v < num_controls; ++v) {
 				if (bits & 1) {
 					controls.push_back(qubits[v]);
 				}

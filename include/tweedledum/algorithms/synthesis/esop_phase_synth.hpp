@@ -29,7 +29,7 @@ void esop_phase_synth(Network& network, std::vector<wire::id> const& qubits,
 	for (const auto& cube : easy::esop::esop_from_pprm(function)) {
 		std::vector<wire::id> controls;
 		std::vector<wire::id> targets;
-		for (auto i = 0; i < function.num_vars(); ++i) {
+		for (uint32_t i = 0u; i < function.num_vars(); ++i) {
 			if (!cube.get_mask(i)) {
 				continue;
 			}
