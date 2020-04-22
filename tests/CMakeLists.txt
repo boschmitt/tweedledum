@@ -1,6 +1,6 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
 # CMake build : tweedledum library tests
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}") # I wish: -fno-rtti, but percy requires it :(
 
 include_directories(catch2)
 
