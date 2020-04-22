@@ -19,35 +19,35 @@
 
 using namespace tweedledum;
 
-TEMPLATE_PRODUCT_TEST_CASE("Decompose using barenco", "[decomp][template]", (netlist), (wn32_op))
+TEMPLATE_PRODUCT_TEST_CASE("Decompose using barenco", "[decomp]", (netlist), (wn32_op))
 {
-	TestType network;
+	TestType circuit;
 	std::vector<wire::id> qubits(5, wire::invalid_id);
-	std::generate(qubits.begin(), qubits.end(), [&] () { return network.create_qubit(); });
+	std::generate(qubits.begin(), qubits.end(), [&] () { return circuit.create_qubit(); });
 
-	network.create_op(gate_lib::ncx,
+	circuit.create_op(gate_lib::ncx,
 	                  std::vector({qubits.at(0), qubits.at(1), qubits.at(2), qubits.at(3)}),
 	                  std::vector({qubits.at(4)}));
-	network.create_op(gate_lib::ncx, std::vector({qubits.at(0), qubits.at(1), qubits.at(2)}),
+	circuit.create_op(gate_lib::ncx, std::vector({qubits.at(0), qubits.at(1), qubits.at(2)}),
 	                  std::vector({qubits.at(3)}));
-	network.create_op(gate_lib::ncx, qubits.at(0), qubits.at(1), qubits.at(2));
-	network.create_op(gate_lib::cx, qubits.at(0), qubits.at(1));
-	network.create_op(gate_lib::x, qubits.at(0));
+	circuit.create_op(gate_lib::ncx, qubits.at(0), qubits.at(1), qubits.at(2));
+	circuit.create_op(gate_lib::cx, qubits.at(0), qubits.at(1));
+	circuit.create_op(gate_lib::x, qubits.at(0));
 
 	decomp_params params;
+	params.barenco_controls_threshold = 2u;
 	params.gate_set = gate_set::classic_rev;
-	TestType decomp_network = decompose(network, params);
-	CHECK(decomp_network.num_qubits() == network.num_qubits() + 1);
+	TestType decomposed = decompose(circuit, params);
+	CHECK(decomposed.num_qubits() == circuit.num_qubits() + 1);
 
 	// Create ancilla
-	network.create_qubit();
-
+	circuit.create_qubit();
 	for (uint64_t i = 0ull; i < 32ull; ++i) {
-		CHECK(simulate_classically(network, i) == simulate_classically(decomp_network, i));
+		CHECK(simulate_classically(circuit, i) == simulate_classically(decomposed, i));
 	}
 }
 
-TEMPLATE_PRODUCT_TEST_CASE("IBM", "[decomp][template]", (netlist, op_dag), (w3_op, wn32_op))
+TEMPLATE_PRODUCT_TEST_CASE("IBM", "[decomp]", (netlist, op_dag), (w3_op, wn32_op))
 {
 	decomp_params params;
 	params.gate_set = gate_set::ibm;
@@ -69,30 +69,29 @@ TEMPLATE_PRODUCT_TEST_CASE("IBM", "[decomp][template]", (netlist, op_dag), (w3_o
 		two_wire.emplace_back(gate_lib::cry(a));
 		two_wire.emplace_back(gate_lib::crz(a));
 	}
-
 	for (gate const& g : one_wire) {
-		// Create quantum network
-		TestType network;
-		wire::id q0 = network.create_qubit();
-		network.create_op(g, q0);
+		// Create quantum circuit
+		TestType circuit;
+		wire::id q0 = circuit.create_qubit();
+		circuit.create_op(g, q0);
 		// Decompose
-		TestType decomp_network = decompose(network, params);
+		TestType decomposed = decompose(circuit, params);
 		// Create unitaries
-		unitary u_decomp(network);
+		unitary u_decomp(circuit);
 		unitary u(1u);
 		u.create_op(g, q0);
 		CHECK(u.is_apprx_equal(u_decomp));
 	}
 	for (gate const& g : two_wire) {
-		// Create quantum network
-		TestType network;
-		wire::id q0 = network.create_qubit();
-		wire::id q1 = network.create_qubit();
-		network.create_op(g, q0, q1);
+		// Create quantum circuit
+		TestType circuit;
+		wire::id q0 = circuit.create_qubit();
+		wire::id q1 = circuit.create_qubit();
+		circuit.create_op(g, q0, q1);
 		// Decompose
-		TestType decomp_network = decompose(network, params);
+		TestType decomposed = decompose(circuit, params);
 		// Create unitaries
-		unitary u_decomp(network);
+		unitary u_decomp(circuit);
 		unitary u(2u);
 		u.create_op(g, q0, q1);
 		CHECK(u.is_apprx_equal(u_decomp));
