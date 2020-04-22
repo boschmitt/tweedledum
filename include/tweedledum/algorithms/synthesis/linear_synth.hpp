@@ -133,7 +133,7 @@ template<class Network>
 void linear_synth(Network& network, std::vector<wire::id> const& qubits,
                   parity_terms<uint32_t> const& parities, linear_synth_params params = {})
 {
-	assert(qubits.size() <= 6);
+	assert(qubits.size() <= 32);
 	switch (params.strategy) {
 		case linear_synth_params::strategy::binary:
 			detail::linear_synth_binary(network, qubits, parities);
@@ -163,7 +163,7 @@ template<class Network>
 Network linear_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities,
                      linear_synth_params params = {})
 {
-	assert(num_qubits <= 6);
+	assert(num_qubits <= 32);
 	Network network;
 	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {

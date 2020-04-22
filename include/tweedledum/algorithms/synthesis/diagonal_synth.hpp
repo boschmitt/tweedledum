@@ -8,6 +8,7 @@
 #include "../../utils/angle.hpp"
 #include "../../utils/parity_terms.hpp"
 #include "gray_synth.hpp"
+#include "linear_synth.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -43,8 +44,7 @@ inline void fast_hadamard_transform(std::vector<angle>& angles)
  * \param angles Angles for diagonal matrix elements
  */
 template<class Network>
-void diagonal_synth(Network& network, std::vector<wire::id> const& qubits,
-                    std::vector<angle> const& angles)
+void diagonal_synth(Network& network, std::vector<wire::id> qubits, std::vector<angle> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
 	assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
@@ -54,18 +54,39 @@ void diagonal_synth(Network& network, std::vector<wire::id> const& qubits,
 	// Normalize input angles
 	std::vector<angle> norm_angles;
 	std::transform(angles.begin(), angles.end(), std::back_inserter(norm_angles),
-	               [](angle a) { return -a; });
+	               [](angle const& a) { return -a; });
+
+	// Normalize qubits polarity
+	uint32_t const num_angles_2 = (angles.size() / 2);
+	uint32_t index = 0u;
+	for (uint32_t i = qubits.size(); i --> 0;) {
+		if (!qubits.at(index).is_complemented()) {
+			index++;
+			continue;
+		}
+		qubits.at(index++).complement();
+		for (uint32_t j = 0u; j < num_angles_2; j += (num_angles_2 >> i)) {
+			for (uint32_t k = (j << 1); k < ((num_angles_2 >> i) + (j << 1)); k += 1) {
+				std::swap(norm_angles.at(k), norm_angles.at((num_angles_2 >> i) + k));
+			}
+		}
+	}
 
 	detail::fast_hadamard_transform(norm_angles);
 	uint32_t factor = (1 << (qubits.size() - 1));
 	parity_terms<uint32_t> parities;
-	for (uint32_t i = 1u; i < norm_angles.size(); ++i) {
+	for (uint32_t i = 0u; i < norm_angles.size(); ++i) {
 		if (norm_angles.at(i) == sym_angle::zero) {
 			continue;
 		}
 		parities.add_term(i, norm_angles.at(i) / factor);
 	}
-	gray_synth(network, qubits, parities);
+	// cnot_rz(network, qubits, parities);
+	if (parities.num_terms() == norm_angles.size()) {
+		linear_synth(network, qubits, parities);
+	} else {
+		gray_synth(network, qubits, parities);
+	}
 }
 
 /*! \brief Synthesis of diagonal unitary matrices.
