@@ -155,10 +155,7 @@ struct partial_truth_table
     _num_bits = num_bits;
 
     unsigned needed_blocks = num_bits ? ( ( ( num_bits - 1 ) >> 6 ) + 1 ) : 0;
-    if ( needed_blocks > _bits.size() )
-    {
-      _bits.resize( needed_blocks, 0u );
-    }
+    _bits.resize( needed_blocks, 0u );
 
     mask_bits();
   }
