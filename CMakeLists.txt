@@ -26,7 +26,6 @@ endif()
 # Options
 # =============================================================================
 option(TWEEDLEDUM_DOCS "Build documentation" OFF)
-option(TWEEDLEDUM_BLAS "Enable xtensor-blas functionality" OFF)
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 option(TWEEDLEDUM_EXPERIMENTS "Build experiments" OFF)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
@@ -44,9 +43,6 @@ add_library(tweedledum INTERFACE)
 target_include_directories(tweedledum INTERFACE ${PROJECT_SOURCE_DIR}/include)
 target_link_libraries(tweedledum INTERFACE bill easy fmt glucose kitty mockturtle
                                            nlohmann_json rang tweedledee)
-if(TWEEDLEDUM_BLAS)
-  target_link_libraries(tweedledum INTERFACE xtensor-blas)
-endif()
 
 # Documentation
 # =============================================================================

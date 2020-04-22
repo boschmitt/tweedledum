@@ -12,7 +12,6 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_tests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/barenco.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/decompose.cpp"
-  # "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/multiplexor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/utility/to_logic_network.cpp"
   # "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/initial_map.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/mapping/placement/line_placement.cpp"
@@ -50,12 +49,6 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/utils/angle.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/views/layers_view.cpp"
   )
-
-# if(TWEEDLEDUM_BLAS)
-#   set(tweedledum_tests_files
-#     "${tweedledum_tests_files}"
-#     )
-# endif()
 
 add_executable(run_tests "${tweedledum_tests_files}")
 target_link_libraries(run_tests tweedledum)
