@@ -26,28 +26,34 @@ namespace bill {
  *        is a requirement.
  * 
  *  Limitations:
- *  	- Maximum number of varibales `N_max` is: 4095 [(1 << 12) - 1]
  *  	- The number of variables `N` must be known at instantiation time. 
  * 
  * Variables are numbered from `0` to `N - 1`.
  */
+
+// TODO: Implement complemented edges
+// TODO: Implement variable reordering
+// TODO: Implement Variable order heuristics
+// TODO: Implement Chain reduction
+// TODO: Implement subsets operator
+// TODO: Implement supersets operator
 class zdd_base {
 #pragma region Types and constructors
 private:
 	struct node_type {
 		node_type(uint32_t var, uint32_t lo, uint32_t hi)
-		    : var(var)
-		    , ref(0)
-		    , dead(0)
+		    : marked(0)
+		    , var(var)
+		    , refs(0)
 		    , lo(lo)
 		    , hi(hi)
 		{}
 
-		uint64_t var : 12;
-		uint64_t ref : 11;
-		uint64_t dead : 1;
-		uint64_t lo : 20;
-		uint64_t hi : 20;
+		uint32_t marked : 1;
+		uint32_t var : 31;
+		int32_t  refs; // Number of references - 1
+		uint32_t lo;
+		uint32_t hi;
 	};
 
 	enum operations : uint32_t {
@@ -56,6 +62,9 @@ private:
 		zdd_edivide,
 		zdd_intersection,
 		zdd_join,
+		zdd_maximal,
+		zdd_meet,
+		zdd_nonsubsets,
 		zdd_nonsupersets,
 		zdd_union,
 		num_operations
@@ -66,188 +75,275 @@ public:
 
 	/* \!brief Creates a new ZDD base.
 	 * 
-	 * \param num_vars Number of variables (maximum = 4095)
+	 * \param num_vars Number of variables
 	 * \param log_num_objs Log number of nodes to pre-allocate (default: 16)
 	 */
 	explicit zdd_base(uint32_t num_vars, uint32_t log_num_objs = 16)
 	    : unique_tables_(num_vars)
-	    , built_tautologies(false)
-	    , num_variables(num_vars)
-	    , num_cache_lookups(0)
-	    , num_cache_misses(0)
+	    , num_dead_nodes_(0u)
+	    , num_cache_lookups_(0u)
+	    , num_cache_misses_(0u)
 	{
-		assert(num_variables <= 4095);
+		assert(num_variables() <= 4095);
 		nodes_.reserve(1u << log_num_objs);
 		nodes_.emplace_back(num_vars, 0, 0);
 		nodes_.emplace_back(num_vars, 1, 1);
-		for (auto var = 0u; var < num_vars; ++var) {
-			ref(unique(var, 0, 1));
-		}
+		build_elementary();
+		build_tautologies();
 	}
 #pragma endregion
 
 #pragma region ZDD base properties
 public:
 	/*! \brief Return the number of active nodes. */
-	std::size_t num_nodes() const
+	uint32_t num_nodes() const
 	{
-		return nodes_.size() - 2 - free_nodes_.size();
+		return nodes_.size() - 2 - num_dead_nodes_ - free_nodes_.size();
+	}
+
+	/*! \brief Return the number of active nodes. */
+	uint32_t num_variables() const
+	{
+		return unique_tables_.size();
 	}
 #pragma endregion
 
 #pragma region ZDD base operations
 private:
+
+	/* \!brief Returns an unique node for the tuple (var, lo, hi)
+	 *
+	 * Given a variable `var` and node indexes lo and hi, we want to see if the ZDD base
+	 * contains a node (var, lo, hi). If no such node exists, we create it. This function 
+	 * returns a index to this _unique_ node. One crucial technicality should be noted:
+	 * 
+	 * /!\ This operation can potentially invalidate pointers, iterators and references /!\
+	 * 
+	 * Indexes are not invalidated.
+	 */ 
 	node_index unique(uint32_t var, node_index lo, node_index hi)
 	{
+		assert(var < num_variables());
 		/* ZDD reduction rule */
-		if (hi == 0) {
+		if (hi == bottom()) {
+			--nodes_.at(hi).refs;
 			return lo;
 		}
 		assert(nodes_.at(lo).var > var);
 		assert(nodes_.at(hi).var > var);
 
-		/* unique table lookup */
-		const auto it = unique_tables_[var].find({lo, hi});
-		if (it != unique_tables_[var].end()) {
-			assert(!nodes_.at(it->second).dead);
-			return it->second;
+		/* Unique table lookup */
+		const auto it = unique_tables_.at(var).find({lo, hi});
+		if (it != unique_tables_.at(var).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				--num_dead_nodes_;
+				nodes_.at(it->second).refs = 0;
+				return it->second;
+			} else {
+				--nodes_.at(lo).refs;
+				--nodes_.at(hi).refs;
+			}
+			return ref(it->second);
 		}
 
-		/* create new node */
+		/* Create new node */
 		node_index new_node_index;
+	restart:
 		if (!free_nodes_.empty()) {
 			new_node_index = free_nodes_.top();
 			free_nodes_.pop();
-			nodes_.at(new_node_index).ref = 0;
-			nodes_.at(new_node_index).dead = 0;
+			nodes_.at(new_node_index).marked = 0;
 			nodes_.at(new_node_index).var = var;
+			nodes_.at(new_node_index).refs = 0;
 			nodes_.at(new_node_index).lo = lo;
 			nodes_.at(new_node_index).hi = hi;
-		} else if (nodes_.size() < nodes_.capacity()) {
+		} else {
+			if (num_dead_nodes_ > num_nodes() / 8) {
+				collect_garbage();
+				goto restart;
+			}
 			new_node_index = nodes_.size();
 			nodes_.emplace_back(var, lo, hi);
-		} else {
-			std::cerr << "[e] no more space for new nodes available\n";
-			exit(1);
-		}
-
-		/* increase ref counts */
-		ref(lo);
-		ref(hi);
-		return unique_tables_[var][{lo, hi}] = new_node_index;
+		} 
+		unique_tables_.at(var)[{lo, hi}] = new_node_index;
+		return new_node_index;
 	}
 
-	void garbage_collect_rec(node_index index)
+	/* \! brief Recursively revives a dead, but unrecycled node
+	 *
+	 * When we discover that a node exists, but it is dead, i.e. all links to it have gone
+	 * away, but we haven’t recycled it yet. We bring it back to life!
+	 * 
+	 * It increases the reference counts of the node's children, and resuscitates them if they
+	 * were dead.
+	 */
+	void revive_node(node_index index)
 	{
-		if (index <= 1) {
-			return;
-		}
+		assert(nodes_.at(index).refs < 0);
+	restart:
 		node_type& node = nodes_.at(index);
-		if (node.ref == 0 || node.dead == 1) {
-			return;
+		node.refs = 0;
+		--num_dead_nodes_;
+		if (nodes_.at(node.lo).refs < 0) {
+			revive_node(node.lo);
+		} else {
+			ref(node.lo);
 		}
-		if (--(node.ref) == 0) {
-			kill_node(index);
-			garbage_collect_rec(node.lo);
-			garbage_collect_rec(node.hi);
+		if (nodes_.at(node.hi).refs < 0) {
+			index = node.hi;
+			goto restart;
 		}
+		ref(node.hi);
 	}
 
+	/* \!brief Recursively kills a node 
+	 *
+	 * When the reference count of a node reeaches -1, we kill it. It decreases the reference
+	 * counts of the node's children, and kill them too(!) if necessary, i.e. their reference
+	 * count reaches -1.
+	 */
 	void kill_node(node_index index)
 	{
-		free_nodes_.push(index);
+		assert(nodes_.at(index).refs == 0);
+	restart:
 		node_type& node = nodes_.at(index);
-		node.dead = 1;
-
-		/* Remove node from unique table */
-		node_index lo = node.lo;
-		node_index hi = node.hi;
-		const auto it = unique_tables_[node.var].find({lo, hi});
-		assert(it != unique_tables_[node.var].end());
-		assert(it->second == index);
-		unique_tables_[node.var].erase(it);
+		node.refs = -1;
+		++num_dead_nodes_;
+		if (nodes_.at(node.lo).refs == 0) {
+			kill_node(node.lo);
+		} else {
+			--nodes_.at(node.lo).refs;
+		}
+		if (nodes_.at(node.hi).refs == 0) {
+			index = node.hi;
+			goto restart;
+		}
+		--nodes_.at(node.hi).refs;
 	}
+
+	/* \!brief Return the tautology function */
+	node_index tautology(uint32_t var)
+	{
+		if (var == num_variables()) {
+			return top();
+		}
+		return (2 * num_variables()) + 1u - var;
+	}
+
+	void cache_cleanup()
+	{
+		auto check_nodes = [&](node_index a, node_index b, node_index c) -> bool {
+			if (nodes_.at(a).refs < 0) {
+				return true;
+			}
+			if (nodes_.at(b).refs < 0) {
+				return true;
+			}
+			return nodes_.at(c).refs < 0;
+		};
+		for (auto& table : computed_tables_) {
+			for (auto it = table.begin(); it != table.end();) {
+				auto [index_f, index_g] = it->first;
+				if (check_nodes(it->second, index_f, index_g)) {
+					it = table.erase(it);
+					continue;
+				} else {
+					++it;
+				}
+			}
+		}
+	}
+
+	void tables_cleanup()
+	{
+		/* Skip terminals and elementary nodes */
+		uint32_t const begin = (2 * num_variables()) + 2;
+		for (uint32_t index = begin; index < nodes_.size(); ++index) {
+			node_type& node = nodes_.at(index);
+			if (node.refs >= 0) {
+				continue;
+			}
+			auto const it = unique_tables_.at(node.var).find({node.lo, node.hi});
+			assert(it != unique_tables_.at(node.var).end());
+			unique_tables_.at(node.var).erase(it);
+			free_nodes_.push(index);
+			node.refs = 0;
+		}
+	}
+
+	/*! \brief Creates a node at each level that means "tautology from here on" */
+	void build_tautologies()
+	{
+		assert(nodes_.size() == num_variables() + 2u);
+		node_index last = top();
+		for (int var = num_variables() - 1; var >= 0; --var) {
+			ref(last, 2);
+			last = unique(var, last, last);
+			assert(last == (2 * num_variables()) + 1u - var);
+			if (var != 0) {
+				--nodes_.at(last).refs;
+			}
+		}
+	}
+
+	/*! \brief Create nodes corresponding to the elementary families */
+	void build_elementary()
+	{
+		for (auto var = 0u; var < num_variables(); ++var) {
+			unique(var, bottom(), top());
+			ref(bottom());
+			ref(top());
+		};
+		--nodes_.at(bottom()).refs;
+		--nodes_.at(top()).refs;
+	}
+
 public:
-	/*! \brief Returns the node index corresponding to the empty family (aka, node FALSE) */
+	/*! \brief Returns the node index corresponding to the `empty family` */
 	node_index bottom() const
 	{
 		return 0u;
 	}
 
-	/*! \brief Returns the node index corresponding to the unit family (ake, node TRUE) */
+	/*! \brief Returns the node index corresponding to the `unit family` */
 	node_index top() const
 	{
 		return 1u;
 	}
 
 	/*! \brief Returns the node-id corresponding to the elementary family `{{var}}` */
-	node_index elementary(uint32_t var) const
+	node_index elementary(uint32_t var)
 	{
-		assert(var < num_variables);
+		assert(var < num_variables());
 		return var + 2u;
 	}
 
-	/*! \brief Build and store tautology functions
-	 *
-	 * This function needs to be called before any other node is created,
-	 * right after the constructor.
-	 */
-	void build_tautologies()
-	{
-		assert(nodes_.size() == unique_tables_.size() + 2u);
-		node_index last = top();
-		for (int v = unique_tables_.size() - 1; v >= 0; --v) {
-			last = unique(v, last, last);
-			assert(last == 2 * unique_tables_.size() + 1u - v);
-		}
-		ref(last);
-		built_tautologies = true;
-	}
-
 	/*! \brief Increase the reference count of a node. */
-	void ref(node_index index)
+	node_index ref(node_index index, int32_t i = 1)
 	{
-		if (index > 1) {
-			nodes_.at(index).ref++;
-		}
+		assert(index < nodes_.size());
+		nodes_.at(index).refs += i;
+		return index;
 	}
 
 	/*! \brief Decrease the reference count of a node. */
 	void deref(node_index index)
 	{
-		if (index > 1 && nodes_.at(index).ref > 0) {
-			nodes_.at(index).ref--;
+		assert(index < nodes_.size());
+		assert(nodes_.at(index).refs >= 0);
+		if (nodes_.at(index).refs == 0) {
+			kill_node(index);
+			return;
 		}
+		--nodes_.at(index).refs;
 	}
 
-	/*! \brief Remove nodes that are not referenced. */
-	void garbage_collect()
+	/*! \brief Recycle all the dead nodes */
+	void collect_garbage()
 	{
-		std::vector<node_index> to_delete;
-		/* Skip terminals and elementary nodes */
-		for (auto it = nodes_.begin() + unique_tables_.size() + 2; it != nodes_.end(); ++it) {
-			if (it->ref == 0 && it->dead == 0) {
-				to_delete.push_back(std::distance(nodes_.begin(), it));
-			}
-		}
-		for (auto index : to_delete) {
-			kill_node(index);
-			node_type const& node = nodes_.at(index);
-			garbage_collect_rec(node.lo);
-			garbage_collect_rec(node.hi);
-		}
-
-		/* Remove node from compute table */
-		for (auto& table : computed_tables_) {
-			for (auto it = table.begin(); it != table.end();) {
-				if (nodes_[it->second].dead || nodes_[std::get<0>(it->first)].dead
-				    || nodes_[std::get<1>(it->first)].dead) {
-					it = table.erase(it);
-				} else {
-					++it;
-				}
-			}
-		}
+		cache_cleanup();
+		tables_cleanup();
+		num_dead_nodes_ = 0;
 	}
 #pragma endregion
 
@@ -256,60 +352,74 @@ public:
 	/* \!brief Computes the family of all ``k``-combinations of a ZDD.  */
 	node_index choose(node_index index_f, uint32_t k)
 	{
+		constexpr operations op = operations::zdd_choose;
+		if (index_f <= top()) {
+			return k > 0 ? bottom() : top();
+		}
 		if (k == 1) {
-			return index_f;
-		}
-		if (index_f <= 1) {
-			return k > 0 ? 0 : 1;
+			return ref(index_f);
 		}
 
-		// Unique table lookup
-		++num_cache_lookups;
-		const auto it = computed_tables_[operations::zdd_choose].find({index_f, k});
-		if (it != computed_tables_[operations::zdd_choose].end()) {
-			assert(!nodes_.at(it->second).dead);
-			return it->second;
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, k});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
 		}
-		++num_cache_misses;
+		++num_cache_misses_;
 
-		node_type const& node_f = nodes_.at(index_f);
-		node_index result = choose(node_f.lo, k);
+		node_type node_f = nodes_.at(index_f);
+		node_index index_new = choose(node_f.lo, k);
 		if (k > 0) {
-			auto q = choose(node_f.lo, k - 1);
-			result = unique(node_f.var, result, q);
+			node_index temp = choose(node_f.lo, k - 1);
+			ref(index_new);
+			index_new = unique(node_f.var, index_new, temp);
+		} else {
+			deref(index_new);
 		}
-		return computed_tables_[operations::zdd_choose][{index_f, k}] = result;
+		computed_tables_.at(op)[{index_f, k}] = index_new;
+		return index_new;
 	}
 
-	/* \!brief Computes the difference of two ZDDs (`f / g`)
-	 *  Keep in mind that `f / g` is different from `g / f` !
+	/* \!brief Computes the difference of two ZDDs (`f - g`)
+	 *  Keep in mind that `f - g` is different from `g - f` !
 	 */
 	node_index difference(node_index index_f, node_index index_g)
 	{
-		if (index_f == 0) {
-			return 0;
+		constexpr operations op = operations::zdd_difference;
+		if (index_f == bottom()) {
+			return ref(bottom());
 		}
+		node_type& node_f = nodes_.at(index_f);
+	
+	restart:
 		if (index_f == index_g) {
-			return 0;
+			return ref(bottom());
 		}
-		if (index_g == 0) {
-			return index_f;
+		if (index_g == bottom()) {
+			return ref(index_f);
 		}
-
-		node_type const& node_f = nodes_.at(index_f);
-		node_type const& node_g = nodes_.at(index_g);
+		node_type& node_g = nodes_.at(index_g);
 		if (node_g.var < node_f.var) {
-			return difference(index_f, node_g.lo);
-		}
+			index_g = node_g.lo;
+			goto restart;
+		} 
 
-		// Unique table lookup
-		++num_cache_lookups;
-		const auto it = computed_tables_[operations::zdd_difference].find({index_f, index_g});
-		if (it != computed_tables_[operations::zdd_difference].end()) {
-			assert(!nodes_.at(it->second).dead);
-			return it->second;
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, index_g});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
 		}
-		++num_cache_misses;
+		++num_cache_misses_;
 
 		node_index r_lo;
 		node_index r_hi;
@@ -318,200 +428,373 @@ public:
 			r_hi = difference(node_f.hi, node_g.hi);
 		} else {
 			r_lo = difference(node_f.lo, index_g);
-			r_hi = node_f.hi;
+			r_hi = ref(node_f.hi);
 		}
 		node_index index_new = unique(node_f.var, r_lo, r_hi);
-		return computed_tables_[operations::zdd_difference][{index_f, index_g}] = index_new;
+		computed_tables_.at(op)[{index_f, index_g}] = index_new;
+		return index_new;
 	}
 
 	/* \!brief Computes the intersection of two ZDDs */
 	node_index intersection(node_index index_f, node_index index_g)
 	{
-		if (index_f == 0) {
-			return 0;
+		constexpr operations op = operations::zdd_intersection;
+		if (index_f == tautology()) {
+			return ref(index_g); 
 		}
-		if (index_g == 0) {
-			return 0;
+		if (index_g == tautology()) {
+			return ref(index_f); 
 		}
-		if (index_f == index_g) {
-			return index_f;
-		}
+	restart:
 		if (index_f > index_g) {
 			std::swap(index_f, index_g);
 		}
+		if (index_f == bottom()) {
+			return ref(bottom());
+		}
+		if (index_f == index_g) {
+			return ref(index_f);
+		}
 
-		node_type const& node_f = nodes_.at(index_f);
-		node_type const& node_g = nodes_.at(index_g);
-		if (node_f.var < node_g.var) {
-			return intersection(node_f.lo, index_g);
+		node_type node_f = nodes_.at(index_f);
+		node_type node_g = nodes_.at(index_g);
+		if (node_f.var <node_g.var) {
+			index_f = node_f.lo;
+			goto restart;
 		} else if (node_f.var > node_g.var) {
-			return intersection(index_f, node_g.lo);
+			index_g = node_g.lo;
+			goto restart;
 		}
-
-		// Unique table lookup
-		++num_cache_lookups;
-		const auto it = computed_tables_[operations::zdd_intersection].find({index_f, index_g});
-		if (it != computed_tables_[operations::zdd_intersection].end()) {
-			assert(!nodes_.at(it->second).dead);
-			return it->second;
+		if (index_f == tautology(node_f.var)) {
+			return ref(index_g); 
 		}
-		++num_cache_misses;
+		if (index_g == tautology(node_g.var)) {
+			return ref(index_f); 
+		}
+		assert(node_f.var == node_g.var);
 
-		node_index const r_lo = intersection(node_f.lo, node_g.lo);
-		node_index const r_hi = intersection(node_f.hi, node_g.hi);
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, index_g});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
+		}
+		++num_cache_misses_;
+
+		node_index r_lo = intersection(node_f.lo, node_g.lo);
+		node_index r_hi = intersection(node_f.hi, node_g.hi);
 		node_index index_new = unique(node_f.var, r_lo, r_hi);
-		return computed_tables_[operations::zdd_intersection][{index_f, index_g}] = index_new;
+		computed_tables_.at(op)[{index_f, index_g}] = index_new;
+		return index_new;
 	}
 
 	/* \!brief Computes the join of two ZDDs */
 	node_index join(node_index index_f, node_index index_g)
 	{
-		if (index_f == 0) {
-			return 0;
-		}
-		if (index_g == 0) {
-			return 0;
-		}
-		if (index_f == 1) {
-			return index_g;
-		}
-		if (index_g == 1) {
-			return index_f;
-		}
+		constexpr operations op = operations::zdd_join;
 		if (index_f > index_g) {
 			std::swap(index_f, index_g);
 		}
-
-		// Unique table lookup
-		++num_cache_lookups;
-		const auto it = computed_tables_[operations::zdd_join].find({index_f, index_g});
-		if (it != computed_tables_[operations::zdd_join].end()) {
-			assert(!nodes_.at(it->second).dead);
-			return it->second;
+		if (index_f == bottom()) {
+			return ref(bottom());
 		}
-		++num_cache_misses;
+		if (index_f == top()) {
+			return ref(index_g);
+		}
 
-		node_type const& node_f = nodes_.at(index_f);
-		node_type const& node_g = nodes_.at(index_g);
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, index_g});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
+		}
+		++num_cache_misses_;
+
+		node_type node_f = nodes_.at(index_f);
+		node_type node_g = nodes_.at(index_g);
 		node_index r_lo;
 		node_index r_hi;
+		uint32_t var = node_f.var;
 		if (node_f.var < node_g.var) {
 			r_lo = join(node_f.lo, index_g);
 			r_hi = join(node_f.hi, index_g);
 		} else if (node_f.var > node_g.var) {
-			r_lo = join(index_f, node_g.lo);
-			r_hi = join(index_f, node_g.hi);
+			r_lo = join(node_g.lo, index_f);
+			r_hi = join(node_g.hi, index_f);
+			var = node_g.var;
 		} else {
-			r_lo = join(node_f.lo, node_f.lo);
+			// In this case node_f.var == node_g.var
+			r_lo = union_(node_g.lo, node_g.hi);
+			node_index const r_hl = join(node_f.hi, r_lo);
+			deref(r_lo);
 			node_index const r_lh = join(node_f.lo, node_g.hi);
-			node_index const r_hl = join(node_f.hi, node_g.lo);
-			node_index const r_hh = join(node_f.hi, node_g.hi);
-			r_hi = union_(r_lh, union_(r_hl, r_hh));
+			r_hi = union_(r_hl, r_lh);
+			deref(r_hl);
+			deref(r_lh);
+			r_lo = join(node_f.lo, node_g.lo);
 		}
-		const auto var = std::min(node_f.var, node_g.var);
 		node_index index_new = unique(var, r_lo, r_hi);
-		return computed_tables_[operations::zdd_join][{index_f, index_g}] = index_new;
+		computed_tables_.at(op)[{index_f, index_g}] = index_new;
+		return index_new;
+	}
+
+	/* \!brief Computes the maximal of a ZDD */
+	node_index maximal(node_index index_f)
+	{
+		constexpr operations op = operations::zdd_maximal;
+		if (index_f <= top()) {
+			return ref(index_f);
+		}
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, 0});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
+		}
+		++num_cache_misses_;
+
+		node_type node_f = nodes_.at(index_f);
+		node_index r_hi = maximal(node_f.hi);
+		node_index temp = maximal(node_f.lo);
+		node_index r_lo = nonsubsets(temp, r_hi);
+		deref(temp);
+		node_index index_new = unique(node_f.var, r_lo, r_hi);
+		computed_tables_.at(op)[{index_f, 0}] = index_new;
+		return index_new;;
+	}
+
+	/* \!brief Computes the meet of two ZDDs */
+	node_index meet(node_index index_f, node_index index_g)
+	{
+		constexpr operations op = operations::zdd_meet;
+		if (index_f > index_g) {
+			std::swap(index_f, index_g);
+		}
+		if (index_f <= top()) {
+			return ref(index_f);
+		}
+
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, index_g});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
+		}
+		++num_cache_misses_;
+
+		node_type node_f = nodes_.at(index_f);
+		node_type node_g = nodes_.at(index_g);
+		node_index r_lo;
+		node_index r_hi;
+		if (node_f.var < node_g.var) {
+			r_lo = union_(node_f.lo, node_f.hi);
+			r_hi = meet(r_lo, index_g);
+			deref(r_lo);
+			return r_hi;
+		} else if (node_f.var > node_g.var) {
+			r_lo = union_(node_g.lo, node_g.hi);
+			r_hi = meet(r_lo, index_f);
+			deref(r_lo);
+			return r_hi;
+		} else { 
+			// In this case node_f.var == node_g.var
+			r_hi = union_(node_f.lo, node_f.hi);
+			node_index r_hl = meet(r_hi, node_g.lo);
+			deref(r_hi);
+			node_index r_lh = meet(node_f.lo, node_g.hi);
+			r_lo = union_(r_hl, r_lh);
+			deref(r_hl);
+			deref(r_lh);
+			r_hi = meet(node_f.hi, node_g.hi);
+		}
+		node_index index_new = unique(node_f.var, r_lo, r_hi);
+		computed_tables_.at(op)[{index_f, index_g}] = index_new;
+		return index_new;
+	}
+
+	/* \!brief Computes the nonsubsets of two ZDDs */
+	node_index nonsubsets(node_index index_f, node_index index_g)
+	{
+		constexpr operations op = operations::zdd_nonsubsets;
+		if (index_g == bottom()) {
+			return ref(index_f);
+		}
+		if (index_f <= top()) {
+			return ref(bottom());
+		}
+		if (index_f == index_g) {
+			return ref(bottom());
+		}
+
+		if (nodes_.at(index_f).var > nodes_.at(index_g).var) {
+			return nonsubsets(index_f, nodes_.at(index_g).lo);
+		}
+
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, index_g});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
+		}
+		++num_cache_misses_;
+
+		node_type node_f = nodes_.at(index_f);
+		node_type node_g = nodes_.at(index_g);
+		node_index r_lo;
+		node_index r_hi;
+		if (node_f.var < node_g.var) {
+			r_lo = nonsubsets(node_f.lo, index_g);
+			r_hi = ref(node_f.hi);
+		} else {
+			node_index const temp = nonsubsets(node_f.lo, node_g.hi);
+			r_hi = nonsubsets(node_f.lo, node_g.lo);
+			r_lo = intersection(temp, r_hi);
+			deref(temp);
+			deref(r_hi);
+			r_hi = nonsubsets(node_f.hi, node_g.hi);
+		}
+		node_index index_new = unique(node_f.var, r_lo, r_hi);
+		computed_tables_.at(op)[{index_f, index_g}] = index_new;
+		return index_new;
 	}
 
 	/* \!brief Computes the nonsupersets of two ZDDs */
 	node_index nonsupersets(node_index index_f, node_index index_g)
 	{
-		if (index_f == 0) {
-			return 0;
+		constexpr operations op = operations::zdd_nonsupersets;
+		if (index_g == bottom()) {
+			return ref(index_f);
 		}
-		if (index_g == 0) {
-			return index_f;
+		if (index_f == bottom()) {
+			return ref(bottom());
 		}
-		if (index_g == 1) {
-			return 0;
+		// This operation can be potentially faster if instead I check for top \in g
+		// TODO: experiment!
+		if (index_g == top()) {
+			return ref(bottom());
 		}
 		if (index_f == index_g) {
-			return 0;
+			return ref(bottom());
 		}
 
-		node_type const& node_f = nodes_.at(index_f);
-		node_type const& node_g = nodes_.at(index_g);
-		if (node_f.var > node_g.var) {
-			return nonsupersets(index_f, node_g.lo);
+		if (nodes_.at(index_f).var > nodes_.at(index_g).var) {
+			return nonsupersets(index_f, nodes_.at(index_g).lo);
 		}
 
-		// Unique table lookup
-		++num_cache_lookups;
-		const auto it = computed_tables_[operations::zdd_nonsupersets].find({index_f, index_g});
-		if (it != computed_tables_[operations::zdd_nonsupersets].end()) {
-			assert(!nodes_.at(it->second).dead);
-			return it->second;
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, index_g});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
 		}
-		++num_cache_misses;
+		++num_cache_misses_;
 
+		node_type node_f = nodes_.at(index_f);
+		node_type node_g = nodes_.at(index_g);
 		node_index r_lo;
 		node_index r_hi;
+		uint32_t var = node_f.var;
 		if (node_f.var < node_g.var) {
 			r_lo = nonsupersets(node_f.lo, index_g);
 			r_hi = nonsupersets(node_f.hi, index_g);
 		} else {
-			r_hi = intersection(nonsupersets(node_f.hi, node_g.lo),
-			                    nonsupersets(node_f.hi, node_g.hi));
+			r_lo = nonsupersets(node_f.hi, node_g.hi);
+			node_index temp = nonsupersets(node_f.hi, node_g.lo);
+			r_hi = intersection(temp, r_lo);
+			deref(temp);
+			deref(r_lo);
 			r_lo = nonsupersets(node_f.lo, node_g.lo);
 		}
-		node_index index_new = unique(node_f.var, r_lo, r_hi);
-		return computed_tables_[operations::zdd_nonsupersets][{index_f, index_g}] = index_new;
+		node_index index_new = unique(var, r_lo, r_hi);
+		computed_tables_.at(op)[{index_f, index_g}] = index_new;
+		return index_new;
 	}
 
-	/* \!brief Return the tautology function ``f(var) = true`` 
-	 *  Important: the function ``build_tautologies`` must have been called.
-	 */
-	node_index tautology(uint32_t var = 0) const
+	/* \!brief Return the tautology function */
+	node_index tautology()
 	{
-		assert(built_tautologies);
-		if (var == unique_tables_.size()) {
-			return top();
-		}
-		return 2 * unique_tables_.size() + 1u - var;
+		return (2 * num_variables()) + 1u;
 	}
 
 	/* \!brief Computes the union of two ZDDs */
 	node_index union_(node_index index_f, node_index index_g)
 	{
-		if (index_f == 0) {
-			return index_g;
-		}
-		if (index_g == 0) {
-			return index_f;
-		}
+		constexpr operations op = operations::zdd_union;
 		if (index_f == index_g) {
-			return index_f;
+			return ref(index_f);
 		}
 		if (index_f > index_g) {
 			std::swap(index_f, index_g);
 		}
-
-		// Unique table lookup
-		++num_cache_lookups;
-		const auto it = computed_tables_[operations::zdd_union].find({index_f, index_g});
-		if (it != computed_tables_[operations::zdd_union].end()) {
-			assert(!nodes_.at(it->second).dead);
-			return it->second;
+		if (index_f == bottom()) {
+			return ref(index_g);
 		}
-		++num_cache_misses;
 
-		node_type const& node_f = nodes_.at(index_f);
-		node_type const& node_g = nodes_.at(index_g);
+		// Cache lookup
+		++num_cache_lookups_;
+		const auto it = computed_tables_.at(op).find({index_f, index_g});
+		if (it != computed_tables_.at(op).end()) {
+			if (nodes_.at(it->second).refs < 0) {
+				revive_node(it->second);
+				return it->second;
+			}
+			return ref(it->second);
+		}
+		++num_cache_misses_;;
+
+		node_type node_f = nodes_.at(index_f);
+		node_type node_g = nodes_.at(index_g);
 		node_index r_lo;
 		node_index r_hi;
+		uint32_t var = node_f.var;
 		if (node_f.var < node_g.var) {
+			if (index_f == tautology(node_f.var)) {
+				return ref(index_f); 
+			}
 			r_lo = union_(node_f.lo, index_g);
-			r_hi = node_f.hi;
+			r_hi = ref(node_f.hi);
 		} else if (node_f.var > node_g.var) {
+			if (index_g == tautology(node_g.var)) {
+				return ref(index_g); 
+			}
 			r_lo = union_(index_f, node_g.lo);
-			r_hi = node_g.hi;
+			r_hi = ref(node_g.hi);
+			var = node_g.var;
 		} else {
+			// In this case node_f.var == node_g.var
+			if (index_g == tautology(node_g.var)) {
+				return ref(index_g); 
+			}
 			r_lo = union_(node_f.lo, node_g.lo);
 			r_hi = union_(node_f.hi, node_g.hi);
 		}
-		const auto var = std::min(node_f.var, node_g.var);
 		node_index index_new = unique(var, r_lo, r_hi);
-		return computed_tables_[operations::zdd_union][{index_f, index_g}] = index_new;
+		computed_tables_.at(op)[{index_f, index_g}] = index_new;
+		return index_new;
 	}
 #pragma endregion
 
@@ -614,7 +897,7 @@ public:
 		uint32_t i = 0u;
 		for (node_type const& node : nodes_) {
 			os << fmt::format("{:5} : {:5} {:5} {:5} {:5}\n", i++, node.var, node.lo,
-			                  node.hi, node.ref);
+			                  node.hi, node.refs);
 		}
 	}
 
@@ -636,12 +919,10 @@ private:
 	std::vector<unique_table_type> unique_tables_;
 	std::array<unique_table_type, operations::num_operations> computed_tables_;
 
-	bool built_tautologies = false;
-
 	// Stats
-	uint32_t num_variables;
-	uint32_t num_cache_lookups;
-	uint32_t num_cache_misses;
+	uint32_t num_dead_nodes_;
+	uint32_t num_cache_lookups_;
+	uint32_t num_cache_misses_;
 };
 
 } // namespace bill
