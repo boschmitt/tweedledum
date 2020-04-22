@@ -4,6 +4,7 @@
 **/_*
 
 .*/
+!.github/
 !.gitignore
 
 build/

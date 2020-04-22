@@ -1,0 +1,105 @@
+name: Ubuntu CI
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  build-gcc7:
+    runs-on: ubuntu-latest
+    name: GNU GCC 7
+    
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Build tweedledum
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_CXX_COMPILER=g++-7 -DTWEEDLEDUM_TESTS=ON ..
+        make run_tests
+    - name: Run tests
+      run: |
+        cd build
+        ./test/run_tests
+
+  build-gcc8:
+    runs-on: ubuntu-latest
+    name: GNU GCC 8
+    
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Build tweedledum
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_CXX_COMPILER=g++-8 -DTWEEDLEDUM_TESTS=ON ..
+        make run_tests
+    - name: Run tests
+      run: |
+        cd build
+        ./test/run_tests
+
+  build-gcc9:
+    runs-on: ubuntu-latest
+    name: GNU GCC 9
+    
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Build tweedledum
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_CXX_COMPILER=g++-9 -DTWEEDLEDUM_TESTS=ON ..
+        make run_tests
+    - name: Run tests
+      run: |
+        cd build
+        ./test/run_tests
+
+  build-clang8:
+    runs-on: ubuntu-latest
+    name: Clang 8
+    
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Build tweedledum
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_CXX_COMPILER=clang++-8 -DTWEEDLEDUM_TESTS=ON ..
+        make run_tests
+    - name: Run tests
+      run: |
+        cd build
+        ./test/run_tests
+
+  build-clang9:
+    runs-on: ubuntu-latest
+    name: Clang 9
+    
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Build tweedledum
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_CXX_COMPILER=clang++-9 -DTWEEDLEDUM_TESTS=ON ..
+        make run_tests
+    - name: Run tests
+      run: |
+        cd build
+        ./test/run_tests
