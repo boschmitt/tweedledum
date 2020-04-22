@@ -10,6 +10,7 @@ add_custom_target(tweedledum_tests COMMENT "Build all tests.")
 
 set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_tests.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/barenco.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/decompose.cpp"
   # "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/decomposition/multiplexor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/utility/to_logic_network.cpp"

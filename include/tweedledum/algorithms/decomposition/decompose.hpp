@@ -21,9 +21,8 @@ namespace tweedledum {
 /*! \brief Parameters for `decomposition`. */
 struct decomp_params {
 	uint64_t gate_set = gate_set::clifford_t;
-	uint32_t controls_threshold = 2u;
+	uint32_t barenco_controls_threshold = 6u;
 	bool allow_ancilla = true;
-	bool use_barenco = true;
 	bool use_t_par = false;
 	bool use_relative_phase = false;
 };
@@ -41,7 +40,10 @@ public:
 	explicit decomp_builder(Network& network, decomp_params const& params)
 	    : Network(network)
 	    , params_(params)
-	{ }
+	{
+		barenco_params_.controls_threshold = params_.barenco_controls_threshold;
+		barenco_params_.use_ncrx = params_.use_relative_phase;
+	}
 
 public:
 #pragma region Creating operations (using wire ids)
@@ -232,7 +234,7 @@ public:
 	               std::vector<wire::id> const& targets)
 	{
 		if (params_.gate_set & (1ull << static_cast<uint32_t>(g.id()))) {
-			if (controls.size() <= params_.controls_threshold) {
+			if (controls.size() <= params_.barenco_controls_threshold) {
 				this->emplace_op(op_type(g, controls, targets));
 				return;
 			}
@@ -241,9 +243,7 @@ public:
 		if (controls.size() == 2u) {
 			create_op(g, controls.at(0), controls.at(1), targets.at(0));
 			return;
-		}
-
-		if (params_.use_barenco) {
+		} else if (controls.size() > params_.barenco_controls_threshold) {
 			barenco_create_op(g, controls, targets.at(0));
 			return;
 		}
@@ -257,21 +257,25 @@ private:
 		if (controls.size() + 1u == this->num_qubits()) {
 			this->create_qubit(wire::modes::ancilla);
 		}
+		if (params_.gate_set & (1ull << static_cast<uint32_t>(g.id()))) {
+			barenco_decomp(*this, g, controls, target, barenco_params_);
+			return;
+		}
 		switch (g.id()) {
 		// Non-parameterisable gates
 		case gate_ids::ncx:
-			barenco_decomp(*this, controls, target, params_.controls_threshold);
+			barenco_decomp(*this, g, controls, target, barenco_params_);
 			return;
 
 		case gate_ids::ncy:
 			create_op(gate_lib::sdg, target);
-			barenco_decomp(*this, controls, target, params_.controls_threshold);
+			barenco_decomp(*this, gate_lib::ncx, controls, target, barenco_params_);
 			create_op(gate_lib::s, target);
 			break;
 
 		case gate_ids::ncz: 
 			create_op(gate_lib::h, target);
-			barenco_decomp(*this, controls, target, params_.controls_threshold);
+			barenco_decomp(*this, gate_lib::ncx, controls, target, barenco_params_);
 			create_op(gate_lib::h, target);
 			break;
 
@@ -320,6 +324,11 @@ private:
 
 		// Parameterisable gates
 		case gate_ids::ncrx:
+			angles.at(angles.size() - 2u) = -g.rotation_angle();
+			angles.at(angles.size() - 1u) = g.rotation_angle();
+			create_op(gate_lib::h, target);
+			diagonal_synth(*this, controls, angles);
+			create_op(gate_lib::h, target);
 			break;
 
 		case gate_ids::ncry:
@@ -327,7 +336,7 @@ private:
 
 		case gate_ids::ncrz:
 			angles.at(angles.size() - 2u) = -g.rotation_angle();
-			angles.back() = g.rotation_angle();
+			angles.at(angles.size() - 1u) = g.rotation_angle();
 			diagonal_synth(*this, controls, angles);
 			break;
 
@@ -338,6 +347,7 @@ private:
 
 private:
 	decomp_params params_;
+	barenco_params barenco_params_;
 };
 
 } // namespace detail

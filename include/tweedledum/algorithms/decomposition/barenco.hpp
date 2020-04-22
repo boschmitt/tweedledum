@@ -6,31 +6,39 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
+#include "../../utils/angle.hpp"
+#include "../utility/shallow_duplicate.hpp"
 
 #include <cstdint>
-#include <iostream>
 #include <vector>
 
 namespace tweedledum {
+
+/*! \brief Parameters for `barenco_decomposition`. */
+struct barenco_params {
+	uint32_t controls_threshold = 2u;
+	bool use_ncrx = true; // Relative phase
+};
+
 namespace detail {
 
 // Barenco, A., Bennett, C.H., Cleve, R., DiVincenzo, D.P., Margolus, N., Shor, P., Sleator, T., Smolin,
 // J.A. and Weinfurter, H., 1995. Elementary gates for quantum computation. Physical review A, 52(5), p.3457.
-template<class Network>
-void barenco_decomp(Network& network, std::vector<wire::id> const& controls, wire::id target,
-                    uint32_t controls_threshold)
+template<class Circuit>
+void barenco_decomp(Circuit& circuit, gate const& g, std::vector<wire::id> const& controls,
+                    wire::id target, barenco_params const& params)
 {
-	assert(controls_threshold >= 2);
+	assert(params.controls_threshold >= 2);
 	uint32_t const num_controls = controls.size();
 	assert(num_controls >= 2);
 
-	if (num_controls <= controls_threshold) {
-		network.create_op(gate_lib::ncx, controls, std::vector<wire::id>({target}));
+	if (num_controls <= params.controls_threshold) {
+		circuit.create_op(g, controls, std::vector<wire::id>({target}));
 		return;
 	}
 
 	std::vector<wire::id> workspace;
-	network.foreach_wire([&](wire::id wire) {
+	circuit.foreach_wire([&](wire::id wire) {
 		if (!wire.is_qubit()) {
 			return;
 		}
@@ -50,12 +58,14 @@ void barenco_decomp(Network& network, std::vector<wire::id> const& controls, wir
 		return;
 	}
 
+	gate const& compute_gate = params.use_ncrx ? gate_lib::ncrx(sym_angle::pi) : gate_lib::ncx;
+	gate const& uncompute_gate = params.use_ncrx ? gate_lib::ncrx(-sym_angle::pi) : gate_lib::ncx;
 	// Check if there are enough empty lines lines
-	// Lemma 7.2: If n ≥ 5 and m ∈ {3, ..., ⌈n/2⌉} then a gate can be simulated by a network
+	// Lemma 7.2: If n ≥ 5 and m ∈ {3, ..., ⌈n/2⌉} then a gate can be simulated by a circuit
 	// consisting of 4(m − 2) gates.
 	// n is the number of qubits
 	// m is the number of controls
-	if (network.num_qubits() + 1 >= (num_controls << 1)) {
+	if (circuit.num_qubits() + 1 >= (num_controls << 1)) {
 		workspace.push_back(target);
 
 		// When offset is equal to 0 this is computing the toffoli
@@ -63,17 +73,18 @@ void barenco_decomp(Network& network, std::vector<wire::id> const& controls, wir
 		// to their initial state
 		for (int offset = 0; offset <= 1; ++offset) {
 			for (int i = offset; i < static_cast<int>(num_controls) - 2; ++i) {
-				network.create_op(gate_lib::ncx,
+				circuit.create_op(i ? compute_gate : gate_lib::ncx,
 				                  std::vector({controls[num_controls - 1 - i],
 				                               workspace[workspace_size - 1 - i]}),
 				                  std::vector({workspace[workspace_size - i]}));
 			}
 
-			network.create_op(gate_lib::ncx, std::vector({controls[0], controls[1]}),
+			circuit.create_op(offset ? uncompute_gate : compute_gate,
+			                  std::vector({controls[0], controls[1]}),
 			                  std::vector({workspace[workspace_size - (num_controls - 2)]}));
 
 			for (int i = num_controls - 2 - 1; i >= offset; --i) {
-				network.create_op(gate_lib::ncx,
+				circuit.create_op(i ? uncompute_gate : gate_lib::ncx,
 				                  std::vector({controls[num_controls - 1 - i],
 				                               workspace[workspace_size - 1 - i]}),
 				                  std::vector({workspace[workspace_size - i]}));
@@ -84,7 +95,7 @@ void barenco_decomp(Network& network, std::vector<wire::id> const& controls, wir
 
 	// Not enough qubits in the workspace, extra decomposition step
 	// Lemma 7.3: For any n ≥ 5, and m ∈ {2, ... , n − 3} a (n−2)-toffoli gate can be simulated
-	// by a network consisting of two m-toffoli gates and two (n−m−1)-toffoli gates
+	// by a circuit consisting of two m-toffoli gates and two (n−m−1)-toffoli gates
 	std::vector<wire::id> controls0;
 	std::vector<wire::id> controls1;
 	for (auto i = 0u; i < (num_controls >> 1); ++i) {
@@ -95,79 +106,44 @@ void barenco_decomp(Network& network, std::vector<wire::id> const& controls, wir
 	}
 	wire::id free_qubit = workspace.front();
 	controls1.push_back(free_qubit);
-	barenco_decomp(network, controls0, free_qubit, controls_threshold);
-	barenco_decomp(network, controls1, target, controls_threshold);
-	barenco_decomp(network, controls0, free_qubit, controls_threshold);
-	barenco_decomp(network, controls1, target, controls_threshold);
+	barenco_decomp(circuit, compute_gate, controls0, free_qubit, params);
+	barenco_decomp(circuit, g, controls1, target, params);
+	barenco_decomp(circuit, uncompute_gate, controls0, free_qubit, params);
+	barenco_decomp(circuit, g, controls1, target, params);
 }
 
 } /* namespace detail */
 
-// /*! \brief Parameters for `barenco_decomposition`. */
-// struct barenco_params {
-// 	uint32_t controls_threshold = 2u;
-// };
-
-// /*! \brief Barenco decomposition.
-//  *
-//  * Decomposes all Multiple-controlled Toffoli gates with more than ``controls_threshold`` controls
-//  * into Toffoli gates with at most ``controls_threshold`` controls. This may introduce one
-//  * additional helper qubit called ancilla.
-//  *
-//  * \algtype decomposition
-//  * \algexpects A network
-//  * \algreturns A network
-//  */
-// template<typename Network>
-// Network barenco_decomposition(Network const& network, barenco_params params = {})
-// {
-// 	auto gate_rewriter = [&](auto& dest, auto const& gate) {
-// 		if (gate.is(gate_lib::mcx)) {
-// 			switch (gate.num_controls()) {
-// 			case 0:
-// 				gate.foreach_target([&](auto target) {
-// 					dest.add_gate(gate::pauli_x, target);
-// 				});
-// 				break;
-
-// 			case 1:
-// 				gate.foreach_control([&](auto control) {
-// 					gate.foreach_target([&](auto target) {
-// 						dest.add_gate(gate::cx, control, target);
-// 					});
-// 				});
-// 				break;
-
-// 			default:
-// 				std::vector<io_id> controls;
-// 				std::vector<io_id> targets;
-// 				gate.foreach_control([&](auto control) { controls.push_back(control); });
-// 				gate.foreach_target([&](auto target) { targets.push_back(target); });
-// 				for (auto i = 1u; i < targets.size(); ++i) {
-// 					dest.add_gate(gate::cx, targets[0], targets[i]);
-// 				}
-// 				detail::toffoli_barenco_decomposition(dest, controls, targets[0],
-// 				                                      params.controls_threshold);
-// 				for (auto i = 1ull; i < targets.size(); ++i) {
-// 					dest.add_gate(gate::cx, targets[0], targets[i]);
-// 				}
-// 				break;
-// 			}
-// 			return true;
-// 		}
-// 		return false;
-// 	};
-
-// 	auto num_ancillae = 0u;
-// 	network.foreach_gate([&](auto const& node) {
-// 		if (node.gate.is(gate_lib::mcx) && node.gate.num_controls() > 2
-// 		    && node.gate.num_controls() + 1 == network.num_qubits()) {
-// 			num_ancillae = 1u;
-// 			return false;
-// 		}
-// 		return true;
-// 	});
-// 	return rewrite_network(network, gate_rewriter, num_ancillae);
-// }
+/*! \brief Barenco decomposition.
+ *
+ * Decomposes all n-controlled gates with more than ``controls_threshold`` controls into gates with
+ * at most ``controls_threshold`` controls. This may introduce one additional helper qubit called
+ * ancilla.
+ *
+ */
+template<typename Circuit>
+Circuit barenco_decomposition(Circuit const& circuit, barenco_params params = {})
+{
+	using op_type = typename Circuit::op_type;
+	Circuit result = shallow_duplicate(circuit);
+	circuit.foreach_op([&](op_type const& op) {
+		if (op.is_one_qubit()) {
+			result.create_op(op, op.target());
+		} else if (op.is_two_qubit()) {
+			result.create_op(op, op.control(), op.target());
+		} else {
+			std::vector<wire::id> controls;
+			std::vector<wire::id> targets;
+			op.foreach_control([&](wire::id control) {
+				controls.push_back(control);
+			});
+			op.foreach_target([&](wire::id target) {
+				targets.push_back(target);
+			});
+			detail::barenco_decomp(result, op, controls, targets.at(0), params);
+		}
+	});
+	return result;
+}
 
 } // namespace tweedledum

@@ -318,10 +318,33 @@ private:
 
 		uint32_t const n_qubits = qubits.size();
 		uint32_t const k_end = (data_->matrix.size() >> n_qubits);
+		uint32_t const p = (1 << n_qubits) - 1;
+		for (uint32_t k = 0u; k < k_end; ++k) {
+			std::vector<uint32_t> const idx = indicies(qubits, qubits_sorted, k);
+			data_->matrix.at(idx.at(p)) *= phase;
+		}
+	}
+
+	// Applies a general n-controlled matrix
+	void apply_nc_matrix(std::array<complex_type, 4> const& matrix,
+	                     std::vector<wire::id> const& controls, wire::id target)
+	{
+		std::vector<uint32_t> qubits(controls.begin(), controls.end());
+		qubits.emplace_back(target);
+		std::vector<uint32_t> qubits_sorted = qubits;
+		std::sort(qubits_sorted.begin(), qubits_sorted.end());
+
+		uint32_t const n_qubits = qubits.size();
+		uint32_t const k_end = (data_->matrix.size() >> n_qubits);
+		uint32_t const p0 = (1 << (n_qubits - 1)) - 1;
 		uint32_t const p1 = (1 << n_qubits) - 1;
 		for (uint32_t k = 0u; k < k_end; ++k) {
 			std::vector<uint32_t> const idx = indicies(qubits, qubits_sorted, k);
-			data_->matrix.at(idx.at(p1)) *= phase;
+			complex_type const temp = data_->matrix.at(idx.at(p0));
+			data_->matrix.at(idx.at(p0)) = matrix.at(0) * temp
+			                               + matrix.at(2) * data_->matrix.at(idx.at(p1));
+			data_->matrix.at(idx.at(p1)) = matrix.at(1) * temp
+			                               + matrix.at(3) * data_->matrix.at(idx.at(p1));
 		}
 	}
 
@@ -443,6 +466,7 @@ public:
 
 		// Parameterisable gates
 		case gate_ids::ncrx:
+			apply_nc_matrix(matrices::rx(g.rotation_angle()), {c0, c1}, t);
 			break;
 
 		case gate_ids::ncry:
@@ -474,6 +498,7 @@ public:
 
 		// Parameterisable gates
 		case gate_ids::ncrx:
+			apply_nc_matrix(matrices::rx(g.rotation_angle()), cs, ts.at(0));
 			break;
 
 		case gate_ids::ncry:
