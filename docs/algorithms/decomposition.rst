@@ -16,4 +16,3 @@ decomposition algorithms that are currently provided in *tweedledum*
    :hidden:
 
    decomposition/barenco
-   decomposition/dt

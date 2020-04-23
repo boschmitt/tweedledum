@@ -32,7 +32,7 @@ namespace tweedledum {
  * The nodes are numbered as they appear in the underlying DAG data structure.  Nodes will be
  * visited in this order when using ``foreach_node`` or ``foreach_op`` methods.  Observer that node
  * five is visited last, but it is on the first layer.
- * 
+ *
  * This algorithm will move operations closer to inputs, hence guaranteeing that all nodes of the
  * same layer are visited before visiting the nodes of the next layer. Applying to the example we
  * obtain:
@@ -47,11 +47,12 @@ namespace tweedledum {
                   >─┤ 5 ├──────────
                     └───┘
  \endverbatim
- * 
- * __NOTE__: The ``node_id``s are not preserved. 
- * 
- * \param original The original quantum circuit (will not be modified).
- * \return A __new__ rescheduled (leyered) circuit.
+ *
+ * __NOTE__: The ``node_id``s are not preserved.
+ *
+ * \tparam Circuit the circuit type.
+ * \param[in] original the original quantum circuit (__will not be modified__).
+ * \returns a __new__ rescheduled (leyered) circuit.
  */
 template<typename Circuit>
 Circuit asap_reschedule(Circuit const& original)

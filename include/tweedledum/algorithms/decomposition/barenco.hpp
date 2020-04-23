@@ -120,6 +120,9 @@ void barenco_decomp(Circuit& circuit, gate const& g, std::vector<wire::id> const
  * at most ``controls_threshold`` controls. This may introduce one additional helper qubit called
  * ancilla.
  *
+ * \tparam Circuit the circuit type.
+ * \param[in] original the original quantum circuit (__will not be modified__).
+ * \returns a decomposed circuit.
  */
 template<typename Circuit>
 Circuit barenco_decomposition(Circuit const& circuit, barenco_params params = {})

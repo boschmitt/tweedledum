@@ -23,12 +23,12 @@ using sum_type = std::vector<uint32_t>;
 //
 // The user need to pass the _initial_ virtual->physical mapping so that the path literals can be
 // placed correctly.
-template<typename Network>
-std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire::id> const& init)
+template<typename Circuit>
+std::vector<sum_type> fake_pathsums(Circuit const& network, std::vector<wire::id> const& init)
 {
 	assert(init.size() == network.num_qubits());
-	using node_type = typename Network::node_type;
-	using op_type = typename Network::op_type;
+	using node_type = typename Circuit::node_type;
+	using op_type = typename Circuit::op_type;
 	constexpr uint32_t qid_max = std::numeric_limits<uint32_t>::max();
 
 	std::vector<uint32_t> wire_to_qid(network.num_wires(), qid_max);
@@ -66,8 +66,23 @@ std::vector<sum_type> fake_pathsums(Network const& network, std::vector<wire::id
 } // namespace detail
 #pragma endregion
 
-template<typename Network>
-bool map_verify(Network const& original, mapped_dag const& mapped)
+/*! \brief Verify if a circuit was correctly mapped (under assumptions, see details).
+ *
+ * This method uses a trick to verify if a circuit has been correctly mapped.  It will consider all
+ * two-qubit gates that are not a SWAP to be CX and ignore one-qubit gates, meaning that the
+ * circuits will be treated as reversible circuits composed of CX and SWAP gates.  The algorithm
+ * basically checks if the outputs are equal up to a permutation.
+ *
+ * NOTE: as it igonres one-qubit gates, this verification assumes that those gates were correctly
+ *       mapped!
+ *
+ * \tparam Circuit the circuit type.
+ * \param[in] original the unmapped circuit.
+ * \param[in] mapped the mapped version of the orignal circuit.
+ * \returns true if the circuit is correctly mapped under the assumptions.
+ */
+template<typename Circuit>
+bool map_verify(Circuit const& original, mapped_dag const& mapped)
 {
 	std::vector<wire::id> init_original(original.num_qubits(), wire::invalid_id);
 	for (uint32_t i = 0u; i < init_original.size(); ++i) {

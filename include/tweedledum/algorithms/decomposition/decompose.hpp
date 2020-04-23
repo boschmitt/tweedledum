@@ -27,18 +27,18 @@ struct decomp_params {
 	bool use_relative_phase = false;
 };
 
-#pragma region Decomposition network builder (detail)
+#pragma region Decomposition circuit builder (detail)
 namespace detail {
 
-template<typename Network>
-class decomp_builder : public Network {
+template<typename Circuit>
+class decomp_builder : public Circuit {
 public:
-	using op_type = typename Network::op_type;
-	using node_type = typename Network::node_type;
-	using dstrg_type = typename Network::dstrg_type;
+	using op_type = typename Circuit::op_type;
+	using node_type = typename Circuit::node_type;
+	using dstrg_type = typename Circuit::dstrg_type;
 
-	explicit decomp_builder(Network& network, decomp_params const& params)
-	    : Network(network)
+	explicit decomp_builder(Circuit& circuit, decomp_params const& params)
+	    : Circuit(circuit)
 	    , params_(params)
 	{
 		barenco_params_.controls_threshold = params_.barenco_controls_threshold;
@@ -354,15 +354,19 @@ private:
 #pragma endregion
 
 /*! \brief 
+ *
+ * \tparam Circuit the circuit type.
+ * \param[in] circuit the original quantum circuit (__will not be modified__).
+ * \returns a decomposed circuit.
  */
-template<typename Network>
-Network decompose(Network const& network, decomp_params params = {})
+template<typename Circuit>
+Circuit decompose(Circuit const& circuit, decomp_params params = {})
 {
-	using op_type = typename Network::op_type;
-	Network result = shallow_duplicate(network);
+	using op_type = typename Circuit::op_type;
+	Circuit result = shallow_duplicate(circuit);
 	detail::decomp_builder decomp(result, params);
 
-	network.foreach_op([&](op_type const& op) {
+	circuit.foreach_op([&](op_type const& op) {
 		if (op.is_one_qubit()) {
 			decomp.create_op(op, op.target());
 		} else if (op.is_two_qubit()) {

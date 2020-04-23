@@ -57,7 +57,7 @@ Welcome to tweedledum's documentation!
    io/qasm
    io/quil
    io/write_qpic
-   io/write_unicode
+   io/write_utf8
 
 .. toctree::
    :maxdepth: 2

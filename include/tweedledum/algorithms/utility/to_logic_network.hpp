@@ -18,10 +18,13 @@ namespace tweedledum {
  * a non-classical gate, it will return empty circuit, otherwise an optional value that contains a
  * logic network.
  *
- * \param qcircuit Reversible quantum circuit.
+ * \tparam Circuit the __quantum__ circuit type.
+ * \tparam LogicNtk the __classical__ network type (from ``mockturtle``).
+ * \param[in] circuit the original __quantum__ circuit (__will not be modified__).
+ * \returns a mockturtle's logic network equivalent to the circuit.
  */
-template<class LogicNtk, class QCircuit>
-LogicNtk to_logic_network(QCircuit const& qcircuit)
+template<class LogicNtk, class Circuit>
+LogicNtk to_logic_network(Circuit const& circuit)
 {
 	static_assert(mockturtle::is_network_type_v<LogicNtk>,
 	              "Logic network is not a network type");
@@ -35,18 +38,18 @@ LogicNtk to_logic_network(QCircuit const& qcircuit)
 	              "Logic network does not implement the create_xor method");
 
 	using signal_type = typename LogicNtk::signal;
-	using op_type = typename QCircuit::op_type;
+	using op_type = typename Circuit::op_type;
 	// TODO: make sure the network only uses X, CX or MCX gates
 
 	LogicNtk logic_ntk;
-	std::vector<signal_type> qubit_to_signal(qcircuit.num_qubits(),
+	std::vector<signal_type> qubit_to_signal(circuit.num_qubits(),
 	                                         logic_ntk.get_constant(false));
 
-	qcircuit.foreach_wire([&](wire::id const wire) {
+	circuit.foreach_wire([&](wire::id const wire) {
 		if (!wire.is_qubit()) {
 			return;
 		}
-		switch (qcircuit.wire_mode(wire)) {
+		switch (circuit.wire_mode(wire)) {
 		case wire::modes::in:
 		case wire::modes::inout:
 			qubit_to_signal[wire] = logic_ntk.create_pi();
@@ -57,7 +60,7 @@ LogicNtk to_logic_network(QCircuit const& qcircuit)
 		}
 	});
 
-	qcircuit.foreach_op([&](op_type const& op) {
+	circuit.foreach_op([&](op_type const& op) {
 		std::vector<signal_type> controls;
 
 		op.foreach_control([&](wire::id control) {
@@ -73,11 +76,11 @@ LogicNtk to_logic_network(QCircuit const& qcircuit)
 	});
 
 	uint32_t num_pos = 0;
-	qcircuit.foreach_wire([&](wire::id const wire) {
+	circuit.foreach_wire([&](wire::id const wire) {
 		if (!wire.is_qubit()) {
 			return;
 		}
-		switch (qcircuit.wire_mode(wire)) {
+		switch (circuit.wire_mode(wire)) {
 		case wire::modes::out:
 		case wire::modes::inout:
 			++num_pos;
@@ -89,7 +92,7 @@ LogicNtk to_logic_network(QCircuit const& qcircuit)
 	});
 	// I need this hack, otherwise the outputs might be permuted
 	for (uint32_t po = 0; po < num_pos; ++po) {
-		logic_ntk.create_po(qubit_to_signal[qcircuit.wire(fmt::format("__o_{}", po))]);
+		logic_ntk.create_po(qubit_to_signal[circuit.wire(fmt::format("__o_{}", po))]);
 	}
 	return logic_ntk;
 }

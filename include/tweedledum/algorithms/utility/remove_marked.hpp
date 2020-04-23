@@ -23,8 +23,10 @@ namespace tweedledum {
  *
  * __NOTE__: Operation type _must_ be the same.
  *
- * \param original The original quantum circuit (__will not be modified__).
- * \return A __new__ circuit without the marked operations.
+ * \tparam Circuit the circuit type.
+ * \tparam NewCircuit the resulting circuit type.
+ * \param[in] original the original quantum circuit (__will not be modified__).
+ * \returns a __new__ circuit without the marked operations.
  */
 template<class NewCircuit, class Circuit>
 NewCircuit remove_marked(Circuit const& original)
@@ -52,8 +54,9 @@ NewCircuit remove_marked(Circuit const& original)
  *
  * __NOTE__: the input and output networs are of the same type.
  *
- * \param original The original quantum circuit (__will not be modified__).
- * \return A __new__ circuit without the marked operations.
+ * \tparam Circuit the circuit type.
+ * \param[in] original the original quantum circuit (__will not be modified__).
+ * \returns a __new__ circuit without the marked operations.
  */
 template<class Circuit>
 Circuit remove_marked(Circuit const& original)

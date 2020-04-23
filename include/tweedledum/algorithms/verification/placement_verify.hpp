@@ -11,8 +11,15 @@
 
 namespace tweedledum {
 
-/* \brief Check if a placement is consistent
+/*! \brief Verify if a placement is consistent.
  *
+ * The verification of a placement only requires checking whether the placement is consistent, i.e.,
+ * if the number of virtual qubits (v) is the samse as the number of physical qubits (phy) and
+ * making sure that each physical qubit has at most one virtual qubit.
+ * 
+ * \param[in] device information about the physical device.
+ * \param[in] placement the placement is a mapping v -> phy.
+ * \returns true if the placement is consistent.
  */
 inline bool placement_verify(device const& device, std::vector<wire::id> const& placement)
 {

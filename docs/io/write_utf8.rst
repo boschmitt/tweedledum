@@ -1,4 +1,4 @@
-Write to qpic file format
+Write to UTF8 string
 **************************
 
 .. todo:: Writing

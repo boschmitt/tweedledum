@@ -20,8 +20,10 @@ namespace tweedledum {
  * 
  * __NOTE__: Operation type __must__ be the same.
  * 
- * \param original The original quantum circuit (__will not be modified__).
- * \return A __new__ reversed circuit.
+ * \tparam Circuit the original circuit type.
+ * \tparam NewCircuit the resulting circuit type.
+ * \param[in] original the original quantum circuit (__will not be modified__).
+ * \returns a __new__ reversed circuit.
  */
 template<class NewCircuit, class Circuit>
 NewCircuit reverse(Circuit const& original)
@@ -41,8 +43,9 @@ NewCircuit reverse(Circuit const& original)
  *
  * __NOTE__: the input and output networs are of the same type.
  * 
- * \param original The original quantum circuit (__will not be modified__).
- * \return A __new__ reversed circuit.
+ * \tparam Circuit the circuit type.
+ * \param[in] original the original quantum circuit (__will not be modified__).
+ * \return a __new__ reversed circuit.
  */
 template<class Circuit>
 Circuit reverse(Circuit const& original)
