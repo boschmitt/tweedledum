@@ -1291,10 +1291,11 @@ static double parseDouble(B& in) { // only in the form X.XXXXXe-XX
 	if (*in != '.') printf("PARSE ERROR! Unexpected char: %c\n", *in),exit(3);
 	++in; // skip dot
 	currentExponent = 0.1;
-    while (*in >= '0' && *in <= '9')
+    while (*in >= '0' && *in <= '9') {
         accu = accu + currentExponent * ((double)(*in - '0')),
 		currentExponent /= 10,
         ++in;
+    }
 	if (*in != 'e') printf("PARSE ERROR! Unexpected char: %c\n", *in),exit(3);
 	++in; // skip dot
 	exponent = parseInt(in); // read exponent

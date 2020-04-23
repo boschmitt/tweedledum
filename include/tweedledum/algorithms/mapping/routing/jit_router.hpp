@@ -9,7 +9,7 @@
 #include "../../../networks/mapped_dag.hpp"
 #include "../../../networks/wire.hpp"
 #include "../../../utils/device.hpp"
-#include "../../transformation/reverse.hpp"
+#include "../../utility/reverse.hpp"
 
 #include <vector>
 

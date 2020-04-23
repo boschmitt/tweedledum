@@ -2,7 +2,7 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
-#include "tweedledum/algorithms/transformation/asap_reschedule.hpp"
+#include "tweedledum/algorithms/utility/asap_reschedule.hpp"
 
 #include "tweedledum/algorithms/analysis/check_layered.hpp"
 #include "tweedledum/algorithms/verification/unitary_verify.hpp"

@@ -7,7 +7,7 @@
 #include "../../gates/gate.hpp"
 #include "../../networks/node.hpp"
 #include "../../networks/wire.hpp"
-#include "../transformation/remove_marked.hpp"
+#include "../utility/remove_marked.hpp"
 
 #include <cassert>
 #include <vector>

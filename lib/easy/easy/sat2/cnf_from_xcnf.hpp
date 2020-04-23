@@ -44,8 +44,8 @@ public:
     auto matrix = make_matrix( xor_clauses );
     // simplify_matrix( matrix );
 
-    cnf_from_matrix( _clauses, matrix );
-    // cnf_from_xor_clauses( _clauses, xor_clauses );
+    cnf_from_matrix( matrix );
+    // cnf_from_xor_clauses( xor_clauses );
   }
 
   std::vector<utils::dynamic_bitset<>> make_matrix( std::vector<std::vector<int>> const& xor_clauses )
@@ -59,7 +59,7 @@ public:
       auto sum = 0u;
       for ( const auto& l : cl )
       {
-        assert( abs( l ) < _num_vars );
+        assert( static_cast<uint32_t>(abs( l )) < _num_vars );
         row.set_bit( abs( l ) - 1 );
         sum += l < 0;
       }
@@ -145,7 +145,7 @@ public:
   {
     for ( const auto& m : matrix )
     {
-      for ( auto i = 0; i < m.num_bits(); ++i )
+      for ( auto i = 0u; i < m.num_bits(); ++i )
       {
         os << m[i];
       }
@@ -183,12 +183,12 @@ public:
     clauses.emplace_back( std::vector<int>{ lits.front() } );
   }
 
-  void cnf_from_matrix( std::vector<std::vector<int>>& clauses, std::vector<utils::dynamic_bitset<>> const& matrix )
+  void cnf_from_matrix( std::vector<utils::dynamic_bitset<>> const& matrix )
   {
     for ( const auto& row : matrix )
     {
       std::vector<int> clause;
-      for ( auto i = 0; i < row.num_bits()-1u; ++i )
+      for ( auto i = 0u; i < row.num_bits()-1u; ++i )
       {
         if ( row[i] )
         {
@@ -208,7 +208,7 @@ public:
     }
   }
 
-  void cnf_from_xor_clauses( std::vector<std::vector<int>>& clauses, std::vector<std::vector<int>> const& xor_clauses )
+  void cnf_from_xor_clauses( std::vector<std::vector<int>> const& xor_clauses )
   {
     for ( const auto& xor_clause : xor_clauses )
     {

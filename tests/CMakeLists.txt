@@ -34,7 +34,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/stg.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/swap_network.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/tbs.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/transformation/asap_reschedule.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/utility/asap_reschedule.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/gates/gate.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/dotqc.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/io/qasm.cpp"

@@ -7,7 +7,7 @@
 #include "../../networks/mapped_dag.hpp"
 #include "../../networks/wire.hpp"
 #include "../../utils/device.hpp"
-#include "../transformation/reverse.hpp"
+#include "../utility/reverse.hpp"
 #include "placement/hsat_placement.hpp"
 #include "routing/sabre_router.hpp"
 

@@ -1011,10 +1011,11 @@ static double parseDouble(B& in) { // only in the form X.XXXXXe-XX
 	if (*in != '.') printf("PARSE ERROR! Unexpected char: %c\n", *in),exit(3);
 	++in; // skip dot
 	currentExponent = 0.1;
-    while (*in >= '0' && *in <= '9')
+    while (*in >= '0' && *in <= '9') {
         accu = accu + currentExponent * ((double)(*in - '0')),
 		currentExponent /= 10,
         ++in;
+    }
 	if (*in != 'e') printf("PARSE ERROR! Unexpected char: %c\n", *in),exit(3);
 	++in; // skip dot
 	exponent = parseInt(in); // read exponent
@@ -2939,10 +2940,10 @@ inline void Solver::removeClause(CRef cr) {
 
 
 inline bool Solver::satisfied(const Clause& c) const {
-  if(incremental)  // Check clauses with many selectors is too time consuming
-    return (value(c[0]) == l_True) || (value(c[1]) == l_True);
+    if(incremental)  // Check clauses with many selectors is too time consuming
+        return (value(c[0]) == l_True) || (value(c[1]) == l_True);
 
-  // Default mode.
+    // Default mode.
     for (int i = 0; i < c.size(); i++)
         if (value(c[i]) == l_True)
             return true;

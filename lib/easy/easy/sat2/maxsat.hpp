@@ -169,7 +169,7 @@ public:
 
     /* add the soft clauses */
     std::map<int,int> selector_to_clause_id;
-    for ( auto i = 0; i < _soft_clauses.size(); ++i )
+    for ( auto i = 0u; i < _soft_clauses.size(); ++i )
     {
       int selector = _sid++;
       selector_to_clause_id.emplace( selector, i );
@@ -198,7 +198,7 @@ public:
 
       /* disable at-most k selectors */
       std::vector<int> assumptions;
-      for ( auto i = 0; i < at_most_k->vars.size(); ++i )
+      for ( auto i = 0u; i < at_most_k->vars.size(); ++i )
       {
         assumptions.emplace_back( i < k ? at_most_k->vars[i] : -at_most_k->vars[i] );
       }
@@ -333,7 +333,7 @@ public:
 
     /* enable at-most 1 lits */
     add_clause( { at_most_1->vars[0u] } );
-    for ( auto i = 1; i < at_most_1->vars.size(); ++i )
+    for ( auto i = 1u; i < at_most_1->vars.size(); ++i )
     {
       add_clause( { -at_most_1->vars[i] } );
     }
@@ -373,7 +373,7 @@ public:
 
     /* add the soft clauses */
     std::map<int,int> selector_to_clause_id;
-    for ( auto i = 0; i < _soft_clauses.size(); ++i )
+    for ( auto i = 0u; i < _soft_clauses.size(); ++i )
     {
       int selector = _sid++;
       selector_to_clause_id.emplace( selector, i );
@@ -404,7 +404,7 @@ public:
         _disabled_clauses.clear();
         _enabled_clauses.clear();
 
-        for ( auto i = 0; i < _selectors.size(); ++i )
+        for ( auto i = 0u; i < _selectors.size(); ++i )
         {
           if ( m[ -_selectors[i] ] )
           {
@@ -438,7 +438,7 @@ public:
         auto const core = _solver.get_core();
 
         std::vector<int> block_vars( core.size() );
-        for ( auto i = 0; i < core.size(); ++i )
+        for ( auto i = 0u; i < core.size(); ++i )
         {
           int sel = _sid++;
           int b = _sid++;
@@ -579,7 +579,7 @@ public:
     int costs = 0;
 
     /* add the soft clauses */
-    for ( auto i = 0; i < _soft_clauses.size(); ++i )
+    for ( auto i = 0u; i < _soft_clauses.size(); ++i )
     {
       auto cl = _soft_clauses[i];
 
@@ -618,7 +618,7 @@ public:
       if ( state == sat2::sat_solver::state::sat )
       {
         auto const model = _solver.get_model();
-        for ( auto i = 0; i < _soft_clauses.size(); ++i )
+        for ( auto i = 0u; i < _soft_clauses.size(); ++i )
         {
           if ( model[_selectors[i]] )
           {
@@ -639,7 +639,7 @@ public:
       /* divide core into sels and sums */
       std::vector<int> core_sels;
       std::vector<int> core_sums;
-      for ( auto i = 0; i < core.size(); ++i )
+      for ( auto i = 0u; i < core.size(); ++i )
       {
         if ( std::find( std::begin( sels ), std::end( sels ), core[i] ) != std::end( sels ) )
         {
@@ -656,7 +656,7 @@ public:
 
       /* update costs */
       int w_min = std::numeric_limits<int>::max();
-      for ( auto i = 0; i < core.size(); ++i )
+      for ( auto i = 0u; i < core.size(); ++i )
       {
         auto const clause_id = selector_to_clause.at( core[i] );
         auto const w = _weights.at( clause_id );
@@ -730,7 +730,7 @@ public:
           }
 
           /* updating bounds and weights */
-          if ( b < t->vars.size() )
+          if ( b < static_cast<int>(t->vars.size()) )
           {
             auto lnew = -t->vars[b];
             if ( std::find( std::begin( garbage ), std::end( garbage ), lnew ) != std::end( garbage ) )
