@@ -12,4 +12,4 @@ Parameters
 Algorithm
 ---------------------
 
-.. doxygenfunction:: tweedledum::barenco_decomposition(Network const& src, barenco_params)
+.. doxygenfunction:: tweedledum::barenco_decomposition
