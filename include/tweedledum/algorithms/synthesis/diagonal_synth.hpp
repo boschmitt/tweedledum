@@ -35,16 +35,16 @@ inline void fast_hadamard_transform(std::vector<angle>& angles)
 
 /*! \brief Synthesis of diagonal unitary matrices.
  *
- * This is the in-place variant of ``diagonal_synth``, in which the network is passed as a parameter
+ * This is the in-place variant of ``diagonal_synth``, in which the circuit is passed as a parameter
  * and can potentially already contain some gates.  The parameter ``qubits`` provides a qubit
- * mapping to the existing qubits in the network.
+ * mapping to the existing qubits in the circuit.
  *
- * \param network A quantum network
+ * \param circuit A quantum circuit
  * \param qubits The subset of qubits the linear reversible circuit acts upon
  * \param angles Angles for diagonal matrix elements
  */
-template<class Network>
-void diagonal_synth(Network& network, std::vector<wire::id> qubits, std::vector<angle> const& angles)
+template<class Circuit>
+void diagonal_synth(Circuit& circuit, std::vector<wire::id> qubits, std::vector<angle> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
 	assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
@@ -81,11 +81,11 @@ void diagonal_synth(Network& network, std::vector<wire::id> qubits, std::vector<
 		}
 		parities.add_term(i, norm_angles.at(i) / factor);
 	}
-	// cnot_rz(network, qubits, parities);
+	// cnot_rz(circuit, qubits, parities);
 	if (parities.num_terms() == norm_angles.size()) {
-		linear_synth(network, qubits, parities);
+		linear_synth(circuit, qubits, parities);
 	} else {
-		gray_synth(network, qubits, parities);
+		gray_synth(circuit, qubits, parities);
 	}
 }
 
@@ -104,27 +104,27 @@ void diagonal_synth(Network& network, std::vector<wire::id> qubits, std::vector<
    
    \endverbatim
  * \param angles Angles for diagonal matrix elements
- * \return {CNOT, Rz} network
+ * \return {CNOT, Rz} circuit
  *
  * \algtype synthesis
  * \algexpects List of angles in diagonal unitary matrix
- * \algreturns {CNOT, Rz} network
+ * \algreturns {CNOT, Rz} circuit
  */
-template<class Network>
-Network diagonal_synth(std::vector<angle> const& angles)
+template<class Circuit>
+Circuit diagonal_synth(std::vector<angle> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
 	assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
 	uint32_t num_qubits = __builtin_ctz(angles.size());
 	assert(num_qubits <= 32u);
 
-	Network network;
+	Circuit circuit;
 	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
-		qubits.emplace_back(network.create_qubit());
+		qubits.emplace_back(circuit.create_qubit());
 	}
-	diagonal_synth(network, qubits, angles);
-	return network;
+	diagonal_synth(circuit, qubits, angles);
+	return circuit;
 }
 
 } // namespace tweedledum

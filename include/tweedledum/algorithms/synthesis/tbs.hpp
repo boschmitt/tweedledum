@@ -91,8 +91,8 @@ inline void update_permutation_inv(std::vector<uint32_t>& permutation, uint32_t 
 	}
 }
 
-template<typename Network>
-void tbs_unidirectional(Network& network, std::vector<wire::id> const& qubits,
+template<typename Circuit>
+void tbs_unidirectional(Circuit& circuit, std::vector<wire::id> const& qubits,
                         std::vector<uint32_t>& permutation)
 {
 	std::vector<std::pair<uint32_t, uint32_t>> gates;
@@ -117,13 +117,13 @@ void tbs_unidirectional(Network& network, std::vector<wire::id> const& qubits,
 	}
 	std::reverse(gates.begin(), gates.end());
 	for (auto const& [controls, targets] : gates) {
-		network.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
+		circuit.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
 		                  detail::to_qubit_vector(targets, qubits));
 	}
 }
 
-template<typename Network>
-void tbs_bidirectional(Network& network, std::vector<wire::id> const& qubits,
+template<typename Circuit>
+void tbs_bidirectional(Circuit& circuit, std::vector<wire::id> const& qubits,
                        std::vector<uint32_t>& permutation)
 {
 	std::list<std::pair<uint32_t, uint32_t>> gates;
@@ -165,13 +165,13 @@ void tbs_bidirectional(Network& network, std::vector<wire::id> const& qubits,
 		}
 	}
 	for (auto const& [controls, targets] : gates) {
-		network.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
+		circuit.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
 		                  detail::to_qubit_vector(targets, qubits));
 	}
 }
 
-template<typename Network>
-void tbs_multidirectional(Network& network, std::vector<wire::id> const& qubits,
+template<typename Circuit>
+void tbs_multidirectional(Circuit& circuit, std::vector<wire::id> const& qubits,
                           std::vector<uint32_t>& permutation, tbs_params params = {})
 {
 	std::list<std::pair<uint32_t, uint32_t>> gates;
@@ -219,7 +219,7 @@ void tbs_multidirectional(Network& network, std::vector<wire::id> const& qubits,
 		}
 	}
 	for (auto const& [controls, targets] : gates) {
-		network.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
+		circuit.create_op(gate_lib::ncx, detail::to_qubit_vector(controls, qubits),
 		                  detail::to_qubit_vector(targets, qubits));
 	}
 }
@@ -228,30 +228,30 @@ void tbs_multidirectional(Network& network, std::vector<wire::id> const& qubits,
 
 /*! \brief Transformation-based reversible logic synthesis.
  *
- * This is the in-place variant of ``tbs``, in which the network is passed as a parameter and can
+ * This is the in-place variant of ``tbs``, in which the circuit is passed as a parameter and can
  * potentially already contain some gates. The parameter ``qubits`` provides a qubit mapping to the
- * existing qubits in the network.
+ * existing qubits in the circuit.
  *
- * \param network A quantum circuit
+ * \param circuit A quantum circuit
  * \param qubits A qubit mapping
  * \param permutation A vector of different integers
  * \param params Parameters (see ``tbs_params``)
  */
-template<typename Network>
-void tbs(Network& network, std::vector<wire::id> const& qubits, std::vector<uint32_t> permutation,
+template<typename Circuit>
+void tbs(Circuit& circuit, std::vector<wire::id> const& qubits, std::vector<uint32_t> permutation,
          tbs_params params = {})
 {
-	assert(network.num_qubits() >= qubits.size());
+	assert(circuit.num_qubits() >= qubits.size());
 
 	switch (params.behavior) {
 		case tbs_params::behavior::unidirectional:
-			detail::tbs_unidirectional(network, qubits, permutation);
+			detail::tbs_unidirectional(circuit, qubits, permutation);
 			break;
 		case tbs_params::behavior::bidirectional:
-			detail::tbs_bidirectional(network, qubits, permutation);
+			detail::tbs_bidirectional(circuit, qubits, permutation);
 			break;
 		case tbs_params::behavior::multidirectional:
-			detail::tbs_multidirectional(network, qubits, permutation, params);
+			detail::tbs_multidirectional(circuit, qubits, permutation, params);
 			break;
 	}
 }
@@ -266,7 +266,7 @@ void tbs(Network& network, std::vector<wire::id> const& qubits, std::vector<uint
    .. code-block:: c++
 
       std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-      auto network = tbs<netlist<io3_gate>>(permutation);
+      auto circuit = tbs<netlist<io3_gate>>(permutation);
 
    \endverbatim
  *
@@ -277,17 +277,17 @@ void tbs(Network& network, std::vector<wire::id> const& qubits, std::vector<uint
  * \algexpects Permutation
  * \algreturns Reversible circuit
  */
-template<typename Network>
-Network tbs(std::vector<uint32_t> permutation, tbs_params params = {})
+template<typename Circuit>
+Circuit tbs(std::vector<uint32_t> permutation, tbs_params params = {})
 {
-	Network network;
+	Circuit circuit;
 	const uint32_t num_qubits = std::log2(permutation.size());
 	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
-		qubits.emplace_back(network.create_qubit());
+		qubits.emplace_back(circuit.create_qubit());
 	}
-	tbs(network, qubits, permutation, params);
-	return network;
+	tbs(circuit, qubits, permutation, params);
+	return circuit;
 }
 
 } // namespace tweedledum

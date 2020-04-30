@@ -23,14 +23,14 @@ struct xag_synth_params {
 
 namespace detail {
 
-template<class QuantumNtk>
+template<class Circuit>
 class xag_synth {
 	using LogicNtk = mockturtle::xag_network;
 	using xag_node = typename LogicNtk::node;
 	using xag_signal = typename LogicNtk::signal;
 
-	using q_node = typename QuantumNtk::node_type;
-	using q_op = typename QuantumNtk::op_type;
+	using q_node = typename Circuit::node_type;
+	using q_op = typename Circuit::op_type;
 
 	struct gate_info {
 		wire::id control;
@@ -43,9 +43,9 @@ class xag_synth {
 	};
 
 public:
-	xag_synth(QuantumNtk& quantum_ntk, LogicNtk const& xag_ntk,
+	xag_synth(Circuit& circuit, LogicNtk const& xag_ntk,
 	          xag_synth_params const& params)
-	    : quantum_ntk_(quantum_ntk)
+	    : quantum_ntk_(circuit)
 	    , xag_ntk_(xag_ntk)
 	    , params_(params)
 	    , node_to_qubit_(xag_ntk, wire::invalid_id)
@@ -452,7 +452,7 @@ private:
 	}
 
 private:
-	QuantumNtk& quantum_ntk_;
+	Circuit& quantum_ntk_;
 	LogicNtk xag_ntk_;
 	xag_synth_params params_;
 
@@ -467,21 +467,21 @@ private:
 } // namespace detail
 
 /*! \brief Oracle synthesis from a XAG graph (from mockturtle) */
-template<class QuantumNtk>
-void xag_synth(QuantumNtk& quantum_ntk, mockturtle::xag_network const& xag_ntk,
+template<class Circuit>
+void xag_synth(Circuit& circuit, mockturtle::xag_network const& xag_ntk,
                xag_synth_params const& params = {})
 {
-	detail::xag_synth synthesizer(quantum_ntk, xag_ntk, params);
+	detail::xag_synth synthesizer(circuit, xag_ntk, params);
 	synthesizer.synthesize();
 }
 
 /*! \brief Oracle synthesis from a XAG graph (from mockturtle) */
-template<class QuantumNtk>
-QuantumNtk xag_synth(mockturtle::xag_network const& xag_ntk, xag_synth_params const& params = {})
+template<class Circuit>
+Circuit xag_synth(mockturtle::xag_network const& xag_ntk, xag_synth_params const& params = {})
 {
-	QuantumNtk quantum_ntk;
-	xag_synth(quantum_ntk, xag_ntk, params);
-	return quantum_ntk;
+	Circuit circuit;
+	xag_synth(circuit, xag_ntk, params);
+	return circuit;
 }
 
 } // namespace tweedledum

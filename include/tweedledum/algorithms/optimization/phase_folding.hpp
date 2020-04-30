@@ -19,14 +19,14 @@ namespace tweedledum {
  * 
  * This algorithm merges phase gates that are applied to the same computational paths.
  */
-template<typename Network>
-Network phase_folding(Network const& original)
+template<typename Circuit>
+Circuit phase_folding(Circuit const& original)
 {
-	using op_type = typename Network::op_type;
+	using op_type = typename Circuit::op_type;
 	using sum_type = std::vector<uint32_t>;
 	constexpr uint32_t qid_max = std::numeric_limits<uint32_t>::max();
 
-	Network optmized;
+	Circuit optmized;
 	uint32_t num_path_vars = 1u;
 	std::vector<uint32_t> wire_to_qid(original.num_wires(), qid_max);
 	std::vector<sum_type> qubit_pathsum;

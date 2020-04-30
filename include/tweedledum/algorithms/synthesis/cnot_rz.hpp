@@ -95,15 +95,15 @@ public:
 		++num_moments_;
 	}
 	
-	template<class Network>
-	void decode(Network& network, std::vector<wire::id> const& qubits, std::vector<lbool_type> const& model)
+	template<class Circuit>
+	void decode(Circuit& circuit, std::vector<wire::id> const& qubits, std::vector<lbool_type> const& model)
 	{
 		std::vector<uint32_t> qubits_states;
 		for (uint32_t i = 0u; i < num_qubits(); ++i) {
 			qubits_states.emplace_back(1u << i);
 			angle rotation = parities_.extract_term(qubits_states[i]);
 			if (rotation != 0.0) {
-				network.create_op(gate_lib::r1(rotation), qubits.at(i));
+				circuit.create_op(gate_lib::r1(rotation), qubits.at(i));
 			}
 		}
 		for (uint32_t moment = 0u; moment < (num_moments_ - 1); ++moment) {
@@ -118,11 +118,11 @@ public:
 					assert(model.at(control_var(moment, row)) == lbool_type::false_);
 				}
 			}
-			network.create_op(gate_lib::cx, qubits.at(control), qubits.at(target));
+			circuit.create_op(gate_lib::cx, qubits.at(control), qubits.at(target));
 			qubits_states[target] ^= qubits_states[control];
 			angle rotation = parities_.extract_term(qubits_states[target]);
 			if (rotation != 0.0) {
-				network.create_op(gate_lib::r1(rotation), qubits.at(target));
+				circuit.create_op(gate_lib::r1(rotation), qubits.at(target));
 			}
 		}
 	}
@@ -380,8 +380,8 @@ private:
 
 /*! \brief .
  */
-template<class Network, class Matrix>
-void cnot_rz(Network& network, std::vector<wire::id> const& qubits,
+template<class Circuit, class Matrix>
+void cnot_rz(Circuit& circuit, std::vector<wire::id> const& qubits,
              Matrix const& matrix, parity_terms<uint32_t> const& parities,
              cnot_rz_params params = {})
 {
@@ -396,38 +396,38 @@ void cnot_rz(Network& network, std::vector<wire::id> const& qubits,
 		solver.solve(assumptions);
 		bill::result result = solver.get_result();
 		if (result) {
-			encoder.decode(network, qubits, result.model());
+			encoder.decode(circuit, qubits, result.model());
 			return;
 		}
 		encoder.encode_new_moment();
 	} while (1);
 }
 
-template<class Network>
-void cnot_rz(Network& network, std::vector<wire::id> const& qubits,
+template<class Circuit>
+void cnot_rz(Circuit& circuit, std::vector<wire::id> const& qubits,
              parity_terms<uint32_t> const& parities, cnot_rz_params params = {})
 {
 	bit_matrix_rm<> matrix(qubits.size(), qubits.size());
 	for (uint32_t i = 0; i < qubits.size(); ++i) {
 		matrix.at(i, i) = 1;
 	}
-	cnot_rz(network, qubits, matrix, parities, params);
+	cnot_rz(circuit, qubits, matrix, parities, params);
 }
 
 /*! \brief
  */
-template<class Network, class Matrix>
-Network cnot_rz(Matrix const& matrix, parity_terms<uint32_t> const& parities, cnot_rz_params params = {})
+template<class Circuit, class Matrix>
+Circuit cnot_rz(Matrix const& matrix, parity_terms<uint32_t> const& parities, cnot_rz_params params = {})
 {
 	assert(matrix.num_rows() <= 32);
 	assert(matrix.is_square());
-	Network network;
+	Circuit circuit;
 	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < matrix.num_rows(); ++i) {
-		qubits.emplace_back(network.create_qubit());
+		qubits.emplace_back(circuit.create_qubit());
 	}
-	cnot_rz(network, qubits, matrix, parities, params);
-	return network;
+	cnot_rz(circuit, qubits, matrix, parities, params);
+	return circuit;
 }
 
 } // namespace tweedledum

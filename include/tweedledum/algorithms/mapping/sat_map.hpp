@@ -13,10 +13,10 @@ namespace tweedledum {
 
 /*! \brief Yet to be written.
  */
-template<typename Network>
-mapped_dag sat_map(Network const& original, device const& device)
+template<typename Circuit>
+mapped_dag sat_map(Circuit const& original, device const& device)
 {
-	using op_type = typename Network::op_type;
+	using op_type = typename Circuit::op_type;
 	mapped_dag mapped(original, device);
 	
 	std::vector<wire::id> v_to_phy = detail::sat_place(original, device);

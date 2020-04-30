@@ -17,10 +17,10 @@ namespace tweedledum {
 
 /*! \brief Yet to be written.
  */
-template<typename Network>
-mapped_dag jit_map(Network const& original, device const& device, jit_config const& config = {})
+template<typename Circuit>
+mapped_dag jit_map(Circuit const& original, device const& device, jit_config const& config = {})
 {
-	detail::jit_router<Network> router(device, config);
+	detail::jit_router<Circuit> router(device, config);
 	auto reversed = reverse(original);
 	std::vector<wire::id> placement = detail::line_placement(reversed, device);
 	mapped_dag mapped = router.route(original, placement, false);

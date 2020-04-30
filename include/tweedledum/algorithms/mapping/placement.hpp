@@ -30,8 +30,8 @@ struct placement_config {
 
 /*! \brief Yet to be written.
  */
-template<typename Network>
-std::vector<wire::id> placement(Network const& network, device const& device,
+template<typename Circuit>
+std::vector<wire::id> placement(Circuit const& circuit, device const& device,
                                 placement_config params = {})
 {
 	using methods = placement_config::methods;
@@ -41,10 +41,10 @@ std::vector<wire::id> placement(Network const& network, device const& device,
 		return {};
 
 	case methods::greedy_sat:
-		return detail::hsat_placement(network, device);
+		return detail::hsat_placement(circuit, device);
 
 	case methods::line:
-		return detail::line_placement(network, device);
+		return detail::line_placement(circuit, device);
 
 	case methods::random:
 		return detail::random_placement(device, params.random_seed);

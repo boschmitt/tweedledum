@@ -23,17 +23,17 @@ namespace tweedledum {
 /*! \brief Parameters for `stg_from_exact_esop`. */
 struct stg_from_esop_params {};
 
-/*! \brief Synthesize a quantum network from a function by computing exact ESOP representation
+/*! \brief Synthesize a quantum circuit from a function by computing exact ESOP representation
  */
 struct stg_from_exact_esop {
-	/*! \brief Synthesize into a _existing_ quantum network
+	/*! \brief Synthesize into a _existing_ quantum circuit
 	 *
-	 * \param network  A quantum network
+	 * \param circuit  A quantum circuit
 	 * \param qubits   The subset of qubits the gate acts upon.
 	 * \param function 
 	 */
-	template<class Network>
-	void operator()(Network& network, std::vector<wire::id> const& qubits,
+	template<class Circuit>
+	void operator()(Circuit& circuit, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		using exact_synthesizer = easy::esop::esop_from_tt<kitty::dynamic_truth_table,
@@ -60,24 +60,24 @@ struct stg_from_exact_esop {
 				bits >>= 1;
 				mask >>= 1;
 			}
-			network.create_op(gate_lib::ncx, controls, target);
+			circuit.create_op(gate_lib::ncx, controls, target);
 		}
 	}
 };
 
-/*! \brief Synthesize a quantum network from a function by computing PKRM representation
+/*! \brief Synthesize a quantum circuit from a function by computing PKRM representation
  *
  * PKRM: Pseudo-Kronecker Read-Muller expression---a special case of an ESOP form.
  */
 struct stg_from_pkrm {
-	/*! \brief Synthesize into a _existing_ quantum network
+	/*! \brief Synthesize into a _existing_ quantum circuit
 	 *
-	 * \param network  A quantum network
+	 * \param circuit  A quantum circuit
 	 * \param qubits   The subset of qubits the gate acts upon.
 	 * \param function 
 	 */
-	template<class Network>
-	void operator()(Network& network, std::vector<wire::id> const& qubits,
+	template<class Circuit>
+	void operator()(Circuit& circuit, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();
@@ -96,26 +96,26 @@ struct stg_from_pkrm {
 				bits >>= 1;
 				mask >>= 1;
 			}
-			network.create_op(gate_lib::ncx, controls, target);
+			circuit.create_op(gate_lib::ncx, controls, target);
 		}
 	}
 };
 
-/*! \brief Synthesize a quantum network from a function by computing PPRM representation
+/*! \brief Synthesize a quantum circuit from a function by computing PPRM representation
  *
  * PPRM: The positive polarity Reed-Muller form is an ESOP, where each variable has
  * positive polarity (not complemented form). PPRM is a canonical expression, so further
  * minimization is not possible.
  */
 struct stg_from_pprm {
-	/*! \brief Synthesize into a _existing_ quantum network
+	/*! \brief Synthesize into a _existing_ quantum circuit
 	 *
-	 * \param network  A quantum network
+	 * \param circuit  A quantum circuit
 	 * \param qubits   The subset of qubits the gate acts upon.
 	 * \param function 
 	 */
-	template<class Network>
-	void operator()(Network& network, std::vector<wire::id> const& qubits,
+	template<class Circuit>
+	void operator()(Circuit& circuit, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();
@@ -132,7 +132,7 @@ struct stg_from_pprm {
 				}
 				bits >>= 1;
 			}
-			network.create_op(gate_lib::ncx, controls, target);
+			circuit.create_op(gate_lib::ncx, controls, target);
 		}
 	}
 };
@@ -154,14 +154,14 @@ struct stg_from_spectrum {
 	    : params(params_)
 	{}
 
-	/*! \brief Synthesize a single target gate into a _existing_ quantum network
+	/*! \brief Synthesize a single target gate into a _existing_ quantum circuit
 	 *
-	 * \param network  A quantum network
+	 * \param circuit  A quantum circuit
 	 * \param qubits   The subset of qubits the gate acts upon.
 	 * \param function 
 	 */
-	template<class Network>
-	void operator()(Network& network, std::vector<wire::id> const& qubits,
+	template<class Circuit>
+	void operator()(Circuit& circuit, std::vector<wire::id> const& qubits,
 	                kitty::dynamic_truth_table const& function) const
 	{
 		const auto num_controls = function.num_vars();
@@ -184,15 +184,15 @@ struct stg_from_spectrum {
 			parities.add_term(i, nom * spectrum[i]);
 		}
 
-		network.create_op(gate_lib::h, qubits.back());
+		circuit.create_op(gate_lib::h, qubits.back());
 		if (params.behavior == stg_from_spectrum_params::behavior::use_linear_synth) {
-			linear_synth(network, qubits, parities, params.ls_params);
+			linear_synth(circuit, qubits, parities, params.ls_params);
 		} else if (parities.num_terms() == spectrum.size() - 1) {
-			linear_synth(network, qubits, parities, params.ls_params);
+			linear_synth(circuit, qubits, parities, params.ls_params);
 		} else {
-			gray_synth(network, qubits, parities, params.gs_params);
+			gray_synth(circuit, qubits, parities, params.gs_params);
 		}
-		network.create_op(gate_lib::h, qubits.back());
+		circuit.create_op(gate_lib::h, qubits.back());
 	}
 
 	stg_from_spectrum_params params;

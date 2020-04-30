@@ -33,7 +33,7 @@ struct gray_synth_params {
 
 namespace detail {
 
-template<class Network>
+template<class Circuit>
 class gray_synth_ftor {
 	using matrix_type = bit_matrix_cm<uint32_t>;
 	using qubit_pair_type = std::pair<uint32_t, uint32_t>;
@@ -45,9 +45,9 @@ class gray_synth_ftor {
 	};
 
 public:
-	gray_synth_ftor(Network& network, std::vector<wire::id> const& qubits,
+	gray_synth_ftor(Circuit& circuit, std::vector<wire::id> const& qubits,
 	                parity_terms<uint32_t> const& parities, gray_synth_params params)
-	    : network_(network)
+	    : network_(circuit)
 	    , qubits_(qubits)
 	    , parities_(parities)
 	    , parity_matrix_(num_qubits())
@@ -195,7 +195,7 @@ private:
 	}
 
 private:
-	Network& network_;
+	Circuit& network_;
 	std::vector<wire::id> qubits_;
 	parity_terms<uint32_t> parities_;
 	matrix_type parity_matrix_;
@@ -207,25 +207,25 @@ private:
 
 /*! \brief Gray synthesis for {CNOT, Rz} networks.
  *
- * This is the in-place variant of ``gray_synth``, in which the network is passed as a parameter
+ * This is the in-place variant of ``gray_synth``, in which the circuit is passed as a parameter
  * and can potentially already contain some gates. The parameter ``qubits`` provides a qubit
- * mapping to the existing qubits in the network.
+ * mapping to the existing qubits in the circuit.
  *
- * \param network  A quantum network
+ * \param circuit  A quantum circuit
  * \param qubits   The subset of qubits the linear reversible circuit acts upon
  * \param parities List of parities and rotation angles to synthesize
  * \param params   The parameters that configure the synthesis process.
  *                 See `gray_synth_params` for details.
  */
-template<class Network>
-void gray_synth(Network& network, std::vector<wire::id> const& qubits,
+template<class Circuit>
+void gray_synth(Circuit& circuit, std::vector<wire::id> const& qubits,
                 parity_terms<uint32_t> const& parities, gray_synth_params params = {})
 {
 	assert(qubits.size() <= 32u);
 	if (parities.num_terms() == 0u) {
 		return;
 	}
-	detail::gray_synth_ftor synthesizer(network, qubits, parities, params);
+	detail::gray_synth_ftor synthesizer(circuit, qubits, parities, params);
 	synthesizer.synthesize();
 }
 
@@ -242,23 +242,23 @@ void gray_synth(Network& network, std::vector<wire::id> const& qubits,
  * \param params     The parameters that configure the synthesis process.
  *                   See `gray_synth_params` for details.
  * 
- * \return {CNOT, Rz} network
+ * \return {CNOT, Rz} circuit
  *
  * \algtype synthesis
  * \algexpects List of parities and rotation angles to synthesize
- * \algreturns {CNOT, Rz} network
+ * \algreturns {CNOT, Rz} circuit
  */
-template<class Network>
-Network gray_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities, gray_synth_params params = {})
+template<class Circuit>
+Circuit gray_synth(uint32_t num_qubits, parity_terms<uint32_t> const& parities, gray_synth_params params = {})
 {
 	assert(num_qubits <= 32);
-	Network network;
+	Circuit circuit;
 	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
-		qubits.emplace_back(network.create_qubit());
+		qubits.emplace_back(circuit.create_qubit());
 	}
-	gray_synth(network, qubits, parities, params);
-	return network;
+	gray_synth(circuit, qubits, parities, params);
+	return circuit;
 }
 
 } // namespace tweedledum

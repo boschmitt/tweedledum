@@ -15,17 +15,17 @@ namespace tweedledum {
 /*! \brief Simulate a quantum circuit that has only classical gates.
  *
  * \algtype simulation
- * \algexpects A Toffoli network
+ * \algexpects A Toffoli circuit
  * \algreturns The simulated pattern
  */
 // TODO: make it aware of rewiring
-template<typename Network>
-uint64_t simulate_classically(Network const& network, uint64_t pattern)
+template<typename Circuit>
+uint64_t simulate_classically(Circuit const& circuit, uint64_t pattern)
 {
-	using op_type = typename Network::op_type;
-	assert(network.check_gate_set(gate_set::classic_rev));
-	assert(network.num_qubits() <= 64);
-	network.foreach_op([&](op_type const& op) {
+	using op_type = typename Circuit::op_type;
+	assert(circuit.check_gate_set(gate_set::classic_rev));
+	assert(circuit.num_qubits() <= 64);
+	circuit.foreach_op([&](op_type const& op) {
 		uint64_t temp_pattern = pattern;
 		uint64_t control_mask = 0ull;
 		uint64_t target_mask = 0ull;

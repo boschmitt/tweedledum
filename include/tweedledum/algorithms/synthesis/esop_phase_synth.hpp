@@ -14,16 +14,16 @@ namespace tweedledum {
 
 /*! \brief ESOP-phase synthesis.
  *
- * This is the in-place variant of ``esop_phase_synth``, in which the network is passed as a
+ * This is the in-place variant of ``esop_phase_synth``, in which the circuit is passed as a
  * parameter and can potentially already contain some gates. The parameter ``qubits`` provides a
- * qubit mapping to the existing qubits in the network.
+ * qubit mapping to the existing qubits in the circuit.
  *
- * \param network A quantum circuit
+ * \param circuit A quantum circuit
  * \param qubits A qubit mapping
  * \param function A Boolean function
  */
-template<typename Network>
-void esop_phase_synth(Network& network, std::vector<wire::id> const& qubits,
+template<typename Circuit>
+void esop_phase_synth(Circuit& circuit, std::vector<wire::id> const& qubits,
                       kitty::dynamic_truth_table const& function)
 {
 	for (const auto& cube : easy::esop::esop_from_pprm(function)) {
@@ -41,7 +41,7 @@ void esop_phase_synth(Network& network, std::vector<wire::id> const& qubits,
 			}
 		}
 		if (!targets.empty()) {
-			network.create_op(gate_lib::ncz, controls, targets);
+			circuit.create_op(gate_lib::ncz, controls, targets);
 		}
 	}
 }
@@ -61,17 +61,17 @@ void esop_phase_synth(Network& network, std::vector<wire::id> const& qubits,
  * \algexpects Boolean function
  * \algreturns Quantum circuit
  */
-template<class Network>
-Network esop_phase_synth(kitty::dynamic_truth_table const& function)
+template<class Circuit>
+Circuit esop_phase_synth(kitty::dynamic_truth_table const& function)
 {
-	Network network;
+	Circuit circuit;
 	uint32_t const num_qubits = function.num_vars();
 	std::vector<wire::id> qubits;
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
-		qubits.emplace_back(network.create_qubit());
+		qubits.emplace_back(circuit.create_qubit());
 	}
-	esop_phase_synth(network, qubits, function);
-	return network;
+	esop_phase_synth(circuit, qubits, function);
+	return circuit;
 }
 
 } // namespace tweedledum

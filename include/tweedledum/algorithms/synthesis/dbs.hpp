@@ -101,7 +101,7 @@ inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const&
    .. code-block:: c++
 
       std::vector<uint32_t> permutation{{0, 2, 3, 5, 7, 1, 4, 6}};
-      auto network = dbs<netlist<io3_gate>>(permutation, stg_from_spectrum());
+      auto circuit = dbs<netlist<io3_gate>>(permutation, stg_from_spectrum());
 
    \endverbatim
  *
@@ -113,13 +113,13 @@ inline auto control_function_abs(uint32_t num_vars, std::vector<uint32_t> const&
  * \algexpects Permutation
  * \algreturns Quantum or reversible circuit
  */
-template<class Network, class STGSynthesisFn>
-Network dbs(std::vector<uint32_t> permutation, STGSynthesisFn&& stg_synth, dbs_params params = {})
+template<class Circuit, class STGSynthesisFn>
+Circuit dbs(std::vector<uint32_t> permutation, STGSynthesisFn&& stg_synth, dbs_params params = {})
 {
-	Network network;
+	Circuit circuit;
 	const uint32_t num_qubits = std::log2(permutation.size());
 	for (auto i = 0u; i < num_qubits; ++i) {
-		network.create_qubit();
+		circuit.create_qubit();
 	}
 
 	std::list<std::pair<kitty::dynamic_truth_table, std::vector<wire::id>>> gates;
@@ -153,9 +153,9 @@ Network dbs(std::vector<uint32_t> permutation, STGSynthesisFn&& stg_synth, dbs_p
 			                             })
 			          << "\n";
 		}
-		stg_synth(network, vars, tt);
+		stg_synth(circuit, vars, tt);
 	}
-	return network;
+	return circuit;
 }
 
 } // namespace tweedledum
