@@ -4,7 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../../utils/device.hpp"
+#include "../../../target/device.hpp"
 #include "../../../utils/hash.hpp"
 #include "parameters.hpp"
 

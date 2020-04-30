@@ -6,7 +6,7 @@
 
 #include "../../networks/mapped_dag.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/device.hpp"
+#include "../../target/device.hpp"
 #include "token_swap/a_star_swap.hpp"
 #include "token_swap/parameters.hpp"
 #include "token_swap/sat_swap.hpp"

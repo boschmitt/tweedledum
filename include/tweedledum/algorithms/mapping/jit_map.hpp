@@ -6,7 +6,7 @@
 
 #include "../../networks/mapped_dag.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/device.hpp"
+#include "../../target/device.hpp"
 #include "../utility/reverse.hpp"
 #include "placement/line_placement.hpp"
 #include "routing/jit_router.hpp"

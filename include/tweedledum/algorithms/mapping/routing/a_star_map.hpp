@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../networks/mapped_dag.hpp"
-#include "../../utils/device.hpp"
+#include "../../target/device.hpp"
 #include "../../views/layers_view.hpp"
 
 #include <algorithm>

@@ -6,7 +6,7 @@
 
 #include "../../networks/mapped_dag.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/device.hpp"
+#include "../../target/device.hpp"
 #include "placement/sat_placement.hpp"
 
 namespace tweedledum {

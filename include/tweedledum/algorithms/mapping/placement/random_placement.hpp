@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../../networks/wire.hpp"
-#include "../../../utils/device.hpp"
+#include "../../../target/device.hpp"
 
 #include <random>
 #include <vector>

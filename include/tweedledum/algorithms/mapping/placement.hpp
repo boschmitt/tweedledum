@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../networks/wire.hpp"
-#include "../../utils/device.hpp"
+#include "../../target/device.hpp"
 #include "placement/random_placement.hpp"
 #include "placement/line_placement.hpp"
 #include "placement/hsat_placement.hpp"

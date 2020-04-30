@@ -2,7 +2,7 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
-#include "../utils/device.hpp"
+#include "../target/device.hpp"
 
 #include <algorithm>
 #include <fstream>

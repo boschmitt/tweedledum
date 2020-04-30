@@ -6,7 +6,7 @@
 
 #include "../../../networks/storage.hpp"
 #include "../../../networks/wire.hpp"
-#include "../../../utils/device.hpp"
+#include "../../../target/device.hpp"
 
 #include <vector>
 

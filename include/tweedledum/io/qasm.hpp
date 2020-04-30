@@ -44,48 +44,71 @@ public:
 	void visit_stmt_gate(stmt_gate* node)
 	{
 		using namespace tweedledum;
-		auto gate_ids = static_cast<decl_gate*>(node->gate())->identifier();
+		auto gate_id = static_cast<decl_gate*>(node->gate())->identifier();
 		auto arguments_list = visit_list_any(static_cast<list_any*>(node->arguments()));
 		auto parameters = node->parameters();
-		if (gate_ids == "id") {
+		if (gate_id == "id") {
 			network_.create_op(gate_lib::i, arguments_list[0]);
-		} else if (gate_ids == "h") {
+		} else if (gate_id == "h") {
 			network_.create_op(gate_lib::h, arguments_list[0]); 
-		} else if (gate_ids == "x") {
+		} else if (gate_id == "x") {
 			network_.create_op(gate_lib::x, arguments_list[0]); 
-		} else if (gate_ids == "y") {
+		} else if (gate_id == "y") {
 			network_.create_op(gate_lib::y, arguments_list[0]); 
-		} else if (gate_ids == "z") {
+		} else if (gate_id == "z") {
 			network_.create_op(gate_lib::z, arguments_list[0]); 
-		} else if (gate_ids == "s") {
+		} else if (gate_id == "s") {
 			network_.create_op(gate_lib::s, arguments_list[0]); 
-		} else if (gate_ids == "sdg") {
+		} else if (gate_id == "sdg") {
 			network_.create_op(gate_lib::sdg, arguments_list[0]); 
-		} else if (gate_ids == "t") {
+		} else if (gate_id == "t") {
 			network_.create_op(gate_lib::t, arguments_list[0]); 
-		} else if (gate_ids == "tdg") {
+		} else if (gate_id == "tdg") {
 			network_.create_op(gate_lib::tdg, arguments_list[0]); 
-		} else if (gate_ids == "cx") {
+		} else if (gate_id == "cx") {
 			network_.create_op(gate_lib::cx, arguments_list[0], arguments_list[1]);
-		} else if (gate_ids == "cy") {
+		} else if (gate_id == "cy") {
 			network_.create_op(gate_lib::cy, arguments_list[0], arguments_list[1]);
-		} else if (gate_ids == "cz") {
+		} else if (gate_id == "cz") {
 			network_.create_op(gate_lib::cz, arguments_list[0], arguments_list[1]);
-		} else if (gate_ids == "swap") {
+		} else if (gate_id == "swap") {
 			network_.create_op(gate_lib::swap, arguments_list[0], arguments_list[1]);
-		} else if (gate_ids == "ccx") {
+		} else if (gate_id == "ccx") {
 			network_.create_op(gate_lib::ncx, arguments_list[0], arguments_list[1],
 			                   arguments_list[2]);
-		} else if (gate_ids == "rz") {
-			// FIXME: this is a hack! I need to properly implement expression evaluation
+		} else if (gate_id == "rx") {
+			assert(parameters != nullptr);
+			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
+			double angle = evaluate(parameter);
+			network_.create_op(gate_lib::rx(angle), arguments_list[0]);
+		} else if (gate_id == "ry") {
+			assert(parameters != nullptr);
+			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
+			double angle = evaluate(parameter);
+			network_.create_op(gate_lib::ry(angle), arguments_list[0]);
+		} else if (gate_id == "rz") {
 			assert(parameters != nullptr);
 			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
 			double angle = evaluate(parameter);
 			network_.create_op(gate_lib::rz(angle), arguments_list[0]);
+		} else if (gate_id == "u3") {
+			assert(parameters != nullptr);
+			auto angles = visit_list_parms(static_cast<list_exps*>(parameters));
+			network_.create_op(gate_lib::u3(angles.at(0), angles.at(1), angles.at(2)),
+			                   arguments_list[0]);
 		} else {
-			fmt::print("Unrecognized gate: {}\n", gate_ids);
+			fmt::print("Unrecognized gate: {}\n", gate_id);
 			assert(0);
 		}
+	}
+
+	std::vector<tweedledum::angle> visit_list_parms(list_exps* node)
+	{
+		std::vector<tweedledum::angle> parameters;
+		for (auto& child : *node) {
+			parameters.emplace_back(evaluate(&child));
+		}
+		return parameters;
 	}
 
 	std::vector<std::string> visit_list_any(list_any* node)
