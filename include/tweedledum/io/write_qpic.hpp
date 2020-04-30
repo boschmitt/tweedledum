@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../gates/gate_lib.hpp"
-#include "../utils/angle.hpp"
+#include "../support/angle.hpp"
 
 #include <fmt/format.h>
 #include <fstream>

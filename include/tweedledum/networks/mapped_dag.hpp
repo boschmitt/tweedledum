@@ -6,7 +6,7 @@
 
 #include "../gates/gate.hpp"
 #include "../operations/w2_op.hpp"
-#include "../utils/device.hpp"
+#include "../target/device.hpp"
 #include "node.hpp"
 #include "storage.hpp"
 #include "wire.hpp"

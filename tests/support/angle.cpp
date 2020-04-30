@@ -2,7 +2,7 @@
 | This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *------------------------------------------------------------------------------------------------*/
-#include "tweedledum/utils/angle.hpp"
+#include "tweedledum/support/angle.hpp"
 
 #include <catch.hpp>
 #define _USE_MATH_DEFINES

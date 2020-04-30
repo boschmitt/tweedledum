@@ -6,10 +6,10 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/bit_matrix_cm.hpp"
-#include "../../utils/bit_matrix_rm.hpp"
-#include "../../utils/dynamic_bitset.hpp"
-#include "../../utils/parity_terms.hpp"
+#include "../../support/bit_matrix_cm.hpp"
+#include "../../support/bit_matrix_rm.hpp"
+#include "../../support/dynamic_bitset.hpp"
+#include "../../support/parity_terms.hpp"
 #include "cnot_patel.hpp"
 
 #include <algorithm>

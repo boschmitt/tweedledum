@@ -6,7 +6,7 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/parity_terms.hpp"
+#include "../../support/parity_terms.hpp"
 
 #include <algorithm>
 #include <cassert>

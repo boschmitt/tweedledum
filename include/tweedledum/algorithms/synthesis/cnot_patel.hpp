@@ -6,8 +6,8 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/bit_matrix_rm.hpp"
-#include "../../utils/dynamic_bitset.hpp"
+#include "../../support/bit_matrix_rm.hpp"
+#include "../../support/dynamic_bitset.hpp"
 
 #include <algorithm>
 #include <cstdint>

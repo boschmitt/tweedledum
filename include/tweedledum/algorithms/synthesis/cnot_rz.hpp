@@ -6,8 +6,8 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/bit_matrix_rm.hpp"
-#include "../../utils/parity_terms.hpp"
+#include "../../support/bit_matrix_rm.hpp"
+#include "../../support/parity_terms.hpp"
 
 #include <bill/sat/cardinality.hpp>
 #include <bill/sat/solver.hpp>

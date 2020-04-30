@@ -6,7 +6,7 @@
 
 #include "../../gates/gate.hpp"
 #include "../../networks/wire.hpp"
-#include "../../utils/angle.hpp"
+#include "../../support/angle.hpp"
 #include "../utility/shallow_duplicate.hpp"
 
 #include <cstdint>

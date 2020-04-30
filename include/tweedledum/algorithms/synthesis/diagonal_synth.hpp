@@ -5,8 +5,8 @@
 #pragma once
 
 #include "../../networks/wire.hpp"
-#include "../../utils/angle.hpp"
-#include "../../utils/parity_terms.hpp"
+#include "../../support/angle.hpp"
+#include "../../support/parity_terms.hpp"
 #include "gray_synth.hpp"
 #include "linear_synth.hpp"
 

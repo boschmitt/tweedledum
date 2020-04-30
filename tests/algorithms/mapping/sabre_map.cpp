@@ -12,7 +12,7 @@
 #include "tweedledum/operations/w2_op.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
-#include "tweedledum/utils/device.hpp"
+#include "tweedledum/target/device.hpp"
 
 #include <catch.hpp>
 

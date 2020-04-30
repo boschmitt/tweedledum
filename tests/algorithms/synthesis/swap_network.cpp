@@ -7,7 +7,7 @@
 #include "tweedledum/gates/gate.hpp"
 #include "tweedledum/networks/mapped_dag.hpp"
 #include "tweedledum/networks/wire.hpp"
-#include "tweedledum/utils/device.hpp"
+#include "tweedledum/target/device.hpp"
 
 #include <catch.hpp>
 

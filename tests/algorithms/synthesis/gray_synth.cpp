@@ -9,8 +9,8 @@
 #include "tweedledum/networks/op_dag.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
-#include "tweedledum/utils/angle.hpp"
-#include "tweedledum/utils/parity_terms.hpp"
+#include "tweedledum/support/angle.hpp"
+#include "tweedledum/support/parity_terms.hpp"
 
 #include <catch.hpp>
 

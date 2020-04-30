@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../../target/device.hpp"
-#include "../../../utils/hash.hpp"
+#include "../../../support/hash.hpp"
 #include "parameters.hpp"
 
 #include <cassert>

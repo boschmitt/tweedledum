@@ -9,7 +9,7 @@
 #include "tweedledum/gates/mcmt_gate.hpp"
 #include "tweedledum/io/write_unicode.hpp"
 #include "tweedledum/networks/gg_network.hpp"
-#include "tweedledum/utils/device.hpp"
+#include "tweedledum/target/device.hpp"
 #include "tweedledum/views/mapping_view.hpp"
 
 #include <catch.hpp>

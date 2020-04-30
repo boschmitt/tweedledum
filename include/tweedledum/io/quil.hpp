@@ -6,7 +6,7 @@
 
 #include "../gates/gate_lib.hpp"
 #include "../networks/io_id.hpp"
-#include "../utils/angle.hpp"
+#include "../support/angle.hpp"
 
 #include <cassert>
 #include <fmt/format.h>

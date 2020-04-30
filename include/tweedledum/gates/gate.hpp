@@ -4,7 +4,7 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../utils/angle.hpp"
+#include "../support/angle.hpp"
 
 #include <cassert>
 

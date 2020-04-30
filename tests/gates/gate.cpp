@@ -4,7 +4,7 @@
 *------------------------------------------------------------------------------------------------*/
 #include "tweedledum/gates/gate.hpp"
 
-#include "tweedledum/utils/angle.hpp"
+#include "tweedledum/support/angle.hpp"
 
 #include <catch.hpp>
 #include <vector>

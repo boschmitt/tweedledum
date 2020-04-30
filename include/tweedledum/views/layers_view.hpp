@@ -6,7 +6,7 @@
 
 #include "../networks/node.hpp"
 #include "../traits.hpp"
-#include "../utils/node_map.hpp"
+#include "../support/node_map.hpp"
 #include "immutable_view.hpp"
 
 #include <vector>

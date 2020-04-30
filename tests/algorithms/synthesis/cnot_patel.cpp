@@ -9,7 +9,7 @@
 #include "tweedledum/networks/op_dag.hpp"
 #include "tweedledum/operations/w3_op.hpp"
 #include "tweedledum/operations/wn32_op.hpp"
-#include "tweedledum/utils/bit_matrix_rm.hpp"
+#include "tweedledum/support/bit_matrix_rm.hpp"
 
 #include <catch.hpp>
 
