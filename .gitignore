@@ -5,7 +5,7 @@ _*/
 !.gitignore
 
 build/
-tools/
+tools/**
 !tools/CMakeLists.txt
 
 # Bunch of python crap to ignore:
