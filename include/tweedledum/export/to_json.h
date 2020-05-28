@@ -6,6 +6,7 @@
 
 #include "../ir/Circuit.h"
 
+#include <algorithm>
 #include <nlohmann/json.hpp>
 
 namespace tweedledum {
@@ -17,11 +18,11 @@ inline void to_json(nlohmann::json& j, Instruction const& inst)
 {
 	std::vector<uint32_t> controls;
 	std::string control_state;
-	for (Operand const& opnd : inst) {
+	std::for_each(inst.begin(), inst.end() - 1, [&](Operand const& opnd) {
 		controls.push_back(opnd.uid());
 		control_state.push_back(
 		    opnd.polarity() == Operand::Polarity::positive ? '1' : '0');
-	}
+	});
 	j = nlohmann::json{{"gate", inst.name()},
 	    {"qubits", {inst.operands_.back().uid()}},
 	    {"control_qubits", controls}, {"control_state", control_state}};
