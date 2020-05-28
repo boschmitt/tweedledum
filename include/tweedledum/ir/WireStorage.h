@@ -29,44 +29,35 @@ public:
 		return num_wires() - num_qubits();
 	}
 
-	Wire find_wire(std::string_view name) const
+	auto begin_wire() const
 	{
-		for (WireInfo const& e : wires_) {
-			if (e.name == name) {
-				return e.wire;
-			}
-		}
-		return Wire::invalid();
+		return wires_.cbegin();
+	}
+
+	auto end_wire() const
+	{
+		return wires_.cend();
 	}
 
 protected:
-	Wire do_create_qubit(std::string_view name)
+	WireRef do_create_qubit(std::string_view name)
 	{
-		Wire qubit = Wire::qubit(wires_.size());
-		wires_.emplace_back(qubit, name);
-		++num_qubits_;
-		return qubit;
+		uint32_t uid = wires_.size();
+		wires_.emplace_back(uid, name, Wire::Kind::quantum);
+		num_qubits_++;
+		return {uid, Wire::Kind::quantum};
 	}
 
-	Wire do_create_cbit(std::string_view name)
+	WireRef do_create_cbit(std::string_view name)
 	{
-		Wire cbit = Wire::cbit(wires_.size());
-		wires_.emplace_back(cbit, name);
-		return cbit;
+		uint32_t uid = wires_.size();
+		wires_.emplace_back(uid, name, Wire::Kind::classical);
+		return {uid, Wire::Kind::classical};
 	}
 
 private:
-	struct WireInfo {
-		Wire wire;
-		std::string name;
-
-		WireInfo(Wire const wire, std::string_view name)
-		    : wire(wire), name(name)
-		{}
-	};
-
 	uint32_t num_qubits_ = 0u;
-	std::vector<WireInfo> wires_;
+	std::vector<Wire> wires_;
 };
 
 } // namespace tweedledum

@@ -4,8 +4,8 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "Operand.h"
 #include "Operator.h"
+#include "Wire.h"
 
 #include <nlohmann/json.hpp>
 #include <vector>
@@ -15,44 +15,44 @@ namespace tweedledum {
 class Instruction : public Operator {
 public:
 	template<typename OptorType>
-	Instruction(OptorType const& optor, std::vector<Operand> const& opnds)
-	    : Operator(optor), operands_(opnds)
+	Instruction(OptorType const& optor, std::vector<WireRef> const& wires)
+	    : Operator(optor), wires_(wires)
 	{}
 
 	template<typename OptorType>
-	Instruction(OptorType const& optor, std::vector<Operand> const& opnds,
-	    Operand target)
-	    : Operator(optor), operands_(opnds)
+	Instruction(OptorType const& optor, std::vector<WireRef> const& wires,
+	    WireRef target)
+	    : Operator(optor), wires_(wires)
 	{
-		operands_.push_back(target);
+		wires_.push_back(target);
 	}
 
 	auto begin() const
 	{
-		return operands_.begin();
+		return wires_.begin();
 	}
 
 	auto end() const
 	{
-		return operands_.end();
+		return wires_.end();
 	}
 
 	friend void to_json(nlohmann::json& j, Instruction const& inst);
 
 private:
-	std::vector<Operand> operands_;
+	std::vector<WireRef> wires_;
 };
 
 inline void print(Instruction const& inst, std::ostream& os, uint32_t indent)
 {
 	print(static_cast<Operator const&>(inst), os, indent);
 	os << fmt::format("{:>{}}controls:", "", indent + 4);
-	std::for_each(inst.begin(), inst.end() - 1, [&os](Operand const& opnd) {
+	std::for_each(inst.begin(), inst.end() - 1, [&os](WireRef const& wire) {
 		os << fmt::format(
-		    " {}{}", opnd.polarity() ? "" : "!", opnd.uid());
+		    " {}{}", wire.polarity() ? "" : "!", wire.uid());
 	});
 	// FIXME: this is a hack for now (:
-	Operand target = *(inst.end() - 1);
+	WireRef target = *(inst.end() - 1);
 	os << fmt::format("\n{:>{}}target: {}\n", "", indent + 4, target.uid());
 }
 

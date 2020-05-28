@@ -6,7 +6,7 @@
 
 #include "../../ir/Circuit.h"
 #include "../../ir/GateLib.h"
-#include "../../ir/Operand.h"
+#include "../../ir/Wire.h"
 
 #include <cassert>
 #include <kitty/kitty.hpp>
@@ -16,14 +16,14 @@ namespace tweedledum {
 
 using TruthTable = kitty::dynamic_truth_table;
 
-inline void pkrm_synth(Circuit& circuit, std::vector<Operand> const& qubits,
+inline void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
     TruthTable const& function)
 {
 	uint32_t const num_controls = function.num_vars();
 	assert(qubits.size() >= (num_controls + 1u));
 
-	Operand const target = qubits.back();
-	std::vector<Operand> controls;
+	WireRef const target = qubits.back();
+	std::vector<WireRef> controls;
 	controls.reserve(num_controls);
 	for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
 		auto bits = cube._bits;
@@ -45,12 +45,12 @@ inline Circuit pkrm_synth(TruthTable const& function)
 	// TODO: method to generate a name;
 	Circuit circuit("my_circuit");
 	// Create the necessary qubits
-	std::vector<Operand> operands;
-	operands.reserve(function.num_vars());
+	std::vector<WireRef> wires;
+	wires.reserve(function.num_vars());
 	for (uint32_t i = 0u; i < function.num_vars() + 1; ++i) {
-		operands.emplace_back(circuit.create_qubit());
+		wires.emplace_back(circuit.create_qubit());
 	}
-	pkrm_synth(circuit, operands, function);
+	pkrm_synth(circuit, wires, function);
 	return circuit;
 }
 

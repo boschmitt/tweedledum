@@ -18,12 +18,12 @@ class Circuit : public WireStorage {
 public:
 	Circuit(std::string_view name) : name_(name) {}
 
-	Wire create_qubit(std::string_view name)
+	WireRef create_qubit(std::string_view name)
 	{
 		return do_create_qubit(name);
 	}
 
-	Wire create_qubit()
+	WireRef create_qubit()
 	{
 		std::string const name = fmt::format("__dum_q{}", num_qubits());
 		return do_create_qubit(name);
@@ -41,7 +41,7 @@ public:
 
 	template<typename OptorType>
 	void create_instruction(OptorType const& optor,
-	    std::vector<Operand> const& controls, Operand target)
+	    std::vector<WireRef> const& controls, WireRef target)
 	{
 		instruction_.push_back({optor, controls, target});
 	}

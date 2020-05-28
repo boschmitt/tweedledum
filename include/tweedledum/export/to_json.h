@@ -18,13 +18,13 @@ inline void to_json(nlohmann::json& j, Instruction const& inst)
 {
 	std::vector<uint32_t> controls;
 	std::string control_state;
-	std::for_each(inst.begin(), inst.end() - 1, [&](Operand const& opnd) {
-		controls.push_back(opnd.uid());
+	std::for_each(inst.begin(), inst.end() - 1, [&](WireRef const& wire) {
+		controls.push_back(wire.uid());
 		control_state.push_back(
-		    opnd.polarity() == Operand::Polarity::positive ? '1' : '0');
+		    wire.polarity() == WireRef::Polarity::positive ? '1' : '0');
 	});
 	j = nlohmann::json{{"gate", inst.name()},
-	    {"qubits", {inst.operands_.back().uid()}},
+	    {"qubits", {inst.wires_.back().uid()}},
 	    {"control_qubits", controls}, {"control_state", control_state}};
 }
 
