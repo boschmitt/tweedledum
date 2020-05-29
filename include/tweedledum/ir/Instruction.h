@@ -37,6 +37,14 @@ public:
 		return wires_.end();
 	}
 
+	// FIXME: For now, I will assume that all gates are single target and
+	// the target is the last wire! Clearly this is a temporary hack as a
+	// gate such as SWAP (two targets) will break this (:
+	WireRef target() const
+	{
+		return wires_.back();
+	}
+
 	friend void to_json(nlohmann::json& j, Instruction const& inst);
 
 private:
@@ -51,9 +59,8 @@ inline void print(Instruction const& inst, std::ostream& os, uint32_t indent)
 		os << fmt::format(
 		    " {}{}", wire.polarity() ? "" : "!", wire.uid());
 	});
-	// FIXME: this is a hack for now (:
-	WireRef target = *(inst.end() - 1);
-	os << fmt::format("\n{:>{}}target: {}\n", "", indent + 4, target.uid());
+	os << fmt::format(
+	    "\n{:>{}}target: {}\n", "", indent + 4, inst.target().uid());
 }
 
 } // namespace tweedledum
