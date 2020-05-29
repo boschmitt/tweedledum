@@ -46,6 +46,11 @@ public:
 		instruction_.push_back({optor, controls, target});
 	}
 
+	static std::string_view kind()
+	{
+		return "circuit";
+	}
+
 	std::string_view name() const
 	{
 		return name_;

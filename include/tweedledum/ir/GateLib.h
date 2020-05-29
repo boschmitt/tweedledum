@@ -10,7 +10,7 @@ namespace tweedledum::GateLib {
 
 class X {
 public:
-	static std::string_view name()
+	static std::string_view kind()
 	{
 		return "x";
 	}

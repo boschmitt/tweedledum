@@ -23,7 +23,7 @@ inline void to_json(nlohmann::json& j, Instruction const& inst)
 		control_state.push_back(
 		    wire.polarity() == WireRef::Polarity::positive ? '1' : '0');
 	});
-	j = nlohmann::json{{"gate", inst.name()},
+	j = nlohmann::json{{"gate", inst.kind()},
 	    {"qubits", {inst.target().uid()}},
 	    {"control_qubits", controls}, {"control_state", control_state}};
 }
