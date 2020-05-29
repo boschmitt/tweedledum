@@ -46,6 +46,13 @@ public:
 		instruction_.push_back({optor, controls, target});
 	}
 
+	template<typename OptorType>
+	void create_instruction(OptorType const& optor,
+	    std::vector<WireRef> const& wires)
+	{
+		instruction_.push_back({optor, wires});
+	}
+
 	static std::string_view kind()
 	{
 		return "circuit";

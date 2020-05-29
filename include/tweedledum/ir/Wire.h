@@ -48,11 +48,21 @@ public:
 		return static_cast<Polarity>(polarity_);
 	}
 
+	void complement()
+	{
+		polarity_ ^= 1u;
+	}
+
 	WireRef operator!() const
 	{
 		WireRef complemented(*this);
 		complemented.polarity_ ^= 1u;
 		return complemented;
+	}
+
+	bool operator==(WireRef other) const
+	{
+		return data_ == other.data_;
 	}
 
 	friend void to_json(nlohmann::json& j, WireRef const& wire_ref);
