@@ -8,6 +8,7 @@
 #include "../../../ir/GateLib.h"
 #include "../../../ir/Wire.h"
 #include "BennettStrategy.h"
+#include "EagerStrategy.h"
 
 #include <mockturtle/algorithms/collapse_mapped.hpp>
 #include <mockturtle/algorithms/lut_mapping.hpp>
@@ -33,33 +34,70 @@ inline mockturtle::klut_network collapse_to_klut(LogicNetwork const& network)
 	return *collapse_mapped_network<klut_network>(mapped_network);
 }
 
-} // namespace detail
-
-inline void lhrs_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    mockturtle::klut_network const& klut)
-{
-	using LogicNtk = mockturtle::klut_network;
+class LHRSynth {
+	using LogicNetwork = mockturtle::klut_network;
 	using Action = BaseStrategy::Action;
-	using namespace mockturtle;
 
-	BennettStrategy strategy;
-	strategy.compute_steps(klut);
+public:
+	static void synthesize(LogicNetwork const& klut,
+	    BaseStrategy const& strategy, Circuit& circuit,
+	    std::vector<WireRef> const& qubits);
 
-	mockturtle::node_map<WireRef, LogicNtk> to_qubit(
-	    klut, WireRef::invalid());
+private:
+	LHRSynth(LogicNetwork const& klut, BaseStrategy const& strategy,
+	    Circuit& circuit, std::vector<WireRef> const& qubits)
+	    : klut_(klut), strategy_(strategy), circuit_(circuit),
+	      qubits_(qubits), to_qubit_(klut, WireRef::invalid())
+	{}
+
+	WireRef request_ancilla()
+	{
+		if (free_ancillae_.empty()) {
+			return circuit_.create_qubit();
+			;
+		} else {
+			WireRef qubit = free_ancillae_.back();
+			free_ancillae_.pop_back();
+			return qubit;
+		}
+	}
+
+	void release_ancilla(WireRef qubit)
+	{
+		free_ancillae_.push_back(qubit);
+	}
+
+	void do_synthesize();
+
+	LogicNetwork const& klut_;
+	BaseStrategy const& strategy_;
+	Circuit& circuit_;
+	std::vector<WireRef> const& qubits_;
+	std::vector<WireRef> free_ancillae_;
+	mockturtle::node_map<WireRef, LogicNetwork> to_qubit_;
+};
+
+inline void LHRSynth::do_synthesize()
+{
 	uint32_t i = 0u;
-	klut.foreach_pi([&](auto const& node) {
-		to_qubit[node] = qubits.at(i++);
+	klut_.foreach_pi([&](auto const& node) {
+		to_qubit_[node] = qubits_.at(i++);
 	});
-	klut.clear_visited();
+
+	// Analysis of the primary outputs:  Here I do two things:
+	// *) look for primary outputs that point to the same node.  For those
+	//     we need to only compute one and then at the end use a CX to copy
+	//     the computational state.
+	// *) check which outputs will need be complemented at the end.
+	klut_.clear_visited();
 	std::vector<uint32_t> to_compute_po;
 	std::vector<uint32_t> to_complement_po;
-	klut.foreach_po([&](auto const& signal) {
-		auto node = klut.get_node(signal);
-		if (!klut.visited(node)) {
-			to_qubit[node] = qubits.at(i);
-			klut.set_visited(node, 1u);
-			if (klut.is_complemented(signal)) {
+	klut_.foreach_po([&](auto const& signal) {
+		auto node = klut_.get_node(signal);
+		if (!klut_.visited(node)) {
+			to_qubit_[node] = qubits_.at(i);
+			klut_.set_visited(node, 1u);
+			if (klut_.is_complemented(signal)) {
 				to_complement_po.push_back(i);
 			}
 		} else {
@@ -68,11 +106,12 @@ inline void lhrs_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
 		++i;
 	});
 
-	for (auto const& step : strategy) {
+	// Perform the action of all the steps.
+	for (auto const& step : strategy_) {
 		std::vector<WireRef> controls;
-		klut.foreach_fanin(step.node, [&](auto const& signal) {
-			WireRef qubit = to_qubit[klut.get_node(signal)];
-			if (klut.is_complemented(signal)) {
+		klut_.foreach_fanin(step.node, [&](auto const& signal) {
+			WireRef qubit = to_qubit_[klut_.get_node(signal)];
+			if (klut_.is_complemented(signal)) {
 				controls.emplace_back(!qubit);
 			} else {
 				controls.emplace_back(qubit);
@@ -80,34 +119,56 @@ inline void lhrs_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
 		});
 		switch (step.action) {
 		case Action::compute:
-			if (to_qubit[step.node] == WireRef::invalid()) {
-				to_qubit[step.node] = circuit.create_qubit();
+			if (to_qubit_[step.node] == WireRef::invalid()) {
+				to_qubit_[step.node] = request_ancilla();
 			}
 			break;
 
 		case Action::cleanup:
+			release_ancilla(to_qubit_[step.node]);
 			break;
 		}
-		circuit.create_instruction(
-		    GateLib::TruthTable("", klut.node_function(step.node)),
-		    controls, to_qubit[step.node]);
+		circuit_.create_instruction(
+		    GateLib::TruthTable("", klut_.node_function(step.node)),
+		    controls, to_qubit_[step.node]);
 	}
-	// Finalize
+
+	// Compute the outputs that need to be "copied" from other qubits.
 	for (uint32_t po : to_compute_po) {
-		auto const signal = klut.po_at(po - klut.num_pis());
-		auto const node = klut.get_node(signal);
-		WireRef qubit = to_qubit[node];
-		if (klut.is_complemented(signal)) {
+		auto const signal = klut_.po_at(po - klut_.num_pis());
+		auto const node = klut_.get_node(signal);
+		WireRef qubit = to_qubit_[node];
+		if (klut_.is_complemented(signal)) {
 			qubit.complement();
 		}
-		circuit.create_instruction(GateLib::X(), {qubit}, qubits.at(po));
+		circuit_.create_instruction(
+		    GateLib::X(), {qubit}, qubits_.at(po));
 	}
+	// Complement what needs to be complemented.
 	for (uint32_t po : to_complement_po) {
-		auto const signal = klut.po_at(po - klut.num_pis());
-		auto const node = klut.get_node(signal);
-		WireRef const qubit = to_qubit[node];
-		circuit.create_instruction(GateLib::X(), {qubit});
+		auto const signal = klut_.po_at(po - klut_.num_pis());
+		auto const node = klut_.get_node(signal);
+		WireRef const qubit = to_qubit_[node];
+		circuit_.create_instruction(GateLib::X(), {qubit});
 	}
+}
+
+inline void LHRSynth::synthesize(LogicNetwork const& klut,
+    BaseStrategy const& strategy, Circuit& circuit,
+    std::vector<WireRef> const& qubits)
+{
+	LHRSynth synth(klut, strategy, circuit, qubits);
+	synth.do_synthesize();
+}
+
+} // namespace detail
+
+inline void lhrs_synth(mockturtle::klut_network const& klut, Circuit& circuit,
+    std::vector<WireRef> const& qubits)
+{
+	BennettStrategy strategy;
+	strategy.compute_steps(klut);
+	detail::LHRSynth::synthesize(klut, strategy, circuit, qubits);
 }
 
 //  LUT-based hierarchical reversible logic synthesis (LHRS)
@@ -125,7 +186,7 @@ inline Circuit lhrs_synth(LogicNetwork const& network)
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		wires.emplace_back(circuit.create_qubit());
 	}
-	lhrs_synth(circuit, wires, klut);
+	lhrs_synth(klut, circuit, wires);
 	return circuit;
 }
 

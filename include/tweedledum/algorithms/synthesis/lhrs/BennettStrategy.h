@@ -7,36 +7,37 @@
 #include "BaseStrategy.h"
 
 #include <algorithm>
+#include <mockturtle/networks/klut.hpp>
 #include <vector>
 
 namespace tweedledum {
 
 class BennettStrategy : public BaseStrategy {
 public:
-	bool compute_steps(mockturtle::klut_network const& network) override;
+	bool compute_steps(mockturtle::klut_network const& klut) override;
 };
 
-inline bool BennettStrategy::compute_steps(
-    mockturtle::klut_network const& network)
+inline bool BennettStrategy::compute_steps(mockturtle::klut_network const& klut)
 {
 	std::vector<Node> outputs;
-	network.foreach_po([&](auto const& signal) {
-		auto node = network.get_node(signal);
+	klut.clear_visited();
+	klut.foreach_po([&](auto const& signal) {
+		auto node = klut.get_node(signal);
 		outputs.push_back(node);
-		network.set_visited(node, 1u);
+		klut.set_visited(node, 1u);
 	});
 
-	this->steps_.reserve(network.size() * 2);
+	this->steps_.reserve(klut.size() * 2);
 	auto it = this->steps_.begin();
-	network.foreach_node([&](auto node) {
-		if (network.is_constant(node) || network.is_pi(node)) {
+	klut.foreach_node([&](auto node) {
+		if (klut.is_constant(node) || klut.is_pi(node)) {
 			return true;
 		}
 
 		it = this->steps_.emplace(it, Action::compute, node);
 		++it;
 
-		if (!network.visited(node)) {
+		if (!klut.visited(node)) {
 			it = this->steps_.emplace(it, Action::cleanup, node);
 		}
 		return true;
