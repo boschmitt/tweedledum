@@ -29,10 +29,10 @@ jobs:
       if: startsWith(matrix.os, 'windows')
       uses: microsoft/setup-msbuild@v1.0.0
 
-    - name: Configure x64 compiler
+    - name: Configure compiler
       if: startsWith(matrix.os, 'windows')
       run: |
-        "%VS140COMNTOOLS%../../VC/vcvarsall.bat x64"
+        "%VS140COMNTOOLS%../../VC/vcvarsall.bat"
 
     - name: Build wheel
       run: |
