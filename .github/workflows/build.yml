@@ -25,6 +25,10 @@ jobs:
       run: |
         python -m pip install cibuildwheel==1.4.2
 
+    - name: Add msbuild to PATH
+      if: startsWith(matrix.os, 'windows')
+      uses: microsoft/setup-msbuild@v1.0.0
+
     - name: Build wheel
       run: |
         python -m cibuildwheel --output-dir wheelhouse
