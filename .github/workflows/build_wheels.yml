@@ -24,9 +24,9 @@ jobs:
       with:
         python-version: '3.8'
 
-    - name: Install cibuildwheel
+    - name: Install dependencies
       run: |
-        python -m pip install --upgrade cibuildwheel
+        python -m pip install --upgrade cibuildwheel scikit-build
    
     - uses: ilammy/msvc-dev-cmd@v1.2.0
       if: startsWith(matrix.os, 'windows')
