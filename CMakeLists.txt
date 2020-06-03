@@ -11,6 +11,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wextra")
 # Options
 # =============================================================================
 option(TWEEDLEDUM_PYBINDS "Build python bindings" ON)
+option(TWEEDLEDUM_TESTS "Build tests" OFF)
 option(TWEEDLEDUM_TOOLS "Build tools" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
 
@@ -28,6 +29,12 @@ target_link_libraries(tweedledum INTERFACE fmt mockturtle nlohmann_json)
 # =============================================================================
 if(TWEEDLEDUM_PYBINDS)
   add_subdirectory(python)
+endif()
+
+# Tests
+# =============================================================================
+if(TWEEDLEDUM_TESTS)
+  add_subdirectory(test)
 endif()
 
 # Tools
