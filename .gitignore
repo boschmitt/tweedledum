@@ -29,3 +29,6 @@ var/
 wheels/
 *.egg-info/
 *.egg
+
+# might want to remove this later
+MANIFEST
