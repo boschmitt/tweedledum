@@ -50,30 +50,12 @@ private:
 	      qubits_(qubits), to_qubit_(klut, WireRef::invalid())
 	{}
 
-	WireRef request_ancilla()
-	{
-		if (free_ancillae_.empty()) {
-			return circuit_.create_qubit();
-			;
-		} else {
-			WireRef qubit = free_ancillae_.back();
-			free_ancillae_.pop_back();
-			return qubit;
-		}
-	}
-
-	void release_ancilla(WireRef qubit)
-	{
-		free_ancillae_.push_back(qubit);
-	}
-
 	void do_synthesize();
 
 	LogicNetwork const& klut_;
 	BaseStrategy const& strategy_;
 	Circuit& circuit_;
 	std::vector<WireRef> const& qubits_;
-	std::vector<WireRef> free_ancillae_;
 	mockturtle::node_map<WireRef, LogicNetwork> to_qubit_;
 };
 
@@ -120,12 +102,12 @@ inline void LHRSynth::do_synthesize()
 		switch (step.action) {
 		case Action::compute:
 			if (to_qubit_[step.node] == WireRef::invalid()) {
-				to_qubit_[step.node] = request_ancilla();
+				to_qubit_[step.node] = circuit_.request_ancilla();
 			}
 			break;
 
 		case Action::cleanup:
-			release_ancilla(to_qubit_[step.node]);
+			circuit_.release_ancilla(to_qubit_[step.node]);
 			break;
 		}
 		circuit_.create_instruction(

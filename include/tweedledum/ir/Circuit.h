@@ -29,6 +29,23 @@ public:
 		return do_create_qubit(name);
 	}
 
+	WireRef request_ancilla()
+	{
+		if (free_ancillae_.empty()) {
+			return do_create_qubit(
+			    fmt::format("__dum_a{}", num_qubits()));
+		} else {
+			WireRef qubit = free_ancillae_.back();
+			free_ancillae_.pop_back();
+			return qubit;
+		}
+	}
+
+	void release_ancilla(WireRef qubit)
+	{
+		free_ancillae_.push_back(qubit);
+	}
+
 	auto begin() const
 	{
 		return instruction_.begin();
@@ -47,8 +64,8 @@ public:
 	}
 
 	template<typename OptorType>
-	void create_instruction(OptorType const& optor,
-	    std::vector<WireRef> const& wires)
+	void create_instruction(
+	    OptorType const& optor, std::vector<WireRef> const& wires)
 	{
 		instruction_.push_back({optor, wires});
 	}
@@ -68,6 +85,7 @@ public:
 private:
 	std::string const name_;
 	std::vector<Instruction> instruction_;
+	std::vector<WireRef> free_ancillae_; // Should this be here?!
 };
 
 inline void print(Circuit const& circuit, std::ostream& os, uint32_t indent)
