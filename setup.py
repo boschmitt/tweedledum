@@ -15,8 +15,8 @@ except ImportError:
 
 setup(
     name="tweedledum",
-    version="0.0.1",
-    description="a library for synthesizing and manipulating quantum circuits",
+    version="0.1",
+    description="A library for synthesizing and manipulating quantum circuits",
     url="https://github.com/boschmitt/tweedledum",
     author='Bruno Schmitt',
     author_email='bruno.schmitt@epfl.ch',
@@ -27,7 +27,7 @@ setup(
     zip_safe=False,
     classifiers=[
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent"
+        "Operating System :: OS Independent",
         "Programming Language :: C++",
         "Programming Language :: Python",
     ]
