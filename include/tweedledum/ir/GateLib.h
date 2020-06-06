@@ -19,6 +19,21 @@ public:
 	}
 };
 
+class R1 {
+public:
+	static std::string_view kind()
+	{
+		return "r1";
+	}
+
+	R1(float angle)
+	    : angle_(angle)
+	{}
+
+private:
+	float angle_;
+};
+
 class TruthTable {
 public:
 	static std::string_view kind()
