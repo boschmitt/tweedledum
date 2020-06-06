@@ -23,6 +23,16 @@ public:
 		return terms_.size();
 	}
 
+	auto begin() const
+	{
+		return terms_.cbegin();
+	}
+
+	auto end() const
+	{
+		return terms_.cend();
+	}
+
 	void add_term(Parity const& parity, Angle const& angle)
 	{
 		auto it = lower_bound(terms_.begin(), terms_.end(), parity);
