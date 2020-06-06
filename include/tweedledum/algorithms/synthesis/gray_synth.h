@@ -7,6 +7,7 @@
 #include "../../ir/Circuit.h"
 #include "../../ir/GateLib.h"
 #include "../../ir/Wire.h"
+#include "../../support/LinearPP.h"
 #include "../../support/Matrix.h"
 #include "cnot_synth.h"
 
@@ -124,29 +125,52 @@ GateList synthesize(std::vector<WireRef> const& qubits, Matrix<T>& matrix)
 } // namespace gray_synth_detail
 
 // Each column is a parity, num_rows = num_qubits
-inline void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits)
+template<typename T, typename Parity>
+inline void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+    Matrix<T> linear_trans, LinearPP<Parity> parities)
 {
-	Matrix<uint8_t> matrix = {{0, 1, 1, 1, 1, 1}, {1, 0, 0, 1, 1, 1},
-	    {1, 0, 0, 1, 0, 0}, {0, 0, 1, 0, 1, 0}};
+	// FIXME: This part assumes that Parity is a bit string implemented 
+	// using an integer type such as uint32_t or uint64_t, or a
+	// a DynamicBitset.
+	Matrix<uint8_t> parities_matrix(qubits.size(), parities.size());
+	uint32_t col = 0;
+	for (auto const& [parity, angle] : parities) {
+		for (uint32_t row = 0; row < qubits.size(); ++row) {
+			parities_matrix(row, col) = (parity >> row) & 1;
+		}
+		++col;
+	}
 
-	auto gates = gray_synth_detail::synthesize(qubits, matrix);
+	auto gates = gray_synth_detail::synthesize(qubits, parities_matrix);
+	// Initialize the parity of each qubit state
+	// Applying phase gate to parities that consisting of just one variable
+	// i is the index of the target
+	std::vector<uint32_t> qubits_states(circuit.num_qubits(), 0);
+	for (uint32_t i = 0u; i < circuit.num_qubits(); ++i) {
+		qubits_states[i] = (1u << i);
+		auto angle = parities.extract_term(qubits_states[i]);
+		if (angle != 0.0) {
+			circuit.create_instruction(
+			    GateLib::R1(angle), {qubits[i]});
+		}
+	}
+	// Effectively create the circuit
 	for (auto const& [control, target] : gates) {
 		circuit.create_instruction(
 		    GateLib::X(), {qubits[control]}, qubits[target]);
+		qubits_states[target] ^= qubits_states[control];
+		linear_trans.row(target) ^= std::valarray(linear_trans.row(control));
+		auto angle = parities.extract_term(qubits_states[target]);
+		if (angle != 0.0) {
+			circuit.create_instruction(
+			    GateLib::R1(angle), {qubits[target]});
+		}
 	}
-
-	Matrix<uint8_t> transform(qubits.size(), qubits.size());
-	for (uint32_t i = 0; i < qubits.size(); ++i) {
-		transform(i, i) = 1;
-	}
-	std::reverse(gates.begin(), gates.end());
-	for (auto const& [control, target] : gates) {
-		transform.row(target) ^= std::valarray(transform.row(control));
-	}
-	cnot_synth(circuit, qubits, transform);
+	cnot_synth(circuit, qubits, linear_trans);
 }
 
-inline Circuit gray_synth(uint32_t num_qubits)
+template<typename Parity>
+inline Circuit gray_synth(uint32_t num_qubits, LinearPP<Parity> const& parities)
 {
 	// TODO: method to generate a name;
 	Circuit circuit("my_circuit");
@@ -157,7 +181,13 @@ inline Circuit gray_synth(uint32_t num_qubits)
 	for (uint32_t i = 0u; i < num_qubits; ++i) {
 		wires.emplace_back(circuit.create_qubit());
 	}
-	gray_synth(circuit, wires);
+
+	// Create the linear
+	Matrix<uint8_t> linear_trans(num_qubits, num_qubits);
+	for (uint32_t i = 0; i < num_qubits; ++i) {
+		linear_trans(i, i) = 1;
+	}
+	gray_synth(circuit, wires, linear_trans, parities);
 	return circuit;
 }
 
