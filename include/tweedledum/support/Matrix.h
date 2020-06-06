@@ -38,7 +38,7 @@ public:
 
 	uint32_t num_columns() const
 	{
-		return rows_;
+		return cols_;
 	}
 
 	uint32_t num_rows() const
@@ -56,6 +56,11 @@ public:
 		return data_[std::slice(i * cols_, cols_, 1)];
 	}
 
+	std::slice_array<T> column(uint32_t i)
+	{
+		return data_[std::slice(i, rows_, cols_)];
+	}
+
 	T& operator()(uint32_t row, uint32_t column)
 	{
 		return data_[row * cols_ + column];
@@ -70,12 +75,8 @@ public:
 	friend Matrix<U> transpose(Matrix<U> const& matrix);
 
 private:
-	// Matrix(Matrix const&);
-	// Matrix& operator=(Matrix const&);
-
 	uint32_t const rows_;
 	uint32_t const cols_;
-	// T* data_;
 	std::valarray<T> data_;
 };
 
