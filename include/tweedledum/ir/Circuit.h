@@ -20,19 +20,20 @@ public:
 
 	WireRef create_qubit(std::string_view name)
 	{
+		last_instruction_.emplace_back(InstRef::invalid());
 		return do_create_qubit(name);
 	}
 
 	WireRef create_qubit()
 	{
 		std::string const name = fmt::format("__dum_q{}", num_qubits());
-		return do_create_qubit(name);
+		return create_qubit(name);
 	}
 
 	WireRef request_ancilla()
 	{
 		if (free_ancillae_.empty()) {
-			return do_create_qubit(
+			return create_qubit(
 			    fmt::format("__dum_a{}", num_qubits()));
 		} else {
 			WireRef qubit = free_ancillae_.back();
@@ -60,14 +61,17 @@ public:
 	void create_instruction(OptorType const& optor,
 	    std::vector<WireRef> const& controls, WireRef target)
 	{
-		instruction_.push_back({optor, controls, target});
+		Instruction& inst
+		    = instruction_.emplace_back(optor, controls, target);
+		connect_instruction(inst);
 	}
 
 	template<typename OptorType>
 	void create_instruction(
 	    OptorType const& optor, std::vector<WireRef> const& wires)
 	{
-		instruction_.push_back({optor, wires});
+		Instruction& inst = instruction_.emplace_back(optor, wires);
+		connect_instruction(inst);
 	}
 
 	static std::string_view kind()
@@ -83,8 +87,18 @@ public:
 	friend void to_json(nlohmann::json& j, Circuit const& circuit);
 
 private:
+	void connect_instruction(Instruction& inst)
+	{
+		for (WireRef wire : inst) {
+			uint32_t w = wire.uid();
+			inst.children_.push_back(last_instruction_.at(w));
+			last_instruction_.at(w).uid = instruction_.size() - 1;
+		}
+	}
+
 	std::string const name_;
 	std::vector<Instruction> instruction_;
+	std::vector<InstRef> last_instruction_; // last instruction on a wire
 	std::vector<WireRef> free_ancillae_; // Should this be here?!
 };
 
