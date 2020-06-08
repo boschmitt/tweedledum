@@ -73,8 +73,21 @@ private:
 	std::vector<InstRef> children_;
 
 	friend class Circuit;
+
 	// I not sure about this:
-	friend class std::allocator<Instruction>;
+	struct Allocator : std::allocator<Instruction> {
+		template<class U, class... Args>
+		void construct(U* p, Args&&... args)
+		{
+			::new ((void*) p) U(std::forward<Args>(args)...);
+		}
+
+		template<class U>
+		struct rebind {
+			typedef Allocator other;
+		};
+	};
+	friend class Allocator;
 };
 
 inline void print(Instruction const& inst, std::ostream& os, uint32_t indent)
