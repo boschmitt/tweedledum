@@ -19,6 +19,14 @@ public:
 	}
 };
 
+class H {
+public:
+	static std::string_view kind()
+	{
+		return "h";
+	}
+};
+
 class R1 {
 public:
 	static std::string_view kind()
