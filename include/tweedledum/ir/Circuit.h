@@ -97,7 +97,7 @@ private:
 	}
 
 	std::string const name_;
-	std::vector<Instruction> instruction_;
+	std::vector<Instruction, Instruction::Allocator> instruction_;
 	std::vector<InstRef> last_instruction_; // last instruction on a wire
 	std::vector<WireRef> free_ancillae_; // Should this be here?!
 };
