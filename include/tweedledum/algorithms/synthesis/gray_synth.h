@@ -11,7 +11,26 @@
 #include "../../support/Matrix.h"
 #include "cnot_synth.h"
 
+// This implementation is based on:
+//
+// Amy, Matthew, Parsiad Azimzadeh, and Michele Mosca. "On the controlled-NOT
+// complexity of controlled-NOT–phase circuits." Quantum Science and Technology
+// 4.1 (2018): 015002.
+//
+// This synthesis method generates a CNOT-dihedral circuit.  In principle it 
+// serves the same purpose of 'all_linear_synth' algorithm, but with two 
+// important differences:
+//     (1) it will __not__ necessarily generate all possible linear 
+//         combinations.  Thus, the synthesized circuit can potentially be of
+//         better.
+//     (2) The overall linear transformation can be defined
+// quality (in the number of gates).
+//
+// __NOTE__: if you indeed require all linear combinations, then 
+// all_linear_synth __will be faster__.
+//
 namespace tweedledum {
+#pragma region Implementation details
 namespace gray_synth_detail {
 
 using AbstractGate = std::pair<uint32_t, uint32_t>;
@@ -123,7 +142,20 @@ GateList synthesize(std::vector<WireRef> const& qubits, Matrix<T>& matrix)
 }
 
 } // namespace gray_synth_detail
+#pragma endregion
 
+/*! \brief Synthesis of a CNOT-dihedral circuits with all linear combinations.
+ *
+ * This is the in-place variant of ``all_linear_synth`` in which the circuit is
+ * passed as a parameter and can potentially already contain some gates.  The
+ * parameter ``qubits`` provides a qubit mapping to the existing qubits in the
+ * circuit.
+ * 
+ * \param[inout] circuit A circuit in which the parities will be synthesized on.
+ * \param[in] qubits The qubits that will be used.
+ * \param[in] linear_trans The overall linear transformation
+ * \param[in] parities List of parities and their associated angles.
+ */
 // Each column is a parity, num_rows = num_qubits
 template<typename T, typename Parity>
 inline void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
@@ -166,9 +198,16 @@ inline void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
 			    GateLib::R1(angle), {qubits[target]});
 		}
 	}
+	// Synthesize the overall linear transformation
 	cnot_synth(circuit, qubits, linear_trans);
 }
 
+/*! \brief Synthesis of a CNOT-dihedral circuits.
+ *
+ * \param[in] num_qubits The number of qubits.
+ * \param[in] parities List of parities and their associated angles.
+ * \return A CNOT-dihedral circuit on `num_qubits`.
+ */
 template<typename Parity>
 inline Circuit gray_synth(uint32_t num_qubits, LinearPP<Parity> const& parities)
 {
