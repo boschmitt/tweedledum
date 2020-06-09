@@ -9,7 +9,7 @@
 #include "../../ir/Wire.h"
 #include "../../support/LinearPP.h"
 #include "gray_synth.h"
-#include "linear_synth.h"
+#include "all_linear_synth.h"
 
 #include <cassert>
 #include <kitty/kitty.hpp>
@@ -41,7 +41,7 @@ inline void spectrum_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
 	}
 	circuit.create_instruction(GateLib::H(), {qubits.back()});
 	if (parities.size() == spectrum.size() - 1) {
-		linear_synth(circuit, qubits, parities);
+		all_linear_synth(circuit, qubits, parities);
 	} else {
 		gray_synth(circuit, qubits,
 		    Matrix<uint8_t>::Identity(qubits.size()), parities);
