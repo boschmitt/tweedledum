@@ -41,6 +41,9 @@
 // The method implemented here generates exactly this.  It will create a circuit
 // with all linear combinations and associated Rz gates.
 //
+// __NOTE__: Keep in mind that the overall linear transformation will be the 
+// identity.
+//
 // __NOTE__: This algorithm generate all linear combinations, even when the Rz 
 // angles are 0.  Thus, this method might not be the best if your sum-over-path
 // does not require all parities.
