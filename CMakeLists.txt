@@ -7,9 +7,16 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Wall")
+  add_compile_options(/Wall)
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Wextra")
+  include(CheckCXXCompilerFlag)
+  add_compile_options(-W -Wall -Wextra)
+  foreach (WARNING unknown-pragmas gnu-anonymous-struct nested-anon-types)
+    check_cxx_compiler_flag("-Wno-${WARNING}" HAS_WNO_${WARNING})
+    if (HAS_WNO_${WARNING})
+      add_compile_options(-Wno-${WARNING})
+    endif()
+  endforeach()
 endif()
 
 # Options
