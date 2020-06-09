@@ -9,24 +9,22 @@
 
 #include <nlohmann/json.hpp>
 #include <vector>
+#include <memory>
 
 namespace tweedledum {
+class Circuit;
+
+struct InstRef {
+	static InstRef invalid()
+	{
+		return {std::numeric_limits<uint32_t>::max()};
+	}
+
+	uint32_t uid;
+};
 
 class Instruction : public Operator {
 public:
-	template<typename OptorType>
-	Instruction(OptorType const& optor, std::vector<WireRef> const& wires)
-	    : Operator(optor), wires_(wires)
-	{}
-
-	template<typename OptorType>
-	Instruction(OptorType const& optor, std::vector<WireRef> const& wires,
-	    WireRef target)
-	    : Operator(optor), wires_(wires)
-	{
-		wires_.push_back(target);
-	}
-
 	auto begin() const
 	{
 		return wires_.begin();
@@ -35,6 +33,16 @@ public:
 	auto end() const
 	{
 		return wires_.end();
+	}
+
+	auto begin_children() const
+	{
+		return children_.begin();
+	}
+
+	auto end_children() const
+	{
+		return children_.end();
 	}
 
 	// FIXME: For now, I will assume that all gates are single target and
@@ -48,7 +56,38 @@ public:
 	friend void to_json(nlohmann::json& j, Instruction const& inst);
 
 private:
+	template<typename OptorType>
+	Instruction(OptorType const& optor, std::vector<WireRef> const& wires)
+	    : Operator(optor), wires_(wires)
+	{}
+
+	template<typename OptorType>
+	Instruction(OptorType const& optor, std::vector<WireRef> const& wires,
+	    WireRef target)
+	    : Operator(optor), wires_(wires)
+	{
+		wires_.push_back(target);
+	}
+
 	std::vector<WireRef> wires_;
+	std::vector<InstRef> children_;
+
+	friend class Circuit;
+
+	// I not sure about this:
+	struct Allocator : std::allocator<Instruction> {
+		template<class U, class... Args>
+		void construct(U* p, Args&&... args)
+		{
+			::new ((void*) p) U(std::forward<Args>(args)...);
+		}
+
+		template<class U>
+		struct rebind {
+			typedef Allocator other;
+		};
+	};
+	friend class Allocator;
 };
 
 inline void print(Instruction const& inst, std::ostream& os, uint32_t indent)
