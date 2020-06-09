@@ -10,3 +10,4 @@
 #include "synthesis/lhrs/lhrs_synth.h"
 #include "synthesis/pkrm_synth.h"
 #include "synthesis/pprm_synth.h"
+#include "synthesis/spectrum_synth.h"

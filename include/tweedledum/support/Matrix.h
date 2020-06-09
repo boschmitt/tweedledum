@@ -17,6 +17,15 @@ class Matrix {
 	using nested_list = std::initializer_list<std::initializer_list<T>>;
 
 public:
+	static Matrix<T> Identity(uint32_t size)
+	{
+		Matrix<T> matrix(size, size);
+		for (uint32_t i = 0; i < size; ++i) {
+			matrix(i, i) = 1;
+		}
+		return matrix;
+	}
+
 	Matrix(uint32_t rows, uint32_t cols)
 	    : rows_(rows), cols_(cols), data_(rows * cols)
 	{}
