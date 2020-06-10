@@ -6,6 +6,7 @@
 
 #include "synthesis/all_linear_synth.h"
 #include "synthesis/cnot_synth.h"
+#include "synthesis/decomp_synth.h"
 #include "synthesis/gray_synth.h"
 #include "synthesis/lhrs/lhrs_synth.h"
 #include "synthesis/pkrm_synth.h"
