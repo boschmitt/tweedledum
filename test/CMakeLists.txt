@@ -14,6 +14,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/decomp_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/pkrm_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/pprm_synth.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/transform_synth.cpp"
   )
 
 add_executable(run_tests "${tweedledum_tests_files}")
