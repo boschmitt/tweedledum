@@ -11,6 +11,7 @@ add_custom_target(tweedledum_tests COMMENT "Build all tests.")
 set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_tests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/simulation/simulate_classically.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/decomp_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/pkrm_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/pprm_synth.cpp"
   )
