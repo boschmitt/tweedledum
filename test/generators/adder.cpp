@@ -10,29 +10,39 @@
 #include "tweedledum/ir/Wire.h"
 #include "tweedledum/support/DynamicBitset.h"
 
-#include "tweedledum/export/to_qpic.h"
-
 #include <catch.hpp>
+
+bool validate_adder(tweedledum::Circuit const& circuit, uint32_t n)
+{
+	using namespace tweedledum;
+	bool is_valid = true;
+	uint32_t const n_qubits = circuit.num_qubits();
+	for (uint32_t a = 0; a < (1u << n); ++a) {
+		for (uint32_t b = 0; b < (1u << n); ++b) {
+			uint32_t sum = a + b;
+			DynamicBitset<uint8_t> input(n_qubits, (b << n) + a);
+			DynamicBitset<uint8_t> expected(n_qubits, (sum << n) + a);
+			auto sim_pattern = simulate_classically(circuit, input);
+			is_valid &= (sim_pattern == expected);
+		}
+	}
+	return is_valid;
+}
 
 TEST_CASE("Adder", "[adder][gen]")
 {
 	using namespace tweedledum;
 	Circuit circuit("my_circuit");
-	std::vector<WireRef> a;
-	std::vector<WireRef> b;
+	std::vector<WireRef> a_qubits;
+	std::vector<WireRef> b_qubits;
 	uint32_t n = 4;
 	for (uint32_t i = 0; i < n; ++i) {
-		a.push_back(circuit.create_qubit(fmt::format("a{}", i)));
+		a_qubits.push_back(circuit.create_qubit(fmt::format("a{}", i)));
 	}
 	for (uint32_t i = 0; i < n; ++i) {
-		b.push_back(circuit.create_qubit(fmt::format("b{}", i)));
+		b_qubits.push_back(circuit.create_qubit(fmt::format("b{}", i)));
 	}
 	WireRef carry = circuit.create_qubit();
-	carry_ripple_adder_inplace(circuit, a, b, carry);
-	// to_qpic(std::cout, circuit);
-
-	DynamicBitset<uint8_t> input(circuit.num_qubits(), (3 << n) + 4);
-	DynamicBitset<uint8_t> expected(circuit.num_qubits(), (7 << n) + 4);
-	auto sim_pattern = simulate_classically(circuit, input);
-	CHECK(sim_pattern == expected);
+	carry_ripple_adder_inplace(circuit, a_qubits, b_qubits, carry);
+	CHECK(validate_adder(circuit, n));
 }
