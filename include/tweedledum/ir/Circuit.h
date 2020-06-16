@@ -47,6 +47,11 @@ public:
 		free_ancillae_.push_back(qubit);
 	}
 
+	uint32_t size() const
+	{
+		return instruction_.size();
+	}
+	
 	auto begin() const
 	{
 		return instruction_.begin();
