@@ -46,7 +46,6 @@ std::vector<ParityAnd> collapse_xag(mockturtle::xag_network const& xag)
 
 	// Preprocess:
 	// - Compute LTFI
-	// - Count references to AND nodes
 	mockturtle::node_map<LTFI, XAG> ltfi(xag);
 	xag.foreach_pi([&](Node const& node, uint32_t index) {
 		ltfi[node].emplace_back(xag.make_signal(node));
@@ -139,7 +138,6 @@ std::vector<ParityAnd> collapse_xag(mockturtle::xag_network const& xag)
 	return gates;
 }
 
-
 void compute_parity(Circuit& circuit, std::vector<WireRef> const& qubits)
 {
 	if (qubits.size() == 1) {
@@ -186,31 +184,16 @@ void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     mockturtle::xag_network const& xag)
 {
 	std::vector<ParityAnd> gates = collapse_xag(xag);
+	uint32_t const gates_begin = xag.num_pis() + 1;
+	uint32_t const output_begin = gates.size() - xag.num_pos();
+
 	std::vector<Step> steps;
-	for (uint32_t i = xag.num_pis() + 1; i < gates.size() - xag.num_pos(); ++i) {
+	for (uint32_t i = gates_begin; i < output_begin; ++i) {
 		if (gates[i].in0.size() < gates[i].in1.size()) {
 			std::swap(gates[i].in0, gates[i].in1);
 			std::swap(gates[i].is_complemented[0], gates[i].is_complemented[1]);
 		}
 		steps.emplace_back(Action::compute, i);
-		for (uint32_t id : gates[i].in0) {
-			gates[id].ref_count -= 1;
-			if (gates[id].ref_count == 0 && id >= xag.num_pis() + 1) {
-				steps.emplace_back(Action::cleanup, id);
-			}
-		}
-		for (uint32_t id : gates[i].in1) {
-			gates[id].ref_count -= 1;
-			if (gates[id].ref_count == 0 && id >= xag.num_pis() + 1) {
-				steps.emplace_back(Action::cleanup, id);
-			}
-		}
-		for (uint32_t id : gates[i].in01) {
-			gates[id].ref_count -= 1;
-			if (gates[id].ref_count == 0 && id >= xag.num_pis() + 1) {
-				steps.emplace_back(Action::cleanup, id);
-			}
-		}
 	}
 
 	// Assing qubits to the Inputs
@@ -218,23 +201,8 @@ void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
 	for (uint32_t i = 0; i < xag.num_pis(); ++i) {
 		to_qubit[i + 1] = qubits.at(i);
 	}
-	// Assing qubits to the Outputs
-	uint32_t o = xag.num_pis();
-	// for (uint32_t i = gates.size(); i --> gates.size() - xag.num_pos();) {
-	for (uint32_t i = gates.size() - xag.num_pos(); i < gates.size(); ++i) {
-		for (uint32_t id : gates[i].in0) {
-			if (to_qubit[id] == WireRef::invalid()) {
-				if (gates[id].ref_count == 1 && id >= xag.num_pis() + 1) {
-					// gates[id].ref_count -= 1;
-				// if (i >= xag.num_pis() + 1) {
-					to_qubit[id] = qubits.at(o);
-					break;
-				}
-			}
-		}
-		o += 1;
-	}
 
+	// Compute steps
 	for (Step const& step : steps) {
 		ParityAnd& gate = gates[step.node];
 		switch (step.action) {
@@ -251,33 +219,25 @@ void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
 			break;
 		}
 	}
-	// o = xag.num_pis();
-	o = qubits.size() - 1;
-	for (uint32_t i = gates.size(); i --> gates.size() - xag.num_pos();) {
-	// for (uint32_t i = gates.size() - xag.num_pos(); i < gates.size(); ++i) {
+	
+	uint32_t output_id = xag.num_pis();
+	for (uint32_t i = output_begin; i < gates.size(); ++i) {
 		std::vector<WireRef> qs;
 		for (uint32_t id : gates[i].in0) {
-			if (to_qubit[id] == qubits.at(o)) {
-				continue;
-			}
-			gates[id].ref_count -= 1;
-			qs.push_back(to_qubit[id]);
+			qs.push_back(to_qubit[id]); 
 		}
-		qs.push_back(qubits.at(o));
+		qs.push_back(qubits.at(output_id));
 		compute_parity(circuit, qs);
-		for (uint32_t id : gates[i].in0) {
-			if (gates[id].ref_count == 0 && id >= xag.num_pis() + 1) {
-				compute_gate(circuit, gates[id], to_qubit, to_qubit[id]);
-			};
-		}
-		o -= 1;
-	}
-	o = xag.num_pis();
-	for (uint32_t i = gates.size() - xag.num_pos(); i < gates.size(); ++i) {
 		if (gates[i].is_complemented[0]) {
-			circuit.create_instruction(GateLib::X(), {qubits.at(o)});
+			circuit.create_instruction(GateLib::X(), {qubits.at(output_id)});
 		}
-		o += 1;
+		output_id += 1;
+	}
+	std::reverse(steps.begin(), steps.end());
+	for (Step const& step : steps) {
+		ParityAnd& gate = gates[step.node];
+		circuit.release_ancilla(to_qubit[step.node]);
+		compute_gate(circuit, gate, to_qubit, to_qubit[step.node]);
 	}
 }
 
