@@ -23,7 +23,13 @@ struct ParityAnd {
 	std::vector<uint32_t> in1;
 	std::vector<uint32_t> in01;
 	std::array<bool, 2> is_complemented;
-	uint32_t ref_count;
+	uint32_t ref_count : 30;
+	uint32_t is_and : 1;
+	uint32_t in_output : 1;
+	uint32_t cleanup;
+	uint32_t n_ands;
+
+	ParityAnd() : ref_count(0), is_and(0), cleanup(0), n_ands(0) {}
 };
 
 enum class Action : uint8_t {
@@ -85,6 +91,8 @@ std::vector<ParityAnd> collapse_xag(mockturtle::xag_network const& xag)
 		}
 		auto& gate = gates.emplace_back();
 		gate.ref_count = 0;
+		gate.is_and = 1;
+		gate.cleanup = 1;
 		std::array<LTFI const*, 2> node_ltfi;
 		xag.foreach_fanin(node, [&](Signal const signal, uint32_t i) {
 			node_ltfi[i] = &(ltfi[signal]);
@@ -125,6 +133,10 @@ std::vector<ParityAnd> collapse_xag(mockturtle::xag_network const& xag)
 			gates[id].ref_count += 1;
 			++in1_begin;
 		}
+		if (gate.in0.size() < gate.in1.size()) {
+			std::swap(gate.in0, gate.in1);
+			std::swap(gate.is_complemented[0], gate.is_complemented[1]);
+		}
 	});
 	xag.foreach_po([&](Signal const& signal) {
 		auto& gate = gates.emplace_back();
@@ -132,10 +144,115 @@ std::vector<ParityAnd> collapse_xag(mockturtle::xag_network const& xag)
 			uint32_t id = xag.value(xag.get_node(input));
 			gate.in0.emplace_back(id);
 			gates[id].ref_count += 1;
+			gates[id].in_output = 1;
+			if (gates[id].is_and) {
+				gate.n_ands += 1;
+			}
 		}
+		gate.cleanup = 0;
 		gate.is_complemented[0] = xag.is_complemented(signal);
 	});
 	return gates;
+}
+
+void pre_assign_qubits(mockturtle::xag_network const& xag,
+    std::vector<WireRef> const& qubits, std::vector<ParityAnd>& gates,
+    std::vector<WireRef>& to_qubit)
+{
+	uint32_t const output_begin = gates.size() - xag.num_pos();
+	uint32_t qubit_idx = 0;
+	// Assing qubits to inputs
+	for (; qubit_idx < xag.num_pis(); ++qubit_idx) {
+		to_qubit[qubit_idx + 1] = qubits.at(qubit_idx);
+	}
+	// Assing qubits to outputs and ParityAnd gates that are only referenced
+	// once and by a output.
+	for (uint32_t i = output_begin; i < gates.size(); ++i, ++qubit_idx) {
+		for (uint32_t id : gates[i].in0) {
+			if (!gates[id].is_and || gates[id].ref_count > 1) {
+				continue;
+			}
+			to_qubit[i] = qubits[qubit_idx];
+			to_qubit[id] = qubits[qubit_idx];
+			gates[id].cleanup = 0;
+			break;
+		}
+	}
+}
+
+void post_assign_qubits(mockturtle::xag_network const& xag,
+    std::vector<WireRef> const& qubits, std::vector<ParityAnd>& gates,
+    std::vector<WireRef>& to_qubit)
+{
+	uint32_t const output_begin = gates.size() - xag.num_pos();
+	// Assing qubits to outputs that haven't been assigned and that have 
+	// only one ParityAnd gate as input
+	uint32_t qubit_idx = xag.num_pis();
+	for (uint32_t i = output_begin; i < gates.size(); ++i, ++qubit_idx) {
+		if (to_qubit[i] == qubits[qubit_idx] || gates[i].n_ands != 1) {
+			continue;
+		}
+		for (uint32_t id : gates[i].in0) {
+			assert(gates[id].ref_count);
+			if (!gates[id].is_and || to_qubit[id] != WireRef::invalid()) {
+				continue;
+			}
+			to_qubit[i] = qubits.at(qubit_idx);
+			to_qubit[id] = to_qubit[i];
+			gates[i].cleanup = 2;
+			gates[id].cleanup = 0;
+			break;
+		}
+	}
+	qubit_idx = xag.num_pis();
+	for (uint32_t i = output_begin; i < gates.size(); ++i, ++qubit_idx) {
+		if (to_qubit[i] == qubits[qubit_idx]) {
+			continue;
+		}
+		to_qubit[i] = qubits.at(qubit_idx);
+		for (uint32_t id : gates[i].in0) {
+			assert(gates[id].ref_count);
+			if (!gates[id].is_and || to_qubit[id] != WireRef::invalid()) {
+				continue;
+			}
+			if (gates[id].ref_count == 1) {
+				to_qubit[id] = to_qubit[i];
+				gates[id].cleanup = 0;
+				break;
+			}
+		}
+	}
+}
+
+void try_cleanup(std::vector<ParityAnd>& gates, ParityAnd& gate, std::vector<Step>& steps) 
+{
+	for (uint32_t id : gate.in0) {
+		gates[id].ref_count -= 1;
+		if (gates[id].ref_count == 0 && gates[id].is_and) {
+			assert(gates[id].cleanup);
+			steps.emplace_back(Action::cleanup, id);
+			gates[id].cleanup = 0;
+			try_cleanup(gates, gates[id], steps);
+		}
+	}
+	for (uint32_t id : gate.in1) {
+		gates[id].ref_count -= 1;
+		if (gates[id].ref_count == 0 && gates[id].is_and) {
+			assert(gates[id].cleanup);
+			steps.emplace_back(Action::cleanup, id);
+			gates[id].cleanup = 0;
+			try_cleanup(gates, gates[id], steps);
+		}
+	}
+	for (uint32_t id : gate.in01) {
+		gates[id].ref_count -= 1;
+		if (gates[id].ref_count == 0 && gates[id].is_and) {
+			assert(gates[id].cleanup);
+			steps.emplace_back(Action::cleanup, id);
+			gates[id].cleanup = 0;
+			try_cleanup(gates, gates[id], steps);
+		}
+	}
 }
 
 void compute_parity(Circuit& circuit, std::vector<WireRef> const& qubits)
@@ -146,7 +263,8 @@ void compute_parity(Circuit& circuit, std::vector<WireRef> const& qubits)
 	circuit.create_instruction(GateLib::Parity(), qubits);
 }
 
-void compute_gate(Circuit& circuit, ParityAnd& gate, std::vector<WireRef> const& to_qubit, WireRef target)
+void compute_gate(Circuit& circuit, ParityAnd const& gate,
+    std::vector<WireRef> const& to_qubit, WireRef target)
 {
 	std::vector<WireRef> in0;
 	std::vector<WireRef> in1;
@@ -160,85 +278,129 @@ void compute_gate(Circuit& circuit, ParityAnd& gate, std::vector<WireRef> const&
 	for (uint32_t i : gate.in01) {
 		in01.push_back(to_qubit.at(i));
 	}
+	// Compute the inputs to the Toffoli gate (inplace)
 	compute_parity(circuit, in0);
 	if (!in01.empty()) {
 		compute_parity(circuit, in01);
 		in1.push_back(in01.back());
-		circuit.create_instruction(GateLib::X(), {in01.back()}, in0.back());
+		circuit.create_instruction(
+		    GateLib::X(), {in01.back()}, in0.back());
 	}
 	compute_parity(circuit, in1);
 	// Compute Toffoli
 	WireRef c0 = gate.is_complemented[0] ? !in0.back() : in0.back();
 	WireRef c1 = gate.is_complemented[1] ? !in1.back() : in1.back();
 	circuit.create_instruction(GateLib::X(), {c0, c1}, target);
+	// Cleanup the input to the Toffoli gate
 	compute_parity(circuit, in1);
 	if (!in01.empty()) {
-		circuit.create_instruction(GateLib::X(), {in01.back()}, in0.back());
+		circuit.create_instruction(
+		    GateLib::X(), {in01.back()}, in0.back());
 		compute_parity(circuit, in01);
 	}
 	compute_parity(circuit, in0);
-		
+}
+
+void execute_steps(std::vector<Step> const& steps,
+    std::vector<ParityAnd> const& gates, std::vector<WireRef>& to_qubit,
+    Circuit& circuit)
+{
+	for (Step const& step : steps) {
+		ParityAnd const& gate = gates[step.node];
+		switch (step.action) {
+		case Action::compute:
+			if (to_qubit[step.node] == WireRef::invalid()) {
+				to_qubit[step.node] = circuit.request_ancilla();
+			}
+			compute_gate(
+			    circuit, gate, to_qubit, to_qubit[step.node]);
+			break;
+
+		case Action::cleanup:
+			circuit.release_ancilla(to_qubit[step.node]);
+			compute_gate(
+			    circuit, gate, to_qubit, to_qubit[step.node]);
+			break;
+		}
+	}
+}
+
+void compute_outputs(mockturtle::xag_network const& xag,
+    std::vector<ParityAnd> const& gates, std::vector<WireRef>& to_qubit,
+    Circuit& circuit)
+{
+	uint32_t const output_begin = gates.size() - xag.num_pos();
+	for (uint32_t i = output_begin; i < gates.size(); ++i) {
+		if (gates[i].cleanup == 2) {
+			continue;
+		}
+		assert(gates[i].cleanup == 0);
+		std::vector<WireRef> qs;
+		for (uint32_t id : gates[i].in0) {
+			if (to_qubit[id] == to_qubit[i]) {
+				continue;
+			}
+			qs.push_back(to_qubit[id]);
+		}
+		qs.push_back(to_qubit[i]);
+		compute_parity(circuit, qs);
+	}
+	for (uint32_t i = output_begin; i < gates.size(); ++i) {
+		if (gates[i].cleanup != 2) {
+			continue;
+		}
+		assert(gates[i].cleanup == 2);
+		std::vector<WireRef> qs;
+		for (uint32_t id : gates[i].in0) {
+			if (to_qubit[id] == to_qubit[i]) {
+				continue;
+			}
+			qs.push_back(to_qubit[id]);
+		}
+		qs.push_back(to_qubit[i]);
+		compute_parity(circuit, qs);
+	}
+	for (uint32_t i = output_begin; i < gates.size(); ++i) {
+		if (gates[i].is_complemented[0]) {
+			circuit.create_instruction(GateLib::X(), {to_qubit[i]});
+		}
+	}
 }
 
 void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     mockturtle::xag_network const& xag)
 {
 	std::vector<ParityAnd> gates = collapse_xag(xag);
+	std::vector<WireRef> to_qubit(gates.size(), WireRef::invalid());
+
+	pre_assign_qubits(xag, qubits, gates, to_qubit);
+
+	// Compute steps 
 	uint32_t const gates_begin = xag.num_pis() + 1;
 	uint32_t const output_begin = gates.size() - xag.num_pos();
-
 	std::vector<Step> steps;
 	for (uint32_t i = gates_begin; i < output_begin; ++i) {
-		if (gates[i].in0.size() < gates[i].in1.size()) {
-			std::swap(gates[i].in0, gates[i].in1);
-			std::swap(gates[i].is_complemented[0], gates[i].is_complemented[1]);
-		}
 		steps.emplace_back(Action::compute, i);
-	}
-
-	// Assing qubits to the Inputs
-	std::vector<WireRef> to_qubit(gates.size(), WireRef::invalid());
-	for (uint32_t i = 0; i < xag.num_pis(); ++i) {
-		to_qubit[i + 1] = qubits.at(i);
-	}
-
-	// Compute steps
-	for (Step const& step : steps) {
-		ParityAnd& gate = gates[step.node];
-		switch (step.action) {
-		case Action::compute:
-			if (to_qubit[step.node] == WireRef::invalid()) {
-				to_qubit[step.node] = circuit.request_ancilla();
-			}
-			compute_gate(circuit, gate, to_qubit, to_qubit[step.node]);
-			break;
-
-		case Action::cleanup:
-			circuit.release_ancilla(to_qubit[step.node]);
-			compute_gate(circuit, gate, to_qubit, to_qubit[step.node]);
-			break;
+		// Eagerly try to cleanup
+		if (gates[i].in_output) {
+			try_cleanup(gates, gates[i], steps);
 		}
 	}
+
+	post_assign_qubits(xag, qubits, gates, to_qubit);
+	execute_steps(steps, gates, to_qubit, circuit);
+	compute_outputs(xag, gates, to_qubit, circuit);
 	
-	uint32_t output_id = xag.num_pis();
-	for (uint32_t i = output_begin; i < gates.size(); ++i) {
-		std::vector<WireRef> qs;
-		for (uint32_t id : gates[i].in0) {
-			qs.push_back(to_qubit[id]); 
-		}
-		qs.push_back(qubits.at(output_id));
-		compute_parity(circuit, qs);
-		if (gates[i].is_complemented[0]) {
-			circuit.create_instruction(GateLib::X(), {qubits.at(output_id)});
-		}
-		output_id += 1;
-	}
-	std::reverse(steps.begin(), steps.end());
-	for (Step const& step : steps) {
+	// Clean up whats is left
+	std::for_each(steps.crbegin(), steps.crend(), [&](Step const& step) {
 		ParityAnd& gate = gates[step.node];
+		if (gate.cleanup == 0) {
+			return;
+		}
+		assert(gate.cleanup == 1);
 		circuit.release_ancilla(to_qubit[step.node]);
 		compute_gate(circuit, gate, to_qubit, to_qubit[step.node]);
-	}
+	});
 }
 
 } // namespace xag_synth_detail
