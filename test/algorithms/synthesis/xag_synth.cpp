@@ -5,14 +5,17 @@
 // FIXME: There are conflicts among SAT solvers, so this header need to appear
 //        first! Quite weird!
 #include <mockturtle/algorithms/equivalence_checking.hpp>
-#include "tweedledum/algorithms/synthesis/xag_synth.h"
+#include "tweedledum/algorithms/synthesis/xag_synth/xag_synth.h"
 
 #include "tweedledum/ir/Circuit.h"
 #include "tweedledum/ir/Wire.h"
 
 #include <catch.hpp>
 #include <mockturtle/algorithms/miter.hpp>
+#include <mockturtle/algorithms/xag_optimization.hpp>
 #include <mockturtle/generators/arithmetic.hpp>
+#include <mockturtle/generators/control.hpp>
+#include <mockturtle/generators/modular_arithmetic.hpp>
 #include <mockturtle/networks/xag.hpp>
 #include <vector>
 
@@ -430,10 +433,13 @@ TEST_CASE("An edge case", "[xag][synth]")
 	auto n32 = oracle.create_and(n31, n20 ^ 1);
 	oracle.create_po(n32);
 	oracle.create_po(n32 ^ 1);
+	oracle.create_po(n30);
 	oracle.create_po(n32);
 	oracle.create_po(oracle.get_constant(false));
 	oracle.create_po(oracle.get_constant(true));
 	oracle.create_po(x3 ^ 1);
+	oracle.create_po(oracle.create_nary_xor({n30, n31, n32}));
+	oracle.create_po(n30);
 
 	Circuit circuit = xag_synth(oracle);
 	auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
@@ -447,42 +453,136 @@ TEST_CASE("Out-of-place adder", "[xag][synth]")
 {
 	using namespace mockturtle;
 	using namespace tweedledum;
-	uint32_t const n = 4;
-	xag_network xag;
-	std::vector<xag_network::signal> a(n);
-	std::vector<xag_network::signal> b(n);
-	std::generate(a.begin(), a.end(), [&xag]() { return xag.create_pi(); });
-	std::generate(b.begin(), b.end(), [&xag]() { return xag.create_pi(); });
-	auto carry = xag.create_pi();
-	carry_ripple_adder_inplace(xag, a, b, carry);
+	for (uint32_t n = 2; n <= 8; ++n) {
+		xag_network xag;
+		std::vector<xag_network::signal> a(n);
+		std::vector<xag_network::signal> b(n);
+		std::generate(a.begin(), a.end(), [&xag]() {
+			return xag.create_pi();
+		});
+		std::generate(b.begin(), b.end(), [&xag]() {
+			return xag.create_pi();
+		});
+		auto carry = xag.create_pi();
+		carry_ripple_adder_inplace(xag, a, b, carry);
+		std::for_each(a.begin(), a.end(), [&](auto f) {
+			xag.create_po(f);
+		});
+		xag.create_po(carry);
 
-	Circuit circuit = xag_synth(xag);
-	auto output = to_xag_network(circuit, xag.num_pis(), xag.num_pos());
-	auto const miter = *mockturtle::miter<mockturtle::xag_network>(xag, output);
-	auto const result = mockturtle::equivalence_checking(miter);
-	CHECK(result);
-	CHECK(*result);
+		Circuit circuit = xag_synth(xag);
+		auto output = to_xag_network(circuit, xag.num_pis(), xag.num_pos());
+		auto const miter = *mockturtle::miter<xag_network>(xag, output);
+		auto const result = equivalence_checking(miter);
+		CHECK(result);
+		CHECK(*result);
+	}
+}
+
+TEST_CASE("Out-of-place modular adder", "[xag][synth]")
+{
+	using namespace mockturtle;
+	using namespace tweedledum;
+	for (uint32_t n = 2; n <= 8; ++n)  {
+		xag_network xag;
+		std::vector<xag_network::signal> a(n);
+		std::vector<xag_network::signal> b(n);
+		std::generate(a.begin(), a.end(), [&xag]() {
+			return xag.create_pi();
+		});
+		std::generate(b.begin(), b.end(), [&xag]() {
+			return xag.create_pi();
+		});
+		modular_adder_inplace(xag, a, b);
+		std::for_each(a.begin(), a.end(), [&](auto f) {
+			xag.create_po(f);
+		});
+
+		Circuit circuit = xag_synth(xag);
+		auto output = to_xag_network(circuit, xag.num_pis(), xag.num_pos());
+		auto const miter = *mockturtle::miter<xag_network>(xag, output);
+		auto const result = equivalence_checking(miter);
+		CHECK(result);
+		CHECK(*result);
+	}
 }
 
 TEST_CASE("Out-of-place multiplier", "[xag][synth]")
 {
 	using namespace mockturtle;
 	using namespace tweedledum;
-	uint32_t const n = 2;
+	for (uint32_t n = 2; n <= 8; ++n)  {
+		xag_network xag;
+		std::vector<xag_network::signal> a(n);
+		std::vector<xag_network::signal> b(n);
+		std::generate(a.begin(), a.end(), [&xag]() {
+			return xag.create_pi();
+		});
+		std::generate(b.begin(), b.end(), [&xag]() {
+			return xag.create_pi();
+		});
+		for (auto const& o : carry_ripple_multiplier(xag, a, b)) {
+			xag.create_po(o);
+		}
+		xag = xag_constant_fanin_optimization(xag);
+
+		Circuit circuit = xag_synth(xag);
+		auto output = to_xag_network(circuit, xag.num_pis(), xag.num_pos());
+		auto const miter = *mockturtle::miter<xag_network>(xag, output);
+		auto const result = mockturtle::equivalence_checking(miter);
+		CHECK(result);
+		CHECK(*result);
+	}
+}
+
+TEST_CASE("Out-of-place Montgomery multiplier", "[xag][synth]")
+{
+	using namespace mockturtle;
+	using namespace tweedledum;
+	uint32_t const n = 6;
 	xag_network xag;
 	std::vector<xag_network::signal> a(n);
 	std::vector<xag_network::signal> b(n);
-	std::generate(a.begin(), a.end(), [&xag]() { return xag.create_pi(); });
-	std::generate(b.begin(), b.end(), [&xag]() { return xag.create_pi(); });
-	for (auto const& o : carry_ripple_multiplier(xag, a, b)) {
+	std::generate(a.begin(), a.end(), [&xag]() {
+		return xag.create_pi();
+	});
+	std::generate(b.begin(), b.end(), [&xag]() {
+		return xag.create_pi();
+	});
+	for (auto const& o : montgomery_multiplication(xag, a, b, 17)) {
 		xag.create_po(o);
 	}
+	xag = xag_constant_fanin_optimization(xag);
 
 	Circuit circuit = xag_synth(xag);
-	fmt::print("size: {}\n", circuit.size());
 	auto output = to_xag_network(circuit, xag.num_pis(), xag.num_pos());
-	auto const miter = *mockturtle::miter<mockturtle::xag_network>(xag, output);
-	auto const result = mockturtle::equivalence_checking(miter);
+	auto const miter = *mockturtle::miter<xag_network>(xag, output);
+	auto const result = equivalence_checking(miter);
 	CHECK(result);
 	CHECK(*result);
+}
+
+TEST_CASE("Out-of-place n-to-2^n binary decoder", "[xag][synth]")
+{
+	using namespace mockturtle;
+	using namespace tweedledum;
+	for (uint32_t n = 2; n <= 8; ++n) {
+		xag_network xag;
+		std::vector<xag_network::signal> xs(n);
+		std::generate(xs.begin(), xs.end(), [&]() {
+			return xag.create_pi();
+		});
+		const auto ds = binary_decoder(xag, xs);
+		std::for_each(ds.begin(), ds.end(), [&](auto const& d) {
+			xag.create_po(d);
+		});
+		xag = xag_constant_fanin_optimization(xag);
+
+		Circuit circuit = xag_synth(xag);
+		auto output = to_xag_network(circuit, xag.num_pis(), xag.num_pos());
+		auto const miter = *mockturtle::miter<xag_network>(xag, output);
+		auto const result = equivalence_checking(miter);
+		CHECK(result);
+		CHECK(*result);
+	}
 }
