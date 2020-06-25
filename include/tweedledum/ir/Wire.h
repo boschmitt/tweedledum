@@ -24,6 +24,16 @@ struct Wire {
 
 class WireRef {
 public:
+	// Copy constructor
+	WireRef(WireRef const& other) : data_(other.data_) {}
+
+	// Copy assignment
+	WireRef& operator=(WireRef const& other)
+	{
+		data_ = other.data_;
+		return *this;
+	}
+
 	// Return the sentinel value
 	// TODO: possibly use std::optional instead
 	static WireRef invalid()
@@ -53,6 +63,11 @@ public:
 		polarity_ ^= 1u;
 	}
 
+	bool is_complemented()
+	{
+		return polarity_;
+	}
+
 	WireRef operator!() const
 	{
 		WireRef complemented(*this);
@@ -63,6 +78,11 @@ public:
 	bool operator==(WireRef other) const
 	{
 		return data_ == other.data_;
+	}
+
+	bool operator!=(WireRef other) const
+	{
+		return data_ != other.data_;
 	}
 
 	friend void to_json(nlohmann::json& j, WireRef const& wire_ref);
