@@ -49,29 +49,36 @@ public:
 
 	auto begin() const
 	{
-		return instruction_.begin();
+		return instruction_.cbegin();
 	}
 
 	auto end() const
 	{
-		return instruction_.end();
+		return instruction_.cend();
+	}
+
+	uint32_t size() const
+	{
+		return instruction_.size();
 	}
 
 	template<typename OptorType>
-	void create_instruction(OptorType const& optor,
+	InstRef create_instruction(OptorType const& optor,
 	    std::vector<WireRef> const& controls, WireRef target)
 	{
 		Instruction& inst
 		    = instruction_.emplace_back(optor, controls, target);
 		connect_instruction(inst);
+		return InstRef(instruction_.size() - 1);
 	}
 
 	template<typename OptorType>
-	void create_instruction(
+	InstRef create_instruction(
 	    OptorType const& optor, std::vector<WireRef> const& wires)
 	{
 		Instruction& inst = instruction_.emplace_back(optor, wires);
 		connect_instruction(inst);
+		return InstRef(instruction_.size() - 1);
 	}
 
 	static std::string_view kind()
