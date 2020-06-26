@@ -5,7 +5,7 @@
 // FIXME: There are conflicts among SAT solvers, so this header need to appear
 //        first! Quite weird!
 #include <mockturtle/algorithms/equivalence_checking.hpp>
-#include "tweedledum/algorithms/synthesis/xag_synth/xag_synth.h"
+#include "tweedledum/algorithms/synthesis/xag/xag_synth.h"
 
 #include "tweedledum/ir/Circuit.h"
 #include "tweedledum/ir/Wire.h"
@@ -25,16 +25,16 @@ namespace tweedledum {
 mockturtle::xag_network to_xag_network(
     Circuit const& circuit, uint32_t num_i, uint32_t num_o)
 {
-	using XAGSignal = typename mockturtle::xag_network::signal;
+	using Signal = typename mockturtle::xag_network::signal;
 
 	auto network = mockturtle::xag_network();
-	std::vector<XAGSignal> to_signal(
+	std::vector<Signal> to_signal(
 	    circuit.num_qubits(), network.get_constant(false));
 	for (uint32_t i = 0; i < num_i; ++i) {
 		to_signal[i] = network.create_pi();
 	}
 	for (Instruction const& inst : circuit) {
-		std::vector<XAGSignal> signals;
+		std::vector<Signal> signals;
 		for (WireRef w : inst) {
 			signals.push_back(to_signal[w.uid()] ^ w.is_complemented());
 		}
@@ -42,7 +42,7 @@ mockturtle::xag_network to_xag_network(
 			to_signal[inst.target().uid()] = network.create_nary_xor(signals);
 			continue;
 		}
-		XAGSignal const ctrl = network.create_nary_and({signals.begin(), signals.end() - 1});
+		Signal const ctrl = network.create_nary_and({signals.begin(), signals.end() - 1});
 		to_signal[inst.target().uid()] = network.create_xor(signals.back(), ctrl);
 	}
 	for (uint32_t i = 0; i < num_o; ++i) {
