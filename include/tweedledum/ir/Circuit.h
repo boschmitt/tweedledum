@@ -47,6 +47,11 @@ public:
 		free_ancillae_.push_back(qubit);
 	}
 
+	uint32_t size() const
+	{
+		return instruction_.size();
+	}
+	
 	auto begin() const
 	{
 		return instruction_.cbegin();
@@ -55,11 +60,6 @@ public:
 	auto end() const
 	{
 		return instruction_.cend();
-	}
-
-	uint32_t size() const
-	{
-		return instruction_.size();
 	}
 
 	template<typename OptorType>
