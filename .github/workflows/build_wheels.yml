@@ -31,12 +31,26 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1.2.0
       if: startsWith(matrix.os, 'windows')
 
-    - name: Build wheel for windows
+    - name: Build wheel for Windows 64
       if: startsWith(matrix.os, 'windows')
       env:
           CC: cl.exe
           CXX: cl.exe
           CIBW_SKIP: pp27-* cp27-* *-win32
+      run: |
+        python -m cibuildwheel --output-dir wheelhouse
+
+    - uses: ilammy/msvc-dev-cmd@v1.2.0
+      if: startsWith(matrix.os, 'windows')
+      with:
+          arch: x86
+
+    - name: Build wheel for Windows 32
+      if: startsWith(matrix.os, 'windows')
+      env:
+          CC: cl.exe
+          CXX: cl.exe
+          CIBW_SKIP: pp27-* cp27-* *-win_amd64
       run: |
         python -m cibuildwheel --output-dir wheelhouse
 
