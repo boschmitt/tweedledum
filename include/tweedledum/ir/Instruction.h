@@ -20,7 +20,12 @@ struct InstRef {
 		return {std::numeric_limits<uint32_t>::max()};
 	}
 
+private:
+	InstRef(uint32_t id) : uid(id) {}
+
 	uint32_t uid;
+
+	friend class Circuit;
 };
 
 class Instruction : public Operator {
@@ -87,7 +92,7 @@ private:
 			typedef Allocator other;
 		};
 	};
-	friend class Allocator;
+	friend struct Allocator;
 };
 
 inline void print(Instruction const& inst, std::ostream& os, uint32_t indent)
