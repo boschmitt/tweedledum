@@ -42,6 +42,14 @@ private:
 	float angle_;
 };
 
+class Parity {
+public:
+	static std::string_view kind()
+	{
+		return "parity";
+	}
+};
+
 class TruthTable {
 public:
 	static std::string_view kind()
