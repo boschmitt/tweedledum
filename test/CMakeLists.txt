@@ -18,6 +18,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/algorithms/synthesis/xag_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/generators/adder.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/generators/less_than.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ir/unitary.cpp"
   )
 
 add_executable(run_tests "${tweedledum_tests_files}")

@@ -4,12 +4,27 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include <array>
+#include <complex>
 #include <fmt/format.h>
 #include <memory>
 #include <ostream>
 #include <string>
+#include <type_traits>
 
 namespace tweedledum {
+
+template<class Op, class = void>
+struct has_matrix : std::false_type {
+};
+
+template<class Op>
+struct has_matrix<Op, std::void_t<decltype(std::declval<Op>().matrix())>>
+    : std::true_type {
+};
+
+template<class Op>
+inline constexpr bool has_matrix_v = has_matrix<Op>::value;
 
 template<typename ConcreteOp>
 void print(ConcreteOp const& optor, std::ostream& os, uint32_t indent)
@@ -18,7 +33,18 @@ void print(ConcreteOp const& optor, std::ostream& os, uint32_t indent)
 	    "{:>{}}{} (Default print)\n", "", indent, optor.kind());
 }
 
+template<typename ConcreteOp>
+std::array<std::complex<double>, 4> to_matrix(ConcreteOp const& optor)
+{
+	 if constexpr (has_matrix_v<ConcreteOp>) {
+		 return optor.matrix();
+	 } else {
+		 return {{{1., 0.}, {0., 0.}, {0., 0.}, {1., 0.}}};
+	}
+}
+
 class Operator {
+	using Matrix = std::array<std::complex<double>, 4>;
 public:
 	template<class ConcreteOp>
 	Operator(ConcreteOp optor) noexcept
@@ -44,6 +70,11 @@ public:
 		return model->optor();
 	}
 
+	friend void to_matrix(Operator const& optor)
+	{
+		optor.self_->matrix();
+	}
+
 	friend void print(
 	    Operator const& optor, std::ostream& os, uint32_t indent)
 	{
@@ -54,6 +85,7 @@ private:
 	struct Concept {
 		virtual ~Concept() = default;
 		virtual std::string_view kind() const = 0;
+		virtual Matrix matrix() const = 0;
 		virtual void print_(std::ostream& os, uint32_t) const = 0;
 	};
 
@@ -70,6 +102,11 @@ private:
 		ConcreteOp const& optor() const
 		{
 			return optor_;
+		}
+
+		Matrix matrix() const override
+		{
+			return to_matrix(optor_);
 		}
 
 		void print_(std::ostream& os, uint32_t indent) const override
