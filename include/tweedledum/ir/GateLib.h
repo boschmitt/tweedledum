@@ -53,7 +53,7 @@ public:
 		return "r1";
 	}
 
-	R1(float angle)
+	R1(double angle)
 	    : angle_(angle)
 	{}
 
@@ -63,7 +63,7 @@ public:
 	}
 
 private:
-	float angle_;
+	double angle_;
 };
 
 class Parity {

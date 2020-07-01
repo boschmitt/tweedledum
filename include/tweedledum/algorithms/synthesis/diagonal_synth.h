@@ -18,7 +18,7 @@ namespace tweedledum {
 #pragma region Implementation details
 namespace diagonal_synth_detail {
 
-inline void complement_qubit(uint32_t i, std::vector<float>& angles)
+inline void complement_qubit(uint32_t i, std::vector<double>& angles)
 {
 	uint32_t const size_2 = (angles.size() / 2);
 	uint32_t const step = (size_2 >> i);
@@ -29,12 +29,12 @@ inline void complement_qubit(uint32_t i, std::vector<float>& angles)
 	}
 }
 
-inline std::vector<float> fix_angles(
-    std::vector<WireRef>& qubits, std::vector<float> const& angles)
+inline std::vector<double> fix_angles(
+    std::vector<WireRef>& qubits, std::vector<double> const& angles)
 {
-	std::vector<float> new_angles;
+	std::vector<double> new_angles;
 	std::transform(angles.begin(), angles.end(),
-	    std::back_inserter(new_angles), [](float a) {
+	    std::back_inserter(new_angles), [](double a) {
 		    return -a;
 	    });
 
@@ -52,13 +52,13 @@ inline std::vector<float> fix_angles(
 	return new_angles;
 }
 
-inline void fast_hadamard_transform(std::vector<float>& angles)
+inline void fast_hadamard_transform(std::vector<double>& angles)
 {
 	uint32_t k = 0u;
 	for (uint32_t m = 1u; m < angles.size(); m <<= 1u) {
 		for (uint32_t i = 0u; i < angles.size(); i += (m << 1u)) {
 			for (uint32_t j = i, p = k = i + m; j < p; ++j, ++k) {
-				float t = angles.at(j);
+				double t = angles.at(j);
 				angles.at(j) += angles.at(k);
 				angles.at(k) = t - angles.at(k);
 			}
@@ -70,14 +70,14 @@ inline void fast_hadamard_transform(std::vector<float>& angles)
 #pragma endregion
 
 inline void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
-    std::vector<float> const& angles)
+    std::vector<double> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
 	assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
 	assert(!qubits.empty() && qubits.size() <= 32);
 	assert((1u << qubits.size()) == angles.size());
 
-	std::vector<float> new_angles
+	std::vector<double> new_angles
 	    = diagonal_synth_detail::fix_angles(qubits, angles);
 	diagonal_synth_detail::fast_hadamard_transform(new_angles);
 	LinearPP parities;
@@ -96,7 +96,7 @@ inline void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
 	}
 }
 
-inline Circuit diagonal_synth(std::vector<float> const& angles)
+inline Circuit diagonal_synth(std::vector<double> const& angles)
 {
 	// Number of angles + 1 needs to be a power of two!
 	assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
