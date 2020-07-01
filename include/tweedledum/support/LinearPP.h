@@ -14,7 +14,7 @@ namespace tweedledum {
 // Linear Phase Polynomial (LinerPP)
 template<typename Parity = uint32_t>
 class LinearPP {
-	using Angle = float;
+	using Angle = double;
 	using LinearTerm = std::pair<Parity, Angle>;
 
 public:

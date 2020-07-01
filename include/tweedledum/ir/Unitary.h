@@ -63,7 +63,11 @@ public:
 	void create_instruction(
 	    OptorType const& optor, std::vector<WireRef> const& wires)
 	{
-		apply_matrix(to_matrix(optor), wires.at(0));
+		if (wires.size() == 1) {
+			apply_matrix(to_matrix(optor), wires.back());
+		} else {
+			apply_matrix(to_matrix(optor), {wires.begin(), wires.end() - 1}, wires.back());
+		}
 	}
 
 	static std::string_view kind()
@@ -193,7 +197,7 @@ private:
 
 // rtol : Relative tolerance
 // atol : Absolute tolerance
-bool is_approx_equal(Unitary const& rhs, Unitary const& lhs,
+inline bool is_approx_equal(Unitary const& rhs, Unitary const& lhs,
     double const rtol = 1e-05, double const atol = 1e-08)
 {
 	assert(rhs.data_.size() == lhs.data_.size());
