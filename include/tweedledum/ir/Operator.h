@@ -39,6 +39,7 @@ std::array<std::complex<double>, 4> to_matrix(ConcreteOp const& optor)
 	 if constexpr (has_matrix_v<ConcreteOp>) {
 		 return optor.matrix();
 	 } else {
+		 assert(0);
 		 return {{{1., 0.}, {0., 0.}, {0., 0.}, {1., 0.}}};
 	}
 }
@@ -56,6 +57,11 @@ public:
 		return self_->kind();
 	}
 
+	Matrix matrix() const
+	{
+		return self_->matrix();
+	}
+
 	template<typename ConcreteOp>
 	bool is() const
 	{
@@ -68,11 +74,6 @@ public:
 		assert(is<ConcreteOp>());
 		auto model = std::static_pointer_cast<Model<ConcreteOp> const>(self_);
 		return model->optor();
-	}
-
-	friend void to_matrix(Operator const& optor)
-	{
-		optor.self_->matrix();
 	}
 
 	friend void print(
