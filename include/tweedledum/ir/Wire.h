@@ -85,6 +85,11 @@ public:
 		return data_ != other.data_;
 	}
 
+	operator uint32_t() const
+	{
+		return uid_;
+	}
+
 	friend void to_json(nlohmann::json& j, WireRef const& wire_ref);
 
 protected:

@@ -4,6 +4,8 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include <array>
+#include <complex>
 #include <kitty/kitty.hpp>
 #include <mockturtle/networks/aig.hpp>
 #include <mockturtle/networks/xag.hpp>
@@ -12,22 +14,39 @@
 namespace tweedledum::GateLib {
 
 class X {
+	using Matrix = std::array<std::complex<double>, 4>;
+
 public:
 	static std::string_view kind()
 	{
 		return "x";
 	}
+
+	Matrix matrix() const
+	{
+		return {{{0., 0.}, {1., 0.}, {1., 0.}, {0., 0.}}};
+	}
 };
 
 class H {
+	using Matrix = std::array<std::complex<double>, 4>;
+	constexpr static double _1_sqrt2 = 0.707106781186547524401;
+
 public:
 	static std::string_view kind()
 	{
 		return "h";
 	}
+
+	Matrix matrix() const
+	{
+		return {{{_1_sqrt2, 0.}, {_1_sqrt2, 0.}, {_1_sqrt2, 0.}, {-_1_sqrt2, 0.}}};
+	}
 };
 
 class R1 {
+	using Matrix = std::array<std::complex<double>, 4>;
+
 public:
 	static std::string_view kind()
 	{
@@ -37,6 +56,11 @@ public:
 	R1(float angle)
 	    : angle_(angle)
 	{}
+
+	Matrix matrix() const
+	{
+		return {{{1., 0.}, {0., 0.}, {0., 0.}, std::exp(std::complex<double>(0., angle_))}};
+	}
 
 private:
 	float angle_;
