@@ -316,7 +316,7 @@ void write_qasm(Network const& network, std::ostream& os = std::cout)
 template<typename Network>
 void write_qasm(Network const& network, std::string_view filename)
 {
-	std::ofstream os(filename, std::ofstream::out);
+	std::ofstream os(std::string(filename), std::ofstream::out);
 	write_qasm(network, os);
 }
 
