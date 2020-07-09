@@ -94,19 +94,28 @@ private:
 	}
 
 	// Match [_A-Za-z0-9]*, we have already matched [0-9$]
-	token lex_numeric_constant(const char* cur_ptr)
+	token lex_numeric_constant(char const* current_pos_)
 	{
-		while (std::isdigit(*cur_ptr)) {
-			++cur_ptr;
+		while (std::isdigit(*current_pos_)) {
+			++current_pos_;
 		}
-		if (*cur_ptr != '.') {
-			return create_token(cur_ptr, token_kinds::nninteger);
+		if (*current_pos_ != '.') {
+			return create_token(current_pos_, token_kinds::nninteger);
 		}
-		++cur_ptr;
-		while (std::isdigit(*cur_ptr)) {
-			++cur_ptr;
+		++current_pos_;
+		while (std::isdigit(*current_pos_)) {
+			++current_pos_;
 		}
-		return create_token(cur_ptr, token_kinds::real);
+		if (*current_pos_ == 'e' || *current_pos_ == 'E') {
+			++current_pos_;
+			if (*current_pos_ == '+' || *current_pos_ == '-') {
+				++current_pos_;
+			}
+			while (std::isdigit(*current_pos_)) {
+				++current_pos_;
+			}
+		}
+		return create_token(current_pos_, token_kinds::real);
 	}
 
 	// Match [_A-Za-z0-9]*, we have already matched [a-z$]
