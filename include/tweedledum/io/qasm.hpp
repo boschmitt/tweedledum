@@ -91,6 +91,17 @@ public:
 			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
 			double angle = evaluate(parameter);
 			network_.create_op(gate_lib::rz(angle), arguments_list[0]);
+		} else if (gate_id == "u1") {
+			assert(parameters != nullptr);
+			auto parameter = &(*(static_cast<list_exps*>(parameters)->begin()));
+			double angle = evaluate(parameter);
+			network_.create_op(gate_lib::r1(angle), arguments_list[0]);
+		} else if (gate_id == "u2") {
+			assert(parameters != nullptr);
+			auto angles = visit_list_parms(static_cast<list_exps*>(parameters));
+			network_.create_op(gate_lib::u3(sym_angle::pi_half, angles.at(0),
+			                                angles.at(1)),
+			                   arguments_list[0]);
 		} else if (gate_id == "u3") {
 			assert(parameters != nullptr);
 			auto angles = visit_list_parms(static_cast<list_exps*>(parameters));
@@ -302,6 +313,11 @@ void write_qasm(Network const& network, std::ostream& os = std::cout)
 
 		case gate_ids::rz:
 			os << fmt::format("rz({}) q[{}];\n", op.rotation_angle(), op.target());
+			break;
+
+		case gate_ids::u3:
+			os << fmt::format("u3({},{},{}) q[{}];\n", op.theta(), op.phi(),
+			                  op.lambda(), op.target());
 			break;
 		}
 		return true;
