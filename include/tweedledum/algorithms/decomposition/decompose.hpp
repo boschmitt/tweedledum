@@ -246,6 +246,18 @@ public:
 		} else if (controls.size() > params_.barenco_controls_threshold) {
 			barenco_create_op(g, controls, targets.at(0));
 			return;
+		} else if (controls.size() == 3u && g.is(gate_ids::ncx)) {
+			if (controls.size() + 1u == this->num_qubits()) {
+				this->create_qubit(wire::modes::ancilla);
+			}
+			cccx(*this, controls, targets.at(0));
+			return;
+		} else if (controls.size() == 4u && g.is(gate_ids::ncx)) {
+			if (controls.size() + 1u == this->num_qubits()) {
+				this->create_qubit(wire::modes::ancilla);
+			}
+			ccccx(*this, controls, targets.at(0));
+			return;
 		}
 		diagonal_create_op(g, controls, targets.at(0));
 	}

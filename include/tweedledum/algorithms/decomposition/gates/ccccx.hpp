@@ -4,101 +4,95 @@
 *-------------------------------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../../gates/gate_base.hpp"
-#include "../../../gates/gate_lib.hpp"
-#include "../../../networks/io_id.hpp"
+#include "../../../gates/gate.hpp"
+#include "../../../networks/wire.hpp"
 
-#include <array>
 #include <vector>
 
 namespace tweedledum::detail {
 
 template<typename Network>
-void ccccx(Network& network, std::array<io_id, 4> const& controls, std::vector<io_id> const& targets)
+void ccccx(Network& network, std::vector<wire::id> const& controls, wire::id  const target)
 {
+	assert(controls.size() == 4);
 	const auto a = controls[0];
 	const auto b = controls[1];
 	const auto c = controls[2];
 	const auto d = controls[3];
-	const auto target = targets[0];
 
 	// Find helper qubit
-	auto helper = network.foreach_qubit([&](io_id qid) -> bool {
-		if (qid == a || qid == b || qid == c || qid == d) {
-			return true;
+	std::vector<wire::id> workspace;
+	network.foreach_wire([&](wire::id wire) {
+		if (!wire.is_qubit()) {
+			return;
 		}
-		for (auto t : targets) {
-			if (qid == t) {
-				return true;
+		if (wire == target) {
+			return;
+		}
+		for (wire::id control : controls) {
+			if (wire.uid() == control.uid()) {
+				return;
 			}
 		}
-		// will return the current qid
-		return false;
+		workspace.push_back(wire);
 	});
-	assert(helper != io_invalid);
+	assert(workspace.size());
+	wire::id helper = workspace.back();
 
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
-
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::hadamard, target);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, b, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, a, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, c, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::hadamard, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::t_dagger, helper);
-	network.add_gate(gate::cx, d, helper);
-	network.add_gate(gate::t, helper);
-	network.add_gate(gate::cx, target, helper);
-	network.add_gate(gate::hadamard, target);
-
-	for (auto i = 1u; i < targets.size(); ++i) {
-		network.add_gate(gate::cx, target, targets[i]);
-	}
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, c, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::cx, a, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, b, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::cx, a, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, b, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, c, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::h, target);
+	network.create_op(gate_lib::cx, target, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::cx, d, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, target, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::cx, d, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, c, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, b, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::cx, a, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, b, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::cx, a, helper);
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, c, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::h, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::cx, d, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, target, helper);
+	network.create_op(gate_lib::tdg, helper);
+	network.create_op(gate_lib::cx, d, helper);
+	network.create_op(gate_lib::t, helper);
+	network.create_op(gate_lib::cx, target, helper);
+	network.create_op(gate_lib::h, target);
 }
 
 } // namespace tweedledum::detail
