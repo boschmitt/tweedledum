@@ -1,0 +1,34 @@
+**/.DS_Store
+.*/
+_*/
+!.gitignore
+
+build/
+experiments/*/
+tools/**
+!tools/CMakeLists.txt
+
+# Bunch of python crap to ignore:
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C/C++ share libs extensions
+*.so
+
+# Distribution / packaging
+env/
+develop-eggs/
+dist/
+downloads/
+eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+*.egg
+
+# might want to remove this later
+MANIFEST
