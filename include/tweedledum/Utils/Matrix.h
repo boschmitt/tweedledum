@@ -4,115 +4,99 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#pragma once
-
-#include <cstdint>
-#include <fmt/format.h>
-#include <ostream>
-#include <valarray>
+#include <complex>
+#include <Eigen/Dense>
+#include <iostream>
 
 namespace tweedledum {
 
-// 2D, Row major
-class Matrix {
-    using nested_list = std::initializer_list<std::initializer_list<uint8_t>>;
-
+// Since Eigen has not concept of Boolean matrix with XOR, I'm implementing 
+// my own Boolean type where "+" is a XOR.  It's kind of a hack, but well...
+class MyBool {
 public:
-    static Matrix Identity(uint32_t size)
-    {
-        Matrix matrix(size, size);
-        for (uint32_t i = 0; i < size; ++i) {
-            matrix(i, i) = 1;
-        }
-        return matrix;
-    }
-
-    Matrix(uint32_t rows, uint32_t cols)
-        : rows_(rows), cols_(cols), data_(rows * cols)
+    constexpr MyBool()
+        : value_(false)
     {}
 
-    Matrix(nested_list lists)
-        : Matrix(lists.size(), lists.size() ? lists.begin()->size() : 0)
+    constexpr MyBool(bool value)
+        : value_(value)
+    {}
+
+    constexpr MyBool(int value)
+        : value_(value != 0)
+    {}
+
+    constexpr MyBool(uint32_t value)
+        : value_(value != 0)
+    {}
+
+    bool operator==(MyBool const other) const
     {
-        uint32_t row = 0;
-        uint32_t col = 0;
-        for (auto const& list : lists) {
-            for (auto const& value : list) {
-                data_[row * cols_ + col] = value;
-                ++col;
-            }
-            col = 0;
-            ++row;
-        }
+        return other.value_ == value_;
     }
 
-    uint32_t num_columns() const
+    MyBool operator+(MyBool const other) const
     {
-        return cols_;
+        return other.value_ ^ value_;
+    } 
+
+    MyBool operator+=(MyBool const other)
+    {
+        value_ ^= other.value_;
+        return value_;
     }
 
-    uint32_t num_rows() const
+    operator uint32_t() const
     {
-        return rows_;
+        return static_cast<uint32_t>(value_);
     }
 
-    std::valarray<uint8_t> row(uint32_t i) const
-    {
-        return data_[std::slice(i * cols_, cols_, 1)];
-    }
-
-    std::slice_array<uint8_t> row(uint32_t i)
-    {
-        return data_[std::slice(i * cols_, cols_, 1)];
-    }
-
-    std::slice_array<uint8_t> column(uint32_t i)
-    {
-        return data_[std::slice(i, rows_, cols_)];
-    }
-
-    uint8_t& operator()(uint32_t row, uint32_t column)
-    {
-        return data_[row * cols_ + column];
-    }
-
-    uint8_t const& operator()(uint32_t row, uint32_t column) const
-    {
-        return data_[row * cols_ + column];
-    }
-
-    friend Matrix transpose(Matrix const& matrix);
+    friend std::ostream& operator<<(std::ostream& os, MyBool const& value);
 
 private:
-    uint32_t const rows_;
-    uint32_t const cols_;
-    std::valarray<uint8_t> data_;
+    bool value_;
 };
 
-inline Matrix transpose(Matrix const& matrix)
+inline std::ostream& operator<<(std::ostream& os, MyBool const& value)
 {
-    // For now, I only need to deal with square matrices (:
-    if (matrix.rows_ != matrix.cols_) {
-        assert(0 && "Transpose is not implemented for the general case");
-        std::abort();
-    }
-    Matrix result(matrix.cols_, matrix.rows_);
-    for (uint32_t n = 0; n < matrix.cols_ * matrix.rows_; ++n) {
-        uint32_t i = n / matrix.cols_;
-        uint32_t j = n % matrix.cols_;
-        result.data_[n] = matrix.data_[matrix.cols_ * j + i];
-    }
-    return result;
+    os << value.value_;
+    return os; 
 }
 
-inline void print(Matrix const& matrix, std::ostream& os)
-{
-    for (uint32_t i = 0u; i < matrix.num_rows(); ++i) {
-        for (uint32_t j = 0u; j < matrix.num_columns(); ++j) {
-            os << fmt::format("{} ", matrix(i, j));
-        }
-        os << '\n';
-    }
-}
+} // namespace tweedledum
+
+namespace Eigen {
+
+template<>
+struct NumTraits<tweedledum::MyBool> {
+    typedef int Real;
+    typedef tweedledum::MyBool Nested;
+    enum {
+        IsComplex = 0,
+        IsInteger = 1,
+        IsSigned = 0,
+        RequireInitialization = 0,
+        ReadCost = 1,
+        AddCost = 2,
+        MulCost = 2
+    };
+    // Maybe 1? (I'm not sure)
+    static Real epsilon() { return 0; }
+    static Real digits10() { return 1; }
+    static Real dummy_precision() { return 0; }
+};
+
+} // namespace Eigen
+
+namespace tweedledum {
+
+using BMatrix = Eigen::Matrix<MyBool, Eigen::Dynamic, Eigen::Dynamic>;
+
+using Complex = std::complex<double>;
+
+// Unitary matrix is Column-Major!
+using UMatrix = Eigen::Matrix<Complex, Eigen::Dynamic, Eigen::Dynamic>;
+using UMatrix2 = Eigen::Matrix<Complex, 2, 2>;
+using UMatrix4 = Eigen::Matrix<Complex, 4, 4>;
 
 } // namespace tweedledum

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../Operators/Meta.h"
-#include "../Utils/UMatrix.h"
+#include "../Utils/Matrix.h"
 #include "OperatorTraits.h"
 
 #include <memory>
@@ -151,7 +151,8 @@ struct Operator::Model<ConcreteOp, true> {
         if constexpr (has_matrix_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.matrix();
         }
-        assert(0);
+        uint32_t const size = num_targets(self);
+        return UMatrix::Identity((1 << size), (1 << size));
     }
 
     static uint32_t num_targets(void const* self) noexcept 

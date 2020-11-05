@@ -37,7 +37,7 @@ inline void spectrum_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
     if (parities.size() == spectrum.size() - 1) {
         all_linear_synth(circuit, qubits, parities);
     } else {
-        gray_synth(circuit, qubits, Matrix::Identity(qubits.size()), parities, config);
+        gray_synth(circuit, qubits, BMatrix::Identity(qubits.size(), qubits.size()), parities, config);
     }
     circuit.apply_operator(Op::H(), {qubits.back()});
 }

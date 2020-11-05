@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../IR/Wire.h"
-#include "../../Utils/UMatrix.h"
+#include "../../Utils/Matrix.h"
 
 #include <cassert>
 #include <string_view>

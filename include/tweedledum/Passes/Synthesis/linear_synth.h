@@ -52,13 +52,13 @@ namespace tweedledum {
  * \param[in] matrix An N x N binary matrix.
  */
 void linear_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    Matrix const& matrix, nlohmann::json const& config);
+    BMatrix const& matrix, nlohmann::json const& config);
 
 /*! \brief Synthesis of linear reversible circuits (CNOT synthesis).
  *
  * \param[in] matrix An N x N binary matrix.
  * \return A linear reversible circuit on N wires.
  */
-Circuit linear_synth(Matrix const& matrix, nlohmann::json const& config);
+Circuit linear_synth(BMatrix const& matrix, nlohmann::json const& config);
 
 } // namespace tweedledum

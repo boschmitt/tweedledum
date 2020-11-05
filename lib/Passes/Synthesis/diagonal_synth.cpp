@@ -78,7 +78,7 @@ void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
     if (parities.size() == new_angles.size()) {
         all_linear_synth(circuit, qubits, parities);
     } else {
-        gray_synth(circuit, qubits, Matrix::Identity(qubits.size()), parities, config);
+        gray_synth(circuit, qubits, BMatrix::Identity(qubits.size(), qubits.size()), parities, config);
     }
 }
 

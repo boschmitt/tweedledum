@@ -46,7 +46,7 @@ namespace tweedledum {
  */
 // Each column is a parity, num_rows = num_qubits
 void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    Matrix linear_trans, LinearPP parities,
+    BMatrix linear_trans, LinearPP parities,
     nlohmann::json const& config);
 
 /*! \brief Synthesis of a CNOT-dihedral circuits.

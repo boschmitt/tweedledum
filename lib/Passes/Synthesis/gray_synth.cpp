@@ -6,6 +6,8 @@
 #include "tweedledum/Passes/Synthesis/linear_synth.h"
 #include "tweedledum/Operators/Standard.h"
 
+#include <vector>
+
 namespace tweedledum {
 
 using AbstractGate = std::pair<uint32_t, uint32_t>;
@@ -22,17 +24,17 @@ struct State {
     {}
 };
 
-inline uint32_t select_row(State& state, Matrix const& matrix)
+inline uint32_t select_row(State const& state, BMatrix const& matrix)
 {
     assert(!state.rem_rows.empty());
     uint32_t sel_row = 0;
     uint32_t max = 0;
 
     for (uint32_t row_idx : state.rem_rows) {
-        auto row = matrix.row(row_idx);
-        uint32_t num_ones = row.sum();
-        uint32_t num_zeros = matrix.num_columns() - num_ones;
-        uint32_t local_max = std::max(num_ones, num_zeros);
+        auto const& row = matrix.row(row_idx).array();
+        uint32_t const num_ones = (row == MyBool(1)).count();
+        uint32_t const num_zeros = matrix.cols() - num_ones;
+        uint32_t const local_max = std::max(num_ones, num_zeros);
         if (local_max > max) {
             max = local_max;
             sel_row = row_idx;
@@ -41,34 +43,33 @@ inline uint32_t select_row(State& state, Matrix const& matrix)
     return sel_row;
 }
 
-inline void add_gate(State& state, Matrix& matrix, GateList& gates)
+inline void add_gate(State const& state, BMatrix& matrix, GateList& gates)
 {
-    for (uint32_t j = 0u; j < matrix.num_rows(); ++j) {
+    for (uint32_t j = 0u; j < matrix.rows(); ++j) {
         if (j == state.qubit) {
             continue;
         }
         bool all_one = true;
         for (uint32_t col : state.sel_cols) {
-            all_one &= (matrix(j, col) == 1);
+            all_one &= (matrix(j, col) == MyBool(1));
         }
         if (!all_one) {
             continue;
         }
-        matrix.row(j) ^= std::valarray(matrix.row(state.qubit));
+        matrix.row(j) += matrix.row(state.qubit);
         gates.emplace_back(j, state.qubit);
     }
 }
 
-inline GateList synthesize(std::vector<WireRef> const& qubits, Matrix& matrix)
+inline GateList synthesize(std::vector<WireRef> const& qubits, BMatrix& matrix)
 {
     GateList gates;
     uint32_t const num_qubits = qubits.size();
-
     // Initial state
     std::vector<State> state_stack(1, {{}, {}, num_qubits});
     State& init_state = state_stack.back();
-    init_state.sel_cols.resize(matrix.num_columns());
-    init_state.rem_rows.resize(matrix.num_rows());
+    init_state.sel_cols.resize(matrix.cols(), 0);
+    init_state.rem_rows.resize(matrix.rows(), 0);
     std::iota(init_state.sel_cols.begin(), init_state.sel_cols.end(), 0u);
     std::iota(init_state.rem_rows.begin(), init_state.rem_rows.end(), 0u);
 
@@ -78,9 +79,10 @@ inline GateList synthesize(std::vector<WireRef> const& qubits, Matrix& matrix)
         if (state.qubit != num_qubits) {
             add_gate(state, matrix, gates);
         }
-
-        auto temp = std::valarray(matrix.column(state.sel_cols.back()));
-        if (state.sel_cols.size() == 1 && temp.sum() <= 1) {
+        assert(!state.sel_cols.empty());
+        auto const& temp = matrix.col(state.sel_cols.back()).array();
+        uint32_t const ones = (temp == MyBool(1)).count();
+        if (state.sel_cols.size() == 1 && ones <= 1) {
             continue;
         }
         if (state.rem_rows.empty()) {
@@ -91,14 +93,13 @@ inline GateList synthesize(std::vector<WireRef> const& qubits, Matrix& matrix)
         std::vector<uint32_t> cofactor0;
         std::vector<uint32_t> cofactor1;
         for (uint32_t col : state.sel_cols) {
-            if (matrix(sel_row, col)) {
+            if (matrix(sel_row, col) == MyBool(1)) {
                 cofactor1.push_back(col);
                 continue;
             }
             cofactor0.push_back(col);
         }
-        std::remove(
-            state.rem_rows.begin(), state.rem_rows.end(), sel_row);
+        std::remove(state.rem_rows.begin(), state.rem_rows.end(), sel_row);
         state.rem_rows.pop_back();
         if (!cofactor1.empty()) {
             state_stack.emplace_back(std::move(cofactor1),
@@ -127,17 +128,16 @@ inline GateList synthesize(std::vector<WireRef> const& qubits, Matrix& matrix)
  */
 // Each column is a parity, num_rows = num_qubits
 void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    Matrix linear_trans, LinearPP parities,
-    nlohmann::json const& config)
+    BMatrix linear_trans, LinearPP parities, nlohmann::json const& config)
 {
-    // FIXME: This part assumes that Parity is a bit string implemented
-    // using an integer type such as uint32_t or uint64_t, or a
-    // a DynamicBitset.
-    Matrix parities_matrix(qubits.size(), parities.size());
+    if (parities.size() == 0) {
+        return;
+    }
+    BMatrix parities_matrix = BMatrix::Zero(qubits.size(), parities.size());
     uint32_t col = 0;
     for (auto const& [parity, angle] : parities) {
-        for (uint32_t row = 0; row < qubits.size(); ++row) {
-            parities_matrix(row, col) = (parity >> row) & 1;
+        for (uint32_t lit : parity) {
+            parities_matrix((lit >> 1) - 1, col) = MyBool(1);
         }
         ++col;
     }
@@ -148,25 +148,30 @@ void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
     // i is the index of the target
     std::vector<uint32_t> qubits_states(circuit.num_qubits(), 0);
     for (uint32_t i = 0u; i < circuit.num_qubits(); ++i) {
-        qubits_states[i] = (1u << i);
-        auto angle = parities.extract_term(qubits_states[i]);
+        qubits_states.at(i) = (1u << i);
+        auto angle = parities.extract_term(qubits_states.at(i));
         if (angle != 0.0) {
-            circuit.apply_operator(Op::P(angle), {qubits[i]});
+            circuit.apply_operator(Op::P(angle), {qubits.at(i)});
         }
     }
     // Effectively create the circuit
     for (auto const& [control, target] : gates) {
-        circuit.apply_operator(Op::X(), {qubits[control], qubits[target]});
-        qubits_states[target] ^= qubits_states[control];
-        linear_trans.row(target)
-            ^= std::valarray(linear_trans.row(control));
-        auto angle = parities.extract_term(qubits_states[target]);
+        circuit.apply_operator(Op::X(), {qubits.at(control), qubits.at(target)});
+        qubits_states.at(target) ^= qubits_states.at(control);
+        linear_trans.row(target) += linear_trans.row(control);
+        auto angle = parities.extract_term(qubits_states.at(target));
         if (angle != 0.0) {
-            circuit.apply_operator(Op::P(angle), {qubits[target]});
+            circuit.apply_operator(Op::P(angle), {qubits.at(target)});
         }
     }
+
     // Synthesize the overall linear transformation
-    linear_synth(circuit, qubits, linear_trans, config);
+    nlohmann::json linear_synth_cfg;
+    if (config.contains("linear_synth")) {
+        linear_synth_cfg["linear_synth"] = config["linear_synth"];
+    }
+    linear_synth_cfg["linear_synth"]["inverse"] = true;
+    linear_synth(circuit, qubits, linear_trans, linear_synth_cfg);
 }
 
 /*! \brief Synthesis of a CNOT-dihedral circuits.
@@ -188,10 +193,7 @@ Circuit gray_synth(uint32_t num_qubits, LinearPP const& parities,
     }
 
     // Create the linear
-    Matrix linear_trans(num_qubits, num_qubits);
-    for (uint32_t i = 0; i < num_qubits; ++i) {
-        linear_trans(i, i) = 1;
-    }
+    BMatrix linear_trans = BMatrix::Identity(num_qubits, num_qubits);
     gray_synth(circuit, wires, linear_trans, parities, config);
     return circuit;
 }
