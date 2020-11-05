@@ -39,14 +39,14 @@ public:
 
     WireRef create_qubit()
     {
-        std::string const name = fmt::format("__dum_q{}", num_qubits());
+        std::string const name = fmt::format("__q{}", num_qubits());
         return create_qubit(name);
     }
 
     WireRef request_ancilla()
     {
         if (free_ancillae_.empty()) {
-            return create_qubit(fmt::format("__dum_a{}", num_qubits()));
+            return create_qubit(fmt::format("__a{}", num_qubits()));
         } else {
             WireRef qubit = free_ancillae_.back();
             free_ancillae_.pop_back();
@@ -72,7 +72,7 @@ public:
 
     WireRef create_cbit()
     {
-        std::string const name = fmt::format("__dum_c{}", num_cbits());
+        std::string const name = fmt::format("__c{}", num_cbits());
         return create_cbit(name);
     }
 
