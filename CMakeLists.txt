@@ -26,7 +26,7 @@ set(TWEEDLEDUM_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
 # Options
 # =============================================================================
-option(TWEEDLEDUM_EXAMPLES "Build examples" ON)
+option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 option(TWEEDLEDUM_PYBINDS "Build python bindings" ON)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
 option(TWEEDLEDUM_TOOLS "Build tools" OFF)
