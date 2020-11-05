@@ -18,11 +18,14 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/all_linear_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/decomp_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/diagonal_synth.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/gray_synth.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/linear_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/pkrm_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/pprm_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/spectrum_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/transform_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Utils/Angle.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Utils/BMatrix.cpp"
 )
 
 add_executable(run_tests "${tweedledum_tests_files}")
