@@ -13,7 +13,7 @@ namespace tweedledum {
 
 // Linear Phase Polynomial (LinerPP)
 class LinearPP {
-    using Parity = uint32_t;
+    using Parity = std::vector<uint32_t>;
     using LinearTerm = std::pair<Parity, Angle>;
 
 public:
@@ -32,6 +32,11 @@ public:
         return terms_.cend();
     }
 
+    void add_term(uint32_t parity, Angle const& angle)
+    {
+        add_term(convert(parity), angle);
+    }
+
     void add_term(Parity const& parity, Angle const& angle)
     {
         auto it = lower_bound(terms_.begin(), terms_.end(), parity);
@@ -40,6 +45,11 @@ public:
             return;
         }
         terms_.emplace(it, parity, angle);
+    }
+
+    Angle extract_term(uint32_t parity)
+    {
+        return extract_term(convert(parity));
     }
 
     Angle extract_term(Parity const& parity)
@@ -56,6 +66,18 @@ public:
 private:
     using Iterator = typename std::vector<LinearTerm>::iterator;
     using DistType = typename std::iterator_traits<Iterator>::difference_type;
+
+    std::vector<uint32_t> convert(uint32_t parity) const
+    {
+        std::vector<uint32_t> esop;
+        for (uint32_t i = 1; parity; ++i) {
+            if (parity & 1) {
+                esop.push_back((i << 1));
+            }
+            parity >>= 1;
+        }
+        return esop;
+    }
 
     Iterator lower_bound(Iterator first, Iterator last, Parity const& parity)
     {
