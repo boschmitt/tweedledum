@@ -4,6 +4,8 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "../../Utils/Matrix.h"
+
 #include <string_view>
 
 namespace tweedledum::Op {
@@ -13,6 +15,14 @@ public:
     static constexpr std::string_view kind()
     {
         return "std.swap";
+    }
+
+    UMatrix4 const matrix() const
+    {
+        return (UMatrix4() << 1, 0 ,0, 0,
+                              0, 0, 1, 0,
+                              0, 1, 0, 0,
+                              0, 0, 0, 1).finished();
     }
 
     uint32_t num_targets() const
