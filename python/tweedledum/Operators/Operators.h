@@ -32,7 +32,3 @@ private:
 
 } // namespace tweedledum
 
-void init_ext_operators(pybind11::module& module);
-void init_ising_operators(pybind11::module& module);
-void init_meta_operators(pybind11::module& module);
-void init_std_operators(pybind11::module& module);

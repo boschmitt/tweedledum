@@ -6,13 +6,13 @@
 
 #include <tweedledum/IR/Circuit.h>
 #include <tweedledum/Passes/Analysis/depth.h>
+#include <tweedledum/Passes/Decomposition.h>
 #include <tweedledum/Passes/Synthesis.h>
 
-PYBIND11_MODULE(libTweedledumPasses, module)
+void init_Passes(pybind11::module& module)
 {
     using namespace tweedledum;
     namespace py = pybind11;
-    module.doc() = "tweedledum Passes";
 
     // Analysis
     module.def("depth", &depth, "Compute depth pass.");

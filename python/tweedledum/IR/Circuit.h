@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../Operators/Operators.h"
-#include "Instruction.h"
 
 #include <pybind11/pybind11.h>
 #include <tweedledum/IR/Circuit.h>
@@ -21,5 +20,3 @@ inline InstRef Circuit::apply_operator(pybind11::object const& obj, std::vector<
 }
 
 } // namespace tweedledum
-
-void init_Circuit(pybind11::module& module);

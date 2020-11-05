@@ -4,11 +4,8 @@
 *-----------------------------------------------------------------------------*/
 #include "Circuit.h"
 
-
 #include <pybind11/stl.h>
-#include <tweedledum/IR/Wire.h>
-#include <tweedledum/Operators/Reversible.h>
-#include <tweedledum/Operators/Standard.h>
+#include <tweedledum/Operators/All.h>
 
 void init_Circuit(pybind11::module& module)
 {
