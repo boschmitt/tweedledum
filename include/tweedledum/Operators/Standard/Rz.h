@@ -34,8 +34,8 @@ public:
 
     UMatrix2 const matrix() const
     {
-        return (UMatrix2() << std::exp(Complex(0., -angle_.numeric_value())), 0.,
-        0, std::exp(Complex(0., angle_.numeric_value()))).finished();
+        return (UMatrix2() << std::exp(Complex(0., -angle_.numeric_value() / 2)), 0.,
+        0, std::exp(Complex(0., angle_.numeric_value() / 2))).finished();
     }
 
 private:
