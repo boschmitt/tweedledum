@@ -4,7 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #include "Circuit.h"
 #include "Instruction.h"
-#include "Operators.h"
+#include "../Operators/Operators.h"
 
 #include <pybind11/pybind11.h>
 
@@ -14,6 +14,5 @@ PYBIND11_MODULE(libTweedledumIR, module)
     module.doc() = "tweedledum IR";
 
     init_Instruction(module);
-    init_Operators(module);
     init_Circuit(module);
 }

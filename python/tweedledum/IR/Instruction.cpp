@@ -3,7 +3,7 @@
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
 #include "Instruction.h"
-#include "Operators.h"
+#include "../Operators/Operators.h"
 
 #include <pybind11/stl.h>
 #include <tweedledum/IR/Instruction.h>

@@ -2,12 +2,11 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include <pybind11/pybind11.h>
+#include "Passes.h"
+
 #include <tweedledum/IR/Circuit.h>
 #include <tweedledum/Passes/Analysis/depth.h>
-// #include <tweedledum/Passes/Optimization/x_cancellation.h>
-#include <tweedledum/Passes/Synthesis/pkrm_synth.h>
-#include <tweedledum/Passes/Synthesis/pprm_synth.h>
+#include <tweedledum/Passes/Synthesis.h>
 
 PYBIND11_MODULE(libTweedledumPasses, module)
 {

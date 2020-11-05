@@ -6,8 +6,7 @@
 
 #include <pybind11/pybind11.h>
 #include <tweedledum/IR/Instruction.h>
-#include <tweedledum/Operators/Reversible.h>
-#include <tweedledum/Operators/Standard.h>
+#include <tweedledum/Operators/All.h>
 
 namespace tweedledum::python {
 
@@ -33,4 +32,7 @@ private:
 
 } // namespace tweedledum
 
-void init_Operators(pybind11::module& module);
+void init_ext_operators(pybind11::module& module);
+void init_ising_operators(pybind11::module& module);
+void init_meta_operators(pybind11::module& module);
+void init_std_operators(pybind11::module& module);

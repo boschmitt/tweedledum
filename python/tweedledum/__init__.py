@@ -3,4 +3,5 @@
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
 from .IR import *
+from .Operators import *
 from .Passes import *

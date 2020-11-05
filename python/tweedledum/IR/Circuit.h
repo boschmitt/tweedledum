@@ -4,8 +4,8 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "../Operators/Operators.h"
 #include "Instruction.h"
-#include "Operators.h"
 
 #include <pybind11/pybind11.h>
 #include <tweedledum/IR/Circuit.h>

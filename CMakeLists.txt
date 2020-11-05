@@ -55,7 +55,7 @@ endif()
 # Python bindings
 # =============================================================================
 if(TWEEDLEDUM_PYBINDS)
-    add_subdirectory(python)
+    add_subdirectory(python/tweedledum)
 endif()
 
 # Tests

@@ -29,7 +29,7 @@ else()
   target_include_directories(nlohmann_json INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/nlohmann)
 endif()
 
-# pybind11 2.5.0
+# pybind11 2.6.0
 if(TWEEDLEDUM_USE_EXTERNAL_PYBIND11)
     if (NOT TARGET pybind11)
         find_package(pybind11 REQUIRED)
