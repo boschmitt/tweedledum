@@ -29,6 +29,11 @@ public:
 
     static inline Tdg adjoint();
 
+    static Angle angle() 
+    {
+        return sym_angle::pi_quarter;
+    }
+
     static UMatrix2 const matrix()
     {
         return Eigen::Map<UMatrix2 const>(mat_.data());
@@ -51,6 +56,11 @@ public:
     static T adjoint()
     {
         return T();
+    }
+
+    static Angle angle() 
+    {
+        return -sym_angle::pi_quarter;
     }
 
     static UMatrix2 const matrix()

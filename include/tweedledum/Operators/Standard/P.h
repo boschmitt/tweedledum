@@ -26,6 +26,11 @@ public:
         return P(-angle_);
     }
 
+    Angle angle() const
+    {
+        return angle_;
+    }
+
     UMatrix2 const matrix() const
     {
         Complex const a = std::exp(Complex(0., angle_.numeric_value()));

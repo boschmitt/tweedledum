@@ -27,6 +27,11 @@ public:
         return Rz(-angle_);
     }
 
+    static Angle angle() 
+    {
+        return sym_angle::pi;
+    }
+
     UMatrix2 const matrix() const
     {
         return (UMatrix2() << std::exp(Complex(0., -angle_.numeric_value())), 0.,
