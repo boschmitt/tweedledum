@@ -159,7 +159,7 @@ public:
     void foreach_control(Fn&& fn) const
     {
         static_assert(std::is_invocable_r_v<void, Fn, WireRef>);
-        for (uint32_t i = 0; i < qubits_.size() - 1; ++i) {
+        for (uint32_t i = 0; i < qubits_.size() - num_targets(); ++i) {
             fn(qubits_[i].wire_ref);
         }
     }
@@ -168,7 +168,7 @@ public:
     void foreach_target(Fn&& fn) const
     {
         static_assert(std::is_invocable_r_v<void, Fn, WireRef>);
-        for (uint32_t i = num_controls(); i < qubits_.size() - 1; ++i) {
+        for (uint32_t i = num_controls(); i < qubits_.size(); ++i) {
             fn(qubits_[i].wire_ref);
         }
     }
