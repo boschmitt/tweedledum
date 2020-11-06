@@ -7,6 +7,7 @@
 #include "../../IR/Circuit.h"
 
 #include <kitty/kitty.hpp>
+#include <nlohmann/json.hpp>
 #include <vector>
 
 namespace tweedledum {
@@ -17,8 +18,8 @@ namespace tweedledum {
 // positive polarity (not complemented form). PPRM is a canonical expression, so further
 // minimization is not possible.
 void pprm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    kitty::dynamic_truth_table const& function);
+    kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
 
-Circuit pprm_synth(kitty::dynamic_truth_table const& function);
+Circuit pprm_synth(kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
 
 } // namespace tweedledum
