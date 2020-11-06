@@ -7,6 +7,7 @@
 
 namespace tweedledum {
 
+namespace {
 struct Config {
     uint32_t section_size;
     bool best_effort;
@@ -152,6 +153,7 @@ inline void best_effort_synthesize(Circuit& circuit, std::vector<WireRef> const&
         ++current_ss;
     } while ((current_ss < max_ss) && (best_size > 1));
     synthesize(circuit, qubits, matrix, best_ss, reverse);
+}
 }
 
 void linear_synth(Circuit& circuit, std::vector<WireRef> const& qubits,

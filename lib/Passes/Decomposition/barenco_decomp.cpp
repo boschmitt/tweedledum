@@ -9,6 +9,8 @@
 
 namespace tweedledum {
 
+namespace {
+
 struct Config {
     uint32_t controls_threshold;
     std::vector<uint8_t> locked;
@@ -219,6 +221,8 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
         dirty_ancilla(circuit, inst, inst.qubits(), cfg);
     }
     return true;
+}
+
 }
 
 void barenco_decomp(Circuit& circuit, Instruction const& inst, nlohmann::json const& config)

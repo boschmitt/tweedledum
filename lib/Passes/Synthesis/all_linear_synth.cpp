@@ -7,6 +7,8 @@
 
 namespace tweedledum {
 
+namespace {
+
 // I added this level of indirection because I can implement this method with
 // other codes or just using binary sequence.
 inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits, LinearPP parities)
@@ -49,6 +51,8 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits, Lin
             circuit.apply_operator(Op::P(angle), {qubits[i]});
         }
     }
+}
+
 }
 
 void all_linear_synth(Circuit& circuit, std::vector<WireRef> const& qubits, LinearPP const& parities)

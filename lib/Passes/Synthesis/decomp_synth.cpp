@@ -26,6 +26,8 @@
 //
 namespace tweedledum {
 
+namespace {
+
 inline auto decompose(std::vector<uint32_t>& perm, uint32_t var)
 {
     std::vector<uint32_t> left(perm.size(), 0);
@@ -122,6 +124,8 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     for (auto const& [tt_idx, qubits] : gates) {
         circuit.apply_operator(Op::TruthTable(truth_tables.at(tt_idx)), qubits);
     }
+}
+
 }
 
 void decomp_synth(Circuit& circuit, std::vector<WireRef> const& qubits,

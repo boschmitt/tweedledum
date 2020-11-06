@@ -8,6 +8,7 @@
 
 namespace tweedledum {
 
+namespace {
 using AbstractGate = std::pair<uint32_t, uint32_t>;
 using GateList = std::vector<AbstractGate>;
 
@@ -182,6 +183,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
             cs.pop_back();
         }
     }
+}
 }
 
 void transform_synth(Circuit& circuit, std::vector<WireRef> const& qubits,

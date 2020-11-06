@@ -10,6 +10,7 @@
 
 namespace tweedledum {
 
+namespace {
 using AbstractGate = std::pair<uint32_t, uint32_t>;
 using GateList = std::vector<AbstractGate>;
 
@@ -112,6 +113,7 @@ inline GateList synthesize(std::vector<WireRef> const& qubits, BMatrix& matrix)
         }
     }
     return gates;
+}
 }
 
 /*! \brief Synthesis of a CNOT-dihedral circuits with all linear combinations.
