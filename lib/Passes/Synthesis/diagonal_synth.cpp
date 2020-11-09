@@ -9,6 +9,8 @@
 
 namespace tweedledum {
 
+namespace {
+
 inline void complement_qubit(uint32_t i, std::vector<Angle>& angles)
 {
     uint32_t const size_2 = (angles.size() / 2);
@@ -57,6 +59,10 @@ inline void fast_hadamard_transform(std::vector<Angle>& angles)
     }
 }
 
+}
+
+// Qubits need to be sorted
+// FIXME: Then sort the qubits!!!
 void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
     std::vector<Angle> const& angles, nlohmann::json const& config)
 {
@@ -69,13 +75,13 @@ void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
     fast_hadamard_transform(new_angles);
     LinearPP parities;
     uint32_t factor = (1 << (qubits.size() - 1));
-    for (uint32_t i = 0u; i < new_angles.size(); ++i) {
+    for (uint32_t i = 1u; i < new_angles.size(); ++i) {
         if (new_angles.at(i) == 0) {
             continue;
         }
         parities.add_term(i, new_angles.at(i) / factor);
     }
-    if (parities.size() == new_angles.size()) {
+    if (parities.size() == new_angles.size() - 1) {
         all_linear_synth(circuit, qubits, parities);
     } else {
         gray_synth(circuit, qubits, BMatrix::Identity(qubits.size(), qubits.size()), parities, config);

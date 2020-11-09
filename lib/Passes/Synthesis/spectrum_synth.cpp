@@ -11,10 +11,8 @@
 
 namespace tweedledum {
 
-using TruthTable = kitty::dynamic_truth_table;
-
-inline void spectrum_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    TruthTable const& function, nlohmann::json const& config)
+void spectrum_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+    kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     uint32_t const num_controls = function.num_vars();
     assert(qubits.size() >= (num_controls + 1u));
@@ -42,7 +40,7 @@ inline void spectrum_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
     circuit.apply_operator(Op::H(), {qubits.back()});
 }
 
-Circuit spectrum_synth(TruthTable const& function, nlohmann::json const& config)
+Circuit spectrum_synth(kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     Circuit circuit;
     // Create the necessary qubits
