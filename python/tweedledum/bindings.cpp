@@ -16,6 +16,10 @@ PYBIND11_MODULE(libPyTweedledum, module)
 
     module.doc() = "Binding for the Tweedledum quantum compilation library";
 
+    // Classical
+    py::module classical = module.def_submodule("Classical", "Tweedledum classical");
+    init_kitty(classical);
+
     // IR
     py::module IR = module.def_submodule("IR", "Tweedledum intermediate representation");
     init_Instruction(IR);

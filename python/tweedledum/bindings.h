@@ -6,6 +6,9 @@
 
 #include <pybind11/pybind11.h>
 
+// Classical
+void init_kitty(pybind11::module& module);
+
 // IR
 void init_Circuit(pybind11::module& module);
 void init_Instruction(pybind11::module& module);
