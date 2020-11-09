@@ -14,6 +14,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/IR/Circuit.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Operators/Unitary.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/phase_folding.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Simulation/simulate_classically.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/all_linear_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/decomp_synth.cpp"
