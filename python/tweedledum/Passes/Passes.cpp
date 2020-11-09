@@ -17,16 +17,25 @@ void init_Passes(pybind11::module& module)
     // Analysis
     module.def("depth", &depth, "Compute depth pass.");
 
+    // Decomposition
+    module.def("barenco_decomp", py::overload_cast<Circuit const&, nlohmann::json const&>(&barenco_decomp),
+    py::arg("circuit"), py::arg("config") = nlohmann::json(),
+    "Barrenco decomposition depth pass.");
+
     // Synthesis 
-    module.def("pkrm_synth", (Circuit (*)(kitty::dynamic_truth_table const&)) &pkrm_synth, 
+    module.def("pkrm_synth", py::overload_cast<kitty::dynamic_truth_table const&, nlohmann::json const&>(&pkrm_synth),
+    py::arg("function"), py::arg("config") = nlohmann::json(),
     "Synthesize a quantum circuit from a function by computing PKRM representation.");
 
-    module.def("pkrm_synth", (void (*)(Circuit&, std::vector<WireRef> const&, kitty::dynamic_truth_table const&)) &pkrm_synth,
-    "Synthesize a quantum circuit from a function by computing PKRM representation.");
-
-    module.def("pprm_synth", (Circuit (*)(kitty::dynamic_truth_table const&)) &pprm_synth, 
+    module.def("pkrm_synth",  py::overload_cast<Circuit&, std::vector<WireRef> const&, kitty::dynamic_truth_table const&, nlohmann::json const&>(&pkrm_synth),
+    py::arg("circuit"), py::arg("qubits"), py::arg("function"), py::arg("config") = nlohmann::json(),
+    "Synthesize a quantum circuit inplace from a function by computing PKRM representation.");
+    
+    module.def("pprm_synth",  py::overload_cast<kitty::dynamic_truth_table const&, nlohmann::json const&>(&pprm_synth),
+    py::arg("function"), py::arg("config") = nlohmann::json(),
     "Synthesize a quantum circuit from a function by computing PPRM representation.");
 
-    module.def("pprm_synth", (void (*)(Circuit&, std::vector<WireRef> const&, kitty::dynamic_truth_table const&)) &pprm_synth,
-    "Synthesize a quantum circuit from a function by computing PPRM representation.");
+    module.def("pprm_synth",  py::overload_cast<Circuit&, std::vector<WireRef> const&, kitty::dynamic_truth_table const&, nlohmann::json const&>(&pprm_synth),
+    py::arg("circuit"), py::arg("qubits"), py::arg("function"), py::arg("config") = nlohmann::json(),
+    "Synthesize a quantum circuit inplace from a function by computing PPRM representation.");
 }
