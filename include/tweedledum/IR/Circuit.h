@@ -30,6 +30,11 @@ public:
         return instructions_.size();
     }
 
+    uint32_t num_ancillae() const
+    {
+        return free_ancillae_.size();
+    }
+
     // Wires
     WireRef create_qubit(std::string_view name)
     {
@@ -57,11 +62,6 @@ public:
     void release_ancilla(WireRef qubit)
     {
         free_ancillae_.push_back(qubit);
-    }
-
-    uint32_t num_ancillae() const
-    {
-        return free_ancillae_.size();
     }
 
     WireRef create_cbit(std::string_view name)
