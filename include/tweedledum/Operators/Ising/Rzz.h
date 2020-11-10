@@ -16,7 +16,7 @@ class Rzz {
 public:
     static constexpr std::string_view kind()
     {
-        return "ising.ryy";
+        return "ising.rzz";
     }
 
     Rzz(Angle angle) : angle_(angle)

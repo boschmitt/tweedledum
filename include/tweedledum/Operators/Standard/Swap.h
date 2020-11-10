@@ -17,6 +17,11 @@ public:
         return "std.swap";
     }
 
+    static Swap adjoint()
+    {
+        return Swap();
+    }
+
     UMatrix4 const matrix() const
     {
         return (UMatrix4() << 1, 0 ,0, 0,
