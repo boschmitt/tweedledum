@@ -184,12 +184,29 @@ public:
         return qubits_.end();
     }
 
+    bool operator==(Instruction const& other) const
+    {
+        if (qubits_ != other.qubits_) {
+            return false;
+        }
+        if (cbits_ != other.cbits_) {
+            return false;
+        }
+        return static_cast<Operator const&>(*this) == static_cast<Operator const&>(other);
+    }
+
 private:
     struct Connection {
         WireRef wire_ref;
         InstRef inst_ref;
         Connection(WireRef w, InstRef i) : wire_ref(w), inst_ref(i)
         {}
+
+        // FIXME: this quite counterintuitive
+        bool operator==(Connection const& other) const
+        {
+            return wire_ref == other.wire_ref;
+        }
     };
 
     friend class Circuit;

@@ -38,6 +38,11 @@ public:
     {
         return Eigen::Map<UMatrix2 const>(mat_.data());
     }
+
+    bool operator==([[maybe_unused]] T const& other) const
+    {
+        return true;
+    }
 };
 
 // T dagger operator.
@@ -66,6 +71,11 @@ public:
     static UMatrix2 const matrix()
     {
         return Eigen::Map<UMatrix2 const>(mat_.data());
+    }
+
+    bool operator==([[maybe_unused]] Tdg const& other) const
+    {
+        return true;
     }
 };
 

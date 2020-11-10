@@ -38,6 +38,11 @@ public:
         0, std::exp(Complex(0., angle_.numeric_value() / 2))).finished();
     }
 
+    bool operator==(Rz const& other) const
+    {
+        return angle_ == other.angle_;
+    }
+
 private:
     Angle const angle_;
 };

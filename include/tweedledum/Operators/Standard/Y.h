@@ -29,6 +29,11 @@ public:
     {
         return Eigen::Map<UMatrix2 const>(mat_.data());
     }
+
+    bool operator==([[maybe_unused]] Y const& other) const
+    {
+        return true;
+    }
 };
 
 } // namespace tweedledum

@@ -35,6 +35,11 @@ public:
                               std::cos(angle_.numeric_value() / 2.)).finished();
     }
 
+    bool operator==(Ry const& other) const
+    {
+        return angle_ == other.angle_;
+    }
+
 private:
     Angle const angle_;
 };

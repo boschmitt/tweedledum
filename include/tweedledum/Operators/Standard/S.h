@@ -36,6 +36,11 @@ public:
     {
         return Eigen::Map<UMatrix2 const>(mat_.data());
     }
+
+    bool operator==([[maybe_unused]] S const& other) const
+    {
+        return true;
+    }
 };
 
 class Sdg {
@@ -59,6 +64,11 @@ public:
     static UMatrix2 const matrix()
     {
         return Eigen::Map<UMatrix2 const>(mat_.data());
+    }
+
+    bool operator==([[maybe_unused]] Sdg const& other) const
+    {
+        return true;
     }
 };
 

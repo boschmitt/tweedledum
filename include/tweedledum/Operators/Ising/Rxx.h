@@ -42,6 +42,11 @@ public:
         return 2u;
     }
 
+    bool operator==(Rxx const& other) const
+    {
+        return angle_ == other.angle_;
+    }
+
 private:
     Angle const angle_;
 };

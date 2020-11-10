@@ -31,9 +31,15 @@ public:
     template<typename ConcreteOp>
     Operator(ConcreteOp&& op) noexcept
     {
-        constexpr bool is_small = sizeof(Model<std::decay_t<ConcreteOp>, true>) <= small_size;
-        new (&model_) Model<std::decay_t<ConcreteOp>, is_small>(std::forward<ConcreteOp>(op));
-        concept_ = &Model<std::decay_t<ConcreteOp>, is_small>::vtable_;
+        static_assert(!std::is_same_v<std::decay_t<ConcreteOp>, Instruction>);
+        if constexpr (std::is_same_v<std::decay_t<ConcreteOp>, Operator>) {
+            concept_ = op.concept_;
+            concept_->clone(&op.model_, &model_);
+        } else {
+            constexpr bool is_small = sizeof(Model<std::decay_t<ConcreteOp>, true>) <= small_size;
+            new (&model_) Model<std::decay_t<ConcreteOp>, is_small>(std::forward<ConcreteOp>(op));
+            concept_ = &Model<std::decay_t<ConcreteOp>, is_small>::vtable_;
+        }
     }
 
     ~Operator()
@@ -78,20 +84,21 @@ public:
         return *static_cast<ConcreteOp const*>(concept_->optor(&model_));
     }
 
+    bool operator==(Operator const& other) const
+    {
+        if (kind() != other.kind()) {
+            return false;
+        }
+        return concept_->equal(&model_, &other.model_);
+    }
+
 private:
     friend class Instruction;
-
-    Operator(Operator const& other) noexcept
-    {
-        concept_ = other.concept_;
-        concept_->clone(&other.model_, &model_);
-    }
- 
-    Operator(Operator&& other) = delete;
 
     struct Concept {
         void (*dtor)(void*) noexcept;
         void (*clone)(void const*, void*) noexcept;
+        bool (*equal)(void const*, void const*) noexcept;
         void const* (*optor)(void const*) noexcept;
         std::optional<Operator> (*adjoint)(void const*) noexcept;
         std::string_view (*kind)(void const*) noexcept;
@@ -125,7 +132,12 @@ struct Operator::Model<ConcreteOp, true> {
 
     static void clone(void const* self, void* other) noexcept
     {
-        new (other) Model<ConcreteOp, true>(static_cast<Model const*>(self)->operator_);
+        new (other) Model<std::decay_t<ConcreteOp>, true>(static_cast<Model const*>(self)->operator_);
+    }
+
+    static bool equal(void const* self, void const* other) noexcept
+    {
+        return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
     }
 
     static void const* optor(void const* self) noexcept
@@ -162,7 +174,7 @@ struct Operator::Model<ConcreteOp, true> {
         return 1u;
     }
 
-    static constexpr Concept vtable_{dtor, clone, optor, adjoint, kind, matrix, num_targets};
+    static constexpr Concept vtable_{dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};
 
     ConcreteOp operator_;
 };
@@ -186,6 +198,11 @@ struct Operator::Model<ConcreteOp, false> {
     static void clone(void const* self, void* other) noexcept
     {
         new (other) Model<ConcreteOp, false>(*static_cast<Model const*>(self)->operator_);
+    }
+
+    static bool equal(void const* self, void const* other) noexcept
+    {
+        return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
     }
 
     static void const* optor(void const* self) noexcept
@@ -222,7 +239,7 @@ struct Operator::Model<ConcreteOp, false> {
         return 1u;
     }
 
-    static constexpr Concept vtable_{dtor, clone, optor, adjoint, kind, matrix, num_targets};
+    static constexpr Concept vtable_{dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};
 
     std::unique_ptr<ConcreteOp> operator_;
 };

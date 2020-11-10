@@ -25,6 +25,11 @@ public:
         return truth_table_;
     }
 
+    bool operator==(TruthTable const& other) const
+    {
+        return truth_table_ == other.truth_table_;
+    }
+
 private:
     kitty::dynamic_truth_table const truth_table_;
 };

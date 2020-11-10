@@ -38,6 +38,11 @@ public:
                               0., a).finished();
     }
 
+    bool operator==(P const& other) const
+    {
+        return angle_ == other.angle_;
+    }
+
 private:
     Angle const angle_;
 };

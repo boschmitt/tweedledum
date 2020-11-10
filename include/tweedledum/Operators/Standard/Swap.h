@@ -29,6 +29,11 @@ public:
     {
         return 2u;
     }
+
+    bool operator==([[maybe_unused]] Swap const& other) const
+    {
+        return true;
+    }
 };
 
 } // namespace tweedledum

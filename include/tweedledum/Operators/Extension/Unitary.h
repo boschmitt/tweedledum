@@ -39,6 +39,11 @@ public:
         return std::log2(unitary_.rows());
     }
 
+    bool operator==(Unitary const& other) const
+    {
+        return unitary_ == other.unitary_;
+    }
+
 private:
     UMatrix const unitary_;
 

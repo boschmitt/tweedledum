@@ -43,6 +43,11 @@ public:
         return 2u;
     }
 
+    bool operator==(Ryy const& other) const
+    {
+        return angle_ == other.angle_;
+    }
+
 private:
     Angle const angle_;
 };
