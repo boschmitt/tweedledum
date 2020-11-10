@@ -24,6 +24,10 @@ struct InstRef {
         return InstRef(std::numeric_limits<uint32_t>::max());
     }
 
+    constexpr explicit InstRef(uint32_t id)
+        : uid_(id)
+    {}
+
     uint32_t uid() const
     {
         return uid_;
@@ -41,10 +45,6 @@ struct InstRef {
 
 private:
     friend class Circuit;
-
-    constexpr explicit InstRef(uint32_t id)
-        : uid_(id)
-    {}
 
     uint32_t uid_;
 };
@@ -127,6 +127,27 @@ public:
         return wires;
     }
 
+    bool is_adjoint(Instruction const& other) const
+    {
+        if (qubits_ != other.qubits_) {
+            return false;
+        }
+        if (cbits_ != other.cbits_) {
+            return false;
+        }
+        std::optional<Operator> adj = other.adjoint();
+        if (!adj) {
+            return false;
+        }
+        return static_cast<Operator const&>(*this) == *adj;
+    }
+
+    // bool is_dependent(Instruction const& other) const
+    // {
+    //     // Need to check the Operators
+    //     return true;
+    // }
+    
     template<typename Fn>
     void foreach_wire(Fn&& fn) const
     {

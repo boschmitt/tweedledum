@@ -12,6 +12,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/run_tests.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/base/base.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/IR/Circuit.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/IR/Instruction.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Operators/Unitary.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/phase_folding.cpp"
