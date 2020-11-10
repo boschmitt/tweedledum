@@ -235,7 +235,6 @@ Circuit barenco_decomp(Circuit const& original, nlohmann::json const& config)
 {
     Config cfg(original.num_qubits(), config);
     Circuit result = shallow_duplicate(original);
-    std::vector<uint32_t> visited(original.size(), 0);
     original.foreach_instruction([&](Instruction const& inst) {
         // Only X, Y, Z
         if (inst.is_one<Op::X, Op::Y, Op::Z>() && inst.num_controls() > cfg.controls_threshold) {
