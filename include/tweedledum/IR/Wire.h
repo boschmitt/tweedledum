@@ -75,7 +75,7 @@ public:
         polarity_ ^= 1u;
     }
 
-    bool is_complemented()
+    bool is_complemented() const
     {
         return polarity_;
     }
