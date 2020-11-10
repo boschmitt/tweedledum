@@ -4,10 +4,12 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "../../IR/Instruction.h"
 #include "../../IR/Wire.h"
 #include "../../Utils/Matrix.h"
 
 #include <cassert>
+#include <fmt/format.h>
 #include <string_view>
 
 namespace tweedledum::Op {
@@ -87,8 +89,35 @@ public:
             break;
 
         case 2u:
-            // assert(0);
             apply_matrix_nt<2>(optor.matrix(), qubits);
+            break;
+        
+        default:
+            assert(0);
+            break;
+        }
+    }
+
+    void apply_operator(Instruction const& inst, std::vector<uint32_t> const& qubits)
+    {
+        auto u_matrix = inst.matrix();
+        if (!u_matrix) {
+            fmt::print("Error: unitary matrix not defined");
+            return;
+        }
+
+        if (qubits.size() == 1) {
+            apply_matrix(u_matrix.value(), qubits);
+            return;
+        }
+        switch (inst.num_targets()) {
+        case 1u:
+            apply_matrix_nc(u_matrix.value(), qubits);
+            break;
+
+        case 2u:
+            // assert(0);
+            apply_matrix_nt<2>(u_matrix.value(), qubits);
             break;
         
         default:

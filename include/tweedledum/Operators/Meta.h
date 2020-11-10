@@ -5,4 +5,3 @@
 #pragma once
 
 #include "Meta/Barrier.h"
-#include "Meta/NoAdjoint.h"

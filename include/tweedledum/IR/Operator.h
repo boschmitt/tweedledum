@@ -9,6 +9,7 @@
 #include "OperatorTraits.h"
 
 #include <memory>
+#include <optional>
 #include <string_view>
 
 namespace tweedledum {
@@ -40,7 +41,7 @@ public:
         concept_->dtor(&model_);
     }
 
-    Operator adjoint() const
+    std::optional<Operator> adjoint() const
     {
         return concept_->adjoint(&model_);
     }
@@ -50,7 +51,7 @@ public:
         return concept_->kind(&model_);
     }; 
 
-    UMatrix const matrix() const
+    std::optional<UMatrix> const matrix() const
     {
         return concept_->matrix(&model_);
     }
@@ -92,9 +93,9 @@ private:
         void (*dtor)(void*) noexcept;
         void (*clone)(void const*, void*) noexcept;
         void const* (*optor)(void const*) noexcept;
-        Operator (*adjoint)(void const*) noexcept;
+        std::optional<Operator> (*adjoint)(void const*) noexcept;
         std::string_view (*kind)(void const*) noexcept;
-        UMatrix const (*matrix)(void const*) noexcept;
+        std::optional<UMatrix> const (*matrix)(void const*) noexcept;
         uint32_t (*num_targets)(void const*) noexcept;
     };
 
@@ -132,13 +133,12 @@ struct Operator::Model<ConcreteOp, true> {
         return &static_cast<Model const*>(self)->operator_;
     }
 
-    static Operator adjoint(void const* self) noexcept
+    static std::optional<Operator> adjoint(void const* self) noexcept
     {
         if constexpr (has_adjoint_v<ConcreteOp>) {
-            return Operator(static_cast<Model const*>(self)->operator_.adjoint());
-        } else {
-            return Operator(Op::NoAdjoint());
+            return static_cast<Model const*>(self)->operator_.adjoint();
         }
+        return std::nullopt;
     }
 
     static std::string_view kind(void const* self) noexcept 
@@ -146,22 +146,20 @@ struct Operator::Model<ConcreteOp, true> {
         return static_cast<Model const*>(self)->operator_.kind();
     }
 
-    static UMatrix const matrix(void const* self) noexcept 
+    static std::optional<UMatrix> const matrix(void const* self) noexcept 
     {
         if constexpr (has_matrix_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.matrix();
         }
-        uint32_t const size = num_targets(self);
-        return UMatrix::Identity((1 << size), (1 << size));
+        return std::nullopt;
     }
 
     static uint32_t num_targets(void const* self) noexcept 
     {
         if constexpr (has_num_targets_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.num_targets();
-        } else {
-            return 1u;
-        }
+        } 
+        return 1u;
     }
 
     static constexpr Concept vtable_{dtor, clone, optor, adjoint, kind, matrix, num_targets};
@@ -195,13 +193,12 @@ struct Operator::Model<ConcreteOp, false> {
         return static_cast<Model const*>(self)->operator_.get();
     }
 
-    static Operator adjoint(void const* self) noexcept
+    static std::optional<Operator> adjoint(void const* self) noexcept
     {
         if constexpr (has_adjoint_v<ConcreteOp>) {
-            return Operator(static_cast<Model const*>(self)->operator_->adjoint());
-        } else {
-            return Operator(Op::NoAdjoint());
-        }
+            return static_cast<Model const*>(self)->operator_->adjoint();
+        } 
+        return std::nullopt;
     }
 
     static std::string_view kind(void const* self) noexcept 
@@ -209,21 +206,20 @@ struct Operator::Model<ConcreteOp, false> {
         return static_cast<Model const*>(self)->operator_->kind();
     }
 
-    static UMatrix const matrix(void const* self) noexcept 
+    static std::optional<UMatrix> const matrix(void const* self) noexcept 
     {
         if constexpr (has_matrix_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_->matrix();
         }
-        assert(0);
+        return std::nullopt;
     }
 
     static uint32_t num_targets(void const* self) noexcept 
     {
         if constexpr (has_num_targets_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_->num_targets();
-        } else {
-            return 1u;
         }
+        return 1u;
     }
 
     static constexpr Concept vtable_{dtor, clone, optor, adjoint, kind, matrix, num_targets};
