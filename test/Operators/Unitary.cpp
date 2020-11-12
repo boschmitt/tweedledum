@@ -19,8 +19,9 @@ TEST_CASE("Trivial cases for unitary builder", "[operators]")
 
         Op::UnitaryBuilder builder(2);
         builder.apply_operator(rxx, std::vector({0u, 1u}));
+        Op::Unitary built = builder.finished();
 
-        CHECK(is_approx_equal(expected, builder.finished()));
+        CHECK(is_approx_equal(expected, built));
     }
     SECTION("Ryy") {
         Op::Ryy ryy(sym_angle::pi);
@@ -28,8 +29,9 @@ TEST_CASE("Trivial cases for unitary builder", "[operators]")
 
         Op::UnitaryBuilder builder(2);
         builder.apply_operator(Op::Ryy(sym_angle::pi), std::vector({0u, 1u}));
+        Op::Unitary built = builder.finished();
 
-        CHECK(is_approx_equal(expected, builder.finished()));
+        CHECK(is_approx_equal(expected, built));
     }
     SECTION("Rzz") {
         Op::Rzz rzz(sym_angle::pi);
@@ -37,7 +39,8 @@ TEST_CASE("Trivial cases for unitary builder", "[operators]")
 
         Op::UnitaryBuilder builder(2);
         builder.apply_operator(Op::Rzz(sym_angle::pi), std::vector({0u, 1u}));
+        Op::Unitary built = builder.finished();
 
-        CHECK(is_approx_equal(expected, builder.finished()));
+        CHECK(is_approx_equal(expected, built));
     }
 }

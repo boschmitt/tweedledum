@@ -6,6 +6,7 @@
 
 #include "Instruction.h"
 #include "Wire.h"
+#include "../Utils/Angle.h"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -19,12 +20,22 @@ class BaseView;
 
 class Circuit : public WireStorage {
 public:
-    Circuit()
+    Circuit() : global_phase_(sym_angle::zero)
     {
         instructions_.reserve(1024);
     }
 
     // Properties
+    Angle& global_phase()
+    {
+        return global_phase_;
+    }
+
+    Angle global_phase() const
+    {
+        return global_phase_;
+    }
+
     uint32_t size() const
     {
         return instructions_.size();
@@ -238,6 +249,7 @@ private:
     std::vector<Instruction, Instruction::Allocator> instructions_;
     std::vector<InstRef> last_instruction_; // last instruction on a wire
     std::vector<WireRef> free_ancillae_; // Should this be here?!
+    Angle global_phase_;
 };
 
 } // namespace tweedledum

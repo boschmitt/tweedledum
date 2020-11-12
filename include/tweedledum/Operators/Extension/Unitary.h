@@ -6,10 +6,12 @@
 
 #include "../../IR/Instruction.h"
 #include "../../IR/Wire.h"
+#include "../../Utils/Angle.h"
 #include "../../Utils/Matrix.h"
 
 #include <cassert>
 #include <fmt/format.h>
+#include <optional>
 #include <string_view>
 
 namespace tweedledum::Op {
@@ -21,15 +23,25 @@ public:
         return "ext.unitary";
     }
 
-    Unitary(UMatrix const& unitary) : unitary_(unitary)
+    Unitary(UMatrix const& unitary, std::optional<Angle> const& phase = std::nullopt)
+        : global_phase_(phase), unitary_(unitary)
     {}
 
-    Unitary(UMatrix&& unitary) : unitary_(unitary)
+    Unitary(UMatrix&& unitary, std::optional<Angle> const& phase = std::nullopt)
+        : global_phase_(phase), unitary_(unitary)
     {}
 
     UMatrix const& matrix() const
     {
         return unitary_;
+    }
+
+    Angle global_phase()
+    {
+        if (!global_phase_) {
+            calculate_global_phase();
+        }
+        return global_phase_.value();
     }
 
     uint32_t num_targets() const
@@ -45,33 +57,56 @@ public:
     }
 
 private:
-    UMatrix const unitary_;
+    void calculate_global_phase()
+    {
+        Complex const phase = 1. / std::sqrt(unitary_.determinant());
+        Angle angle = -std::arg(phase);
+        global_phase_.emplace(angle);
+        if (angle != sym_angle::zero) {
+            unitary_ *= std::exp(Complex(0., angle.numeric_value()));
+        }
+    }
 
-    friend bool is_approx_equal(Unitary const& rhs, Unitary const& lhs,
-        double const rtol, double const atol);
+    std::optional<Angle> global_phase_;
+    UMatrix unitary_;
+
+    friend bool is_approx_equal(Unitary& rhs, Unitary& lhs,
+        bool up_to_global_phase, double const rtol,
+        double const atol);
 };
 
 // rtol : Relative tolerance
 // atol : Absolute tolerance
-inline bool is_approx_equal(Unitary const& rhs, Unitary const& lhs,
-    double const rtol = 1e-05, double const atol = 1e-08)
+// FIXME:: this function might change the unitary 
+// (when it tries to isolate the global phase)
+inline bool is_approx_equal(Unitary& rhs, Unitary& lhs,
+    bool up_to_global_phase = false, double const rtol = 1e-05,
+    double const atol = 1e-08)
 {
     assert(rhs.unitary_.size() == lhs.unitary_.size());
     uint32_t const end = rhs.unitary_.size();
     bool is_close = true;
+    auto const* r_data = rhs.unitary_.data();
+    auto const* l_data = lhs.unitary_.data();
+    if (!up_to_global_phase) {
+        if (rhs.global_phase() != lhs.global_phase()) {
+            return false;
+        }
+    }
     for (uint32_t i = 0u; i < end && is_close; ++i) {
-        is_close &= std::abs(rhs.unitary_.data()[i].real() - lhs.unitary_.data()[i].real())
-                 <= (atol + rtol * std::abs(lhs.unitary_.data()[i].real()));
-        is_close &= std::abs(rhs.unitary_.data()[i].imag() - lhs.unitary_.data()[i].imag())
-                 <= (atol + rtol * std::abs(lhs.unitary_.data()[i].imag()));
+        is_close &= std::abs(r_data[i].real() - l_data[i].real())
+                    <= (atol + rtol * std::abs(l_data[i].real()));
+        is_close &= std::abs(r_data[i].imag() - l_data[i].imag())
+                    <= (atol + rtol * std::abs(l_data[i].imag()));
     }
     return is_close;
 }
 
 class UnitaryBuilder {
 public:
-    UnitaryBuilder(uint32_t const num_qubits)
-        : matrix_(UMatrix::Identity((1 << num_qubits), (1 << num_qubits)))
+    UnitaryBuilder(uint32_t const num_qubits, Angle const& phase = sym_angle::zero)
+        : global_phase_(phase)
+        , matrix_(UMatrix::Identity((1 << num_qubits), (1 << num_qubits)))
     {}
 
     template<typename OpT>
@@ -133,7 +168,10 @@ public:
 
     Unitary finished()
     {
-        return Unitary(matrix_);
+        if (global_phase_ != sym_angle::zero) {
+            matrix_ *= std::exp(Complex(0., global_phase_.numeric_value()));
+        }
+        return Unitary(matrix_, global_phase_);
     }
 
 private:
@@ -227,6 +265,7 @@ private:
         }
     }
 
+    Angle const global_phase_;
     UMatrix matrix_;
 };
 
