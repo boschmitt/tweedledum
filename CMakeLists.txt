@@ -34,6 +34,8 @@ option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_PYBIND11 "Use an external pybind11 library" OFF)
 
+option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
+
 # 3rd-party libraries
 # =============================================================================
 add_subdirectory(third_party)
@@ -42,7 +44,7 @@ add_subdirectory(third_party)
 # =============================================================================
 add_library(tweedledum)
 target_include_directories(tweedledum PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum eigen fmt::fmt-header-only kitty nlohmann_json)
+target_link_libraries(tweedledum eigen fmt::fmt-header-only mockturtle)
 
 add_subdirectory(lib)
 
