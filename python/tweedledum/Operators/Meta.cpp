@@ -11,7 +11,4 @@ void init_meta_operators(pybind11::module& module)
 
     py::class_<Op::Barrier>(module, "Barrier")
         .def(py::init<>());
-
-    py::class_<Op::NoAdjoint>(module, "NoAdjoint")
-        .def(py::init<>());
 }

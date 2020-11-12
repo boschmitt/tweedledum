@@ -26,6 +26,11 @@ public:
         return handle_;
     }
 
+    bool operator==(PyOperator const& other) const
+    {
+        return handle_.is(other.handle_);
+    }
+
 private:
     pybind11::object handle_;
 };
