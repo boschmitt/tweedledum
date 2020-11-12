@@ -137,7 +137,11 @@ struct Operator::Model<ConcreteOp, true> {
 
     static bool equal(void const* self, void const* other) noexcept
     {
-        return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
+        if constexpr (!supports<std::equal_to<>(ConcreteOp, ConcreteOp)>::value) {
+            return true;
+        } else {
+            return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
+        }
     }
 
     static void const* optor(void const* self) noexcept
@@ -149,8 +153,9 @@ struct Operator::Model<ConcreteOp, true> {
     {
         if constexpr (has_adjoint_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.adjoint();
+        } else {
+            return std::nullopt;
         }
-        return std::nullopt;
     }
 
     static std::string_view kind(void const* self) noexcept 
@@ -162,16 +167,18 @@ struct Operator::Model<ConcreteOp, true> {
     {
         if constexpr (has_matrix_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.matrix();
+        } else {
+            return std::nullopt;
         }
-        return std::nullopt;
     }
 
     static uint32_t num_targets(void const* self) noexcept 
     {
         if constexpr (has_num_targets_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.num_targets();
-        } 
-        return 1u;
+        } else {
+            return 1u;
+        }
     }
 
     static constexpr Concept vtable_{dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};
@@ -202,7 +209,11 @@ struct Operator::Model<ConcreteOp, false> {
 
     static bool equal(void const* self, void const* other) noexcept
     {
-        return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
+        if constexpr (!supports<std::equal_to<>(ConcreteOp, ConcreteOp)>::value) {
+            return true;
+        } else {
+            return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
+        }
     }
 
     static void const* optor(void const* self) noexcept
@@ -214,8 +225,9 @@ struct Operator::Model<ConcreteOp, false> {
     {
         if constexpr (has_adjoint_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_->adjoint();
-        } 
-        return std::nullopt;
+        } else {
+            return std::nullopt;
+        }
     }
 
     static std::string_view kind(void const* self) noexcept 
@@ -227,16 +239,18 @@ struct Operator::Model<ConcreteOp, false> {
     {
         if constexpr (has_matrix_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_->matrix();
+        } else {
+            return std::nullopt;
         }
-        return std::nullopt;
     }
 
     static uint32_t num_targets(void const* self) noexcept 
     {
         if constexpr (has_num_targets_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_->num_targets();
+        } else {
+            return 1u;
         }
-        return 1u;
     }
 
     static constexpr Concept vtable_{dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};

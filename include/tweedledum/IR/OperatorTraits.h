@@ -49,4 +49,16 @@ struct has_adjoint<Op, std::void_t<decltype(std::declval<Op>().adjoint())>>
 template<class Op>
 inline constexpr bool has_adjoint_v = has_adjoint<Op>::value;
 
+// Got it from: https://stackoverflow.com/a/18603716
+template<class F, class... T, typename = decltype(std::declval<F>()(std::declval<T>()...))> 
+std::true_type  supports_test(F const&, T const&...);
+std::false_type supports_test(...);
+
+template<class>
+struct supports;
+
+template<class F, class... T>
+struct supports<F(T...)> : decltype(supports_test(std::declval<F>(), std::declval<T>()...))
+{};
+
 } // namespace tweedledum
