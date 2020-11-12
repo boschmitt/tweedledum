@@ -30,8 +30,8 @@ public:
     UMatrix2 const matrix() const
     {
         return (UMatrix2() << std::cos(angle_.numeric_value() / 2.),
-                              std::sin(angle_.numeric_value() / 2.),
                               -std::sin(angle_.numeric_value() / 2.),
+                              std::sin(angle_.numeric_value() / 2.),
                               std::cos(angle_.numeric_value() / 2.)).finished();
     }
 
