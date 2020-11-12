@@ -2,6 +2,7 @@
 
 target_sources(tweedledum PUBLIC
     ${TWEEDLEDUM_LIB_DIR}/Passes/Decomposition/barenco_decomp.cpp
+    ${TWEEDLEDUM_LIB_DIR}/Passes/Decomposition/euler_decomp.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Placer/JITPlacer.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Placer/LinePlacer.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Placer/SabrePlacer.cpp
