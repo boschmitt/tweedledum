@@ -19,6 +19,7 @@ PYBIND11_MODULE(libPyTweedledum, module)
     // Classical
     py::module classical = module.def_submodule("Classical", "Tweedledum classical");
     init_kitty(classical);
+    init_mockturtle(classical);
 
     // IR
     py::module IR = module.def_submodule("IR", "Tweedledum intermediate representation");

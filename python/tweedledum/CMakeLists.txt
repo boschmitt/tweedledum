@@ -3,6 +3,7 @@ pybind11_add_module(libPyTweedledum
 MODULE
     bindings.cpp
     Classical/kitty.cpp
+    Classical/mockturtle.cpp
     IR/Instruction.cpp
     IR/Circuit.cpp
     Operators/Extension.cpp
