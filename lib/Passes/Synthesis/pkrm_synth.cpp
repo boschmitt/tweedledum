@@ -42,6 +42,17 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
             wires.push_back((bits & 1) ? qubits.at(v) : !qubits.at(v));
         }
         if (config.phase_esop) {
+            auto it = std::find_if(wires.rbegin(), wires.rend(), 
+            [](WireRef ref) {
+                return !ref.is_complemented();
+            });
+            if (it == wires.rend()) {
+                circuit.apply_operator(Op::X(), {wires.back()});
+                circuit.apply_operator(Op::Z(), wires);
+                circuit.apply_operator(Op::X(), {wires.back()});
+                continue;
+            }
+            std::swap(*it, wires.back());
             circuit.apply_operator(Op::Z(), wires);
         } else {
             wires.push_back(target);
