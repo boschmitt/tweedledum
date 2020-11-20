@@ -8,6 +8,7 @@
 #include "Synthesis/decomp_synth.h"
 #include "Synthesis/diagonal_synth.h"
 #include "Synthesis/gray_synth.h"
+#include "Synthesis/lhrs_synth.h"
 #include "Synthesis/linear_synth.h"
 #include "Synthesis/pkrm_synth.h"
 #include "Synthesis/pprm_synth.h"

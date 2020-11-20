@@ -9,6 +9,7 @@ target_sources(tweedledum PUBLIC
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Router/JITRouter.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Router/SabreRouter.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Optimization/phase_folding.cpp
+    ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/lhrs/lhrs_synth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/all_linear_synth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/decomp_synth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/diagonal_synth.cpp
