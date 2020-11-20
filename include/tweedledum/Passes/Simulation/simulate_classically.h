@@ -17,25 +17,29 @@ inline DynamicBitset<WordType> simulate_classically(
 {
     assert(circuit.num_qubits() == pattern.size());
     circuit.foreach_instruction([&](Instruction const& inst) {
+        WireRef target = WireRef::invalid();
         bool execute = true;
         if (inst.is_a<Op::X>()) {
             inst.foreach_control([&](WireRef const& wire) {
                 auto bit = pattern[wire];
                 execute &= bit ^ wire.polarity();
             });
+            target = inst.target();
         } else if (inst.is_a<Op::TruthTable>()) {
             auto const& tt = inst.cast<Op::TruthTable>();
-            // TODO: refactor:
-            uint32_t i = 0;
+            if (tt.is_phase()) {
+                return;
+            }
             uint32_t pos = 0u;
-            inst.foreach_control([&] (WireRef const& wire) {
+            for (uint32_t i = 0; i < inst.num_qubits() - 1; ++i) {
+                WireRef const wire = inst.target(i);
                 pos |= (pattern[wire] << i);
-                ++i;
-            });
+            }
             execute &= kitty::get_bit(tt.truth_table(), pos);
+            target = inst.target(inst.num_qubits() - 1);
         }
         if (execute) {
-            pattern.flip(inst.target());
+            pattern.flip(target);
         }
     });
     return pattern;
