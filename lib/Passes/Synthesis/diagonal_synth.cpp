@@ -61,8 +61,6 @@ inline void fast_hadamard_transform(std::vector<Angle>& angles)
 
 }
 
-// Qubits need to be sorted
-// FIXME: Then sort the qubits!!!
 void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
     std::vector<Angle> const& angles, nlohmann::json const& config)
 {
@@ -70,6 +68,7 @@ void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
     assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
     assert(!qubits.empty() && qubits.size() <= 32);
     assert((1u << qubits.size()) == angles.size());
+    std::sort(qubits.begin(), qubits.end());
 
     std::vector<Angle> new_angles = fix_angles(qubits, angles);
     fast_hadamard_transform(new_angles);
