@@ -6,8 +6,7 @@
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
-#include "tweedledum/Operators/All.h"
-// #include "tweedledum/Operators/Standard.h"
+#include "tweedledum/Operators/Standard.h"
 
 #include "../check_unitary.h"
 
@@ -130,6 +129,52 @@ TEST_CASE("Trivial dirty ancilla barenco decomp", "[barenco_decomp][decomp]")
             Circuit decomposed = barenco_decomp(original, config);
             CHECK(original.num_qubits() == decomposed.num_qubits());
             CHECK(check_unitary(original, decomposed));
+        }
+    }
+}
+
+TEST_CASE("Trivial clean V ancilla barenco decomp", "[barenco_decomp][decomp]")
+{
+    using namespace tweedledum;
+    nlohmann::json config;
+
+    SECTION("(Mutiple) controlled X") {
+        for (uint32_t i = 4u; i <= 7; ++i) {
+            Circuit original;
+            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::generate(qubits.begin(), qubits.end(),
+            [&]() { return original.create_qubit(); });
+
+            original.apply_operator(Op::X(), qubits);
+            config["max_qubits"] = i + (i - 2 - 1);
+            Circuit decomposed = barenco_decomp(original, config);
+            CHECK(check_decomp(original, decomposed));
+        }
+    }
+    SECTION("(Mutiple) controlled Y") {
+        for (uint32_t i = 4u; i <= 7; ++i) {
+            Circuit original;
+            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::generate(qubits.begin(), qubits.end(),
+            [&]() { return original.create_qubit(); });
+
+            original.apply_operator(Op::Y(), qubits);
+            config["max_qubits"] = i + (i - 2 - 1);
+            Circuit decomposed = barenco_decomp(original, config);
+            CHECK(check_decomp(original, decomposed));
+        }
+    }
+    SECTION("(Mutiple) controlled Z") {
+        for (uint32_t i = 4u; i <= 7; ++i) {
+            Circuit original;
+            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::generate(qubits.begin(), qubits.end(),
+            [&]() { return original.create_qubit(); });
+
+            original.apply_operator(Op::Z(), qubits);
+            config["max_qubits"] = i + (i - 2 - 1);
+            Circuit decomposed = barenco_decomp(original, config);
+            CHECK(check_decomp(original, decomposed));
         }
     }
 }

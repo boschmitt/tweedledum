@@ -13,13 +13,17 @@ namespace {
 
 struct Config {
     uint32_t controls_threshold;
-    std::vector<uint8_t> locked;
+    uint32_t max_qubits;
+    // std::vector<uint8_t> locked;
+    WireRef locked;
     Operator const compute_op;
     Operator const cleanup_op;
 
     Config(uint32_t n, nlohmann::json const& config)
         : controls_threshold(2u)
-        , locked(n, 0)
+        , max_qubits(0u)
+        // , locked(n, 0)
+        , locked(WireRef::invalid())
         , compute_op(Op::Rx(sym_angle::pi))
         , cleanup_op(Op::Rx(-sym_angle::pi))
         // , compute_op(Op::X())
@@ -31,6 +35,9 @@ struct Config {
                 controls_threshold = barenco_cfg->at("controls_threshold");
             }
         }
+        if (config.contains("max_qubits")) {
+            max_qubits = config.at("max_qubits");
+        }
     }
 };
 
@@ -41,7 +48,8 @@ inline std::vector<WireRef> get_workspace(Circuit& circuit, std::vector<WireRef>
         if (ref.kind() != Wire::Kind::quantum) {
             return;
         }
-        if (cfg.locked[ref]) {
+        // if (cfg.locked[ref]) {
+        if (cfg.locked == ref) {
             return;
         }
         for (WireRef qubit : qubits) {
@@ -65,13 +73,19 @@ inline void v_dirty(Circuit& circuit, Operator const& op, std::vector<WireRef> c
     // When offset is 1 this is cleaning up the workspace
     for (int offset = 0; offset <= 1; ++offset) {
         for (int i = offset; i < static_cast<int>(num_controls) - 2; ++i) {
-            circuit.apply_operator(i ? cfg.compute_op : op, {qubits[num_controls - 1 - i], workspace[workspace_size - 1 - i], workspace[workspace_size - i]});
+            WireRef const c0 = qubits.at(num_controls - 1 - i);
+            WireRef const c1 = workspace.at(workspace_size - 1 - i);
+            WireRef const t = workspace.at(workspace_size - i);
+            circuit.apply_operator(i ? cfg.compute_op : op, {c0, c1, t});
         }
 
         circuit.apply_operator(offset ? cfg.cleanup_op : cfg.compute_op, {qubits[0], qubits[1], workspace[workspace_size - (num_controls - 2)]});
 
         for (int i = num_controls - 2 - 1; i >= offset; --i) {
-            circuit.apply_operator(i ? cfg.cleanup_op : op, {qubits[num_controls - 1 - i], workspace[workspace_size - 1 - i], workspace[workspace_size - i]});
+            WireRef const c0 = qubits.at(num_controls - 1 - i);
+            WireRef const c1 = workspace.at(workspace_size - 1 - i);
+            WireRef const t = workspace.at(workspace_size - i);
+            circuit.apply_operator(i ? cfg.cleanup_op : op, {c0, c1, t});
         }
     }
 }
@@ -80,19 +94,22 @@ inline void v_clean(Circuit& circuit, Operator const& op, std::vector<WireRef> c
 {
     uint32_t const num_controls = qubits.size() - 1;
     std::vector<WireRef> ancillae;
-    for (uint32_t i = 0; i < ((num_controls >> 1) + 1); ++i) {
+    for (uint32_t i = 0; i < (num_controls - 2); ++i) {
         ancillae.push_back(circuit.request_ancilla());
     }
 
     circuit.apply_operator(cfg.compute_op, {qubits[0], qubits[1], ancillae.at(0)});
-    for (uint32_t i = 1; i < (num_controls - 2); ++i) {
-        circuit.apply_operator(cfg.compute_op, {qubits.at(2 + i), ancillae.at(i - 1), ancillae.at(i)});
+    uint32_t j = 0;
+    for (uint32_t i = 2; i < (num_controls - 1); ++i) {
+        circuit.apply_operator(cfg.compute_op, {qubits.at(i), ancillae.at(j), ancillae.at(j + 1)});
+        j += 1;
     }
 
     circuit.apply_operator(op, {qubits.at(num_controls - 1), ancillae.back(), qubits.back()});
 
-    for (uint32_t i = (num_controls - 1); i --> 1; --i) {
-        circuit.apply_operator(cfg.cleanup_op, {qubits.at(2 + i), ancillae.at(i - 1), ancillae.at(i)});
+    for (uint32_t i = (num_controls - 1); i --> 2;) {
+        circuit.apply_operator(cfg.cleanup_op, {qubits.at(i), ancillae.at(j - 1), ancillae.at(j)});
+        j -= 1;
     }
     circuit.apply_operator(cfg.cleanup_op, {qubits[0], qubits[1], ancillae.at(0)});
     for (WireRef const ref : ancillae) {
@@ -181,7 +198,6 @@ inline void clean_ancilla(Circuit& circuit, Operator const& op, std::vector<Wire
         clean_ancilla(circuit, cfg.compute_op, qubits0, cfg);
         clean_ancilla(circuit, op, qubits1, cfg);
         clean_ancilla(circuit, cfg.cleanup_op, qubits0, cfg);
-        // clean_ancilla(circuit, op, qubits1, cfg);
         circuit.release_ancilla(ancilla);
         return;
     }
@@ -198,10 +214,11 @@ inline void clean_ancilla(Circuit& circuit, Operator const& op, std::vector<Wire
 
 inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
 {
-    cfg.locked[inst.target()] = 1;
+    // cfg.locked[inst.target()] = 1;
+    cfg.locked = inst.target();
     if (inst.num_qubits() == circuit.num_qubits()) {
-        circuit.release_ancilla(circuit.request_ancilla());
-        cfg.locked.push_back(0);
+        circuit.create_ancilla();
+        // cfg.locked.push_back(0);
     }
     if (inst.num_controls() == 3u && circuit.num_ancillae() > 0) {
         WireRef ancilla = circuit.request_ancilla();
@@ -211,14 +228,17 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
         circuit.release_ancilla(ancilla);
         return true;
     }
-    if (circuit.num_ancillae() > 0) {
-        if (circuit.num_ancillae() > (inst.num_controls() >> 1)) {
-            v_clean(circuit, inst, inst.qubits(), cfg);
-        } else {
-            clean_ancilla(circuit, inst, inst.qubits(), cfg);
-        }
-    }  else {
+    if (circuit.num_ancillae() == 0 && circuit.num_qubits() >= cfg.max_qubits) {
         dirty_ancilla(circuit, inst, inst.qubits(), cfg);
+        return true;
+    }
+    for (uint32_t i = circuit.num_qubits(); i < cfg.max_qubits && circuit.num_ancillae() < (inst.num_controls() - 2); ++i) {
+        circuit.create_ancilla();
+    }
+    if (circuit.num_ancillae() >= (inst.num_controls() - 2)) {
+        v_clean(circuit, inst, inst.qubits(), cfg);
+    } else {
+        clean_ancilla(circuit, inst, inst.qubits(), cfg);
     }
     return true;
 }
@@ -229,6 +249,19 @@ void barenco_decomp(Circuit& circuit, Instruction const& inst, nlohmann::json co
 {
     Config cfg(circuit.num_qubits(), config);
     decompose(circuit, inst, cfg);
+}
+
+void barenco_decomp(Circuit& circuit, Circuit const& original, nlohmann::json const& config)
+{
+    Config cfg(original.num_qubits(), config);
+    original.foreach_instruction([&](Instruction const& inst) {
+        // Only X, Y, Z
+        if (inst.is_one<Op::X, Op::Y, Op::Z>() && inst.num_controls() > cfg.controls_threshold) {
+            decompose(circuit, inst, cfg);
+            return;
+        }
+        circuit.apply_operator(inst);
+    });
 }
 
 Circuit barenco_decomp(Circuit const& original, nlohmann::json const& config)
