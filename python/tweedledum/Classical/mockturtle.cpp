@@ -2,14 +2,28 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include <kitty/kitty.hpp>
+#include <mockturtle/algorithms/simulation.hpp>
+#include <mockturtle/io/aiger_reader.hpp>
+#include <mockturtle/io/verilog_reader.hpp>
+#include <mockturtle/io/write_verilog.hpp>
 #include <mockturtle/networks/xag.hpp>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+auto xag_simulate(mockturtle::xag_network xag)
+{
+    using namespace mockturtle;
+    using TruthTable = kitty::dynamic_truth_table;
+    using Simulator = default_simulator<TruthTable>;
+    auto const results = simulate<TruthTable>(xag, Simulator(xag.num_pis()));
+    return results;
+}
 
 void init_mockturtle(pybind11::module& module)
 {
-    using namespace mockturtle;
     namespace py = pybind11;
-
+    using namespace mockturtle;
     using signal = xag_network::signal;
 
     py::class_<signal>(module, "Signal")
@@ -30,9 +44,31 @@ void init_mockturtle(pybind11::module& module)
         .def("create_nor", &xag_network::create_nor)
         .def("create_xor", &xag_network::create_xor)
         .def("create_xnor", &xag_network::create_xnor)
+        .def("create_nary_and", &xag_network::create_nary_and)
+        .def("create_nary_or", &xag_network::create_nary_or)
+        .def("create_nary_xor", &xag_network::create_nary_xor)
         // Structural properties
         .def("num_gates", &xag_network::num_gates)
         .def("num_pis", &xag_network::num_pis)
         .def("num_pos", &xag_network::num_pos);
 
+    // IO
+    module.def("read_aiger", [](std::string const filename) {
+        xag_network xag;
+        lorina::read_aiger(filename, aiger_reader(xag));
+        return xag;
+    }, "Create a LogicNetwork from a AIGER file.");
+
+    module.def("read_verilog", [](std::string const filename) {
+        xag_network xag;
+        lorina::read_verilog(filename, verilog_reader(xag));
+        return xag;
+    }, "Create a LogicNetwork from a Verilog file.");
+
+    module.def("write_verilog", [](xag_network const& xag, std::string const& filename) {
+        write_verilog(xag, filename);
+    }, "Write a LogicNetwork to a Verilog file.");
+
+    // Misc
+    module.def("simulate", &xag_simulate, "A function simulate a XAG");
 }
