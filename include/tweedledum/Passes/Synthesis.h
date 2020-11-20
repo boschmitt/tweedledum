@@ -14,3 +14,4 @@
 #include "Synthesis/pprm_synth.h"
 #include "Synthesis/spectrum_synth.h"
 #include "Synthesis/transform_synth.h"
+#include "Synthesis/xag_synth.h"
