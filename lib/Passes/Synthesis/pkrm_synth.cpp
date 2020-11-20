@@ -5,7 +5,10 @@
 #include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Passes/Synthesis/pkrm_synth.h"
 
+#include <algorithm>
 #include <cassert>
+#include <kitty/kitty.hpp>
+#include <mockturtle/algorithms/simulation.hpp>
 
 namespace tweedledum {
 
@@ -25,6 +28,15 @@ struct Config {
         }
     }
 };
+
+inline auto xag_simulate(mockturtle::xag_network xag)
+{
+    using namespace mockturtle;
+    using TruthTable = kitty::dynamic_truth_table;
+    using Simulator = default_simulator<TruthTable>;
+    auto const results = simulate<TruthTable>(xag, Simulator(xag.num_pis()));
+    return results;
+}
 
 inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     kitty::dynamic_truth_table const& function, Config const& config)
@@ -79,7 +91,7 @@ Circuit pkrm_synth(kitty::dynamic_truth_table const& function, nlohmann::json co
     Config cfg(config);
 
     std::vector<WireRef> wires;
-    wires.reserve(function.num_vars());
+    wires.reserve(function.num_vars() + 1);
     for (uint32_t i = 0u; i < function.num_vars(); ++i) {
         wires.emplace_back(circuit.create_qubit());
     }
@@ -87,6 +99,26 @@ Circuit pkrm_synth(kitty::dynamic_truth_table const& function, nlohmann::json co
         wires.emplace_back(circuit.create_qubit());
     }
     synthesize(circuit, wires, function, cfg);
+    return circuit;
+}
+
+void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+    mockturtle::xag_network const& xag, nlohmann::json const& config)
+{
+    if (xag.num_pis() <= 16u && xag.num_pos() == 1) {
+        auto tts = xag_simulate(xag);
+        pkrm_synth(circuit, qubits, tts.at(0), config);
+        return;
+    }
+}
+
+Circuit pkrm_synth(mockturtle::xag_network const& xag, nlohmann::json const& config)
+{
+    if (xag.num_pis() <= 16u && xag.num_pos() == 1) {
+        auto tts = xag_simulate(xag);
+        return pkrm_synth(tts.at(0), config);
+    }
+    Circuit circuit;
     return circuit;
 }
 
