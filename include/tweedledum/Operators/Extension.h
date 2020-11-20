@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Extension/LogicNetwork.h"
+#include "Extension/Parity.h"
 #include "Extension/Permutation.h"
 #include "Extension/TruthTable.h"
 #include "Extension/Unitary.h"

@@ -59,6 +59,12 @@ public:
         return create_qubit(name);
     }
 
+    void create_ancilla()
+    {
+        WireRef const qubit = create_qubit(fmt::format("__a{}", num_qubits()));
+        free_ancillae_.push_back(qubit);
+    }
+
     WireRef request_ancilla()
     {
         if (free_ancillae_.empty()) {

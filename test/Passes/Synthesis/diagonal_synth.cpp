@@ -46,7 +46,7 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
         synthesized.create_qubit();
         synthesized.create_qubit();
         synthesized.apply_operator(Op::H(), {q0});
-        diagonal_synth(synthesized, {q0, q1, q2}, angles, config);
+        diagonal_synth(synthesized, {q1, q2, q0}, angles, config);
         synthesized.apply_operator(Op::H(), {q0});
         CHECK(check_unitary(expected, synthesized));
     }
