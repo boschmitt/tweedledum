@@ -4,6 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Passes/Synthesis/pkrm_synth.h"
+#include "tweedledum/Utils/Classical/xag_simulate.h"
 
 #include <algorithm>
 #include <cassert>
@@ -28,15 +29,6 @@ struct Config {
         }
     }
 };
-
-inline auto xag_simulate(mockturtle::xag_network xag)
-{
-    using namespace mockturtle;
-    using TruthTable = kitty::dynamic_truth_table;
-    using Simulator = default_simulator<TruthTable>;
-    auto const results = simulate<TruthTable>(xag, Simulator(xag.num_pis()));
-    return results;
-}
 
 inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     kitty::dynamic_truth_table const& function, Config const& config)
