@@ -7,7 +7,7 @@ import random
 import unittest
 from random import randrange
 
-from tweedledum.CFuncCompiler import BitVec
+from tweedledum.BoolFunctionCompiler import BitVec
 
 random.seed(1337)
 

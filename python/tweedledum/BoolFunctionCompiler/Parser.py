@@ -5,6 +5,7 @@
 import _ast
 import ast
 
+from .BitVec import BitVec
 from ..libPyTweedledum.Classical import LogicNetwork
 
 class ParseError(Exception):
@@ -23,8 +24,14 @@ class Parser(ast.NodeVisitor):
         _ast.Not: 'create_not'
     }
 
+    # This feels quite hack-y
+    types = {
+        'BitVec' : type(BitVec(1))
+    }
+
     def __init__(self, source):
         self.symbol_table_ = []
+        self.signature_ = []
         self.logic_network_ = LogicNetwork()
 
         node = ast.parse(source)
@@ -41,9 +48,11 @@ class Parser(ast.NodeVisitor):
                 raise ParseError("BitVec type with size is needed")
             for var in cache:
                 pis = list()
-                for i in range(int(arg.annotation.args[0].value)):
+                size = int(arg.annotation.args[0].value)
+                for i in range(size):
                     pis.append(self.logic_network_.create_pi("{}_{}".format(var, i)))
                 self.symbol_table_[-1][var] = (arg.annotation.func.id, pis)
+                self.signature_.append([self.types[arg.annotation.func.id], size])
             cache.clear()
         if len(cache) != 0:
              raise ParseError("Argument type is needed for %s" % cache)
@@ -133,4 +142,13 @@ class Parser(ast.NodeVisitor):
     def visit_Subscript(self, node):
         v_type, v_signals = self.visit(node.value)
         slice_ = self.visit(node.slice)
-        return v_type, v_signals[1][slice_]
+        if isinstance(node.slice, ast.Constant):
+            return v_type, [v_signals[slice_]]
+        print(v_signals)
+        print(v_signals[slice_])
+        return v_type, v_signals[slice_]
+
+    def visit_UnaryOp(self, node):
+        result_type, result_signal = self.visit(node.operand)
+        op = Parser.bool_ops.get(type(node.op))
+        return 'BitVec', [getattr(self.logic_network_, op)(result_signal[0])]

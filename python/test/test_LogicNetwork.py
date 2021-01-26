@@ -4,14 +4,14 @@
 #-------------------------------------------------------------------------------
 import unittest
 
-from tweedledum.BoolFunctionCompiler import BitVec, Parser, BoolFunction
+from tweedledum import Classical as Classical
 
-def id(a: BitVec(1)) -> BitVec(1):
-    return a
-
-class TestParser(unittest.TestCase):
-        def test_id(self):
-            pass
+class TestLogicNetwork(unittest.TestCase):
+    def test_constant(self):
+        logic_network_ = Classical.LogicNetwork()
+        constant = logic_network_.get_constant(True)
+        logic_network_.create_po(constant)
 
 if __name__ == '__main__':
     unittest.main()
+ 

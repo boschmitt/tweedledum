@@ -2,35 +2,57 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
+import inspect
 import string
 
 from .Parser import Parser
 from ..libPyTweedledum import Classical
 
-class CFunc(object):
-    def __init__(self, type, source, name = None):
-        self.name_ = name or 'classical_function'
+class BoolFunction(object):
+    def __init__(self, f):
+        source = inspect.getsource(f).strip()
         parsed_function = Parser(source)
+        self.name_ = f.__name__
+        self.signature_ = parsed_function.signature_
         self.symbol_table_ = parsed_function.symbol_table_
         self.logic_network_ = parsed_function.logic_network_
-        self.simulated_tts_ = None
+        self.truth_table_ = None
+
+    def simulate(self, *argv):
+        if len(argv) == 0:
+            self.truth_table_ = Classical.simulate(self.logic_network_)
+            return self.truth_table_
+        if len(argv) != len(self.signature_):
+            raise TypeError("Simulation signature: ", self.signature_)
+        input_str = str()
+        for i, arg in enumerate(argv):
+            arg_type = [type(arg), len(arg)]
+            if arg_type != self.signature_[i]:
+                raise TypeError("Argument {} expected: {}, got: {}".format(i, self.signature_[i], arg_type))
+            arg_str = str(arg)
+            input_str += arg_str[-1]
+        if self.truth_table_ != None:
+            position = int(input_str)
+            return [tt[position] for tt in self.truth_table_]
+        input_vector = [bool(int(i)) for i in input_str]
+        return Classical.simulate(self.logic_network_, input_vector)
 
     def num_ones(self):
-        if not self.simulated_tts_:
-            self.simulated_tts_ = Classical.simulate(self.logic_network_)
-        return [Classical.count_ones(tt) for tt in self.simulated_tts_]
+        if not self.truth_table_:
+            self.truth_table_ = Classical.xag_simulate(self.logic_network_)
+        return [Classical.count_ones(tt) for tt in self.truth_table_]
 
     def print_tt(self, fancy = False):
-        if not self.simulated_tts_:
-            self.simulated_tts_ = Classical.simulate(self.logic_network_)
+        if not self.truth_table_:
+            self.truth_table_ = Classical.xag_simulate(self.logic_network_)
         if not fancy:
-            for idx, tt in enumerate(self.simulated_tts_):
+            for idx, tt in enumerate(self.truth_table_):
                 print("[{}] : {}".format(idx, tt))
             return
 
         # Fancy print
         # reversing the strings helps:
-        tt_strings = [str(tt)[::-1]  for tt in self.simulated_tts_]
+        tt_strings = [str(tt)[::-1]  for tt in self.truth_table_]
         for i in range(self.logic_network_.num_pis() - 1, -1, -1):
             print("{:^3}".format(string.ascii_lowercase[i]), end="")
         print(" | ", end="")

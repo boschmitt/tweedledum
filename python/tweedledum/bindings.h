@@ -9,6 +9,7 @@
 // Classical
 void init_kitty(pybind11::module& module);
 void init_mockturtle(pybind11::module& module);
+void init_utils(pybind11::module& module);
 
 // IR
 void init_Circuit(pybind11::module& module);

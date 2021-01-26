@@ -2,12 +2,6 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
-from enum import Enum
-
-class CompilationType(Enum):
-    PHASE = 0
-    COMPUTATIONAL_BASIS = 1
-
 class BitVec(object):
     def __init__(self, size : int, value = 0):
         if not isinstance(size, int):
@@ -15,7 +9,7 @@ class BitVec(object):
         self.size_ = size
         if isinstance(value, int):
             # this -2 account for the leading '0b': 0b....
-            # FIXME: feels a bit hacky, because I suck at python :(
+            # FIXME: feels a bit hack-y, because I suck at python :(
             required_size = len(bin(value)) - 2 
             if required_size > size:
                 raise TypeError("BitVec value cannot fit in size")
@@ -25,7 +19,7 @@ class BitVec(object):
                 raise TypeError("BitVec string bigger than the size")
             self.value_ = int(value, base = 2)
         else:
-            raise TypeError("BitVec value must be either a int of a string")
+            raise TypeError("BitVec value must be either a int or a bit string")
 
     def __len__(self):
         return self.size_
@@ -86,7 +80,6 @@ class BitVec(object):
         if isinstance(index, slice):
             if not isinstance(value, BitVec):
                 raise ValueError("BitVec[i:j] = BitVec[i:j]\n")
-
             i, j = index.start, index.stop
             if j is None or j < 0:
                 j = 0
@@ -97,7 +90,6 @@ class BitVec(object):
             if (i - j) != value.size_:
                 print((i - j), value.size_)
                 raise ValueError("BitVec[i:j] must be assigned a BitVec of same size\n")
-
             limit = (1 << (i - j))
             mask = (limit - 1) << j
             self.value_ &= ~mask
