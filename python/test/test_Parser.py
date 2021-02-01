@@ -12,6 +12,3 @@ def id(a: BitVec(1)) -> BitVec(1):
 class TestParser(unittest.TestCase):
         def test_id(self):
             pass
-
-if __name__ == '__main__':
-    unittest.main()

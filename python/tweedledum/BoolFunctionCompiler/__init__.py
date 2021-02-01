@@ -2,10 +2,15 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
-import unittest
+from .BitVec import *
+from .BoolFunction import *
+from .Parser import *
+from .types import *
 
-from tweedledum import Classical as Classical
+def phase_oracle(f):
+    # TODO
+    pass
 
-class TestTruthTable(unittest.TestCase):
-    def test_constant(self):
-        pass
+def binary_oracle(f):
+    # TODO
+    pass

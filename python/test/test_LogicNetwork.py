@@ -11,7 +11,3 @@ class TestLogicNetwork(unittest.TestCase):
         logic_network_ = Classical.LogicNetwork()
         constant = logic_network_.get_constant(True)
         logic_network_.create_po(constant)
-
-if __name__ == '__main__':
-    unittest.main()
- 

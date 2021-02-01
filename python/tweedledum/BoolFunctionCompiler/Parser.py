@@ -21,7 +21,6 @@ class Parser(ast.NodeVisitor):
     bool_ops = {
         _ast.And: 'create_and',
         _ast.Or: 'create_or',
-        _ast.Not: 'create_not'
     }
 
     # This feels quite hack-y
@@ -88,7 +87,13 @@ class Parser(ast.NodeVisitor):
 
     def visit_Call(self, node):
         """The return type should match the return type hint."""
-        pass
+        if node.func.id == 'BitVec':
+            if len(node.args) == 1:
+                return self.visit(node.args[0])
+            elif len(node.args) == 2:
+                return self.visit(node.args[1])
+            else:
+                raise ParseError("Invalid number of arguments")
 
     def visit_Compare(self, node):
         left_type, left_signals = self.visit(node.left)
@@ -150,5 +155,13 @@ class Parser(ast.NodeVisitor):
 
     def visit_UnaryOp(self, node):
         result_type, result_signal = self.visit(node.operand)
-        op = Parser.bool_ops.get(type(node.op))
-        return 'BitVec', [getattr(self.logic_network_, op)(result_signal[0])]
+        if isinstance(node.op, _ast.Not):
+            if len(result_signal) != 1:
+                raise ParseError("Boolean NOT doesn't work on multibit values")
+            return 'BitVec', [self.logic_network_.create_not(result_signal[0])]
+        elif isinstance(node.op, ast.Invert):
+            result = list()
+            for s in  result_signal:
+                result.append(self.logic_network_.create_not(s))
+            return 'BitVec', result
+        raise ParseError("Unsupported unary operator")

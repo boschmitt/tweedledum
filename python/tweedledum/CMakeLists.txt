@@ -4,6 +4,7 @@ MODULE
     bindings.cpp
     Classical/kitty.cpp
     Classical/mockturtle.cpp
+    Classical/utils.cpp
     IR/Instruction.cpp
     IR/Circuit.cpp
     Operators/Extension.cpp

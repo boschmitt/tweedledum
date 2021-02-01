@@ -33,50 +33,59 @@ class TestBitVecDeclaration(unittest.TestCase):
 
     def test_one_bit_str(self):
         zero_str = BitVec(1, "0")
-        self.assertEqual(zero_str.size_, 1)
+        self.assertEqual(zero_str.length_, 1)
         self.assertEqual(zero_str.value_, 0)
 
         one_str = BitVec(1, "1")
-        self.assertEqual(one_str.size_, 1)
+        self.assertEqual(one_str.length_, 1)
         self.assertEqual(one_str.value_, 1)
 
     def test_one_bit_value(self):
         zero_str = BitVec(1, 0)
-        self.assertEqual(zero_str.size_, 1)
+        self.assertEqual(zero_str.length_, 1)
         self.assertEqual(zero_str.value_, 0)
 
         one_str = BitVec(1, 1)
-        self.assertEqual(one_str.size_, 1)
+        self.assertEqual(one_str.length_, 1)
         self.assertEqual(one_str.value_, 1)
 
     def test_n_bit_strings(self):
         self.setup_strings()
-        for size, string in self.strings:
-            bv = BitVec(size, string)
-            self.assertEqual(bv.size_, size)
+        for length, string in self.strings:
+            bv = BitVec(length, string)
+            self.assertEqual(bv.length_, length)
+            self.assertEqual(bv.value_, int(string, 2))
+
+            bv = BitVec(string)
+            self.assertEqual(bv.length_, len(string))
             self.assertEqual(bv.value_, int(string, 2))
 
     def test_n_bit_values(self):
         self.setup_values()
-        for size, value in self.values:
-            bv = BitVec(size, value)
-            self.assertEqual(bv.size_, size)
+        for length, value in self.values:
+            bv = BitVec(length, value)
+            self.assertEqual(bv.length_, length)
             self.assertEqual(bv.value_, value)
 
     def test_fail_value_type(self):
         with self.assertRaises(TypeError) as context:
             BitVec(1, 1.0)
-        self.assertExceptionMessage(context, 'BitVec value must be either a int of a string')
+        self.assertExceptionMessage(context, 
+        "[BitVec] The value must be either an interger or a bit string")
 
     def test_fail_size_str(self):
         with self.assertRaises(TypeError) as context:
             BitVec(1, "00")
-        self.assertExceptionMessage(context, 'BitVec string bigger than the size')
+        self.assertExceptionMessage(context, 
+        "[BitVec] String requires a bit vector of length 2, but BitVec has "
+        "length 1")
 
     def test_fail_size_value(self):
         with self.assertRaises(TypeError) as context:
             BitVec(1, 10)
-        self.assertExceptionMessage(context, 'BitVec value cannot fit in size')
+        self.assertExceptionMessage(context, 
+        "[BitVec] Value requires a bit vector of length 4, but BitVec has "
+        "length 1")
 
 class TestBitVecIndexing(unittest.TestCase):
     def setup_strings(self):
@@ -92,7 +101,7 @@ class TestBitVecIndexing(unittest.TestCase):
             last = len(string) - 1
             for i in range(len(string)):
                 value = bv[i].value_
-                self.assertEqual(1, bv[i].size_)
+                self.assertEqual(1, bv[i].length_)
                 # Remember that the string is little-endian!
                 self.assertEqual(value, int(string[last - i]))
     
@@ -100,17 +109,17 @@ class TestBitVecIndexing(unittest.TestCase):
         self.setup_strings()
         for bv in self.bvs:
             string = str(bv)
-            result = BitVec(bv.size_, 0)
+            result = BitVec(bv.length_, 0)
             last = len(string) - 1
             for i in range(len(string)):
                 # Remember that the string is little-endian!
                 result[i] = int(string[last - i])
-            self.assertEqual(bv.size_, result.size_)
+            self.assertEqual(bv.length_, result.length_)
             self.assertEqual(bv.value_, result.value_)
 
     def test_getslice(self):
         self.setup_strings()
-        # Limit the size
+        # Limit the length
         for bv in self.bvs[0:32]:
             string = str(bv)
             for i in range(1, len(string) + 1):
@@ -121,19 +130,19 @@ class TestBitVecIndexing(unittest.TestCase):
                         self.assertLessEqual(i, j)
                         continue
                     expected = string[len(string) - i:len(string) - j]
-                    self.assertEqual(result.size_, len(expected))
+                    self.assertEqual(result.length_, len(expected))
                     self.assertEqual(result.value_, int(expected, 2))
 
     def test_setslice(self):
         self.setup_strings()
         for bv in self.bvs[3:]:
             string = str(bv)
-            result = BitVec(bv.size_, (1 << bv.size_ - 1) - 1)
-            n = int(bv.size_ / 4)
+            result = BitVec(bv.length_, (1 << bv.length_ - 1) - 1)
+            n = int(bv.length_ / 4)
             for i in range(0, len(string), n):
                 part = string[i:i + n]
                 result[len(string) - i:len(string) - (i+n)] = BitVec(len(part), part)
-            self.assertEqual(result.size_, bv.size_)
+            self.assertEqual(result.length_, bv.length_)
             self.assertEqual(result.value_, bv.value_)
 
 class TestBitVecOperations(unittest.TestCase):
@@ -151,7 +160,7 @@ class TestBitVecOperations(unittest.TestCase):
         for left, right in zip(self.left_ops, self.right_ops):
             result = op(left, right)
             iresult = op(right, left)
-            self.assertEqual(result.size_, left.size_)
+            self.assertEqual(result.length_, left.length_)
             self.assertEqual(result.value_, op(left.value_, right.value_))
             self.assertEqual(iresult.value_, op(left.value_, right.value_))
 
@@ -171,6 +180,3 @@ class TestBitVecOperations(unittest.TestCase):
     def test_ne(self):
         # TODO
         pass
-
-if __name__ == '__main__':
-    unittest.main()

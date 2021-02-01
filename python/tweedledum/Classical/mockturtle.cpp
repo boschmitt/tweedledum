@@ -2,23 +2,13 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include <kitty/kitty.hpp>
-#include <mockturtle/algorithms/simulation.hpp>
 #include <mockturtle/io/aiger_reader.hpp>
 #include <mockturtle/io/verilog_reader.hpp>
 #include <mockturtle/io/write_verilog.hpp>
 #include <mockturtle/networks/xag.hpp>
+#include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-
-auto xag_simulate(mockturtle::xag_network xag)
-{
-    using namespace mockturtle;
-    using TruthTable = kitty::dynamic_truth_table;
-    using Simulator = default_simulator<TruthTable>;
-    auto const results = simulate<TruthTable>(xag, Simulator(xag.num_pis()));
-    return results;
-}
 
 void init_mockturtle(pybind11::module& module)
 {
@@ -28,8 +18,10 @@ void init_mockturtle(pybind11::module& module)
 
     py::class_<signal>(module, "Signal")
         .def("__not__", [](signal const& lhs) { return !lhs; })
-        .def("__eq__", [](signal const& lhs, signal *rhs) { return rhs && lhs == *rhs; })
-        .def("__ne__", [](signal const& lhs, signal *rhs) { return !rhs || lhs != *rhs; });
+        .def(py::self == py::self)
+        .def(py::self != py::self);
+        // .def("__eq__", [](signal const& lhs, signal *rhs) { return rhs && lhs == *rhs; })
+        // .def("__ne__", [](signal const& lhs, signal *rhs) { return !rhs || lhs != *rhs; });
 
     py::class_<xag_network>(module, "LogicNetwork")
         .def(py::init<>())
@@ -68,7 +60,4 @@ void init_mockturtle(pybind11::module& module)
     module.def("write_verilog", [](xag_network const& xag, std::string const& filename) {
         write_verilog(xag, filename);
     }, "Write a LogicNetwork to a Verilog file.");
-
-    // Misc
-    module.def("simulate", &xag_simulate, "A function simulate a XAG");
 }
