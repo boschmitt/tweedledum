@@ -177,7 +177,7 @@ private:
 
 class HighLevelXAG {
 public:
-    using Node = Node;
+    using Node = class Node;
     using NodeRef = Node::Ref;
     using OutputRef = std::pair<uint32_t, bool>;
 
