@@ -45,7 +45,7 @@ Circuit spectrum_synth(kitty::dynamic_truth_table const& function, nlohmann::jso
     Circuit circuit;
     // Create the necessary qubits
     std::vector<WireRef> wires;
-    wires.reserve(function.num_vars());
+    wires.reserve(function.num_vars() + 1);
     for (uint32_t i = 0u; i < function.num_vars() + 1; ++i) {
         wires.emplace_back(circuit.create_qubit());
     }

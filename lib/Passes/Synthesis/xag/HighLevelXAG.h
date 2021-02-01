@@ -112,6 +112,16 @@ public:
         return fanin_.cend();
     }
 
+    auto crbegin() const
+    {
+        return fanin_.crbegin();
+    }
+
+    auto crend() const
+    {
+        return fanin_.crend();
+    }
+
     auto cbegin_in0() const
     {
         return fanin_.cbegin();

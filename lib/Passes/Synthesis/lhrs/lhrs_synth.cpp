@@ -34,11 +34,11 @@ using namespace mockturtle;
 
 inline klut_network collapse_to_klut(xag_network const& xag)
 {
-    // lut_mapping_params ps;
-    // ps.cut_enumeration_ps.cut_size = 8;
+    lut_mapping_params ps;
+    ps.cut_enumeration_ps.cut_size = 4;
     // Do LUT mapping while storing the functions.
     mapping_view<xag_network, true> mapped_xag(xag);
-    lut_mapping<mapping_view<xag_network, true>, true>(mapped_xag);
+    lut_mapping<mapping_view<xag_network, true>, true>(mapped_xag, ps);
     // Collapse and return
     return *collapse_mapped_network<klut_network>(mapped_xag);
 }
@@ -124,6 +124,13 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     }
 }
 
+}
+
+void lhrs_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+    mockturtle::xag_network const& xag, nlohmann::json const& config)
+{
+    Config cfg(config);
+    synthesize(circuit, qubits, xag, cfg);
 }
 
 //  LUT-based hierarchical reversible logic synthesis (LHRS)

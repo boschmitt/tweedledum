@@ -8,6 +8,7 @@ target_sources(tweedledum PUBLIC
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Placer/SabrePlacer.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Router/JITRouter.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Mapping/Router/SabreRouter.cpp
+    ${TWEEDLEDUM_LIB_DIR}/Passes/Optimization/linear_resynth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Optimization/phase_folding.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/lhrs/lhrs_synth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/xag/xag_synth.cpp

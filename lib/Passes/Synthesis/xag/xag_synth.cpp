@@ -371,7 +371,7 @@ void Synthesizer::cleanup(
 void Synthesizer::try_cleanup_inputs(Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     HighLevelXAG::Node const& node = hl_xag.get_node(ref);
-    std::for_each(node.cbegin(), node.cend(),
+    std::for_each(node.crbegin(), node.crend(),
     [&](HighLevelXAG::NodeRef input_ref) {
         if (cleanup_.at(input_ref) == 0) {
             return;

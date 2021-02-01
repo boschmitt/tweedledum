@@ -4,6 +4,8 @@ _*/
 !.gitignore
 
 build/
+examples/**
+!examples/CMakeLists.txt
 experiments/*/
 tools/**
 !tools/CMakeLists.txt
