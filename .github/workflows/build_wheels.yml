@@ -65,10 +65,12 @@ jobs:
     - name: Build wheel for MacOS 
       if: startsWith(matrix.os, 'macos')
       env:
-          CC: /usr/local/opt/llvm/bin/clang
-          CXX: /usr/local/opt/llvm/bin/clang++
           CIBW_SKIP: pp27-* cp27-* cp35-*
       run: |
+        echo ::set-env name=CC::/usr/local/opt/llvm/bin/clang
+        echo ::set-env name=CXX::/usr/local/opt/llvm/bin/clang++
+        echo ::set-env name=LDFLAGS::-L/usr/local/opt/llvm/lib
+        echo ::set-env name=CPPFLAGS::-I/usr/local/opt/llvm/include
         python -m cibuildwheel --output-dir wheelhouse
         python setup.py sdist --dist-dir=wheelhouse
 
