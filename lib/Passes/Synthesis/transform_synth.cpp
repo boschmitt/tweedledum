@@ -6,7 +6,7 @@
 
 #include "tweedledum/Operators/Standard.h"
 #ifdef _MSC_VER
-#include "tweedledum/Utils/Instrinsics.h"
+#include "tweedledum/Utils/Intrinsics.h"
 #endif
 
 namespace tweedledum {

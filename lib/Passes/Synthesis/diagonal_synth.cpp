@@ -7,7 +7,7 @@
 #include "tweedledum/Passes/Synthesis/all_linear_synth.h"
 #include "tweedledum/Passes/Synthesis/gray_synth.h"
 #ifdef _MSC_VER
-#include "tweedledum/Utils/Instrinsics.h"
+#include "tweedledum/Utils/Intrinsics.h"
 #endif
 
 namespace tweedledum {

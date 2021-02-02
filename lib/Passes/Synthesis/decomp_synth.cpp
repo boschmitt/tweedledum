@@ -5,7 +5,7 @@
 #include "tweedledum/Operators/Reversible.h"
 #include "tweedledum/Passes/Synthesis/decomp_synth.h"
 #ifdef _MSC_VER
-#include "tweedledum/Utils/Instrinsics.h"
+#include "tweedledum/Utils/Intrinsics.h"
 #endif
 
 #include <kitty/kitty.hpp>
