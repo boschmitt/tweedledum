@@ -4,9 +4,9 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include <cassert>
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <cassert>
 #include <cstdint>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
