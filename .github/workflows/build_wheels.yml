@@ -14,8 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, windows-latest]
-        # os: [ubuntu-18.04, macos-latest, windows-latest]
+        os: [ubuntu-18.04, macos-latest, windows-latest]
 
     steps:
     - uses: actions/checkout@v2
@@ -63,15 +62,14 @@ jobs:
         python -m cibuildwheel --output-dir wheelhouse
         python setup.py sdist --dist-dir=wheelhouse
 
-    # - name: Build wheel for MacOS 
-    #   if: startsWith(matrix.os, 'macos')
-    #   env:
-    #       CC: gcc-10
-    #       CXX: g++-10
-    #       CIBW_SKIP: pp27-* cp27-* cp35-*
-    #   run: |
-    #     python -m cibuildwheel --output-dir wheelhouse
-    #     python setup.py sdist --dist-dir=wheelhouse
+    - name: Build wheel for MacOS 
+      if: startsWith(matrix.os, 'macos')
+      env:
+          CC: gcc-10
+          CXX: g++-10
+          CIBW_SKIP: pp27-* cp27-* cp35-*
+      run: |
+        python -m cibuildwheel --output-dir wheelhouse
 
     - uses: actions/upload-artifact@v2
       with:
