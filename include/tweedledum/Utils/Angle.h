@@ -4,7 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <cassert>
 #include <cstdint>
@@ -16,6 +15,11 @@
 #include <utility>
 
 namespace tweedledum {
+
+constexpr double PI_k = 3.14159265358979323846;
+constexpr double PI_2_k = 1.57079632679489661923;
+constexpr double PI_4_k = 0.78539816339744830962;
+constexpr long double PI_lk = 3.141592653589793238462643383279502884L;
 
 /*! \brief Simple class to represent rotation angles
  *
@@ -173,7 +177,7 @@ private:
     {
         double const factor = static_cast<double>(numerator_)
                               / static_cast<double>(denominator_);
-        numerical_ = factor * M_PI;
+        numerical_ = factor * PI_k;
     }
 
     constexpr void normalize()

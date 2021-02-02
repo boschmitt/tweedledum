@@ -5,15 +5,13 @@
 #include "tweedledum/Utils/Angle.h"
 
 #include <catch.hpp>
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 TEST_CASE("Create angles that don't need to be normalized", "[Angle]")
 {
     using namespace tweedledum;
 
     Angle symbolic(1, 2);
-    Angle numeric(0.5 * M_PI);
+    Angle numeric(0.5 * PI_k);
 
     SECTION("") {
         CHECK(!symbolic.is_numerically_defined());
@@ -22,13 +20,13 @@ TEST_CASE("Create angles that don't need to be normalized", "[Angle]")
         auto [numerator, denominator] = value.value();
         CHECK(numerator == 1);
         CHECK(denominator == 2);
-        REQUIRE(symbolic.numeric_value() == (0.5 * M_PI));
+        REQUIRE(symbolic.numeric_value() == (0.5 * PI_k));
     }
     SECTION("An angle that can be simplied") {
         CHECK(numeric.is_numerically_defined());
         auto value = numeric.symbolic_value();
         REQUIRE(value.has_value() == false);
-        REQUIRE(numeric.numeric_value() == (0.5 * M_PI));
+        REQUIRE(numeric.numeric_value() == (0.5 * PI_k));
     }
     CHECK(symbolic == numeric);
 }
@@ -62,7 +60,7 @@ TEST_CASE("Adding angles", "[Angle]")
     auto [numerator, denominator] = value.value();
     CHECK(numerator == 1);
     CHECK(denominator == 1);
-    CHECK(c.numeric_value() == M_PI);
+    CHECK(c.numeric_value() == PI_k);
 
     Angle d = c + c;
     CHECK(d == sym_angle::zero);
