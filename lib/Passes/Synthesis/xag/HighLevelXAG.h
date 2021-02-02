@@ -14,170 +14,168 @@ namespace tweedledum::xag_synth_detail {
 
 class HighLevelXAGBuilder;
 
-class Node {
-public:
-    using Ref = uint32_t;
-    Node()
-        : begin_fanin1_(0), begin_fanin01_(0), level_(0), last_level_(0),
-            num_ref_(0)
-    {}
-
-    Node(std::vector<Ref> const& fanin)
-        : fanin_(fanin), begin_fanin1_(fanin.size()),
-            begin_fanin01_(fanin.size()),
-            level_(std::numeric_limits<uint32_t>::max()), last_level_(0), num_ref_(0)
-    {}
-
-    Node(std::vector<Ref> const& fanin, uint32_t begin_fanin1,
-        uint32_t begin_fanin01,
-        std::array<bool, 2> const& is_negated)
-        : fanin_(fanin), begin_fanin1_(begin_fanin1),
-            begin_fanin01_(begin_fanin01), is_negated_(is_negated),
-            level_(std::numeric_limits<uint32_t>::max()), last_level_(0),num_ref_(0)
-    {}
-
-    uint32_t level() const
-    {
-        return level_;
-    }
-
-    uint32_t last_level() const
-    {
-        return last_level_;
-    }
-
-    bool is_input() const
-    {
-        return fanin_.size() == 0;
-    }
-
-    bool is_parity() const
-    {
-        return fanin_.size() == begin_fanin1_;
-    }
-
-    bool is_parity_and() const
-    {
-        return !is_parity();
-    }
-
-    bool is_negated(uint32_t input) const
-    {
-        assert(input < 2u);
-        return is_negated_.at(input);
-    }
-
-    uint32_t num_ref() const
-    {
-        return num_ref_;
-    }
-
-    void incr_references(uint32_t n)
-    {
-        num_ref_ += n;
-    }
-
-    void decr_references()
-    {
-        num_ref_ -= 1;
-    }
-
-    auto begin()
-    {
-        return fanin_.begin();
-    }
-
-    auto end()
-    {
-        return fanin_.end();
-    }
-
-    auto begin() const
-    {
-        return fanin_.cbegin();
-    }
-
-    auto end() const
-    {
-        return fanin_.cend();
-    }
-
-    auto cbegin() const
-    {
-        return fanin_.cbegin();
-    }
-
-    auto cend() const
-    {
-        return fanin_.cend();
-    }
-
-    auto crbegin() const
-    {
-        return fanin_.crbegin();
-    }
-
-    auto crend() const
-    {
-        return fanin_.crend();
-    }
-
-    auto cbegin_in0() const
-    {
-        return fanin_.cbegin();
-    }
-
-    auto cend_in0() const
-    {
-        return fanin_.cbegin() + begin_fanin1_;
-    }
-
-    auto cbegin_in1() const
-    {
-        return fanin_.cbegin() + begin_fanin1_;
-    }
-
-    auto cend_in1() const
-    {
-        return fanin_.cbegin() + begin_fanin01_;
-    }
-
-    auto cbegin_in01() const
-    {
-        return fanin_.cbegin() + begin_fanin01_;
-    }
-
-    auto cend_in01() const
-    {
-        return fanin_.cend();
-    }
-
-    void last_level(uint32_t level)
-    {
-        last_level_ = level;
-    }
-
-private:
-    void level(uint32_t level)
-    {
-        level_ = level;
-    }
-
-    friend class HighLevelXAGBuilder;
-
-    // I use the same fanin vector to store 3 vectors.
-    std::vector<Ref> fanin_;
-    uint32_t begin_fanin1_;
-    uint32_t begin_fanin01_;
-    std::array<bool, 2> is_negated_;
-    uint32_t level_;
-    uint32_t last_level_;
-    uint32_t num_ref_;
-};
-
 class HighLevelXAG {
 public:
-    using Node = class Node;
+    class Node {
+    public:
+        using Ref = uint32_t;
+        Node()
+            : begin_fanin1_(0), begin_fanin01_(0), level_(0), last_level_(0),
+                num_ref_(0)
+        {}
+
+        Node(std::vector<Ref> const& fanin)
+            : fanin_(fanin), begin_fanin1_(fanin.size()),
+                begin_fanin01_(fanin.size()),
+                level_(std::numeric_limits<uint32_t>::max()), last_level_(0), num_ref_(0)
+        {}
+
+        Node(std::vector<Ref> const& fanin, uint32_t begin_fanin1,
+            uint32_t begin_fanin01,
+            std::array<bool, 2> const& is_negated)
+            : fanin_(fanin), begin_fanin1_(begin_fanin1),
+                begin_fanin01_(begin_fanin01), is_negated_(is_negated),
+                level_(std::numeric_limits<uint32_t>::max()), last_level_(0),num_ref_(0)
+        {}
+
+        uint32_t level() const
+        {
+            return level_;
+        }
+
+        uint32_t last_level() const
+        {
+            return last_level_;
+        }
+
+        bool is_input() const
+        {
+            return fanin_.size() == 0;
+        }
+
+        bool is_parity() const
+        {
+            return fanin_.size() == begin_fanin1_;
+        }
+
+        bool is_parity_and() const
+        {
+            return !is_parity();
+        }
+
+        bool is_negated(uint32_t input) const
+        {
+            assert(input < 2u);
+            return is_negated_.at(input);
+        }
+
+        uint32_t num_ref() const
+        {
+            return num_ref_;
+        }
+
+        void incr_references(uint32_t n)
+        {
+            num_ref_ += n;
+        }
+
+        void decr_references()
+        {
+            num_ref_ -= 1;
+        }
+
+        auto begin()
+        {
+            return fanin_.begin();
+        }
+
+        auto end()
+        {
+            return fanin_.end();
+        }
+
+        auto begin() const
+        {
+            return fanin_.cbegin();
+        }
+
+        auto end() const
+        {
+            return fanin_.cend();
+        }
+
+        auto cbegin() const
+        {
+            return fanin_.cbegin();
+        }
+
+        auto cend() const
+        {
+            return fanin_.cend();
+        }
+
+        auto crbegin() const
+        {
+            return fanin_.crbegin();
+        }
+
+        auto crend() const
+        {
+            return fanin_.crend();
+        }
+
+        auto cbegin_in0() const
+        {
+            return fanin_.cbegin();
+        }
+
+        auto cend_in0() const
+        {
+            return fanin_.cbegin() + begin_fanin1_;
+        }
+
+        auto cbegin_in1() const
+        {
+            return fanin_.cbegin() + begin_fanin1_;
+        }
+
+        auto cend_in1() const
+        {
+            return fanin_.cbegin() + begin_fanin01_;
+        }
+
+        auto cbegin_in01() const
+        {
+            return fanin_.cbegin() + begin_fanin01_;
+        }
+
+        auto cend_in01() const
+        {
+            return fanin_.cend();
+        }
+
+        void last_level(uint32_t level)
+        {
+            last_level_ = level;
+        }
+
+    private:
+        void level(uint32_t level)
+        {
+            level_ = level;
+        }
+
+        friend class HighLevelXAGBuilder;
+
+        // I use the same fanin vector to store 3 vectors.
+        std::vector<Ref> fanin_;
+        uint32_t begin_fanin1_;
+        uint32_t begin_fanin01_;
+        std::array<bool, 2> is_negated_;
+        uint32_t level_;
+        uint32_t last_level_;
+        uint32_t num_ref_;
+    };
     using NodeRef = Node::Ref;
     using OutputRef = std::pair<uint32_t, bool>;
 
