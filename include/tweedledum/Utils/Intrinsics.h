@@ -12,4 +12,7 @@ static inline int __builtin_ctz(unsigned x) {
     _BitScanForward(&ret, x);
     return (int)ret;
 }
+
+#  define __builtin_popcount __popcnt
+
 #endif
