@@ -9,7 +9,7 @@
   <img src="https://github.com/boschmitt/tweedledum/workflows/Build%20wheels/badge.svg?event=release">
 </p>
 
-    /!\ Warning: If you have used tweedledum before: the the master branch history is broken.
+    /!\ (Warning) If you have used tweedledum before: the master branch history is broken.
     /!\ The new master branch is a completely rewrite of the library. The old version can be found
     /!\ on **alpha** branch. (Sorry for the inconvenience!!---but it is for a great cause)
 
