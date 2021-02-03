@@ -16,6 +16,9 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1.5.0
 
     - name: Configure CMake
+      env:
+          CC: cl.exe
+          CXX: cl.exe
       run: |
         mkdir -p build
         cd build
