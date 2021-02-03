@@ -33,6 +33,7 @@ jobs:
     #   run: nmake libPyTweedledum
 
     - name: Run tests
-      working-directory: build
+      # working-directory: build
       run: |
+        cd build
         .\test\Release\run_tests.exe
