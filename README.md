@@ -1,6 +1,19 @@
-[![License](https://img.shields.io/badge/license-MIT-000000.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <img src="https://cdn.rawgit.com/boschmitt/tweedledum/master/tweedledum.svg" width="128" height="128" style="margin-right: 12pt"/>
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-000000.svg">
+  <img src="https://github.com/boschmitt/tweedledum/workflows/MacOS/badge.svg">
+  <img src="https://github.com/boschmitt/tweedledum/workflows/Ubuntu/badge.svg">
+  <img src="https://github.com/boschmitt/tweedledum/workflows/Windows/badge.svg">
+  <img src="https://github.com/boschmitt/tweedledum/workflows/Build%20wheels/badge.svg">
+</p>
 
-<img src="https://cdn.rawgit.com/boschmitt/tweedledum/master/tweedledum.svg" width="64" height="64" style="margin-right: 12pt"/>
+<img src="https://github.com/boschmitt/tweedledum/workflows/Build%20wheels/badge.svg">
+
+    /!\ Warning: If you have used tweedledum before: the the master branch history is broken.  The new master
+    /!\ branch is a completely rewrite of the library. The old version can be found on **alpha** branch.
+    /!\ (Sorry for the inconvenience!!---but it is for a great cause)
 
 **tweedledum** is a library for synthesis, compilation, and optimization of
 quantum circuits.  The library is written to be scalable up to problem sizes in
