@@ -20,7 +20,7 @@ jobs:
     - name: Configure CMake
       env:
         CC: gcc-${{ matrix.gcc }}
-        CXX: CXX=/usr/bin/g++-${{ matrix.gcc }}
+        CXX: g++-${{ matrix.gcc }}
       run: |
         mkdir -p build
         cd build
