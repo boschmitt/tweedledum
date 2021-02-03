@@ -10,13 +10,13 @@ from . import examples
 class TestBoolFunction(unittest.TestCase):
         def test_constant_3bit(self):
             function = BoolFunction(examples.constant_3bit)
-            self.assertEqual(function.signature_, [])
+            self.assertEqual(function._signature, [])
             result = examples.constant_3bit()
             self.assertEqual(result, BitVec(3, '101'))
 
         def test_id(self):
             function = BoolFunction(examples.identity)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1]])
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1]])
             result = examples.identity(BitVec(1, '0'))
             self.assertEqual(result, BitVec(1, '0'))
             result = examples.identity(BitVec(1, '1'))
@@ -24,7 +24,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_id_2bit(self):
             function = BoolFunction(examples.identity_2bit)
-            self.assertEqual(function.signature_, [[type(BitVec(2)), 2]])
+            self.assertEqual(function._signature, [[type(BitVec(2)), 2]])
             for a in range(4):
                 tmp = BitVec(2, a)
                 result = examples.identity(tmp)
@@ -32,7 +32,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bool_not(self):
             function = BoolFunction(examples.bool_not)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1]])
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1]])
             for a in range(2):
                 tmp = BitVec(1, a)
                 result = examples.bool_not(tmp)
@@ -40,7 +40,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_not(self):
             function = BoolFunction(examples.bit_not)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1]])
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1]])
             for a in range(2):
                 tmp = BitVec(1, a)
                 result = examples.bit_not(tmp)
@@ -48,7 +48,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_not_2bit(self):
             function = BoolFunction(examples.bit_not_2bit)
-            self.assertEqual(function.signature_, [[type(BitVec(2)), 2]])
+            self.assertEqual(function._signature, [[type(BitVec(2)), 2]])
             for a in range(4):
                 tmp = BitVec(2, a)
                 result = examples.bit_not_2bit(tmp)
@@ -56,7 +56,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bool_and(self):
             function = BoolFunction(examples.bool_and)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1], 
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1], 
                                                    [type(BitVec(1)), 1]])
             for a in range(2):
                 for b in range(2):
@@ -66,7 +66,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_and(self):
             function = BoolFunction(examples.bit_and)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1], 
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1], 
                                                    [type(BitVec(1)), 1]])
             for a in range(2):
                 for b in range(2):
@@ -76,7 +76,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_and_2bit(self):
             function = BoolFunction(examples.bit_and_2bit)
-            self.assertEqual(function.signature_, [[type(BitVec(2)), 2], 
+            self.assertEqual(function._signature, [[type(BitVec(2)), 2], 
                                                    [type(BitVec(2)), 2]])
             for a in range(4):
                 for b in range(4):
@@ -86,7 +86,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bool_or(self):
             function = BoolFunction(examples.bool_or)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1], 
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1], 
                                                    [type(BitVec(1)), 1]])
             for a in range(2):
                 for b in range(2):
@@ -96,7 +96,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_or(self):
             function = BoolFunction(examples.bit_or)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1], 
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1], 
                                                    [type(BitVec(1)), 1]])
             for a in range(2):
                 for b in range(2):
@@ -106,7 +106,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_or_2bit(self):
             function = BoolFunction(examples.bit_or_2bit)
-            self.assertEqual(function.signature_, [[type(BitVec(2)), 2], 
+            self.assertEqual(function._signature, [[type(BitVec(2)), 2], 
                                                    [type(BitVec(2)), 2]])
             for a in range(4):
                 for b in range(4):
@@ -116,7 +116,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_xor(self):
             function = BoolFunction(examples.bit_xor)
-            self.assertEqual(function.signature_, [[type(BitVec(1)), 1], 
+            self.assertEqual(function._signature, [[type(BitVec(1)), 1], 
                                                    [type(BitVec(1)), 1]])
             for a in range(2):
                 for b in range(2):
@@ -126,7 +126,7 @@ class TestBoolFunction(unittest.TestCase):
 
         def test_bit_xor_2bit(self):
             function = BoolFunction(examples.bit_xor_2bit)
-            self.assertEqual(function.signature_, [[type(BitVec(2)), 2], 
+            self.assertEqual(function._signature, [[type(BitVec(2)), 2], 
                                                    [type(BitVec(2)), 2]])
             for a in range(4):
                 for b in range(4):
@@ -138,47 +138,47 @@ class TestBoolFunctionSimulation(unittest.TestCase):
         def test_constant(self):
             function = BoolFunction(examples.constant)
             result = function.simulate()
-            self.assertEqual(result, [True])
+            self.assertEqual(result, [BitVec(1, '1')])
 
         def test_constant_2bit(self):
             function = BoolFunction(examples.constant_2bit)
             result = function.simulate()
-            self.assertEqual(result, [False, True])
+            self.assertEqual(result, [BitVec(1, '0'), BitVec(1, '1')])
 
         def test_id(self):
             function = BoolFunction(examples.identity)
             result = function.simulate(BitVec(1, '0'))
-            self.assertEqual(result, [False])
+            self.assertEqual(result, [BitVec(1, '0')])
             result = function.simulate(BitVec(1, '1'))
-            self.assertEqual(result, [True])
+            self.assertEqual(result, [BitVec(1, '1')])
 
         def test_id_2bit(self):
             function = BoolFunction(examples.identity_2bit)
             for a in range(4):
                 tmp = BitVec(2, a)
                 result = function.simulate(tmp)
-                self.assertEqual(result, [bool(tmp[0]), bool(tmp[1])])
+                self.assertEqual(result, [tmp[0], tmp[1]])
 
         def test_bool_not(self):
             function = BoolFunction(examples.bool_not)
             result = function.simulate(BitVec(1, '0'))
-            self.assertEqual(result, [True])
+            self.assertEqual(result, [BitVec(1, '1')])
             result = function.simulate(BitVec(1, '1'))
-            self.assertEqual(result, [False])
+            self.assertEqual(result, [BitVec(1, '0')])
 
         def test_bit_not(self):
             function = BoolFunction(examples.bit_not)
             result = function.simulate(BitVec(1, '0'))
-            self.assertEqual(result, [True])
+            self.assertEqual(result, [BitVec(1, '1')])
             result = function.simulate(BitVec(1, '1'))
-            self.assertEqual(result, [False])
+            self.assertEqual(result, [BitVec(1, '0')])
 
         def test_bit_not_2bit(self):
             function = BoolFunction(examples.bit_not_2bit)
             for a in range(4):
                 tmp = BitVec(2, a)
                 result = function.simulate(tmp)
-                self.assertEqual(result, [not tmp[0], not tmp[1]])
+                self.assertEqual(result, [~tmp[0], ~tmp[1]])
 
         def test_bool_and(self):
             function = BoolFunction(examples.bool_and)
@@ -186,7 +186,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(2):
                     result = function.simulate(BitVec(1, a), BitVec(1, b))
                     tmp = BitVec(1, a) and BitVec(1, b)
-                    self.assertEqual(result, [bool(tmp[0])])
+                    self.assertEqual(result, [tmp[0]])
 
         def test_bit_and(self):
             function = BoolFunction(examples.bit_and)
@@ -194,7 +194,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(2):
                     result = function.simulate(BitVec(1, a), BitVec(1, b))
                     tmp = BitVec(1, a) & BitVec(1, b)
-                    self.assertEqual(result, [bool(tmp[0])])
+                    self.assertEqual(result, [tmp[0]])
 
         def test_bit_and_2bit(self):
             function = BoolFunction(examples.bit_and_2bit)
@@ -202,7 +202,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(4):
                     result = function.simulate(BitVec(2, a), BitVec(2, b))
                     tmp = BitVec(2, a) & BitVec(2, b)
-                    self.assertEqual(result, [bool(tmp[0]), bool(tmp[1])])
+                    self.assertEqual(result, [tmp[0], tmp[1]])
 
         def test_bool_or(self):
             function = BoolFunction(examples.bool_or)
@@ -210,7 +210,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(2):
                     result = function.simulate(BitVec(1, a), BitVec(1, b))
                     tmp = BitVec(1, a) or BitVec(1, b)
-                    self.assertEqual(result, [bool(tmp[0])])
+                    self.assertEqual(result, [tmp[0]])
 
         def test_bit_or(self):
             function = BoolFunction(examples.bit_or)
@@ -218,7 +218,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(2):
                     result = function.simulate(BitVec(1, a), BitVec(1, b))
                     tmp = BitVec(1, a) | BitVec(1, b)
-                    self.assertEqual(result, [bool(tmp[0])])
+                    self.assertEqual(result, [tmp[0]])
 
         def test_bit_or_2bit(self):
             function = BoolFunction(examples.bit_or_2bit)
@@ -226,7 +226,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(4):
                     result = function.simulate(BitVec(2, a), BitVec(2, b))
                     tmp = BitVec(2, a) | BitVec(2, b)
-                    self.assertEqual(result, [bool(tmp[0]), bool(tmp[1])])
+                    self.assertEqual(result, [tmp[0], tmp[1]])
 
         def test_bit_xor(self):
             function = BoolFunction(examples.bit_xor)
@@ -234,7 +234,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(2):
                     result = function.simulate(BitVec(1, a), BitVec(1, b))
                     tmp = BitVec(1, a) ^ BitVec(1, b)
-                    self.assertEqual(result, [bool(tmp[0])])
+                    self.assertEqual(result, [tmp[0]])
 
         def test_bit_xor_2bit(self):
             function = BoolFunction(examples.bit_xor_2bit)
@@ -242,7 +242,7 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 for b in range(4):
                     result = function.simulate(BitVec(2, a), BitVec(2, b))
                     tmp = BitVec(2, a) ^ BitVec(2, b)
-                    self.assertEqual(result, [bool(tmp[0]), bool(tmp[1])])
+                    self.assertEqual(result, [tmp[0], tmp[1]])
 
 # Simulate full truth table
 class TestBoolFunctionFullSimulation(unittest.TestCase):

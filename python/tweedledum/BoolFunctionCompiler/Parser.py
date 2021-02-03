@@ -29,9 +29,9 @@ class Parser(ast.NodeVisitor):
     }
 
     def __init__(self, source):
-        self.symbol_table_ = []
-        self.signature_ = []
-        self.logic_network_ = LogicNetwork()
+        self._symbol_table = []
+        self._signature = []
+        self._logic_network = LogicNetwork()
 
         node = ast.parse(source)
         self.visit(node)
@@ -49,9 +49,9 @@ class Parser(ast.NodeVisitor):
                 pis = list()
                 size = int(arg.annotation.args[0].value)
                 for i in range(size):
-                    pis.append(self.logic_network_.create_pi("{}_{}".format(var, i)))
-                self.symbol_table_[-1][var] = (arg.annotation.func.id, pis)
-                self.signature_.append([self.types[arg.annotation.func.id], size])
+                    pis.append(self._logic_network.create_pi("{}_{}".format(var, i)))
+                self._symbol_table[-1][var] = (arg.annotation.func.id, pis)
+                self._signature.append([self.types[arg.annotation.func.id], size])
             cache.clear()
         if len(cache) != 0:
              raise ParseError("Argument type is needed for %s" % cache)
@@ -60,7 +60,7 @@ class Parser(ast.NodeVisitor):
         """When assign, the scope needs to be updated with the right type"""
         value_type, value_signals = self.visit(node.value)
         for target in node.targets:
-            self.symbol_table_[-1][target.id] = [value_type, value_signals]
+            self._symbol_table[-1][target.id] = [value_type, value_signals]
         return [value_type, value_signals]
 
     def visit_BinOp(self, node):
@@ -74,7 +74,7 @@ class Parser(ast.NodeVisitor):
             raise ParseError("Different length binop.op %s" % op)
         result = list()
         for l, r in zip(left_signals, right_signals):
-            result.append(getattr(self.logic_network_, op)(l, r))
+            result.append(getattr(self._logic_network, op)(l, r))
         return right_type, result
 
     def visit_BoolOp(self, node):
@@ -82,7 +82,7 @@ class Parser(ast.NodeVisitor):
         op = Parser.bool_ops.get(type(node.op))
         for value in node.values[1:]:
             value_type, value_signal = self.visit(value)
-            result_signal[0] = getattr(self.logic_network_, op)(result_signal[0], value_signal[0])
+            result_signal[0] = getattr(self._logic_network, op)(result_signal[0], value_signal[0])
         return 'BitVec', result_signal
 
     def visit_Call(self, node):
@@ -103,20 +103,20 @@ class Parser(ast.NodeVisitor):
             if len(left_signals) != len(right_signals):
                 raise ParseError("Different length")
             if isinstance(op, ast.Eq):
-                new_signals = [self.logic_network_.create_xnor(i, j) for i, j in zip(left_signals, right_signals)]
-                partial_results.append(self.logic_network_.create_nary_and(new_signals))
+                new_signals = [self._logic_network.create_xnor(i, j) for i, j in zip(left_signals, right_signals)]
+                partial_results.append(self._logic_network.create_nary_and(new_signals))
             elif isinstance(op, ast.NotEq):
-                new_signals = [self.logic_network_.create_xor(i, j) for i, j in zip(left_signals, right_signals)]
-                partial_results.append(self.logic_network_.create_nary_or(new_signals))
+                new_signals = [self._logic_network.create_xor(i, j) for i, j in zip(left_signals, right_signals)]
+                partial_results.append(self._logic_network.create_nary_or(new_signals))
             else:
                raise ParseError("Unsupported comparator") 
 
-        result = self.logic_network_.create_nary_and(partial_results)
+        result = self._logic_network.create_nary_and(partial_results)
         return 'BitVec', [result]
 
     def visit_Constant(self, node):
         if isinstance(node.value, str):
-            return 'BitVec', [self.logic_network_.get_constant(i == '1') for i in node.value[::-1]]
+            return 'BitVec', [self._logic_network.get_constant(i == '1') for i in node.value[::-1]]
         return node.value
 
     def visit_FunctionDef(self, node):
@@ -126,20 +126,20 @@ class Parser(ast.NodeVisitor):
             raise ParseError("Return type is needed")
 
         return_type = node.returns.func.id
-        self.symbol_table_.append({'return': (return_type, None)})
+        self._symbol_table.append({'return': (return_type, None)})
         self.visit_args(node.args)
         return super().generic_visit(node)
 
     def visit_Name(self, node):
-        if node.id not in self.symbol_table_[-1]:
+        if node.id not in self._symbol_table[-1]:
             raise ParseError('out of scope: %s' % node.id)
-        return self.symbol_table_[-1][node.id][0], self.symbol_table_[-1][node.id][1]
+        return self._symbol_table[-1][node.id][0], self._symbol_table[-1][node.id][1]
 
     def visit_Return(self, node):
         """The return type should match the return type hint."""
         _, signals = self.visit(node.value)
         for s in signals:
-            self.logic_network_.create_po(s)
+            self._logic_network.create_po(s)
 
     def visit_Slice(self, node):
         return slice(self.visit(node.lower), self.visit(node.upper))
@@ -158,10 +158,10 @@ class Parser(ast.NodeVisitor):
         if isinstance(node.op, _ast.Not):
             if len(result_signal) != 1:
                 raise ParseError("Boolean NOT doesn't work on multibit values")
-            return 'BitVec', [self.logic_network_.create_not(result_signal[0])]
+            return 'BitVec', [self._logic_network.create_not(result_signal[0])]
         elif isinstance(node.op, ast.Invert):
             result = list()
             for s in  result_signal:
-                result.append(self.logic_network_.create_not(s))
+                result.append(self._logic_network.create_not(s))
             return 'BitVec', result
         raise ParseError("Unsupported unary operator")

@@ -47,9 +47,9 @@ class BitVec(object):
 
     Attributes
     ----------
-    length_ : int
+    _length : int
         length of the vector 
-    value_ : int
+    _value : int
         an integer used to compactly store the bits
     """
 
@@ -67,7 +67,7 @@ class BitVec(object):
             length = len(value)
         if not isinstance(length, int):
             raise TypeError("[BitVec] The length must be an integer value")
-        self.length_ = length
+        self._length = length
         if isinstance(value, int):
             # this -2 account for the leading '0b': 0b....
             # FIXME: feels a bit hack-y, because I suck at python :(
@@ -76,65 +76,65 @@ class BitVec(object):
                 raise TypeError(f"[BitVec] Value requires a bit vector of "
                                 f"length {required_length}, but BitVec has "
                                 f"length {length}")
-            self.value_ = value
+            self._value = value
         elif isinstance(value, str):
             if (len(value) > length):
                 raise TypeError(f"[BitVec] String requires a bit vector of "
                                 f"length {len(value)}, but BitVec has length " 
                                 f"{length}")
-            self.value_ = int(value, base = 2)
+            self._value = int(value, base = 2)
         else:
             raise TypeError("[BitVec] The value must be either an interger or "
                             "a bit string")
 
     def __len__(self):
-        return self.length_
+        return self._length
 
     def __bool__(self):
-        if self.length_ > 1:
+        if self._length > 1:
             raise TypeError("[BitVec] A BitVec of length bigger than one "
                             "cannot be converted to a Boolean value")
-        return bool(self.value_)
+        return bool(self._value)
 
     def __invert__ (self):
-        return BitVec(self.length_, ~self.value_ & (1 << self.length_) - 1)
+        return BitVec(self._length, ~self._value & (1 << self._length) - 1)
 
     def __and__(self, other):
         if isinstance(other, BitVec):
-            if (self.length_ != other.length_):
+            if (self._length != other._length):
                 raise TypeError("[BitVec] __and__ operation: length mismatch")
-            return BitVec(self.length_, self.value_ & other.value_)
+            return BitVec(self._length, self._value & other._value)
         raise TypeError("[BitVec] __and__ operation: type mismatch")
 
     def __or__(self, other):
         if isinstance(other, BitVec):
-            if (self.length_ != other.length_):
+            if (self._length != other._length):
                 raise TypeError("[BitVec] __or__ operation: length mismatch")
-            return BitVec(self.length_, self.value_ | other.value_)
+            return BitVec(self._length, self._value | other._value)
         raise TypeError("[BitVec] __or__ operation: type mismatch")
 
     def __xor__(self, other):
         if isinstance(other, BitVec):
-            if (self.length_ != other.length_):
+            if (self._length != other._length):
                 raise TypeError("[BitVec] __xor__ operation: length mismatch")
-            return BitVec(self.length_, self.value_ ^ other.value_)
+            return BitVec(self._length, self._value ^ other._value)
         raise TypeError("[BitVec] __xor__ operation: type mismatch")
 
     def __eq__(self, other):
         if isinstance(other, BitVec):
-            return self.length_ == other.length_ and self.value_ == other.value_
+            return self._length == other._length and self._value == other._value
         return False
 
     def __ne__(self, other):
         if isinstance(other, BitVec):
-            return self.length_ != other.length_ or self.value_ != other.value_
+            return self._length != other._length or self._value != other._value
         return False
 
     def __repr__(self):
-        return f'BitVec("{self.length_}","{self.value_}")'
+        return f'BitVec("{self._length}","{str(self)}")'
 
     def __str__(self):
-        return "{:0{}b}".format(self.value_, self.length_)
+        return "{:0{}b}".format(self._value, self._length)
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -144,12 +144,12 @@ class BitVec(object):
             if j < 0:
                 raise ValueError("[BitVec] Slice [i:j] requires j >= 0\n")
             if i is None:
-                return BitVec(j, self.value_ >> j)
+                return BitVec(j, self._value >> j)
             if i <= j:
                 raise ValueError("[BitVec] Slice [i:j] requires i > j\n")
-            return BitVec(i - j, (self.value_ & (1 << i) - 1) >> j)
+            return BitVec(i - j, (self._value & (1 << i) - 1) >> j)
         else:
-            return BitVec(1, int((self.value_ >> index) & 0x1))
+            return BitVec(1, int((self._value >> index) & 0x1))
 
     def __setitem__(self, index, value):
         if isinstance(index, slice):
@@ -159,23 +159,23 @@ class BitVec(object):
             if j is None or j < 0:
                 j = 0
             if i is None:
-                i = self.length_
+                i = self._length
             if i <= j:
                 raise ValueError("[BitVec] Slice [i:j] requires i > j\n")
-            if (i - j) != value.length_:
+            if (i - j) != value._length:
                 raise ValueError("[BitVec] Assignment requires BitVec of with "
                                  "the same length\n")
             limit = (1 << (i - j))
             mask = (limit - 1) << j
-            self.value_ &= ~mask
-            self.value_ |= (value.value_ << j)
+            self._value &= ~mask
+            self._value |= (value._value << j)
         else:
             if isinstance(value, BitVec):
-                if value.length_ != 1:
+                if value._length != 1:
                     raise ValueError("[BitVec] Single element assignment "
                                      "requires an interger value (0 or 1) or a "
                                      "BitVec of length one")
-                v = value.value_
+                v = value._value
             elif isinstance(value, int):
                 v = value
             else:
@@ -183,9 +183,9 @@ class BitVec(object):
                                  "an interger value (0 or 1) or a "
                                  "BitVec of length one")
             if v == 1:
-                self.value_ |= (1 << index)
+                self._value |= (1 << index)
             elif v == 0:
-                self.value_ &= ~(1 << index)
+                self._value &= ~(1 << index)
             else:
                 raise ValueError("[BitVec] Single element assignment requires "
                                  "an interger value (0 or 1) or a "
