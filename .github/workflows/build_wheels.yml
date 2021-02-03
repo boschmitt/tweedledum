@@ -1,10 +1,9 @@
 name: Build wheels
 
 on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+  release:
+    types:
+      - published
 
 jobs:
   build_wheels:
@@ -65,12 +64,10 @@ jobs:
     - name: Build wheel for MacOS 
       if: startsWith(matrix.os, 'macos')
       env:
-          CC: '$(brew --prefix llvm)/bin/clang'
-          CXX: '$(brew --prefix llvm)/bin/clang++'
           CIBW_SKIP: pp27-* cp27-* cp35-*
+          MACOSX_DEPLOYMENT_TARGET: '10.15'
       run: |
         python -m cibuildwheel --output-dir wheelhouse
-        python setup.py sdist --dist-dir=wheelhouse
 
     - uses: actions/upload-artifact@v2
       with:

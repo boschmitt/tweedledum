@@ -1,0 +1,36 @@
+name: MacOS
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-macos:
+    name: Build and run tests
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release\
+          -DTWEEDLEDUM_TESTS=ON \
+          -DTWEEDLEDUM_PYBINDS=ON
+
+    - name: Build tests
+      working-directory: build
+      run: make -j2 run_tests
+
+    - name: Build libPyTweedledum
+      working-directory: build
+      run: make -j2 libPyTweedledum
+
+    - name: Run tests
+      working-directory: build
+      run: |
+        ./test/run_tests

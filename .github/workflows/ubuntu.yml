@@ -1,0 +1,43 @@
+name: Ubuntu
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-ubuntu:
+    name: Build and run tests (GCC-${{ matrix.gcc }})
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        gcc: [8, 9, 10]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure CMake
+      env:
+        CC: gcc-${{ matrix.gcc }}
+        CXX: g++-${{ matrix.gcc }}
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release\
+          -DTWEEDLEDUM_TESTS=ON \
+          -DTWEEDLEDUM_PYBINDS=ON
+
+    - name: Build tests
+      working-directory: build
+      run: make -j2 run_tests
+
+    - name: Build libPyTweedledum
+      working-directory: build
+      run: make -j2 libPyTweedledum
+
+    - name: Run tests
+      working-directory: build
+      run: |
+        ./test/run_tests

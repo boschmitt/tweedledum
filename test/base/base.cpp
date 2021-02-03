@@ -4,11 +4,11 @@
 *-----------------------------------------------------------------------------*/
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/Operators/Standard.h"
+#include "tweedledum/Utils/Angle.h"
 
 #include "../check_unitary.h"
 
 #include <cmath>
-#define _USE_MATH_DEFINES
 #include <catch.hpp>
 
 TEST_CASE("Toffoli gate", "[base]")
@@ -71,18 +71,18 @@ TEST_CASE("Toffoli gate", "[base]")
         decomposed.create_qubit();
         decomposed.create_qubit();
         decomposed.apply_operator(Op::H(), {q2});
-        decomposed.apply_operator(Op::P(M_PI_4), {q0});
-        decomposed.apply_operator(Op::P(M_PI_4), {q1});
-        decomposed.apply_operator(Op::P(M_PI_4), {q2});
+        decomposed.apply_operator(Op::P(PI_4_k), {q0});
+        decomposed.apply_operator(Op::P(PI_4_k), {q1});
+        decomposed.apply_operator(Op::P(PI_4_k), {q2});
         decomposed.apply_operator(Op::X(), {q1, q2});
-        decomposed.apply_operator(Op::P(-M_PI_4), {q2});
+        decomposed.apply_operator(Op::P(-PI_4_k), {q2});
         decomposed.apply_operator(Op::X(), {q0, q2});
-        decomposed.apply_operator(Op::P(M_PI_4), {q2});
+        decomposed.apply_operator(Op::P(PI_4_k), {q2});
         decomposed.apply_operator(Op::X(), {q1, q2});
-        decomposed.apply_operator(Op::P(-M_PI_4), {q2});
+        decomposed.apply_operator(Op::P(-PI_4_k), {q2});
         decomposed.apply_operator(Op::X(), {q0, q2});
         decomposed.apply_operator(Op::X(), {q0, q1});
-        decomposed.apply_operator(Op::P(-M_PI_4), {q1});
+        decomposed.apply_operator(Op::P(-PI_4_k), {q1});
         decomposed.apply_operator(Op::X(), {q0, q1});
         decomposed.apply_operator(Op::H(), {q2});
         CHECK(check_unitary(high_level, decomposed));

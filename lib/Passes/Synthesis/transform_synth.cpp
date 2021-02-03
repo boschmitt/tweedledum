@@ -5,6 +5,9 @@
 #include "tweedledum/Passes/Synthesis/transform_synth.h"
 
 #include "tweedledum/Operators/Standard.h"
+#ifdef _MSC_VER
+#include "tweedledum/Utils/Intrinsics.h"
+#endif
 
 namespace tweedledum {
 
