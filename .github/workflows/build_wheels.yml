@@ -1,8 +1,6 @@
 name: Build wheels
 
 on:
-  push:
-  pull_request:
   release:
     types:
       - published

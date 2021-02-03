@@ -22,7 +22,7 @@ jobs:
         cmake .. \
           -G "NMake Makefiles" \
           -DCMAKE_BUILD_TYPE=Release\
-          -DTWEEDLEDUM_TEST=ON \
+          -DTWEEDLEDUM_TESTS=ON \
           -DTWEEDLEDUM_PYBINDS=ON \
 
     - name: Build tests
