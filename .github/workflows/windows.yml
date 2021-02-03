@@ -38,4 +38,8 @@ jobs:
         dir
         cd build
         dir
+        cd test
+        dir
+        cd Release
+        dir
         .\test\Release\run_tests.exe
