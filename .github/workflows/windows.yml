@@ -28,11 +28,11 @@ jobs:
       working-directory: build
       run: nmake run_tests
 
-    - name: Build libPyTweedledum
-      working-directory: build
-      run: nmake libPyTweedledum
+    # - name: Build libPyTweedledum
+    #   working-directory: build
+    #   run: nmake libPyTweedledum
 
     - name: Run tests
       working-directory: build
       run: |
-        .\test\Release\run_tests
+        .\test\Release\run_tests.exe
