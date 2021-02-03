@@ -35,5 +35,7 @@ jobs:
     - name: Run tests
       # working-directory: build
       run: |
+        dir
         cd build
+        dir
         .\test\Release\run_tests.exe
