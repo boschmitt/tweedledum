@@ -6,7 +6,7 @@
   <img src="https://github.com/boschmitt/tweedledum/workflows/MacOS/badge.svg">
   <img src="https://github.com/boschmitt/tweedledum/workflows/Ubuntu/badge.svg">
   <img src="https://github.com/boschmitt/tweedledum/workflows/Windows/badge.svg">
-  <img src="https://github.com/boschmitt/tweedledum/workflows/Build%20wheels/badge.svg">
+  <img src="https://github.com/boschmitt/tweedledum/workflows/Build%20wheels/badge.svg?event=release">
 </p>
 
     /!\ Warning: If you have used tweedledum before: the the master branch history is broken.
