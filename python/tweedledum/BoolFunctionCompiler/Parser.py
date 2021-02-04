@@ -199,7 +199,7 @@ class Parser(ast.NodeVisitor):
             return result_type, [self._logic_network.create_not(result_signal[0])]
         elif isinstance(node.op, ast.Invert):
             result = list()
-            for s in  result_signal:
+            for s in result_signal:
                 result.append(self._logic_network.create_not(s))
             return result_type, result
         raise ParseError("Unsupported unary operator")
