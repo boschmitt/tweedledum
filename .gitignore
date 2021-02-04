@@ -1,7 +1,9 @@
 **/.DS_Store
+**/.ipynb_checkpoints/
 _*/
 
 .vscode/
+.idea/
 
 build/
 examples/**
