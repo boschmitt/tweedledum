@@ -57,25 +57,36 @@ class BoolFunction(object):
         # If the truth table was already computed, we just need to look for the
         # result of this particular input
         if self._truth_table != None:
-            position = int(input_str)
-            return [BitVec(1, int(tt[position])) for tt in self._truth_table]
+            position = int(input_str[::-1], base=2)
+            sim_result = ''.join([str(int(tt[position])) for tt in self._truth_table])
+        else:
+            input_vector = [bool(int(i)) for i in input_str]
+            sim_result = Classical.simulate(self._logic_network, input_vector)
+            sim_result = ''.join([str(int(i)) for i in sim_result])
 
-        input_vector = [bool(int(i)) for i in input_str]
-        sim_result = Classical.simulate(self._logic_network, input_vector)
-        sim_result = ''.join([str(int(i)) for i in sim_result])
+        return self._format_simulation_result(sim_result)
+
+    def _format_simulation_result(self, sim_result):
         i = 0
-        result = tuple()
+        result = list()
         for type_, size in self._return_signature:
             tmp = sim_result[i:i+size]
-            r = type_(size, tmp[::-1])
+            result.append(type_(size, tmp[::-1]))
             i += size
-            result.append(r)
-        return result
+        if len(result) == 1:
+            return result[0]
+        return tuple(result)
 
     def simulate_all(self):
         if self._truth_table == None:
             self._truth_table = Classical.simulate(self._logic_network)
-        return self._truth_table
+
+        result = list()
+        for position in range(2 ** self._logic_network.num_pis()):
+            sim_result = ''.join([str(int(tt[position])) for tt in self._truth_table])
+            result.append(self._format_simulation_result(sim_result))
+
+        return result
 
     def num_ones(self):
         if not self._truth_table:
