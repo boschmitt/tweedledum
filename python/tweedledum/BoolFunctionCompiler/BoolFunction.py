@@ -13,23 +13,6 @@ from ..libPyTweedledum import Classical
 
 class BoolFunction(object):
     """Class to represent a Boolean function
-
-
-    Attributes
-    ----------
-    name_ : str
-        Function name
-    _signature : list
-        Defines the input and output types of the function
-    _symbol_table : dict(str : Signal)
-        A table that maps inputs and outputs of the function to their respective
-        signals in the LogicNetwork
-    _logic_network : LogicNetwork
-        A representation of the function as a XAG (XOR-AND Graph)
-    _truth_table : list(TruthTable)
-        A representation of the function as a truth table. Note that if the
-        function has multiple outputs, then each output will be represented by
-        one truth table
     """
 
     def __init__(self, f):
@@ -43,7 +26,8 @@ class BoolFunction(object):
             source = inspect.getsource(f).strip()
             self.name_ = f.__name__
         parsed_function = Parser(source)
-        self._signature = parsed_function._signature
+        self._parameters_signature = parsed_function._parameters_signature
+        self._return_signature = parsed_function._return_signature
         self._symbol_table = parsed_function._symbol_table
         self._logic_network = parsed_function._logic_network
         self._truth_table = None
@@ -56,16 +40,16 @@ class BoolFunction(object):
         return source
 
     def simulate(self, *argv):
-        if len(argv) != len(self._signature):
+        if len(argv) != len(self._parameters_signature):
             raise TypeError("[BoolFunction] The function requires "
-                            f"{len(self._signature)}. It's signature is: "
-                            f"{self._signature}")
+                            f"{len(self._parameters_signature)}. It's signature is: "
+                            f"{self._parameters_signature}")
         input_str = str()
         for i, arg in enumerate(argv):
-            arg_type = [type(arg), len(arg)]
-            if arg_type != self._signature[i]:
+            arg_type = (type(arg), len(arg))
+            if arg_type != self._parameters_signature[i]:
                 raise TypeError("[BoolFunction] Wrong argument type. "
-                                f"Argument {i} expected: {self._signature[i]}, "
+                                f"Argument {i} expected: {self._parameters_signature[i]}, "
                                 f"got: {arg_type}")
             arg_str = str(arg)
             input_str += arg_str[::-1]
@@ -77,8 +61,16 @@ class BoolFunction(object):
             return [BitVec(1, int(tt[position])) for tt in self._truth_table]
 
         input_vector = [bool(int(i)) for i in input_str]
-        result = Classical.simulate(self._logic_network, input_vector)
-        return [BitVec(1, int(i)) for i in result]
+        sim_result = Classical.simulate(self._logic_network, input_vector)
+        sim_result = ''.join([str(int(i)) for i in sim_result])
+        i = 0
+        result = tuple()
+        for type_, size in self._return_signature:
+            tmp = sim_result[i:i+size]
+            r = type_(size, tmp[::-1])
+            i += size
+            result.append(r)
+        return result
 
     def simulate_all(self):
         if self._truth_table == None:

@@ -15,6 +15,9 @@ def constant_2bit() -> BitVec(2):
 def constant_3bit() -> BitVec(3):
     return BitVec('101')
 
+def constant_4bit() -> BitVec(4):
+    return BitVec(4)
+
 #-------------------------------------------------------------------------------
 
 def identity(a : BitVec(1)) -> BitVec(1):
@@ -22,6 +25,9 @@ def identity(a : BitVec(1)) -> BitVec(1):
 
 def identity_2bit(a : BitVec(2)) -> BitVec(2):
     return a
+
+def identity_not(a : BitVec(2)) -> (BitVec(2), BitVec(2)):
+    return a, ~a
 
 #-------------------------------------------------------------------------------
 

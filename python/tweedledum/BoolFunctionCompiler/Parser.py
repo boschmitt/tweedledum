@@ -29,8 +29,9 @@ class Parser(ast.NodeVisitor):
     }
 
     def __init__(self, source):
-        self._symbol_table = []
-        self._signature = []
+        self._symbol_table = dict()
+        self._parameters_signature = []
+        self._return_signature = []
         self._logic_network = LogicNetwork()
 
         node = ast.parse(source)
@@ -47,11 +48,11 @@ class Parser(ast.NodeVisitor):
                 raise ParseError("BitVec type with size is needed")
             for var in cache:
                 pis = list()
-                size = int(arg.annotation.args[0].value)
-                for i in range(size):
+                arg_type, arg_size = self._visit_annotation_Call(arg.annotation)
+                for i in range(arg_size):
                     pis.append(self._logic_network.create_pi("{}_{}".format(var, i)))
-                self._symbol_table[-1][var] = (arg.annotation.func.id, pis)
-                self._signature.append([self.types[arg.annotation.func.id], size])
+                self._symbol_table[var] = ((arg_type, arg_size), pis)
+                self._parameters_signature.append((arg_type, arg_size))
             cache.clear()
         if len(cache) != 0:
              raise ParseError("Argument type is needed for %s" % cache)
@@ -60,8 +61,8 @@ class Parser(ast.NodeVisitor):
         """When assign, the scope needs to be updated with the right type"""
         value_type, value_signals = self.visit(node.value)
         for target in node.targets:
-            self._symbol_table[-1][target.id] = [value_type, value_signals]
-        return [value_type, value_signals]
+            self._symbol_table[target.id] = (value_type, value_signals)
+        return (value_type, value_signals)
 
     def visit_BinOp(self, node):
         """Handles ``&``, ``^``, and ``|``."""
@@ -78,22 +79,31 @@ class Parser(ast.NodeVisitor):
         return right_type, result
 
     def visit_BoolOp(self, node):
-        result_type, result_signal = self.visit(node.values[0])
+        _, result_signal = self.visit(node.values[0])
         op = Parser.bool_ops.get(type(node.op))
         for value in node.values[1:]:
-            value_type, value_signal = self.visit(value)
+            _, value_signal = self.visit(value)
             result_signal[0] = getattr(self._logic_network, op)(result_signal[0], value_signal[0])
-        return 'BitVec', result_signal
+        return (self.types['BitVec'], 1), result_signal
 
     def visit_Call(self, node):
-        """The return type should match the return type hint."""
-        if node.func.id == 'BitVec':
-            if len(node.args) == 1:
-                return self.visit(node.args[0])
-            elif len(node.args) == 2:
-                return self.visit(node.args[1])
-            else:
-                raise ParseError("Invalid number of arguments")
+        type_ = self.types[node.func.id]
+        if len(node.args) == 1:
+            value = self.visit(node.args[0])
+            if isinstance(value, str):
+                return (type_, len(value)), self._const_BitVec(len(value), value)
+            elif isinstance(value, int):
+                return (type_, value),  self._const_BitVec(value)
+        elif len(node.args) == 2:
+            length = self.visit(node.args[0])
+            if not isinstance(length, int):
+                raise ParseError("BitVec requires length to be an integer")
+            value = self.visit(node.args[1])
+            if isinstance(value, int):
+                value = "{:0{}b}".format(value, length)
+            return (type_, length), self._const_BitVec(length, value)
+        else:
+            raise ParseError("Invalid number of arguments")
 
     def visit_Compare(self, node):
         left_type, left_signals = self.visit(node.left)
@@ -112,34 +122,64 @@ class Parser(ast.NodeVisitor):
                raise ParseError("Unsupported comparator") 
 
         result = self._logic_network.create_nary_and(partial_results)
-        return 'BitVec', [result]
+        return self.types['BitVec'], [result]
 
     def visit_Constant(self, node):
-        if isinstance(node.value, str):
-            return 'BitVec', [self._logic_network.get_constant(i == '1') for i in node.value[::-1]]
         return node.value
 
     def visit_FunctionDef(self, node):
         if node.returns is None:
             raise ParseError("Return type is needed")
-        if not isinstance(node.returns, _ast.Call):
+        if isinstance(node.returns, _ast.Call):
+            return_type = node.returns.func.id
+            size = int(node.returns.args[0].value)
+            self._return_signature = [(self.types[return_type], size)]
+            self._symbol_table['__dee_ret_0'] = (return_type, None)
+        elif isinstance(node.returns, ast.Tuple):
+            for i, elt in enumerate(node.returns.elts):
+                return_type = elt.func.id
+                size = int(elt.args[0].value)
+                self._return_signature.append((self.types[return_type], size))
+                self._symbol_table[f'__dee_ret_{i}'] = (return_type, None)
+        else:
             raise ParseError("Return type is needed")
 
-        return_type = node.returns.func.id
-        self._symbol_table.append({'return': (return_type, None)})
         self.visit_args(node.args)
         return super().generic_visit(node)
 
     def visit_Name(self, node):
-        if node.id not in self._symbol_table[-1]:
+        if node.id not in self._symbol_table:
             raise ParseError('out of scope: %s' % node.id)
-        return self._symbol_table[-1][node.id][0], self._symbol_table[-1][node.id][1]
+        return self._symbol_table[node.id][0], self._symbol_table[node.id][1]
 
     def visit_Return(self, node):
         """The return type should match the return type hint."""
-        _, signals = self.visit(node.value)
-        for s in signals:
-            self._logic_network.create_po(s)
+        if isinstance(node.value, ast.Tuple):
+            if len(self._return_signature) != len(node.value.elts):
+                raise ParseError(f'The function was expected to return '
+                                 f'{len(self._return_signature)} values, '
+                                 f'but it returned {len(node.value.elts)}.')
+            for i, elt in enumerate(node.value.elts):
+                elt_type, elt_signals = self.visit(elt)
+                if elt_type != self._return_signature[i]:
+                    raise ParseError(f'The {i}-th return value was expected to '
+                                     f'be of type {self._return_signature[i]}, '
+                                     f'but got {elt_type}.')
+
+                for s in elt_signals:
+                    self._logic_network.create_po(s)
+        else:
+            if len(self._return_signature) > 1:
+                raise ParseError(f'The function was expected to return '
+                                 f'{len(self._return_signature)} values, '
+                                 f'but it returned just 1.')
+            return_type, signals = self.visit(node.value)
+            if return_type != self._return_signature[0]:
+                raise ParseError(f'The return value was expected to '
+                                 f'be of type {self._return_signature[0]}, '
+                                 f'but got {return_type}.')
+            for s in signals:
+                self._logic_network.create_po(s)
 
     def visit_Slice(self, node):
         return slice(self.visit(node.lower), self.visit(node.upper))
@@ -149,8 +189,6 @@ class Parser(ast.NodeVisitor):
         slice_ = self.visit(node.slice)
         if isinstance(node.slice, ast.Constant):
             return v_type, [v_signals[slice_]]
-        print(v_signals)
-        print(v_signals[slice_])
         return v_type, v_signals[slice_]
 
     def visit_UnaryOp(self, node):
@@ -158,10 +196,28 @@ class Parser(ast.NodeVisitor):
         if isinstance(node.op, _ast.Not):
             if len(result_signal) != 1:
                 raise ParseError("Boolean NOT doesn't work on multibit values")
-            return 'BitVec', [self._logic_network.create_not(result_signal[0])]
+            return result_type, [self._logic_network.create_not(result_signal[0])]
         elif isinstance(node.op, ast.Invert):
             result = list()
             for s in  result_signal:
                 result.append(self._logic_network.create_not(s))
-            return 'BitVec', result
+            return result_type, result
         raise ParseError("Unsupported unary operator")
+
+    def _visit_annotation_Call(self, node):
+        type_ = self.types[node.func.id]
+        if len(node.args) == 1:
+            return type_, self.visit(node.args[0])
+        raise ParseError("Invalid number of arguments")
+
+    def _const_BitVec(self, length, value=None):
+        if value == None:
+            return [self._logic_network.get_constant(0) for i in range(length)]
+        if not isinstance(value, str):
+            raise ParseError("When creating constant BitVec, "
+                             "value must be a string or None")
+        if (len(value) > length):
+            ParseError(f"BitVec value requires a bit vector of "
+                       f"length {len(value)}, but declared BitVec has "
+                       f"length {length}")
+        return [self._logic_network.get_constant(i == '1') for i in value[::-1]]
