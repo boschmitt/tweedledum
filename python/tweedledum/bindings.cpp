@@ -17,24 +17,24 @@ PYBIND11_MODULE(libPyTweedledum, module)
     module.doc() = "Binding for the Tweedledum quantum compilation library";
 
     // Classical
-    py::module classical = module.def_submodule("Classical", "Tweedledum classical");
+    py::module classical = module.def_submodule("classical", "Tweedledum classical");
     init_kitty(classical);
     init_mockturtle(classical);
     init_utils(classical);
 
     // IR
-    py::module IR = module.def_submodule("IR", "Tweedledum intermediate representation");
-    init_Instruction(IR);
-    init_Circuit(IR);
+    py::module ir = module.def_submodule("ir", "Tweedledum intermediate representation");
+    init_Instruction(ir);
+    init_Circuit(ir);
 
     // Operators
-    py::module Ops = module.def_submodule("Operators", "Tweedledum operators");
-    init_ext_operators(Ops);
-    init_ising_operators(Ops);
-    init_meta_operators(Ops);
-    init_std_operators(Ops);
+    py::module ops = module.def_submodule("operators", "Tweedledum operators");
+    init_ext_operators(ops);
+    init_ising_operators(ops);
+    init_meta_operators(ops);
+    init_std_operators(ops);
 
     // Passes 
-    py::module Passes = module.def_submodule("Passes", "Tweedledum passes");
-    init_Passes(Passes);
+    py::module passes = module.def_submodule("passes", "Tweedledum passes");
+    init_Passes(passes);
 }
