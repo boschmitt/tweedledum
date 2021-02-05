@@ -16,16 +16,9 @@ class BoolFunction(object):
     """
 
     def __init__(self, f):
-        if not isinstance(f, types.FunctionType) and not isinstance(f, str):
-            raise TypeError("[BoolFunction] Constructor requires a function or "
-                            "a string (expression)")
-        if isinstance(f, str):
-            source = self._expr_to_source(f)
-            self.name_ = "f"
-        else:
-            source = inspect.getsource(f).strip()
-            self.name_ = f.__name__
-        parsed_function = Parser(source)
+        if not isinstance(f, types.FunctionType):
+            raise TypeError("[BoolFunction] Constructor requires a function")
+        parsed_function = Parser(inspect.getsource(f).strip())
         self._parameters_signature = parsed_function._parameters_signature
         self._return_signature = parsed_function._return_signature
         self._symbol_table = parsed_function._symbol_table
@@ -64,7 +57,7 @@ class BoolFunction(object):
         sim_result = Classical.simulate(self._logic_network, input_vector)
         sim_result = ''.join([str(int(i)) for i in sim_result])
         i = 0
-        result = tuple()
+        result = []
         for type_, size in self._return_signature:
             tmp = sim_result[i:i+size]
             r = type_(size, tmp[::-1])
