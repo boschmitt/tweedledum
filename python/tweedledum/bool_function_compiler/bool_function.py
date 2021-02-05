@@ -25,13 +25,6 @@ class BoolFunction(object):
         self._logic_network = parsed_function._logic_network
         self._truth_table = None
 
-    def _expr_to_source(self, expr):
-        args = list(filter(None, [arg.strip() for arg in re.split(r' and | or |not |~|\&|\||\^|[()]', expr)]))
-        args = sorted(set(args), key=args.index)
-        source = f"def f(" + ", ".join(args) + " : BitVec(1)) -> BitVec(1):\n"
-        source += f"    return {expr}"
-        return source
-
     def simulate(self, *argv):
         if len(argv) != len(self._parameters_signature):
             raise TypeError("[BoolFunction] The function requires "
