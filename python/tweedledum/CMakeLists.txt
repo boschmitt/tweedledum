@@ -1,17 +1,17 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
 pybind11_add_module(libPyTweedledum
 MODULE
-    bindings.cpp
-    Classical/kitty.cpp
-    Classical/mockturtle.cpp
-    Classical/utils.cpp
-    IR/Instruction.cpp
-    IR/Circuit.cpp
-    Operators/Extension.cpp
-    Operators/Ising.cpp
-    Operators/Meta.cpp
-    Operators/Standard.cpp
-    Passes/Passes.cpp
+    cpp_bindings/bindings.cpp
+    cpp_bindings/Classical/kitty.cpp
+    cpp_bindings/Classical/mockturtle.cpp
+    cpp_bindings/Classical/utils.cpp
+    cpp_bindings/IR/Instruction.cpp
+    cpp_bindings/IR/Circuit.cpp
+    cpp_bindings/Operators/Extension.cpp
+    cpp_bindings/Operators/Ising.cpp
+    cpp_bindings/Operators/Meta.cpp
+    cpp_bindings/Operators/Standard.cpp
+    cpp_bindings/Passes/Passes.cpp
 )
 target_link_libraries(libPyTweedledum PRIVATE tweedledum)
 install(TARGETS libPyTweedledum LIBRARY DESTINATION python/tweedledum)
