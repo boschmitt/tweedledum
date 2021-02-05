@@ -8,7 +8,7 @@ import string
 import types
 
 from .bitvec import BitVec
-from .function_parser import Parser
+from .function_parser import FunctionParser
 from .._tweedledum import classical
 
 class BoolFunction(object):
@@ -18,7 +18,7 @@ class BoolFunction(object):
     def __init__(self, f):
         if not isinstance(f, types.FunctionType):
             raise TypeError("[BoolFunction] Constructor requires a function")
-        parsed_function = Parser(inspect.getsource(f).strip())
+        parsed_function = FunctionParser(inspect.getsource(f).strip())
         self._parameters_signature = parsed_function._parameters_signature
         self._return_signature = parsed_function._return_signature
         self._symbol_table = parsed_function._symbol_table

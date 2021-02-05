@@ -11,7 +11,7 @@ from .._tweedledum.classical import LogicNetwork
 class ParseError(Exception):
     pass
 
-class Parser(ast.NodeVisitor):
+class FunctionParser(ast.NodeVisitor):
     bit_ops = {
         _ast.BitAnd: 'create_and',
         _ast.BitOr: 'create_or',
@@ -66,7 +66,7 @@ class Parser(ast.NodeVisitor):
 
     def visit_BinOp(self, node):
         """Handles ``&``, ``^``, and ``|``."""
-        op = Parser.bit_ops.get(type(node.op))
+        op = FunctionParser.bit_ops.get(type(node.op))
         if not op:
             raise ParseError("Unknown binop.op %s" % op)
         left_type, left_signals = self.visit(node.left)
@@ -80,14 +80,14 @@ class Parser(ast.NodeVisitor):
 
     def visit_BoolOp(self, node):
         _, result_signal = self.visit(node.values[0])
-        op = Parser.bool_ops.get(type(node.op))
+        op = FunctionParser.bool_ops.get(type(node.op))
         for value in node.values[1:]:
             _, value_signal = self.visit(value)
             result_signal[0] = getattr(self._logic_network, op)(result_signal[0], value_signal[0])
-        return (self.types['BitVec'], 1), result_signal
+        return (FunctionParser.types['BitVec'], 1), result_signal
 
     def visit_Call(self, node):
-        type_ = self.types[node.func.id]
+        type_ = FunctionParser.types[node.func.id]
         if len(node.args) == 1:
             value = self.visit(node.args[0])
             if isinstance(value, str):
@@ -122,7 +122,7 @@ class Parser(ast.NodeVisitor):
                raise ParseError("Unsupported comparator") 
 
         result = self._logic_network.create_nary_and(partial_results)
-        return self.types['BitVec'], [result]
+        return FunctionParser.types['BitVec'], [result]
 
     def visit_Constant(self, node):
         return node.value
@@ -133,13 +133,13 @@ class Parser(ast.NodeVisitor):
         if isinstance(node.returns, _ast.Call):
             return_type = node.returns.func.id
             size = int(node.returns.args[0].value)
-            self._return_signature = [(self.types[return_type], size)]
+            self._return_signature = [(FunctionParser.types[return_type], size)]
             self._symbol_table['__dee_ret_0'] = (return_type, None)
         elif isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
                 return_type = elt.func.id
                 size = int(elt.args[0].value)
-                self._return_signature.append((self.types[return_type], size))
+                self._return_signature.append((FunctionParser.types[return_type], size))
                 self._symbol_table[f'__dee_ret_{i}'] = (return_type, None)
         else:
             raise ParseError("Return type is needed")
@@ -205,7 +205,7 @@ class Parser(ast.NodeVisitor):
         raise ParseError("Unsupported unary operator")
 
     def _visit_annotation_Call(self, node):
-        type_ = self.types[node.func.id]
+        type_ = FunctionParser.types[node.func.id]
         if len(node.args) == 1:
             return type_, self.visit(node.args[0])
         raise ParseError("Invalid number of arguments")

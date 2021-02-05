@@ -5,9 +5,9 @@
 import ast
 
 from .bitvec import BitVec
-from .function_parser import Parser, ParseError
+from .function_parser import FunctionParser, ParseError
 
-class ExpressionParser(Parser):
+class ExpressionParser(FunctionParser):
 
     def visit_Module(self, node):
         """The full snippet should contain a single function"""

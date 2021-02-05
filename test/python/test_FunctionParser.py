@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 import unittest
 
-from tweedledum.bool_function_compiler import BitVec, Parser, BoolFunction
+from tweedledum.bool_function_compiler import BitVec, FunctionParser, BoolFunction
 
 def id(a: BitVec(1)) -> BitVec(1):
     return a
