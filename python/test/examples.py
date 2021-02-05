@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 """These examples should be handle by the classicalfunction compiler"""
 
-from tweedledum.BoolFunctionCompiler import BitVec 
+from tweedledum.bool_function_compiler import BitVec 
 
 def constant() -> BitVec(1):
     return BitVec(1, '1')

@@ -3,4 +3,4 @@
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
 from .libPyTweedledum import *
-from .BoolFunctionCompiler import *
+from .bool_function_compiler import *

@@ -4,7 +4,7 @@
 #-------------------------------------------------------------------------------
 import unittest
 
-from tweedledum.BoolFunctionCompiler import BitVec, BoolFunction
+from tweedledum.bool_function_compiler import BitVec, BoolFunction
 from python.test import examples
 
 class TestBoolFunction(unittest.TestCase):
