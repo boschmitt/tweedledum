@@ -9,7 +9,7 @@ import types
 
 from .bitvec import BitVec
 from .function_parser import Parser
-from ..libPyTweedledum import classical
+from .._tweedledum import classical
 
 class BoolFunction(object):
     """Class to represent a Boolean function

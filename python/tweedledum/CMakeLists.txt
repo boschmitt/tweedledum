@@ -1,5 +1,5 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-pybind11_add_module(libPyTweedledum
+pybind11_add_module(_tweedledum
 MODULE
     cpp_bindings/bindings.cpp
     cpp_bindings/Classical/kitty.cpp
@@ -13,5 +13,5 @@ MODULE
     cpp_bindings/Operators/Standard.cpp
     cpp_bindings/Passes/Passes.cpp
 )
-target_link_libraries(libPyTweedledum PRIVATE tweedledum)
-install(TARGETS libPyTweedledum LIBRARY DESTINATION python/tweedledum)
+target_link_libraries(_tweedledum PRIVATE tweedledum)
+install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)

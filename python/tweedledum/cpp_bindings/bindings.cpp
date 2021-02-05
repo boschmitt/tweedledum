@@ -10,7 +10,7 @@
 
 #include <pybind11/pybind11.h>
 
-PYBIND11_MODULE(libPyTweedledum, module)
+PYBIND11_MODULE(_tweedledum, module)
 {
     namespace py = pybind11;
 
