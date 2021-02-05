@@ -2,7 +2,7 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
-from .BoolFunction import BoolFunction
+from .bool_function import BoolFunction
 from .expression_parser import ExpressionParser
 
 

@@ -2,11 +2,9 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
-from .BitVec import *
-from .BoolFunction import *
-from .Parser import *
-from .types import *
+from .bitvec import BitVec
 from .bool_expression import BoolExpression
+from .bool_function import BoolFunction
 
 def phase_oracle(f):
     # TODO
