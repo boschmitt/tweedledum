@@ -7,8 +7,8 @@ import re
 import string
 import types
 
-from .BitVec import BitVec
-from .Parser import Parser
+from .bitvec import BitVec
+from .function_parser import Parser
 from ..libPyTweedledum import classical
 
 class BoolFunction(object):
@@ -54,7 +54,7 @@ class BoolFunction(object):
             sim_result = ''.join([str(int(tt[position])) for tt in self._truth_table])
         else:
             input_vector = [bool(int(i)) for i in input_str]
-            sim_result = Classical.simulate(self._logic_network, input_vector)
+            sim_result = classical.simulate(self._logic_network, input_vector)
             sim_result = ''.join([str(int(i)) for i in sim_result])
 
         return self._format_simulation_result(sim_result)
@@ -72,7 +72,7 @@ class BoolFunction(object):
 
     def simulate_all(self):
         if self._truth_table == None:
-            self._truth_table = Classical.simulate(self._logic_network)
+            self._truth_table = classical.simulate(self._logic_network)
 
         result = list()
         for position in range(2 ** self._logic_network.num_pis()):
@@ -83,12 +83,12 @@ class BoolFunction(object):
 
     def num_ones(self):
         if not self._truth_table:
-            self._truth_table = Classical.xag_simulate(self._logic_network)
-        return [Classical.count_ones(tt) for tt in self._truth_table]
+            self._truth_table = classical.xag_simulate(self._logic_network)
+        return [classical.count_ones(tt) for tt in self._truth_table]
 
     def print_tt(self, fancy = False):
         if not self._truth_table:
-            self._truth_table = Classical.xag_simulate(self._logic_network)
+            self._truth_table = classical.xag_simulate(self._logic_network)
         if not fancy:
             for idx, tt in enumerate(self._truth_table):
                 print("[{}] : {}".format(idx, tt))

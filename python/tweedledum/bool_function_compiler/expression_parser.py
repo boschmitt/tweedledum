@@ -4,8 +4,8 @@
 #-------------------------------------------------------------------------------
 import ast
 
-from .BitVec import BitVec
-from .Parser import Parser, ParseError
+from .bitvec import BitVec
+from .function_parser import Parser, ParseError
 
 class ExpressionParser(Parser):
 
