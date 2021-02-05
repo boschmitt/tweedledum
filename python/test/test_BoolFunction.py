@@ -5,7 +5,7 @@
 import unittest
 
 from tweedledum.BoolFunctionCompiler import BitVec, BoolFunction
-from . import examples
+from python.test import examples
 
 class TestBoolFunction(unittest.TestCase):
         def test_constant_3bit(self):
