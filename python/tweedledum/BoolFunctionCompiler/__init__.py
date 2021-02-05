@@ -6,6 +6,7 @@ from .BitVec import *
 from .BoolFunction import *
 from .Parser import *
 from .types import *
+from .bool_expression import BoolExpression
 
 def phase_oracle(f):
     # TODO

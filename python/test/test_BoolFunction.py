@@ -5,7 +5,7 @@
 import unittest
 
 from tweedledum.BoolFunctionCompiler import BitVec, BoolFunction
-from . import examples
+from python.test import examples
 
 class TestBoolFunction(unittest.TestCase):
         def test_constant_3bit(self):
@@ -274,12 +274,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
             self.assertEqual(len(truth_table), 1)
             self.assertEqual(str(truth_table[0]), '10')
 
-        def test_id_str(self):
-            function = BoolFunction("x")
-            truth_table = function.simulate_all()
-            self.assertEqual(len(truth_table), 1)
-            self.assertEqual(str(truth_table[0]), '10')
-
         def test_id_2bit(self):
             function = BoolFunction(examples.identity_2bit)
             truth_table = function.simulate_all()
@@ -293,12 +287,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
             self.assertEqual(len(truth_table), 1)
             self.assertEqual(str(truth_table[0]), '01')
 
-        def test_not_str(self):
-            function = BoolFunction("~x")
-            truth_table = function.simulate_all()
-            self.assertEqual(len(truth_table), 1)
-            self.assertEqual(str(truth_table[0]), '01')
-
         def test_not_2bit(self):
             function = BoolFunction(examples.bit_not_2bit)
             truth_table = function.simulate_all()
@@ -308,12 +296,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
 
         def test_and(self):
             function = BoolFunction(examples.bool_and)
-            truth_table = function.simulate_all()
-            self.assertEqual(len(truth_table), 1)
-            self.assertEqual(str(truth_table[0]), '1000')
-
-        def test_and_str(self):
-            function = BoolFunction("x & b")
             truth_table = function.simulate_all()
             self.assertEqual(len(truth_table), 1)
             self.assertEqual(str(truth_table[0]), '1000')
@@ -333,12 +315,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
             self.assertEqual(len(truth_table), 1)
             self.assertEqual(str(truth_table[0]), '1110')
 
-        def test_or_str(self):
-            function = BoolFunction("x | b")
-            truth_table = function.simulate_all()
-            self.assertEqual(len(truth_table), 1)
-            self.assertEqual(str(truth_table[0]), '1110')
-
         def test_or_2bit(self):
             function = BoolFunction(examples.bit_or_2bit)
             truth_table = function.simulate_all()
@@ -347,12 +323,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
             output1 = BitVec(16, 0xcccc) | BitVec(16, 0xff00)
             self.assertEqual(str(truth_table[0]), str(output0))
             self.assertEqual(str(truth_table[1]), str(output1))
-
-        def test_xor_str(self):
-            function = BoolFunction("x ^ b")
-            truth_table = function.simulate_all()
-            self.assertEqual(len(truth_table), 1)
-            self.assertEqual(str(truth_table[0]), '0110')
 
         def test_xor_2bit(self):
             function = BoolFunction(examples.bit_xor_2bit)
