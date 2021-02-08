@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "Passes.h"
+#include "passes.h"
 
 #include <tweedledum/IR/Circuit.h>
 #include <tweedledum/Passes/Analysis/depth.h>

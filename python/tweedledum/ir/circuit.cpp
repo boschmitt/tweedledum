@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "Circuit.h"
+#include "circuit.h"
 
 #include <pybind11/stl.h>
 #include <tweedledum/Operators/All.h>

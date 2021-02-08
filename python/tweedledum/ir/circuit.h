@@ -4,7 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../Operators/Operators.h"
+#include "../operators/operators.h"
 
 #include <pybind11/pybind11.h>
 #include <tweedledum/IR/Circuit.h>

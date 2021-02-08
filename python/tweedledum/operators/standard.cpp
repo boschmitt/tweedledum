@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "Operators.h"
+#include "operators.h"
 
 void init_std_operators(pybind11::module& module)
 {

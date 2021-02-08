@@ -4,9 +4,9 @@
 *-----------------------------------------------------------------------------*/
 #include "bindings.h"
 
-#include "IR/Circuit.h"
-#include "Operators/Operators.h"
-#include "Passes/Passes.h"
+#include "ir/circuit.h"
+#include "operators/operators.h"
+#include "passes/passes.h"
 
 #include <pybind11/pybind11.h>
 

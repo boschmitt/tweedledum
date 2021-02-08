@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "../Operators/Operators.h"
+#include "../operators/operators.h"
 
 #include <pybind11/stl.h>
 #include <tweedledum/IR/Instruction.h>
