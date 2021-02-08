@@ -12,6 +12,21 @@ void init_kitty(pybind11::module& module)
     using namespace kitty;
     namespace py = pybind11;
 
+    py::class_<cube>(module, "Cube")
+        .def(py::init<>())
+        .def(py::init<std::string>())
+        .def(~py::self)
+        .def(py::self == py::self)
+        .def(py::self != py::self)
+        .def("clear_bit", &cube::clear_bit)
+        .def("flip_bit", &cube::flip_bit)
+        .def("get_bit", &cube::get_bit)
+        .def("set_bit", &cube::set_bit)
+        .def("clear_mask", &cube::clear_mask)
+        .def("flip_mask", &cube::flip_mask)
+        .def("get_mask", &cube::get_mask)
+        .def("set_mask", &cube::set_mask);
+
     py::class_<dynamic_truth_table>(module, "TruthTable")
         .def(py::init<uint32_t>())
         .def("num_vars", &dynamic_truth_table::num_vars)

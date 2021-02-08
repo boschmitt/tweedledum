@@ -2,6 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include <mockturtle/algorithms/exorcism.hpp>
 #include <mockturtle/io/aiger_reader.hpp>
 #include <mockturtle/io/verilog_reader.hpp>
 #include <mockturtle/io/write_verilog.hpp>
@@ -60,4 +61,9 @@ void init_mockturtle(pybind11::module& module)
     module.def("write_verilog", [](xag_network const& xag, std::string const& filename) {
         write_verilog(xag, filename);
     }, "Write a LogicNetwork to a Verilog file.");
+
+    // Optimization
+    module.def("exorcism", py::overload_cast<std::vector<kitty::cube> const&, uint32_t>(&exorcism));
+
+    module.def("exorcism", py::overload_cast<kitty::dynamic_truth_table const&>(&exorcism));
 }
