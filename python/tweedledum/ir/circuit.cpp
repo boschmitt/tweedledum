@@ -24,6 +24,7 @@ void init_Circuit(pybind11::module& module)
         .def("polarity", &WireRef::polarity)
         .def("uid", &WireRef::uid)
         .def("__index__", [](WireRef const& ref) { return static_cast<uint32_t>(ref); })
+        .def("__invert__", [](WireRef const& lhs) { return !lhs; })
         .def("__eq__", [](WireRef const& lhs, WireRef *rhs) { return rhs && lhs == *rhs; })
         .def("__ne__", [](WireRef const& lhs, WireRef *rhs) { return !rhs || lhs != *rhs; });
 
