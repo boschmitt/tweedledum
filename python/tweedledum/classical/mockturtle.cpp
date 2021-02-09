@@ -4,6 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #include <mockturtle/algorithms/exorcism.hpp>
 #include <mockturtle/io/aiger_reader.hpp>
+#include <mockturtle/io/dimacs_reader.hpp>
 #include <mockturtle/io/verilog_reader.hpp>
 #include <mockturtle/io/write_verilog.hpp>
 #include <mockturtle/networks/xag.hpp>
@@ -51,6 +52,12 @@ void init_mockturtle(pybind11::module& module)
         lorina::read_aiger(filename, aiger_reader(xag));
         return xag;
     }, "Create a LogicNetwork from a AIGER file.");
+
+    module.def("read_dimacs", [](std::string const filename) {
+        xag_network xag;
+        lorina::read_dimacs(filename, dimacs_reader(xag));
+        return xag;
+    }, "Create a LogicNetwork from a DIMACS file.");
 
     module.def("read_verilog", [](std::string const filename) {
         xag_network xag;
