@@ -19,11 +19,9 @@ void init_mockturtle(pybind11::module& module)
     using signal = xag_network::signal;
 
     py::class_<signal>(module, "Signal")
-        .def("__not__", [](signal const& lhs) { return !lhs; })
+        .def("__invert__", [](signal const& lhs) { return !lhs; })
         .def(py::self == py::self)
         .def(py::self != py::self);
-        // .def("__eq__", [](signal const& lhs, signal *rhs) { return rhs && lhs == *rhs; })
-        // .def("__ne__", [](signal const& lhs, signal *rhs) { return !rhs || lhs != *rhs; });
 
     py::class_<xag_network>(module, "LogicNetwork")
         .def(py::init<>())
