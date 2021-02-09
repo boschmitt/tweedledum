@@ -13,11 +13,9 @@ from qiskit.circuit.library.standard_gates import *
 def _convert_qiskit_operator(op):
     ops = {'h': dum_ops.H, 'ch': dum_ops.H, 's': dum_ops.S, 'sdg': dum_ops.Sdg, 
            'swap': dum_ops.Swap, 't': dum_ops.T, 'tdg': dum_ops.Tdg, 
-           'x': dum_ops.X, 'cx': dum_ops.X, 'ccx': dum_ops.X, 'mcx': dum_ops.X, 
-           'y': dum_ops.Y, 'cy': dum_ops.Y, 'mcy': dum_ops.Y,
-           'z': dum_ops.Z, 'cz': dum_ops.Z, 'mcz': dum_ops.Z}
+           'x': dum_ops.X, 'y': dum_ops.Y, 'z': dum_ops.Z}
     
-    base_gate = ops.get(op.name)
+    base_gate = ops.get(op.name) or ops.get(op.base_gate.name)
     ctrl_state = ''
     if base_gate == None:
         raise RuntimeError(f'Unrecognized gate {op.name}')
