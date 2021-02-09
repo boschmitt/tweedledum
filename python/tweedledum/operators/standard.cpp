@@ -27,6 +27,9 @@ void init_std_operators(pybind11::module& module)
     py::class_<Op::S>(module, "S")
         .def(py::init<>());
 
+    py::class_<Op::Sdg>(module, "Sdg")
+        .def(py::init<>());
+
     py::class_<Op::Swap>(module, "Swap")
         .def(py::init<>());
 
