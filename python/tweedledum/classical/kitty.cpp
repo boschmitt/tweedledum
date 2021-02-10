@@ -6,6 +6,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <sstream>
 
 void init_kitty(pybind11::module& module)
 {
@@ -25,7 +26,12 @@ void init_kitty(pybind11::module& module)
         .def("clear_mask", &cube::clear_mask)
         .def("flip_mask", &cube::flip_mask)
         .def("get_mask", &cube::get_mask)
-        .def("set_mask", &cube::set_mask);
+        .def("set_mask", &cube::set_mask)
+        .def("to_string", [](cube const& c, uint32_t const length) {
+            std::ostringstream str;
+            c.print(length, str);
+            return str.str(); 
+        });
 
     py::class_<dynamic_truth_table>(module, "TruthTable")
         .def(py::init<uint32_t>())
@@ -56,6 +62,9 @@ void init_kitty(pybind11::module& module)
     // Constructors
     module.def("create_from_binary_string", &create_from_binary_string<dynamic_truth_table>,
     "Constructs truth table from binary string.");
+
+    module.def("create_from_cubes", &create_from_cubes<dynamic_truth_table>,
+    "Constructs truth table from cubes representation.");
 
     // Bit operations
     module.def("count_ones", &count_ones<dynamic_truth_table>,
