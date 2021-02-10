@@ -74,35 +74,3 @@ class BoolFunction(object):
 
         return result
 
-    def num_ones(self):
-        if not self._truth_table:
-            self._truth_table = classical.xag_simulate(self._logic_network)
-        return [classical.count_ones(tt) for tt in self._truth_table]
-
-    def print_tt(self, fancy = False):
-        if not self._truth_table:
-            self._truth_table = classical.xag_simulate(self._logic_network)
-        if not fancy:
-            for idx, tt in enumerate(self._truth_table):
-                print("[{}] : {}".format(idx, tt))
-            return
-
-        # Fancy print
-        # reversing the strings helps:
-        tt_strings = [str(tt)[::-1]  for tt in self._truth_table]
-        for i in range(self._logic_network.num_pis() - 1, -1, -1):
-            print("{:^3}".format(string.ascii_lowercase[i]), end="")
-        print(" | ", end="")
-        for i in range(self._logic_network.num_pos() - 1, -1, -1):
-            print("{:^3}".format(i), end="")
-        print("")
-        table_width = (self._logic_network.num_pis() + self._logic_network.num_pos()) * 3 + 3
-        print("{:-^{}}".format('', table_width))
-        for i in range(0, (1 << self._logic_network.num_pis())):
-            i_bool = "{:0{}b}".format(i, self._logic_network.num_pis())
-            for j in range(0, len(i_bool)):
-                print("{:^3}".format(i_bool[j]), end="")
-            print(" | ", end="")
-            for j in range(self._logic_network.num_pos() - 1, -1, -1):
-                print("{:^3}".format(tt_strings[j][i]), end="")
-            print("")
