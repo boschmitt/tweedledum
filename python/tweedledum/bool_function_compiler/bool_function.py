@@ -74,3 +74,32 @@ class BoolFunction(object):
 
         return result
 
+    @classmethod
+    def from_aiger_file(cls, filename: str, name=None):
+        """Create a BooleanFunction from an AIGER file.
+
+        Returns:
+            A BooleanFunction for the input file
+        """
+        bool_func_instance = cls.__new__(cls)
+        bool_func_instance._logic_network = classical.read_aiger(filename)
+        bool_func_instance._parameters_signature = []
+        for _ in range(bool_func_instance._logic_network.num_pis()):
+            bool_func_instance._parameters_signature.append((type(BitVec(1)), 1))
+        bool_func_instance._return_signature = [(type(BitVec(1)), 1)]
+        return bool_func_instance
+
+    @classmethod
+    def from_verilog_file(cls, filename: str, name=None):
+        """Create a BooleanFunction from Verilog file.
+
+        Returns:
+            A BooleanFunction for the input file
+        """
+        bool_func_instance = cls.__new__(cls)
+        bool_func_instance._logic_network = classical.read_verilog(filename)
+        bool_func_instance._parameters_signature = []
+        for _ in range(bool_func_instance._logic_network.num_pis()):
+            bool_func_instance._parameters_signature.append((type(BitVec(1)), 1))
+        bool_func_instance._return_signature = [(type(BitVec(1)), 1)]
+        return bool_func_instance
