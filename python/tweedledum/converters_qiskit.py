@@ -8,19 +8,28 @@ from tweedledum import operators as dum_ops
 from qiskit import QuantumRegister
 from qiskit.circuit import QuantumCircuit, Gate, ControlledGate
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
-from qiskit.circuit.library.standard_gates import *
+from qiskit.circuit.library.standard_gates import (HGate, SGate, SdgGate, 
+    SwapGate, TGate, TdgGate, XGate, YGate, ZGate)
+
+_to_tweedledum_op = {
+    'h': dum_ops.H, 'ch': dum_ops.H, 's': dum_ops.S, 'sdg': dum_ops.Sdg, 
+    'swap': dum_ops.Swap, 't': dum_ops.T, 'tdg': dum_ops.Tdg, 
+    'x': dum_ops.X, 'y': dum_ops.Y, 'z': dum_ops.Z
+}
+
+_to_qiskit_op = {
+    'std.h': HGate, 'std.s': SGate, 'std.sdg': SdgGate, 'std.swap': SwapGate,
+    'std.t': TGate, 'std.tdg': TdgGate, 'std.x': XGate, 'std.y': YGate,
+    'std.z': ZGate
+}
 
 def _convert_qiskit_operator(op):
-    ops = {'h': dum_ops.H, 'ch': dum_ops.H, 's': dum_ops.S, 'sdg': dum_ops.Sdg, 
-           'swap': dum_ops.Swap, 't': dum_ops.T, 'tdg': dum_ops.Tdg, 
-           'x': dum_ops.X, 'y': dum_ops.Y, 'z': dum_ops.Z}
-    
-    base_gate = ops.get(op.name) or ops.get(op.base_gate.name)
+    base_gate = _to_tweedledum_op.get(op.name) or _to_tweedledum_op.get(op.base_gate.name)
     ctrl_state = ''
-    if base_gate == None:
-        raise RuntimeError(f'Unrecognized gate {op.name}')
     if isinstance(op, ControlledGate):
         ctrl_state = '{:0{}b}'.format(op.ctrl_state, op.num_ctrl_qubits)
+    if base_gate == None:
+        return op, ctrl_state[::-1]
     return base_gate(), ctrl_state[::-1]
 
 def qiskit_qc_to_tweedledum(qiskit_qc):
@@ -51,17 +60,19 @@ def qiskit_dag_to_tweedledum(qiskit_dag):
         circuit.apply_operator(op, qs)
     return circuit
 
-def _convert_tweedledum_operator(instruction):
-    ops = {'std.h': HGate, 'std.s': SGate, 'std.sdg': SdgGate, 
-           'std.swap': SwapGate, 'std.t': TGate, 'std.tdg': TdgGate, 
-           'std.x': XGate, 'std.y': YGate, 'std.z': ZGate}
+def _convert_tweedledum_operator(op):
+    base_gate = _to_qiskit_op.get(op.kind())
+    if base_gate == None:
+        if op.kind() == 'py_operator':
+            return op.py_op()
+        else:
+            raise RuntimeError('Unrecognized operator')
 
-    base_gate = ops.get(instruction.kind())
     # TODO: need to deal with cbits too!
-    if instruction.num_controls() > 0:
-        qubits = instruction.qubits()
+    if op.num_controls() > 0:
+        qubits = op.qubits()
         ctrl_state = ''
-        for qubit in qubits[:instruction.num_controls()]:
+        for qubit in qubits[:op.num_controls()]:
             ctrl_state += '{}'.format(int(qubit.polarity() == WireRef.Polarity.positive)) 
         return base_gate().control(len(ctrl_state), ctrl_state=ctrl_state[::-1])
     return base_gate()
