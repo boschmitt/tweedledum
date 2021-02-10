@@ -28,11 +28,11 @@ class BoolExpression(BoolFunction):
         Returns:
             A quantum circuit (BooleanExpression) for the input string
         """
-        from tweedledum.classical import read_dimacs
+        from .._tweedledum.classical import read_dimacs
         bool_exp_instance = cls.__new__(cls)
         bool_exp_instance._logic_network = read_dimacs(filename)
-        bool_exp_instance._parameters_signature = []
-        for i in range(bool_exp_instance._logic_network.num_pis()):
+        bool_exp_instance._parameters_signature = list()
+        for _ in range(bool_exp_instance._logic_network.num_pis()):
             bool_exp_instance._parameters_signature.append((type(BitVec(1)), 1))
         bool_exp_instance._return_signature = [(type(BitVec(1)), 1)]
         return bool_exp_instance

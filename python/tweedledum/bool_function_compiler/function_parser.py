@@ -30,8 +30,8 @@ class FunctionParser(ast.NodeVisitor):
 
     def __init__(self, source):
         self._symbol_table = dict()
-        self._parameters_signature = []
-        self._return_signature = []
+        self._parameters_signature = list()
+        self._return_signature = list()
         self._logic_network = LogicNetwork()
 
         node = ast.parse(source)
