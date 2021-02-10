@@ -6,6 +6,7 @@
 
 #include <tweedledum/IR/Circuit.h>
 #include <tweedledum/Passes/Analysis/depth.h>
+#include <tweedledum/Passes/Optimization.h>
 #include <tweedledum/Passes/Decomposition.h>
 #include <tweedledum/Passes/Synthesis.h>
 
@@ -21,6 +22,12 @@ void init_Passes(pybind11::module& module)
     module.def("barenco_decomp", py::overload_cast<Circuit const&, nlohmann::json const&>(&barenco_decomp),
     py::arg("circuit"), py::arg("config") = nlohmann::json(),
     "Barrenco decomposition depth pass.");
+
+    // Optimization
+    module.def("linear_resynth", &linear_resynth, py::arg("original"), py::arg("config") = nlohmann::json(),
+    "Resynthesize linear parts of the quantum circuit.");
+
+    module.def("phase_folding", &phase_folding, "Phase folding optimization.");
 
     // Synthesis 
     module.def("lhrs_synth",  py::overload_cast<mockturtle::xag_network const&, nlohmann::json const&>(&lhrs_synth),
