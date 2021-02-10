@@ -21,7 +21,10 @@ void init_Passes(pybind11::module& module)
     // Decomposition
     module.def("barenco_decomp", py::overload_cast<Circuit const&, nlohmann::json const&>(&barenco_decomp),
     py::arg("circuit"), py::arg("config") = nlohmann::json(),
-    "Barrenco decomposition depth pass.");
+    "Barrenco decomposition pass.");
+
+    module.def("parity_decomp", py::overload_cast<Circuit const&>(&parity_decomp),
+    "Parity operators decomposition pass.");
 
     // Optimization
     module.def("linear_resynth", &linear_resynth, py::arg("original"), py::arg("config") = nlohmann::json(),
