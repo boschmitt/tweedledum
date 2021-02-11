@@ -8,29 +8,61 @@ from tweedledum import operators as dum_ops
 from qiskit import QuantumRegister
 from qiskit.circuit import QuantumCircuit, Gate, ControlledGate
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
-from qiskit.circuit.library.standard_gates import (HGate, SGate, SdgGate, 
-    SwapGate, TGate, TdgGate, XGate, YGate, ZGate)
+from qiskit.circuit.library.standard_gates import (HGate, IGate, PhaseGate, 
+    RXGate, RYGate, RZGate, RXXGate, RYYGate, RZZGate, SGate, SdgGate, SwapGate,
+    TGate, TdgGate, XGate, YGate, ZGate)
 
 _to_tweedledum_op = {
-    'h': dum_ops.H, 'ch': dum_ops.H, 's': dum_ops.S, 'sdg': dum_ops.Sdg, 
-    'swap': dum_ops.Swap, 't': dum_ops.T, 'tdg': dum_ops.Tdg, 
-    'x': dum_ops.X, 'y': dum_ops.Y, 'z': dum_ops.Z
+    'h': dum_ops.H, 
+    'p': dum_ops.P,
+    'rx': dum_ops.Rx,
+    'ry': dum_ops.Ry,
+    'rz': dum_ops.Rz,
+    'rxx': dum_ops.Rxx,
+    'ryy': dum_ops.Ryy,
+    'rzz': dum_ops.Rzz,
+    's': dum_ops.S,
+    'sdg': dum_ops.Sdg, 
+    'swap': dum_ops.Swap,
+    't': dum_ops.T,
+    'tdg': dum_ops.Tdg, 
+    'x': dum_ops.X,
+    'y': dum_ops.Y,
+    'z': dum_ops.Z
 }
 
-_to_qiskit_op = {
-    'std.h': HGate, 'std.s': SGate, 'std.sdg': SdgGate, 'std.swap': SwapGate,
-    'std.t': TGate, 'std.tdg': TdgGate, 'std.x': XGate, 'std.y': YGate,
-    'std.z': ZGate
+_to_qiskit_gate = {
+    'std.h': HGate,
+    'std.p': PhaseGate,
+    'std.rx': RXGate,
+    'std.ry': RYGate,
+    'std.rz': RZGate,
+    'std.s': SGate,
+    'std.sdg': SdgGate,
+    'std.swap': SwapGate,
+    'std.t': TGate,
+    'std.tdg': TdgGate,
+    'std.x': XGate,
+    'std.y': YGate,
+    'std.z': ZGate,
+    'ising.rxx': RXXGate,
+    'ising.ryy': RYYGate,
+    'ising.rzz': RZZGate
 }
 
-def _convert_qiskit_operator(op):
-    base_gate = _to_tweedledum_op.get(op.name) or _to_tweedledum_op.get(op.base_gate.name)
+def _convert_qiskit_operator(gate):
+    op = _to_tweedledum_op.get(gate.name) or _to_tweedledum_op.get(gate.base_gate.name)
     ctrl_state = ''
-    if isinstance(op, ControlledGate):
-        ctrl_state = '{:0{}b}'.format(op.ctrl_state, op.num_ctrl_qubits)
-    if base_gate == None:
-        return op, ctrl_state[::-1]
-    return base_gate(), ctrl_state[::-1]
+    if isinstance(gate, ControlledGate):
+        ctrl_state = '{:0{}b}'.format(gate.ctrl_state, gate.num_ctrl_qubits)[::-1]
+    if op == None:
+        return gate, ctrl_state
+    if isinstance(gate.params, list) and len(gate.params) > 0:
+        if len(gate.params) == 1:
+            return op(gate.params[0]), ctrl_state
+        else:
+            return gate, ctrl_state
+    return op(), ctrl_state
 
 def qiskit_qc_to_tweedledum(qiskit_qc):
     circuit = Circuit()
@@ -60,8 +92,8 @@ def qiskit_dag_to_tweedledum(qiskit_dag):
         circuit.apply_operator(op, qs)
     return circuit
 
-def _convert_tweedledum_operator(op):
-    base_gate = _to_qiskit_op.get(op.kind())
+def _convert_tweedledum_op(op):
+    base_gate = _to_qiskit_gate.get(op.kind())
     if base_gate == None:
         if op.kind() == 'py_operator':
             return op.py_op()
@@ -90,7 +122,7 @@ def _convert_tweedledum_operator(op):
 def tweedledum_to_qiskit_qc(circuit):
     qiskit_qc = QuantumCircuit(circuit.num_qubits())
     for instruction in circuit:
-        gate = _convert_tweedledum_operator(instruction)
+        gate = _convert_tweedledum_op(instruction)
         qubits = [qubit.uid() for qubit in instruction.qubits()]
         qiskit_qc.append(gate, qubits)
     return qiskit_qc
@@ -99,7 +131,7 @@ def tweedledum_to_qiskit_dag(circuit):
     qiskit_dag = DAGCircuit()
     qiskit_dag.add_qreg(circuit.num_qubits())
     for instruction in circuit:
-        gate = _convert_tweedledum_operator(instruction)
+        gate = _convert_tweedledum_op(instruction)
         qubits = [qubit.uid() for qubit in instruction.qubits()]
         qiskit_dag.apply_operation_back(gate, qubits)
     return qiskit_dag
