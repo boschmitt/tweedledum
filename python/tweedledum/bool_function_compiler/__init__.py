@@ -3,7 +3,6 @@
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
 from .bitvec import BitVec
-from .bool_expression import BoolExpression
 from .bool_function import BoolFunction
 
 def phase_oracle(f):
