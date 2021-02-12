@@ -261,7 +261,6 @@ class TestBoolFunctionSimulation(unittest.TestCase):
                 tmp = BitVec(2, a) ^ BitVec(2, b)
                 self.assertEqual(result, tmp)
 
-# Simulate full truth table
 class TestBoolFunctionFullSimulation(unittest.TestCase):
     def test_identity(self):
         function = BoolFunction(examples.identity)
@@ -276,15 +275,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
         self.assertEqual(result, BitVec(1, '0'))
         result = function.simulate(BitVec(1, '1'))
         self.assertEqual(result, BitVec(1, '1'))
-
-    def test_identity_str(self):
-        function = BoolFunction.from_expression("x")
-        function.simulate_all()
-        self.assertEqual(function.num_inputs(), 1)
-        self.assertEqual(function.num_outputs(), 1)
-        self.assertEqual(function.num_input_bits(), 1)
-        self.assertEqual(function.num_output_bits(), 1)
-        self.assertEqual(str(function.truth_table(output_bit=0)), '10')
 
     def test_identity_2bit(self):
         function = BoolFunction(examples.identity_2bit)
@@ -313,15 +303,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
             result = function.simulate(tmp)
             self.assertEqual(result, ~tmp)
 
-    def test_not_str(self):
-        function = BoolFunction.from_expression("~x")
-        function.simulate_all()
-        self.assertEqual(function.num_inputs(), 1)
-        self.assertEqual(function.num_outputs(), 1)
-        self.assertEqual(function.num_input_bits(), 1)
-        self.assertEqual(function.num_output_bits(), 1)
-        self.assertEqual(str(function.truth_table(output_bit=0)), '01')
-
     def test_not_2bit(self):
         function = BoolFunction(examples.bit_not_2bit)
         function.simulate_all()
@@ -349,15 +330,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
                 result = function.simulate(BitVec(1, a), BitVec(1, b))
                 tmp = BitVec(1, a) and BitVec(1, b)
                 self.assertEqual(result, tmp)
-
-    def test_and_str(self):
-        function = BoolFunction.from_expression("x & b")
-        function.simulate_all()
-        self.assertEqual(function.num_inputs(), 2)
-        self.assertEqual(function.num_outputs(), 1)
-        self.assertEqual(function.num_input_bits(), 2)
-        self.assertEqual(function.num_output_bits(), 1)
-        self.assertEqual(str(function.truth_table(output_bit=0)), '1000')
 
     def test_and_2bit(self):
         function = BoolFunction(examples.bit_and_2bit)
@@ -390,15 +362,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
                 tmp = BitVec(1, a) or BitVec(1, b)
                 self.assertEqual(result, tmp)
 
-    def test_or_str(self):
-        function = BoolFunction.from_expression("x | b")
-        function.simulate_all()
-        self.assertEqual(function.num_inputs(), 2)
-        self.assertEqual(function.num_outputs(), 1)
-        self.assertEqual(function.num_input_bits(), 2)
-        self.assertEqual(function.num_output_bits(), 1)
-        self.assertEqual(str(function.truth_table(output_bit=0)), '1110')
-
     def test_or_2bit(self):
         function = BoolFunction(examples.bit_or_2bit)
         function.simulate_all()
@@ -416,15 +379,6 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
                 tmp = BitVec(2, a) | BitVec(2, b)
                 self.assertEqual(result, tmp)
 
-    def test_xor_str(self):
-        function = BoolFunction.from_expression("x ^ b")
-        function.simulate_all()
-        self.assertEqual(function.num_inputs(), 2)
-        self.assertEqual(function.num_outputs(), 1)
-        self.assertEqual(function.num_input_bits(), 2)
-        self.assertEqual(function.num_output_bits(), 1)
-        self.assertEqual(str(function.truth_table(output_bit=0)), '0110')
-
     def test_xor_2bit(self):
         function = BoolFunction(examples.bit_xor_2bit)
         function.simulate_all()
@@ -441,3 +395,186 @@ class TestBoolFunctionFullSimulation(unittest.TestCase):
                 result = function.simulate(BitVec(2, a), BitVec(2, b))
                 tmp = BitVec(2, a) ^ BitVec(2, b)
                 self.assertEqual(result, tmp)
+
+class TestBoolFunctionExpressionConstructor(unittest.TestCase):
+    def test_identity(self):
+        function = BoolFunction.from_expression("x")
+        function.simulate_all()
+        self.assertEqual(function.num_inputs(), 1)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 1)
+        self.assertEqual(function.num_output_bits(), 1)
+        self.assertEqual(str(function.truth_table(output_bit=0)), '10')
+
+    def test_not(self):
+        function = BoolFunction.from_expression("~x")
+        function.simulate_all()
+        self.assertEqual(function.num_inputs(), 1)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 1)
+        self.assertEqual(function.num_output_bits(), 1)
+        self.assertEqual(str(function.truth_table(output_bit=0)), '01')
+
+    def test_and(self):
+        function = BoolFunction.from_expression("x & b")
+        function.simulate_all()
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 1)
+        self.assertEqual(str(function.truth_table(output_bit=0)), '1000')
+
+    def test_or(self):
+        function = BoolFunction.from_expression("x | b")
+        function.simulate_all()
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 1)
+        self.assertEqual(str(function.truth_table(output_bit=0)), '1110')
+
+    def test_xor(self):
+        function = BoolFunction.from_expression("x ^ b")
+        function.simulate_all()
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 1)
+        self.assertEqual(str(function.truth_table(output_bit=0)), '0110')
+
+    def test_de_morgan(self):
+        function = BoolFunction.from_expression("~(~(x0 | x1) ^ (~x0 & ~x1))")
+        function.simulate_all()
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 1)
+        self.assertEqual(str(function.truth_table(output_bit=0)), '1111')
+
+class TestBoolFunctionTTConstructor(unittest.TestCase):
+    def test_identity(self):
+        function = BoolFunction.from_truth_table('10')
+        self.assertEqual(function.num_inputs(), 1)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 1)
+        self.assertEqual(function.num_output_bits(), 1)
+        result = function.simulate(BitVec(1, '0'))
+        self.assertEqual(result, BitVec(1, '0'))
+        result = function.simulate(BitVec(1, '1'))
+        self.assertEqual(result, BitVec(1, '1'))
+
+    def test_identity_2bit(self):
+        function = BoolFunction.from_truth_table(['1010', '1100'])
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 2)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 2)
+        for a in range(4):
+            tmp = BitVec(2, a)
+            result = function.simulate(tmp[0], tmp[1])
+            self.assertEqual(result, (tmp[0], tmp[1]))
+
+    def test_not(self):
+        function = BoolFunction.from_truth_table('01')
+        self.assertEqual(function.num_inputs(), 1)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 1)
+        self.assertEqual(function.num_output_bits(), 1)
+        for a in range(2):
+            tmp = BitVec(1, a)
+            result = function.simulate(tmp)
+            self.assertEqual(result, ~tmp)
+
+    def test_not_2bit(self):
+        function = BoolFunction.from_truth_table(['0101', '0011'])
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 2)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 2)
+        for a in range(4):
+            tmp = BitVec(2, a)
+            result = function.simulate(tmp[0], tmp[1])
+            self.assertEqual(result, (~tmp[0], ~tmp[1]))
+
+    def test_and(self):
+        function = BoolFunction.from_truth_table('1000')
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 1)
+        for a in range(2):
+            for b in range(2):
+                result = function.simulate(BitVec(1, a), BitVec(1, b))
+                tmp = BitVec(1, a) and BitVec(1, b)
+                self.assertEqual(result, tmp)
+
+    def test_and_2bit(self):
+        function = BoolFunction.from_truth_table(['1010000010100000', 
+                                                  '1100110000000000'])
+        self.assertEqual(function.num_inputs(), 4)
+        self.assertEqual(function.num_outputs(), 2)
+        self.assertEqual(function.num_input_bits(), 4)
+        self.assertEqual(function.num_output_bits(), 2)
+        for a in range(4):
+            for b in range(4):
+                a_bv = BitVec(2, a)
+                b_bv = BitVec(2, b)
+                result = function.simulate(a_bv[0], a_bv[1], b_bv[0], b_bv[1])
+                tmp = a_bv & b_bv
+                self.assertEqual(result, (tmp[0], tmp[1]))
+
+    def test_or(self):
+        function = BoolFunction(examples.bool_and)
+        function = BoolFunction.from_truth_table('1110')
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 1)
+        for a in range(2):
+            for b in range(2):
+                result = function.simulate(BitVec(1, a), BitVec(1, b))
+                tmp = BitVec(1, a) or BitVec(1, b)
+                self.assertEqual(result, tmp)
+
+    def test_or_2bit(self):
+        function = BoolFunction.from_truth_table(['1111101011111010', 
+                                                  '1111111111001100'])
+        self.assertEqual(function.num_inputs(), 4)
+        self.assertEqual(function.num_outputs(), 2)
+        self.assertEqual(function.num_input_bits(), 4)
+        self.assertEqual(function.num_output_bits(), 2)
+        for a in range(4):
+            for b in range(4):
+                a_bv = BitVec(2, a)
+                b_bv = BitVec(2, b)
+                result = function.simulate(a_bv[0], a_bv[1], b_bv[0], b_bv[1])
+                tmp = a_bv | b_bv
+                self.assertEqual(result, (tmp[0], tmp[1]))
+
+    def test_xor(self):
+        function = BoolFunction(examples.bool_and)
+        function = BoolFunction.from_truth_table('0110')
+        self.assertEqual(function.num_inputs(), 2)
+        self.assertEqual(function.num_outputs(), 1)
+        self.assertEqual(function.num_input_bits(), 2)
+        self.assertEqual(function.num_output_bits(), 1)
+        for a in range(2):
+            for b in range(2):
+                result = function.simulate(BitVec(1, a), BitVec(1, b))
+                tmp = BitVec(1, a) ^ BitVec(1, b)
+                self.assertEqual(result, tmp)
+
+    def test_xor_2bit(self):
+        function = BoolFunction.from_truth_table(['0101101001011010', 
+                                                  '0011001111001100'])
+        self.assertEqual(function.num_inputs(), 4)
+        self.assertEqual(function.num_outputs(), 2)
+        self.assertEqual(function.num_input_bits(), 4)
+        self.assertEqual(function.num_output_bits(), 2)
+        for a in range(4):
+            for b in range(4):
+                a_bv = BitVec(2, a)
+                b_bv = BitVec(2, b)
+                result = function.simulate(a_bv[0], a_bv[1], b_bv[0], b_bv[1])
+                tmp = a_bv ^ b_bv
+                self.assertEqual(result, (tmp[0], tmp[1]))
