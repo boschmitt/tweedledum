@@ -32,9 +32,9 @@
 
 #pragma once
 
-#include <lorina/common.hpp>
-#include <lorina/diagnostics.hpp>
-#include <lorina/detail/utils.hpp>
+#include "common.hpp"
+#include "diagnostics.hpp"
+#include "detail/utils.hpp"
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -51,6 +51,15 @@ namespace lorina
 class dimacs_reader
 {
 public:
+  /*! \brief Callback method for parsed format.
+   *
+   * \param format The format (cnf or dnf)
+   */
+  virtual void on_format( const std::string& format ) const
+  {
+    (void)format;
+  }
+
   /*! \brief Callback method for parsed number of variables.
    *
    * \param number_of_variables Number of variables
@@ -69,11 +78,6 @@ public:
     (void)number_of_clauses;
   }
 
-  /*! \brief Callback method for parsed end.
-   *
-   */
-  virtual void on_end() const {}
-
   /*! \brief Callback method for parsed clause.
    *
    * \param clause A clause of a logic function
@@ -82,11 +86,17 @@ public:
   {
     (void)clause;
   }
+
+  /*! \brief Callback method for parse end.
+   *
+   */
+  virtual void on_end() const {}
+
 }; /* dimacs_reader */
 
 namespace dimacs_regex
 {
-static std::regex problem_spec( R"(^p\s+cnf\s+([0-9]+)\s+([0-9]+)$)" );
+static std::regex problem_spec( R"(^p\s+([cd]nf)\s+([0-9]+)\s+([0-9]+)$)" );
 static std::regex clause( R"(((-?[1-9]+)+ +)+0)" );
 
 } // namespace dimacs_regex
@@ -99,7 +109,7 @@ static std::regex clause( R"(((-?[1-9]+)+ +)+0)" );
  * \param in Input stream
  * \param reader A DIMACS reader with callback methods invoked for parsed primitives
  * \param diag An optional diagnostic engine with callback methods for parse errors
- * \return Success if parsing have been successful, or parse error if parsing have failed
+ * \return Success if parsing has been successful, or parse error if parsing has failed
  */
 inline return_code read_dimacs( std::istream& in, const dimacs_reader& reader, diagnostic_engine* diag = nullptr )
 {
@@ -117,45 +127,54 @@ inline return_code read_dimacs( std::istream& in, const dimacs_reader& reader, d
 
     if ( std::regex_search( line, m, dimacs_regex::problem_spec ) )
     {
-      reader.on_number_of_variables( std::atol( std::string( m[1] ).c_str() ) );
-      reader.on_number_of_clauses( std::atol( std::string( m[2] ).c_str() ) );
+      reader.on_format( std::string( m[1] ) );
+      reader.on_number_of_variables( std::atol( std::string( m[2] ).c_str() ) );
+      reader.on_number_of_clauses( std::atol( std::string( m[3] ).c_str() ) );
       found_spec = true;
       return true;
     }
 
-    if ( std::regex_search( line, m, dimacs_regex::clause ) )
+    if ( found_spec == false ) 
     {
-      if ( found_spec == false ) 
-      {
-        if ( diag )
-          diag->report( diagnostic_level::error,
-                        fmt::format( "Missing problem specification line\n" ) );
-        ++errors;
-        return false;
-      }
-      std::stringstream ss( m[0].str() );
-      std::string lit_str;
-      std::vector<int> clause;
-      while ( std::getline( ss, lit_str, ' ' ) ) {
-          int lit = std::atol( lit_str.c_str() );
-          if ( lit != 0 ) {
-            clause.push_back( lit );
-          }
-      }
-      reader.on_clause( clause );
-      return true;
+      if ( diag )
+        diag->report( diagnostic_level::error,
+                      fmt::format( "Missing problem specification line\n" ) );
+      ++errors;
+      return false;
     }
 
-    if ( diag )
-      diag->report( diagnostic_level::error,
-                    fmt::format( "Could not understand line line\n"
-                                 "in line {0}: `{1}`",
-                                 loc, line, std::string( m[1] ) ) );
-    ++errors;
-    return false;
-  } );
+    auto clauses_begin = std::sregex_iterator(line.begin(), line.end(), dimacs_regex::clause);
+    auto clauses_end = std::sregex_iterator();
 
-  reader.on_end();
+    if ( std::distance( clauses_begin, clauses_end ) == 0u )
+    {
+      if ( diag )
+      {
+        diag->report( diagnostic_level::error,
+                      fmt::format( "Could not understand line line\n"
+                                  "in line {0}: `{1}`",
+                                  loc, line, std::string( m[1] ) ) );
+      }
+      ++errors;
+      return false;
+    }
+
+    for ( std::sregex_iterator i = clauses_begin; i != clauses_end; ++i ) 
+    {
+        std::smatch match = *i;
+        std::stringstream ss( match[0].str() );
+        std::string lit_str;
+        std::vector<int> clause;
+        while ( std::getline( ss, lit_str, ' ' ) ) {
+            int lit = std::atol( lit_str.c_str() );
+            if ( lit != 0 ) {
+              clause.push_back( lit );
+            }
+        }
+        reader.on_clause( clause );
+    } 
+    return true;
+  } );
 
   if ( errors > 0 )
   {
@@ -163,6 +182,7 @@ inline return_code read_dimacs( std::istream& in, const dimacs_reader& reader, d
   }
   else
   {
+    reader.on_end();
     return return_code::success;
   }
 }
@@ -175,12 +195,26 @@ inline return_code read_dimacs( std::istream& in, const dimacs_reader& reader, d
  * \param filename Name of the file
  * \param reader A DIMACS reader with callback methods invoked for parsed primitives
  * \param diag An optional diagnostic engine with callback methods for parse errors
- * \return Success if parsing have been successful, or parse error if parsing have failed
+ * \return Success if parsing has been successful, or parse error if parsing has failed
  */
 inline return_code read_dimacs( const std::string& filename, const dimacs_reader& reader, diagnostic_engine* diag = nullptr )
 {
   std::ifstream in( detail::word_exp_filename( filename ), std::ifstream::in );
-  return read_dimacs( in, reader, diag );
+  if ( !in.is_open() )
+  {
+    if ( diag )
+    {
+      diag->report( diagnostic_level::fatal,
+                    fmt::format( "could not open file `{0}`", filename ) );
+    }
+    return return_code::parse_error;
+  }
+  else
+  {
+    auto const ret = read_dimacs( in, reader, diag );
+    in.close();
+    return ret;
+  }
 }
 
 } // namespace lorina
