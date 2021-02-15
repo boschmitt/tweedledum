@@ -2,6 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include "tweedledum/Operators/Extension/TruthTable.h"
 #include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Passes/Synthesis/pkrm_synth.h"
 #include "tweedledum/Utils/Classical/xag_simulate.h"
@@ -92,6 +93,16 @@ Circuit pkrm_synth(kitty::dynamic_truth_table const& function, nlohmann::json co
     }
     synthesize(circuit, wires, function, cfg);
     return circuit;
+}
+
+void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+    Instruction const& inst, nlohmann::json const& config)
+{
+    if (!inst.is_a<Op::TruthTable>()) {
+        return;
+    }
+    auto tt = inst.cast<Op::TruthTable>();
+    pkrm_synth(circuit, qubits, tt.truth_table(), config);
 }
 
 void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
