@@ -56,6 +56,8 @@ jobs:
     - name: Build wheel for Linux
       if: startsWith(matrix.os, 'ubuntu')
       env:
+          CC: clang
+          CXX: clang++
           CIBW_SKIP: pp27-* cp27-* cp35-*
       run: |
         python -m cibuildwheel --output-dir wheelhouse
