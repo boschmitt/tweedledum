@@ -6,7 +6,6 @@ if (NOT TARGET abcresub)
 endif()
 
 if (NOT TARGET libabcesop)
-  set(STATIC_LIBABC true)
   add_subdirectory(abcesop)
 endif()
 
