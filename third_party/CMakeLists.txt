@@ -6,9 +6,7 @@ if (NOT TARGET abcresub)
 endif()
 
 if (NOT TARGET libabcesop)
-  if (WIN32)
-    set(STATIC_LIBABC true)
-  endif()
+  set(STATIC_LIBABC true)
   add_subdirectory(abcesop)
 endif()
 
