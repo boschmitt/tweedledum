@@ -15,7 +15,7 @@ except ImportError:
 
 setup(
     name="tweedledum",
-    version="1.0b0",
+    version="1.0.0-beta0",
     description="A library for synthesizing and manipulating quantum circuits",
     url="https://github.com/boschmitt/tweedledum",
     author='Bruno Schmitt',
