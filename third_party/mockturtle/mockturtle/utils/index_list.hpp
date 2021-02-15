@@ -72,25 +72,23 @@ public:
     }
   }
 
-  explicit abc_index_list( std::vector<element_type> const& values )
+  explicit abc_index_list( std::vector<element_type> const& values, uint32_t num_pis )
     : values( std::begin( values ), std::end( values ) )
   {
-    /* parse the values to determine the number of inputs and outputs */
-    auto i = 2u;
-    for ( ; ( i+1 ) < values.size(); i+=2 )
+    /* The number of primary inputs has to be passed as a parameter
+       because constant outputs cannot be distinguished from primary
+       inputs, e.g.,
+
+         0 0 | 0 0 0 0 0 0 | 0 0 77
+
+       could be either read as 3 PIs and 2 POs (the first is a
+       constant 0) or 4 PIs and 1 POs.
+    */
+    _num_pis = num_pis;
+
+    /* parse the values to determine the number of outputs */
+    for ( auto i = ( num_pis + 1 ) << 1; ( i+1 ) < values.size(); i += 2 )
     {
-      if ( values.at( i ) == 0 && values.at( i + 1 ) == 0 )
-      {
-        ++_num_pis;
-      }
-      else
-      {
-        break;
-      }
-    }
-    for ( ; ( i+1 ) < values.size(); i+=2 )
-    {
-      // assert( !( values.at( i ) == 0 && values.at( i + 1 ) == 0 ) );
       if ( values.at( i ) == values.at( i+1 ) )
       {
         ++_num_pos;
@@ -351,7 +349,7 @@ inline std::string to_index_list_string( abc_index_list const& indices )
  *
  * Example: The following index list creates the output function
  * `<<x1, x2, x3>, x2, x4>` with 4 inputs, 1 output, and 3 gates:
- * `{4 | 1 << 8 | 2 << 16, 2, 4, 6, 4, 8, 10, 12}`
+ * `{4 | 1 << 8 | 3 << 16, 2, 4, 6, 4, 8, 10, 12}`
  */
 struct mig_index_list
 {

@@ -38,7 +38,7 @@
 namespace mockturtle
 {
 
-/*! \brief Lorina reader callback for PLA files.
+/*! \brief Lorina reader callback for DIMACS files.
  *
  * **Required network functions:**
  * - `create_pi`
