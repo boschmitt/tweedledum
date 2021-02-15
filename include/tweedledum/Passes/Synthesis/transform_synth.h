@@ -34,7 +34,7 @@
 // 
 namespace tweedledum {
 
-/*! \brief Reversible synthesis based on functional decomposition.
+/*! \brief Reversible synthesis based on symbolic transformation.
  *
  * This is the in-place variant of ``transform_synth`` in which the circuit is
  * passed as a parameter and can potentially already contain some gates.  The
@@ -49,7 +49,7 @@ namespace tweedledum {
 void transform_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
     std::vector<uint32_t> const& perm);
 
-/*! \brief Reversible synthesis based on functional decomposition.
+/*! \brief Reversible synthesis based on symbolic transformation.
  *
  * A permutation is specified as a vector of :math:`2^n` different integers
  * ranging from :math:`0` to :math:`2^n-1`.

@@ -33,9 +33,9 @@ jobs:
       working-directory: build
       run: make -j2 run_tests
 
-    - name: Build libPyTweedledum
+    - name: Build python lib
       working-directory: build
-      run: make -j2 libPyTweedledum
+      run: make -j2 _tweedledum
 
     - name: Run tests
       working-directory: build

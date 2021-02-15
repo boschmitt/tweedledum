@@ -6,7 +6,9 @@ if (NOT TARGET abcresub)
 endif()
 
 if (NOT TARGET libabcesop)
-  set(STATIC_LIBABC true)
+  if (WIN32)
+    set(STATIC_LIBABC true)
+  endif()
   add_subdirectory(abcesop)
 endif()
 
@@ -60,7 +62,7 @@ if (NOT TARGET rang)
   target_include_directories(rang SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/rang)
 endif()
 
-# lorina master branch: Nov.2020
+# lorina master branch: Feb.2021
 if (NOT TARGET lorina)
   add_library(lorina INTERFACE)
   target_include_directories(lorina SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/lorina)
