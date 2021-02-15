@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        gcc: [9, 10]
+        gcc: [8, 9, 10]
 
     steps:
     - uses: actions/checkout@v2
