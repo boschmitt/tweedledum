@@ -42,7 +42,6 @@ class BoolFunction(object):
         parsed_function = FunctionParser(inspect.getsource(f).strip())
         self._parameters_signature = parsed_function._parameters_signature
         self._return_signature = parsed_function._return_signature
-        self._symbol_table = parsed_function._symbol_table
         self._logic_network = parsed_function._logic_network
         self._truth_table = None
         self._num_input_bits = self._logic_network.num_pis()
@@ -144,7 +143,6 @@ class BoolFunction(object):
         parsed_expression = ExpressionParser(expression)
         function._parameters_signature = parsed_expression._parameters_signature
         function._return_signature = parsed_expression._return_signature
-        function._symbol_table = parsed_expression._symbol_table
         function._logic_network = parsed_expression._logic_network
         function._truth_table = None
         function._num_input_bits = len(function._parameters_signature)
@@ -247,6 +245,7 @@ class BoolFunction(object):
         """
         function = cls.__new__(cls)
         function._logic_network = classical.read_aiger(path)
+        function._truth_table = None
         n_inputs = function._logic_network.num_pis()
         n_outputs = function._logic_network.num_pos()
         function._parameters_signature = [(type(BitVec(1)), 1)] * n_inputs
@@ -277,6 +276,7 @@ class BoolFunction(object):
         """
         function = cls.__new__(cls)
         function._logic_network = classical.read_dimacs(path)
+        function._truth_table = None
         n_inputs = function._logic_network.num_pis()
         n_outputs = function._logic_network.num_pos()
         function._parameters_signature = [(type(BitVec(1)), 1)] * n_inputs
@@ -304,6 +304,7 @@ class BoolFunction(object):
         """
         function = cls.__new__(cls)
         function._logic_network = classical.read_verilog(path)
+        function._truth_table = None
         n_inputs = function._logic_network.num_pis()
         n_outputs = function._logic_network.num_pos()
         function._parameters_signature = [(type(BitVec(1)), 1)] * n_inputs
