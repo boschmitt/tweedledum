@@ -14,4 +14,6 @@ MODULE
     passes/passes.cpp
 )
 target_link_libraries(_tweedledum PRIVATE tweedledum)
-install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
+if(SKBUILD)
+    install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
+endif()

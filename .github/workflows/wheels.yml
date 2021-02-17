@@ -60,7 +60,7 @@ jobs:
         env:
           CIBW_BUILD: cp39-*
           CIBW_ARCHS_MACOS: arm64
-          CIBW_ENVIRONMENT: CMAKE_BUILD_PARALLEL_LEVEL=2 CMAKE_OSX_ARCHITECTURES="arm64" 
+          CIBW_ENVIRONMENT: "CMAKE_BUILD_PARALLEL_LEVEL=2 CMAKE_OSX_ARCHITECTURES='arm64'"
           MACOSX_DEPLOYMENT_TARGET: '10.15'
 
       - uses: actions/upload-artifact@v2
@@ -88,7 +88,7 @@ jobs:
         env:
           CC: cl.exe
           CXX: cl.exe
-          CIBW_BUILD: '*-win32'
+          CIBW_BUILD: cp*-win32
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
       - uses: actions/upload-artifact@v2
