@@ -1,0 +1,26 @@
+name: Wheels
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build wheels
+        uses: joerick/cibuildwheel@v1.9.0
+        env:
+          CIBW_SKIP: pp27-* cp27-* cp35-*
+          CIBW_ARCHS_MACOS: x86_64 universal2
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
