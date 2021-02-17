@@ -40,7 +40,7 @@ jobs:
 
   build_wheels_macos_arm64:
     name: Build wheels on macos-latest (arm64)
-    runs-on: macos-latest
+    runs-on: macos-10.15
 
     steps:
       - uses: actions/checkout@v2
@@ -61,7 +61,6 @@ jobs:
           CIBW_BUILD: cp39-*
           CIBW_ARCHS_MACOS: arm64
           CIBW_ENVIRONMENT: "CMAKE_BUILD_PARALLEL_LEVEL=2 CMAKE_OSX_ARCHITECTURES='arm64'"
-          MACOSX_DEPLOYMENT_TARGET: '10.15'
 
       - uses: actions/upload-artifact@v2
         with:
