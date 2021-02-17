@@ -30,7 +30,7 @@ jobs:
         uses: joerick/cibuildwheel@v1.9.0
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
-          CIBW_ARCHS_MACOS: x86_64 universal2
+          CIBW_ARCHS_MACOS: x86_64 arm64
           MACOSX_DEPLOYMENT_TARGET: '10.15'
 
       - uses: actions/upload-artifact@v2
