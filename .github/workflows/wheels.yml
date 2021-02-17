@@ -15,10 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/setup-python@v2
+      name: Install Python
+      with:
+        python-version: '3.7'
+
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         env:
-          CIBW_SKIP: pp27-* cp27-* cp35-*
+          CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64 universal2
 
       - uses: actions/upload-artifact@v2
