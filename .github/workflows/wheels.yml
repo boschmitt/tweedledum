@@ -87,7 +87,7 @@ jobs:
         env:
           CC: cl.exe
           CXX: cl.exe
-          CIBW_BUILD: *win32
+          CIBW_BUILD: '*win32'
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
       - uses: actions/upload-artifact@v2
