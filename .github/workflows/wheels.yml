@@ -63,6 +63,8 @@ jobs:
           CIBW_ENVIRONMENT: CMAKE_BUILD_PARALLEL_LEVEL=2 CMAKE_OSX_ARCHITECTURES='arm64' 
 
       - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
 
   build_wheels_win32:
     name: Build wheels on windows-latest (Win32)
@@ -79,13 +81,12 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1.5.0
         with:
             arch: x86
-        env:
-            CC: cl.exe
-            CXX: cl.exe
 
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         env:
+          CC: cl.exe
+          CXX: cl.exe
           CIBW_BUILD: *win32
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
