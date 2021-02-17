@@ -65,7 +65,7 @@ jobs:
       - uses: actions/upload-artifact@v2
 
   build_wheels_win32:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on windows-latest (Win32)
     runs-on: windows-latest
 
     steps:
