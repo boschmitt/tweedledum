@@ -20,7 +20,7 @@ jobs:
 
       - name: Build sdist
         run: |
-          python -m build --sdist --outdir wheelhouse
+          python setup.py sdist --dist-dir=wheelhouse
 
       - name: Upload built sdist
         uses: actions/upload-artifact@v2
@@ -64,7 +64,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build_wheels_win32:
-    name:  Wheels • win32
+    name: Wheels • win32
     runs-on: windows-latest
 
     steps:
