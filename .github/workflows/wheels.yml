@@ -5,22 +5,46 @@ on:
     branches: [master]
 
 jobs:
+  build_sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Build sdist
+        run: |
+          python -m build --sdist --outdir wheelhouse
+
+      - name: Upload built sdist
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.tar.gz
+
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Wheels • ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
-        name: Install Python
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
           python-version: '3.7'
 
-      - uses: ilammy/msvc-dev-cmd@v1.5.0
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1.5.0
         if: runner.os == 'Windows'
         env:
             CC: cl.exe
@@ -34,56 +58,30 @@ jobs:
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: '10.15'
 
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
-
-  build_wheels_macos_arm64:
-    name: Build wheels on macos-latest (arm64)
-    runs-on: macos-10.15
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/setup-python@v2
-        name: Install Python
-        with:
-          python-version: '3.9'
-
-      - name: Setup CMake
-        uses: jwlawson/actions-setup-cmake@v1.7
-        with:
-          cmake-version: 3.19.5
-
-      - name: Build wheels
-        uses: joerick/cibuildwheel@v1.9.0
-        env:
-          CIBW_BUILD: cp39-*
-          CIBW_ARCHS_MACOS: arm64
-          CIBW_ENVIRONMENT: "CMAKE_BUILD_PARALLEL_LEVEL=2 CMAKE_OSX_ARCHITECTURES='arm64'"
-          MACOSX_DEPLOYMENT_TARGET: '10.15'
-
-      - uses: actions/upload-artifact@v2
+      - name: Upload built wheels
+        uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
 
   build_wheels_win32:
-    name: Build wheels on windows-latest (Win32)
+    name:  Wheels • win32
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - uses: actions/setup-python@v2
-        name: Install Python
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
           python-version: '3.7'
 
-      - uses: ilammy/msvc-dev-cmd@v1.5.0
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1.5.0
         with:
             arch: x86
 
-      - name: Build wheels
+      - name: Build wheel
         uses: joerick/cibuildwheel@v1.9.0
         env:
           CC: cl.exe
@@ -91,6 +89,7 @@ jobs:
           CIBW_BUILD: cp*-win32
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
-      - uses: actions/upload-artifact@v2
+      - name: Upload built wheel 
+        uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
