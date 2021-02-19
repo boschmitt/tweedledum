@@ -116,9 +116,9 @@ TEST_SUBMODULE(copy_move_policies, m) {
         r += py::cast<MoveOrCopyInt>(o).value; /* moves */
         r += py::cast<MoveOnlyInt>(o).value; /* moves */
         r += py::cast<CopyOnlyInt>(o).value; /* copies */
-        MoveOrCopyInt m1(py::cast<MoveOrCopyInt>(o)); /* moves */
-        MoveOnlyInt m2(py::cast<MoveOnlyInt>(o)); /* moves */
-        CopyOnlyInt m3(py::cast<CopyOnlyInt>(o)); /* copies */
+        auto m1(py::cast<MoveOrCopyInt>(o)); /* moves */
+        auto m2(py::cast<MoveOnlyInt>(o)); /* moves */
+        auto m3(py::cast<CopyOnlyInt>(o)); /* copies */
         r += m1.value + m2.value + m3.value;
 
         return r;
@@ -214,6 +214,7 @@ TEST_SUBMODULE(copy_move_policies, m) {
     };
     py::class_<MoveIssue2>(m, "MoveIssue2").def(py::init<int>()).def_readwrite("value", &MoveIssue2::v);
 
-    m.def("get_moveissue1", [](int i) { return new MoveIssue1(i); }, py::return_value_policy::move);
+    // #2742: Don't expect ownership of raw pointer to `new`ed object to be transferred with `py::return_value_policy::move`
+    m.def("get_moveissue1", [](int i) { return std::unique_ptr<MoveIssue1>(new MoveIssue1(i)); }, py::return_value_policy::move);
     m.def("get_moveissue2", [](int i) { return MoveIssue2(i); }, py::return_value_policy::move);
 }

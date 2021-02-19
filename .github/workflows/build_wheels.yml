@@ -6,72 +6,95 @@ on:
       - published
 
 jobs:
+  build_sdist:
+    name: Source distribution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade scikit-build
+
+      - name: Build sdist
+        run: |
+          python setup.py sdist --dist-dir=wheelhouse
+
+      - name: Upload built sdist
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.tar.gz
+
   build_wheels:
-    name: Build wheel on ${{ matrix.os }}
-    env:
-      CIBW_BEFORE_BUILD: python -m pip install --upgrade cmake ninja scikit-build
+    name: Wheels • ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-18.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v2
-      name: Install Python
-      with:
-        python-version: '3.8'
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade cibuildwheel scikit-build
-   
-    - uses: ilammy/msvc-dev-cmd@v1.5.0
-      if: startsWith(matrix.os, 'windows')
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1.5.0
+        if: runner.os == 'Windows'
+        env:
+            CC: cl.exe
+            CXX: cl.exe
 
-    - name: Build wheel for Windows 64
-      if: startsWith(matrix.os, 'windows')
-      env:
-          CC: cl.exe
-          CXX: cl.exe
-          CIBW_SKIP: pp27-* cp27-* cp35-* *-win32
-      run: |
-        python -m cibuildwheel --output-dir wheelhouse
-
-    - uses: ilammy/msvc-dev-cmd@v1.5.0
-      if: startsWith(matrix.os, 'windows')
-      with:
-          arch: x86
-
-    - name: Build wheel for Windows 32
-      if: startsWith(matrix.os, 'windows')
-      env:
-          CC: cl.exe
-          CXX: cl.exe
-          CIBW_SKIP: pp27-* cp27-* cp35-* *-win_amd64
-      run: |
-        python -m cibuildwheel --output-dir wheelhouse
-
-    - name: Build wheel for Linux
-      if: startsWith(matrix.os, 'ubuntu')
-      env:
-          CC: clang
-          CXX: clang++
-          CIBW_SKIP: pp27-* cp27-* cp35-*
-      run: |
-        python -m cibuildwheel --output-dir wheelhouse
-        python setup.py sdist --dist-dir=wheelhouse
-
-    - name: Build wheel for MacOS 
-      if: startsWith(matrix.os, 'macos')
-      env:
-          CIBW_SKIP: pp27-* cp27-* cp35-*
+      - name: Build wheels
+        uses: joerick/cibuildwheel@v1.9.0
+        env:
+          CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
+          CIBW_ARCHS_MACOS: x86_64
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: '10.15'
-      run: |
-        python -m cibuildwheel --output-dir wheelhouse
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: wheels
-        path: wheelhouse
+      - name: Upload built wheels
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_wheels_win32:
+    name: Wheels • win32
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1.5.0
+        with:
+            arch: x86
+
+      - name: Build wheel
+        uses: joerick/cibuildwheel@v1.9.0
+        env:
+          CC: cl.exe
+          CXX: cl.exe
+          CIBW_BUILD: cp*-win32
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+
+      - name: Upload built wheel 
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
