@@ -3,6 +3,7 @@
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
 import sys
+import setuptools
 
 try:
     from skbuild import setup
@@ -15,14 +16,14 @@ except ImportError:
 
 setup(
     name="tweedledum",
-    version="1.0.0-beta0",
+    version="1.0.0-beta1",
     description="A library for synthesizing and manipulating quantum circuits",
     url="https://github.com/boschmitt/tweedledum",
     author='Bruno Schmitt',
     author_email='bruno.schmitt@epfl.ch',
     license="MIT",
     package_dir={'': 'python'},
-    packages=['tweedledum'],
+    packages=setuptools.find_packages(where='python'),
     include_package_data=True,
     zip_safe=False,
     python_requires=">=3.6",
