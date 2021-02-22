@@ -30,6 +30,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/spectrum_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/transform_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/xag_synth.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Target/Device.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Utils/Angle.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Utils/BMatrix.cpp"
 )

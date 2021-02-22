@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
@@ -107,7 +108,7 @@ public:
     bool are_connected(uint32_t const v, uint32_t const u) const
     {
         assert(v <= num_qubits() && u <= num_qubits());
-        if (!dist_matrix_.empty()) {
+        if (!shortest_path_.empty()) {
             return distance(v, u) == 1u;
         }
         edge_type const edge = {std::min(v, u), std::max(u, v)};
@@ -118,13 +119,30 @@ public:
         return true;
     }
 
-    uint32_t distance(uint32_t const v, uint32_t const u) const
+    std::vector<uint32_t> shortest_path(uint32_t v, uint32_t u) const
     {
         assert(v < num_qubits() && u < num_qubits());
-        if (dist_matrix_.empty()) {
-            compute_distance_matrix();
+        if (v == u) {
+            return {};
         }
-        return dist_matrix_[v][u];
+        if (shortest_path_.empty()) {
+            compute_shortest_paths();
+        }
+        uint32_t const idx = triangle_idx(v, u);
+        return shortest_path_.at(idx);
+    }
+
+    uint32_t distance(uint32_t v, uint32_t u) const
+    {
+        assert(v < num_qubits() && u < num_qubits());
+        if (v == u) {
+            return 0;
+        }
+        if (shortest_path_.empty()) {
+            compute_shortest_paths();
+        }
+        uint32_t const idx = triangle_idx(v, u);
+        return shortest_path_.at(idx).size();
     }
 
     /*! \brief Add an _undirected_ edge between two qubits */
@@ -140,31 +158,64 @@ public:
 #pragma endregion
 
 private:
-    void compute_distance_matrix() const;
+    void compute_shortest_paths() const;
+
+    uint32_t triangle_idx(uint32_t i, uint32_t j) const
+    {
+        if (i > j) {
+            std::swap(i, j);
+        }
+        return i * num_qubits() - (i - 1) * i / 2 + j - i;
+    }
 
 private:
     std::string name_;
     std::vector<std::vector<uint32_t>> neighbors_;
     std::vector<edge_type> edges_;
     mutable std::vector<std::vector<uint32_t>> dist_matrix_;
+    mutable std::vector<std::vector<uint32_t>> shortest_path_;
 };
 
-inline void Device::compute_distance_matrix() const
+inline void Device::compute_shortest_paths() const
 {
-    dist_matrix_.resize(num_qubits(), std::vector<uint32_t>(num_qubits(), num_qubits() + 1));
-    for (uint32_t v = 0u; v < num_qubits(); ++v) {
-        dist_matrix_[v][v] = 0;
+    Eigen::MatrixXi shortest_paths(num_qubits(), num_qubits());
+    Eigen::MatrixXi dist(num_qubits(), num_qubits());
+
+    // All-pairs shortest paths
+    for (uint32_t i = 0; i < num_qubits(); i++) {
+        for (uint32_t j = 0; j < num_qubits(); j++) {
+            if (i == j) {
+                dist(i ,j) = 0;
+                shortest_paths(i, j) = j;
+            } else if (are_connected(i, j)) {
+                dist(i, j) = 1;
+                shortest_paths(i, j) = j;
+            } else {
+                dist(i, j) = num_qubits();
+                shortest_paths(i, j) = num_qubits();
+            }
+        }
     }
-    for (auto const& [v, w] : edges_) {
-        dist_matrix_[v][w] = 1;
-        dist_matrix_[w][v] = 1;
-    }
+
     for (uint32_t k = 0u; k < num_qubits(); ++k) {
         for (uint32_t i = 0u; i < num_qubits(); ++i) {
             for (uint32_t j = 0u; j < num_qubits(); ++j) {
-                if (dist_matrix_[i][j] > dist_matrix_[i][k] + dist_matrix_[k][j]) {
-                    dist_matrix_[i][j] = dist_matrix_[i][k] + dist_matrix_[k][j];
+                if (dist(i, j) > dist(i, k) + dist(k, j)) {
+                    dist(i, j) = dist(i, k) + dist(k, j);
+                    shortest_paths(i, j) = shortest_paths(i, k);
                 }
+            }
+        }
+    }
+
+    shortest_path_.resize(num_qubits() * (num_qubits() + 1) / 2);
+    for (uint32_t i = 0u; i < num_qubits(); ++i) {
+        for (uint32_t j = i + 1; j < num_qubits(); ++j) {
+            uint32_t const idx = triangle_idx(j, i);
+            uint32_t current = i;
+            while (current != j) {
+                current = shortest_paths(current, j);
+                shortest_path_.at(idx).push_back(current);
             }
         }
     }
