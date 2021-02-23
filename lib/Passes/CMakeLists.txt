@@ -21,5 +21,6 @@ target_sources(tweedledum PUBLIC
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/pkrm_synth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/pprm_synth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/spectrum_synth.cpp
+    ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/steiner_gauss_synth.cpp
     ${TWEEDLEDUM_LIB_DIR}/Passes/Synthesis/transform_synth.cpp
 )

@@ -28,6 +28,7 @@ set(tweedledum_tests_files
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/pkrm_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/pprm_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/spectrum_synth.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/steiner_gauss_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/transform_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/xag_synth.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Target/Device.cpp"
