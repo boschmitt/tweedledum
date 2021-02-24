@@ -12,6 +12,9 @@ void init_std_operators(pybind11::module& module)
     py::class_<Op::H>(module, "H")
         .def(py::init<>());
 
+    py::class_<Op::Measure>(module, "Measure")
+        .def(py::init<>());
+
     py::class_<Op::P>(module, "P")
         .def(py::init<double const>());
 
