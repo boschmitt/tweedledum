@@ -55,6 +55,12 @@ jobs:
             CC: cl.exe
             CXX: cl.exe
 
+      - name: Configure GCC
+        if: runner.os == 'Linux'
+        env:
+            CC: gcc-10
+            CXX: g++-10
+
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         env:
