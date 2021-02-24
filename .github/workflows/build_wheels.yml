@@ -55,17 +55,12 @@ jobs:
             CC: cl.exe
             CXX: cl.exe
 
-      - name: Configure GCC
-        if: runner.os == 'Linux'
-        env:
-            CC: gcc-10
-            CXX: g++-10
-
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
+          CIBW_ENVIRONMENT_LINUX: "CC=gcc-10 CXX=g++-10"
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: '10.15'
 
