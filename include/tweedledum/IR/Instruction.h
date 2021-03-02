@@ -67,6 +67,7 @@ public:
                 cbits_.emplace_back(ref, InstRef::invalid());
             }
         }
+        assert(qubits_.size() >= this->num_targets());
     }
 
     uint32_t num_controls() const
@@ -243,6 +244,7 @@ private:
                 cbits_.emplace_back(ref, InstRef::invalid());
             }
         }
+        assert(qubits_.size() >= this->num_targets());
     }
 
     // TODO: Come up with a good value for the size of the inline buffer!
