@@ -14,7 +14,7 @@ namespace tweedledum {
 class WireStorage;
 
 struct Wire {
-    enum Kind { classical, quantum };
+    enum Kind : uint32_t { classical, quantum };
 
     uint32_t const uid;
     std::string const name;
@@ -33,11 +33,6 @@ struct Wire {
 
 class WireRef {
 public:
-    // // Copy constructor
-    // WireRef(WireRef const& other)
-    //     : data_(other.data_)
-    // {}
-
     WireRef(WireRef const& other) = default;
 
     // Copy assignment
@@ -60,10 +55,10 @@ public:
 
     Wire::Kind kind() const
     {
-        return kind_;
+        return static_cast<Wire::Kind>(kind_);
     }
 
-    enum Polarity { positive, negative };
+    enum Polarity : uint32_t { positive, negative };
 
     Polarity polarity() const
     {
@@ -116,14 +111,14 @@ protected:
     }
 
     constexpr WireRef(uint32_t uid, Wire::Kind k, Polarity p = Polarity::positive)
-        : uid_(uid), kind_(k), polarity_(p)
+        : uid_(uid), kind_(static_cast<uint32_t>(k)), polarity_(static_cast<uint32_t>(p))
     {}
 
     union {
         uint32_t data_;
         struct {
             uint32_t const uid_ : 30;
-            Wire::Kind const kind_ : 1;
+            uint32_t const kind_ : 1;
             uint32_t polarity_ : 1;
         };
     };
@@ -191,18 +186,18 @@ public:
 protected:
     WireRef do_create_qubit(std::string_view name)
     {
-        uint32_t uid = wires_.size();
+        uint32_t const uid = wires_.size();
         wires_.emplace_back(uid, name, Wire::Kind::quantum);
         num_qubits_++;
-        refs_.push_back({uid, Wire::Kind::quantum});
+        refs_.push_back(WireRef::qubit(uid));
         return refs_.back();
     }
 
     WireRef do_create_cbit(std::string_view name)
     {
-        uint32_t uid = wires_.size();
+        uint32_t const uid = wires_.size();
         wires_.emplace_back(uid, name, Wire::Kind::classical);
-        refs_.push_back({uid, Wire::Kind::classical});
+        refs_.push_back(WireRef::cbit(uid));
         return refs_.back();
     }
 
