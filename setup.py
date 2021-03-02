@@ -22,7 +22,7 @@ with open(README_PATH) as readme_file:
 
 skbuild.setup(
     name="tweedledum",
-    version="1.0.0-beta2",
+    version="1.0.0-beta3",
     description="A library for synthesizing and manipulating quantum circuits",
     long_description=README,
     long_description_content_type='text/markdown',
