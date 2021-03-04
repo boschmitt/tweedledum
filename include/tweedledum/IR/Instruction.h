@@ -178,6 +178,15 @@ public:
     }
 
     template<typename Fn>
+    void foreach_cbit(Fn&& fn) const
+    {
+        static_assert(std::is_invocable_r_v<void, Fn, WireRef>);
+        for (uint32_t i = 0; i < cbits_.size(); ++i) {
+            fn(cbits_[i].wire_ref);
+        }
+    }
+
+    template<typename Fn>
     void foreach_control(Fn&& fn) const
     {
         static_assert(std::is_invocable_r_v<void, Fn, WireRef>);
