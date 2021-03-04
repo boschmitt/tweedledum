@@ -57,6 +57,7 @@ void init_Circuit(pybind11::module& module)
         .def("apply_operator", static_cast<InstRef (Circuit::*)(Op::Barrier const&, std::vector<WireRef> const&)>(&Circuit::apply_operator))
         // Standard Operators
         .def("apply_operator", static_cast<InstRef (Circuit::*)(Op::H const&, std::vector<WireRef> const&)>(&Circuit::apply_operator))
+        .def("apply_operator", static_cast<InstRef (Circuit::*)(Op::Measure const&, std::vector<WireRef> const&)>(&Circuit::apply_operator))
         .def("apply_operator", static_cast<InstRef (Circuit::*)(Op::P const&, std::vector<WireRef> const&)>(&Circuit::apply_operator))
         .def("apply_operator", static_cast<InstRef (Circuit::*)(Op::Rx const&, std::vector<WireRef> const&)>(&Circuit::apply_operator))
         .def("apply_operator", static_cast<InstRef (Circuit::*)(Op::Ry const&, std::vector<WireRef> const&)>(&Circuit::apply_operator))

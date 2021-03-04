@@ -4,15 +4,16 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "Standard/H.h"
-#include "Standard/Measure.h"
-#include "Standard/P.h"
-#include "Standard/Rx.h"
-#include "Standard/Ry.h"
-#include "Standard/Rz.h"
-#include "Standard/S.h"
-#include "Standard/Swap.h"
-#include "Standard/T.h"
-#include "Standard/X.h"
-#include "Standard/Y.h"
-#include "Standard/Z.h"
+#include <string_view>
+
+namespace tweedledum::Op {
+
+class Measure {
+public:
+    static constexpr std::string_view kind()
+    {
+        return "std.m";
+    }
+};
+
+} // namespace tweedledum
