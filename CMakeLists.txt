@@ -1,6 +1,6 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
 # CMake build : tweedledum library
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 project(tweedledum LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -57,16 +57,6 @@ endif()
 # Python bindings
 # =============================================================================
 if(TWEEDLEDUM_PYBINDS)
-    if(SKBUILD)
-        set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
-        set(Python_INCLUDE_DIR "${PYTHON_INCLUDE_DIR}")
-        unset(PYTHON_EXECUTABLE)
-        unset(PYTHON_INCLUDE_DIR)
-        unset(PYTHON_LIBRARY)
-        unset(PYTHON_VERSION_STRING)
-    endif()
-    set(Python_FIND_IMPLEMENTATIONS CPython)
-    find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
     add_subdirectory(python/tweedledum)
 endif()
 

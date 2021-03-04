@@ -34,12 +34,11 @@ struct Config {
 inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     kitty::dynamic_truth_table const& function, Config const& config)
 {
-    std::vector<WireRef> wires;
-    wires.reserve(qubits.size());
     WireRef const target = qubits.back();
     for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
-        auto bits = cube._bits;
-        auto mask = cube._mask;
+        uint32_t bits = cube._bits;
+        uint32_t mask = cube._mask;
+        std::vector<WireRef> wires;
         for (uint32_t v = 0u; mask; mask >>= 1, bits >>= 1, ++v) {
             if ((mask & 1) == 0u) {
                 continue;
@@ -55,15 +54,14 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
                 circuit.apply_operator(Op::X(), {wires.back()});
                 circuit.apply_operator(Op::Z(), wires);
                 circuit.apply_operator(Op::X(), {wires.back()});
-                continue;
+            } else {
+                std::swap(*it, wires.back());
+                circuit.apply_operator(Op::Z(), wires);
             }
-            std::swap(*it, wires.back());
-            circuit.apply_operator(Op::Z(), wires);
         } else {
             wires.push_back(target);
             circuit.apply_operator(Op::X(), wires);
         }
-        wires.clear();
     }
 }
 
