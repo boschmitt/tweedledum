@@ -5,204 +5,276 @@
 #include "tweedledum/Utils/Visualization/string_utf8.h"
 
 #include <algorithm>
+#include <codecvt>
 #include <limits>
 #include <utility>
 
 namespace tweedledum {
 
-struct StringBuilder {
+// Width is given by the label!
+struct Box {
+    uint32_t left_x;
+    uint32_t right_x;
+    uint32_t top_y;
+    uint32_t bot_y;
+    bool overlap;
+    std::string_view label;
+    std::vector<uint32_t> targets;
+    std::vector<std::pair<uint32_t, uint32_t>> controls;
+    std::vector<WireRef> cbits;
+};
 
-    StringBuilder(Circuit const& circuit)
-        : max_num_glyphs_(0u)
-        , info_(circuit.num_wires(), 0)
-        , num_glyphs_(circuit.num_wires(), 0)
-        , lines_(3 * circuit.num_wires())
-    {
-        circuit.foreach_wire([&](Wire const& wire) {
-            max_num_glyphs_ = std::max(utf8_strlen(wire.name), max_num_glyphs_);
-        });
-        circuit.foreach_wire([&](WireRef i, Wire const& wire) {
-            lines_[(3 * i)] += fmt::format("{:>{}}", "", max_num_glyphs_ + 6u);
-            if (wire.kind == Wire::Kind::quantum) {
-                lines_[(3 * i) + 1] += fmt::format("{:>{}} : ───", wire.name, max_num_glyphs_);
-                info_.at(i) |= 2;
-            } else {
-                lines_[(3 * i) + 1] += fmt::format("{:>{}} : ═══", wire.name, max_num_glyphs_);
-            }
-            lines_[(3 * i) + 2] += fmt::format("{:>{}}", "", max_num_glyphs_ + 6u);
-            num_glyphs_.at(i) = max_num_glyphs_ + 6u;
-        });
-        max_num_glyphs_ += 6u;
+inline void merge_chars(char32_t& c0, char32_t c1)
+{ 
+    if (c0 == U' ') {
+        c0 = c1;
+        return;
     }
+    if (c1 == U'│') {
+        switch (c0) {
+        case U'◯':
+        case U'●':
+        case U'┼':
+        case U'╪':
+            return;
+                    
+        case U'─':
+            c0 = U'┼';
+            return;
+                    
+        case U'═':
+            c0 = U'╪';
+            return;
 
-    std::string finish()
-    {
-        finish_column();
-        std::string result;
-        std::for_each(lines_.rbegin(), lines_.rend(), 
-        [&result] (std::string const& line) {
-            result += line + "\n";
-        });
-        return result;
-    }
-    
-    uint32_t utf8_strlen(std::string_view str)
-    {
-        uint32_t num_glyphs = 0u;
-        uint32_t end = str.length();
-        for (uint32_t i = 0; i < end; i++, num_glyphs++) {
-            uint8_t c = static_cast<uint8_t>(str.at(i));
-            if (c <= 127u) {
-                continue;
-            } else if ((c & 0xE0) == 0xC0) {
-                i += 1;
-            } else if ((c & 0xF0) == 0xE0) {
-                i += 2;
-            } else if ((c & 0xF8) == 0xF0) {
-                i += 3;
-            } else {
-                return 0u;
-            }
-        }
-        return num_glyphs;
-    }
-
-    void finish_column()
-    {
-        for (auto i = 0u; i < info_.size(); ++i) {
-            assert(num_glyphs_.at(i) <= max_num_glyphs_);
-            uint32_t pad = max_num_glyphs_ - num_glyphs_.at(i);
-            if (pad) {
-                lines_[(3 * i)] += fmt::format("{:>{}}", "", pad);
-                if (info_.at(i) & 2u) {
-                    lines_[(3 * i) + 1] += fmt::format("{:─>{}}", "", pad);
-                } else {
-                    lines_[(3 * i) + 1] += fmt::format("{:═>{}}", "", pad);
-                }
-                lines_[(3 * i) + 2] += fmt::format("{:>{}}", "", pad);
-            }
-            num_glyphs_.at(i) = max_num_glyphs_;
-            info_.at(i) &= ~1u;
-        }
-    }
-
-    bool does_need_new_column(uint32_t from, uint32_t to)
-    {
-        for (uint32_t i = from; i <= to; ++i) {
-            if (info_[i] & 1) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool is_overlap(uint32_t a_min, uint32_t a_max, uint32_t b_min, uint32_t b_max)
-    {
-        return (a_min > b_min && a_min < b_max) || (a_max > b_min && a_max < b_max);
-    }
-
-    std::pair<uint32_t, uint32_t> minmax(std::vector<WireRef> const& wires)
-    {
-        uint32_t min = std::numeric_limits<uint32_t>::max();
-        uint32_t max = 0;
-        for (WireRef ref : wires) {
-            min = std::min(min, ref.uid());
-            max = std::max(max, ref.uid());
-        }
-        return {min, max};
-    }
-
-    void add_op(std::string_view name, std::vector<WireRef> const& controls, std::vector<WireRef> const& targets)
-    {
-        assert(!targets.empty());
-        uint32_t const width = utf8_strlen(name) + 2u;
-        auto const [c_min, c_max] = minmax(controls);
-        auto const [t_min,t_max] = minmax(targets);
-        // Check if I need a new column
-        uint32_t const min = std::min(c_min, t_min);
-        uint32_t const max = std::max(c_max, t_max);
-        if (does_need_new_column(min, max)) {
-            finish_column();
-        }
-        // If they overlap
-        if (is_overlap(c_min, c_max, t_min, t_max)) {
+        default:
+            c0 = U'│';
             return;
         }
-        // Otherwise
-        for (WireRef c : controls) {
-            uint32_t const line = c.uid();
-            info_[line] |= 1;
-            lines_[(3 * line)] += fmt::format(" {:^{}} ", line == min ? " " : "│", width);
-            lines_[(3 * line) + 1] += fmt::format("─{:─^{}}─", c.is_complemented() ? "◯" : "●", width);
-            lines_[(3 * line) + 2] += fmt::format(" {:^{}} ", line == max ? " " : "│", width);
-            num_glyphs_.at(line) += 2u + width;
-        }
-        uint32_t const bot = (3 * t_min);
-        uint32_t const top = (3 * t_max) + 2;
-        uint32_t const mid = (bot + top)/2;
-        lines_[top] += fmt::format("┌{:─^{}}┐", t_max == max ? "─" : "┴", width);
-        for (WireRef t : targets) {
-            uint32_t const l = (3 * t) + 1;
-            lines_.at(l) += fmt::format("┤{:^{}}├", l == mid? name : "", width);
-        }
-        lines_[bot] += fmt::format("└{:─^{}}┘", t_min == min ? "─" : "┬", width);
-        for (uint32_t i = bot + 1; i < top; ++i) {
-            if (utf8_strlen(lines_.at(top)) == utf8_strlen(lines_.at(i))) {
-                continue;
-            }
-            lines_[i] += fmt::format("│{:^{}}│", i == mid? name : "", width);
-        }
-        for (uint32_t i = t_min; i <= t_max; ++i) {
-            info_[i] |= 1;
-            num_glyphs_.at(i) += 2u + width;
-        }
-
-        for (auto i = min + 1; i < max; ++i) {
-            if (info_[i] & 1) {
-                continue;
-            }
-            info_[i] |= 1;
-            lines_[(3 * i)] += fmt::format(" {:^{}} ", "│", width);
-            if (info_[i] & 2) {
-                lines_[(3 * i) + 1] += fmt::format("─{:─^{}}─", "┼", width);
-            } else {
-                lines_[(3 * i) + 1] += fmt::format("═{:═^{}}═", "╪", width);
-            }
-            lines_[(3 * i) + 2] += fmt::format(" {:^{}} ", "│", width);
-            num_glyphs_.at(i) += 2u + width;
-        }
-        max_num_glyphs_ = std::max(max_num_glyphs_, num_glyphs_.at(t_max));
     }
 
-    uint32_t max_num_glyphs_;
-    std::vector<uint8_t> info_;
-    std::vector<uint32_t> num_glyphs_;
-    std::vector<std::string> lines_;
-};
+    if (c1 == U'║') {
+        switch (c0) {
+        case U'─':
+            c0 = U'╫';
+            return;
+                    
+        case U'═':
+            c0 = U'╬';
+            return;
+
+        default:
+            c0 = U'║';
+            return;
+        }
+    }
+    if (c0 > c1) {
+        std::swap (c0, c1);
+    }
+    if (c0 == U'─') {
+        switch (c1) {
+        case U'┌':
+        case U'┐':
+            c0 = U'┬';
+            return;
+
+        case U'└':
+        case U'┘':
+            c0 = U'┴';
+            return;
+
+        default:
+            break;
+        }
+    }
+    if (c0 == U'┌' && c1 == U'└') {
+        c0 = U'├';
+        return;
+    } else if (c0 == U'┐' && c1 == U'┘') {
+        c0 = U'┤';
+        return;
+    }
+}
 
 std::string to_string_utf8(Circuit const& circuit)
 {
-    StringBuilder builder(circuit);
-    circuit.foreach_instruction([&](Instruction const& inst) {
-        std::string_view kind = inst.kind();
-        auto pos = kind.find_first_of(".");
-        if (pos ==  std::string_view::npos) {
-            pos = 0;
-        } else {
-            ++pos;
+    constexpr uint32_t padding = 4u;
+    using Layer = std::vector<InstRef>;
+    
+    if (circuit.num_wires() == 0) {
+        return "";
+    }
+    // Create a mapping between circuit wires and diagram wires
+    uint32_t const num_dwire = circuit.num_qubits() + (circuit.num_cbits() > 0);
+    std::vector<uint32_t> wire_to_dwire(circuit.num_wires(), num_dwire - 1);
+    uint32_t curr_dwire = 0;
+    circuit.foreach_wire([&](WireRef wire) {
+        if (wire.kind() == Wire::Kind::classical) {
+            return;
         }
-        std::string name(kind.begin() + pos, kind.end());
-        std::vector<WireRef> controls;
-        inst.foreach_control([&controls](WireRef control) {
-            controls.push_back(control);
-        });
-        std::vector<WireRef> targets;
-        inst.foreach_target([&targets](WireRef target) {
-            targets.push_back(target);
-        });
-        builder.add_op(name, controls, targets);
+        wire_to_dwire.at(wire) = curr_dwire++;
     });
-    return builder.finish();
+    // Separete the intructions in layers.  Each layer must contain gates that
+    // can be drawn in the same diagram layer.  For example, if I have a
+    // CX(0, 2) and a X(1), then I cannot draw those gates on the same layer
+    // in the circuit diagram
+    std::vector<Box> boxes(circuit.size());
+    std::vector<Layer> layers;
+    std::vector<uint32_t> layer_width;
+    std::vector<int> wire_layer(num_dwire, -1);
+    circuit.foreach_instruction([&](InstRef ref, Instruction const& inst) {
+        Box& box = boxes.at(ref);
+        box.label = inst.name();
+        inst.foreach_target([&](WireRef wire) {
+            uint32_t const dwire = wire_to_dwire.at(wire);
+            box.targets.push_back(dwire);
+        });
+        std::sort(box.targets.begin(), box.targets.end());
+        uint32_t const min_target = box.targets.front();
+        uint32_t const max_target = box.targets.back();
+        uint32_t min = min_target;
+        uint32_t max = max_target;
+        box.overlap = (inst.num_cbits() > 0) && (inst.num_controls() > 0);
+        inst.foreach_control([&](WireRef wire) {
+            auto const [control, _] = box.controls.emplace_back(wire_to_dwire.at(wire), wire.is_complemented());
+            if (control > min_target && control < max_target) {
+                box.overlap = true;
+            }
+            if (control > max) {
+                max = control;
+            } else if (control < min) {
+                min = control;
+            }
+        });
+        inst.foreach_cbit([&](WireRef wire) {
+            box.cbits.push_back(wire);
+        });
+        box.top_y = 2 * (min_target);
+        box.bot_y = 2 * (max_target) + 2;
+        if (box.overlap) {
+            box.top_y = 2 * (min);
+            box.bot_y = 2 * (max) + 2;
+        }
+
+        int layer = -1;
+        for (uint32_t i = min; i <= max; ++i) {
+            layer = std::max(layer, wire_layer.at(i));
+        }
+        layer += 1;
+        if (layer == layers.size()) {
+            layers.emplace_back();
+            layer_width.push_back(0);
+        }
+        layers.at(layer).emplace_back(ref);
+        for (uint32_t i = min; i <= max; ++i) {
+            wire_layer.at(i) = layer;
+        }
+        uint32_t const width = inst.name().size() + padding + (2 * box.overlap);
+        layer_width.at(layer) = std::max(layer_width.at(layer), width);
+        // TODO: Edge cases: Swap, Measure
+    });
+
+    // Compute diagram width
+    uint32_t curr_width = 0u;
+    for (uint32_t layer = 0u; layer < layers.size(); ++layer) {
+        for (InstRef const ref : layers.at(layer)) {
+            Box& box = boxes.at(ref);
+            box.left_x = curr_width + (layer_width.at(layer) - (box.label.size() + padding))/2u;
+            box.right_x = box.left_x + box.label.size() + padding + box.overlap - 1;
+        }
+        curr_width += layer_width.at(layer);
+    }
+
+    // Initialize the diagram with the wires 
+    uint32_t const num_lines = (2 * num_dwire) + 1;
+    std::vector<std::u32string> lines(num_lines, std::u32string(curr_width, U' '));
+    for (uint32_t i = 0; i < num_dwire - 1; ++i) {
+        std::u32string& line = lines.at((2 * i) + 1);
+        std::fill(line.begin(), line.end(), U'─');
+    }
+    if (circuit.num_cbits() > 0) {
+        std::u32string& line = lines.at((2 * (num_dwire - 1)) + 1);
+        std::fill(line.begin(), line.end(), U'═');
+    } else {
+        std::u32string& line = lines.at((2 * (num_dwire - 1)) + 1);
+        std::fill(line.begin(), line.end(), U'─');
+    }
+
+    // Draw boxes
+    for (Box const& box : boxes) {
+        // Draw box
+        for (uint32_t i = box.left_x + 1; i < box.right_x; ++i) {
+            lines.at(box.top_y).at(i) = U'─';
+            lines.at(box.bot_y).at(i) = U'─';
+        }
+        for (uint32_t i = box.top_y + 1; i < box.bot_y; ++i) {
+            auto left = lines.at(i).begin() + box.left_x;
+            auto right = lines.at(i).begin() + box.right_x;
+            *left = U'│';
+            *right = U'│';
+            std::fill(++left, right, U' ');
+        }
+        merge_chars(lines.at(box.top_y).at(box.left_x), U'┌');
+        merge_chars(lines.at(box.bot_y).at(box.left_x), U'└');
+        merge_chars(lines.at(box.top_y).at(box.right_x), U'┐');
+        merge_chars(lines.at(box.bot_y).at(box.right_x), U'┘');
+        // Connect targets
+        for (auto const wire : box.targets) {
+            uint32_t const line = (2u * wire) + 1;
+            lines.at(line).at(box.left_x) = U'┤';
+            lines.at(line).at(box.right_x) = U'├';
+        }
+        // Connect controls
+        uint32_t const mid_x = box.left_x + ((box.label.size() + padding) / 2u);
+        if (box.overlap) {
+            for (auto const& [wire, is_complemented] : box.controls) {
+                uint32_t const line = (2u * wire) + 1;
+                lines.at(line).at(box.left_x) = U'┤';
+                lines.at(line).at(box.left_x + 1) = is_complemented ? U'◯' : U'●';
+                lines.at(line).at(box.right_x) = U'├';
+            }
+        } else {
+            for (auto const& [wire, is_complemented] : box.controls) {
+                uint32_t const line = (2u * wire) + 1;
+                lines.at(line).at(mid_x) = is_complemented ? U'◯' : U'●';
+                if (line < box.top_y) {
+                    for (uint32_t i = line + 1; i < box.top_y; ++i) {
+                        merge_chars(lines.at(i).at(mid_x), U'│');
+                    }
+                    lines.at(box.top_y).at(mid_x) = U'┴';
+                } else {
+                    for (uint32_t i = box.top_y + 1; i < line; ++i) {
+                        merge_chars(lines.at(i).at(mid_x), U'│');
+                    }
+                    lines.at(box.bot_y).at(mid_x) = U'┬';
+                }
+            }
+        }
+        // Connect classical bits
+        uint32_t const cbit_line = (2u * (num_dwire - 1) + 1);
+        for (WireRef const wire : box.cbits) {
+            std::u32string const wire_label = fmt::format(U"{:>2}", wire.uid());
+            lines.at(cbit_line).at(mid_x) = wire.is_complemented() ? U'◯' : U'●';
+            for (uint32_t i = box.bot_y + 1; i < cbit_line; ++i) {
+                merge_chars(lines.at(i).at(mid_x), U'║');
+            }
+            lines.at(box.bot_y).at(mid_x) = U'╥';
+            std::copy(wire_label.begin(), wire_label.end(), 
+                  lines.at(cbit_line + 1).begin() + (mid_x - 1));
+        }
+        
+        // Draw label
+        uint32_t const mid_y = (box.top_y + box.bot_y)/2;
+        std::copy(box.label.begin(), box.label.end(), 
+                  lines.at(mid_y).begin() + box.left_x + 2 + box.overlap);
+    }
+
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+    std::string str;
+    str.reserve(curr_width * num_lines * 4);
+    for (auto const& line : lines) {
+        str += conv.to_bytes(line) + '\n';
+    }
+    return str;
 }
 
 void print(Circuit const& circuit)
