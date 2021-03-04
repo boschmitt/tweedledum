@@ -2,6 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include "tweedledum/Operators/Standard/Measure.h"
 #include "tweedledum/Operators/Standard/Swap.h"
 #include "tweedledum/Utils/Visualization/string_utf8.h"
 
@@ -252,6 +253,36 @@ struct DiagramSwap : public DiagramShape {
     }
 };
 
+struct DiagramMeasure : public DiagramShape {
+    virtual uint32_t width() const override
+    {
+        return 3u;
+    }
+
+    virtual void draw(std::vector<std::u32string>& lines) const override
+    {
+        uint32_t const mid_col = left_col + 1;
+        merge_chars(lines.at(top_row).at(left_col), U'╭');
+        merge_chars(lines.at(bot_row).at(left_col), U'╰');
+        merge_chars(lines.at(top_row).at(right_col), U'╮');
+        merge_chars(lines.at(bot_row).at(right_col), U'╯');
+        lines.at(target_rows.at(0)).at(left_col) = U'┤';
+        lines.at(target_rows.at(0)).at(mid_col) = U'm';
+        lines.at(target_rows.at(0)).at(right_col) = U'├';
+        merge_chars(lines.at(top_row).at(mid_col), U'─');
+        lines.at(bot_row).at(mid_col) = U'╥';
+
+        uint32_t const cbit_line = lines.size() - 2;
+        for (uint32_t i = bot_row + 1; i < cbit_line; ++i) {
+            merge_chars(lines.at(i).at(mid_col), U'║');
+        }
+        lines.at(cbit_line).at(left_col + 1) = U'V';
+        std::u32string const wire_label = fmt::format(U"{:>2}", cbits.at(0).uid());
+        std::copy(wire_label.begin(), wire_label.end(), 
+                  lines.at(cbit_line + 1).begin() + (mid_col - 1));
+    }
+};
+
 
 std::string to_string_utf8(Circuit const& circuit, uint32_t const max_rows)
 {
@@ -317,6 +348,8 @@ std::string to_string_utf8(Circuit const& circuit, uint32_t const max_rows)
             shape = std::make_unique<Box>();
         } else if (inst.is_a<Op::Swap>()) {
             shape = std::make_unique<DiagramSwap>();
+        } else if (inst.is_a<Op::Measure>()) {
+            shape = std::make_unique<DiagramMeasure>();
         } else {
             shape = std::make_unique<ControlledBox>();
         }
@@ -334,6 +367,10 @@ std::string to_string_utf8(Circuit const& circuit, uint32_t const max_rows)
         int layer = -1;
         for (uint32_t i = min; i <= max; ++i) {
             layer = std::max(layer, wire_layer.at(i));
+        }
+        if (!cbits.empty()) {
+            layer = std::max(layer, wire_layer.back());
+            wire_layer.back() = layer + 1;
         }
         layer += 1;
         if (layer == layers.size()) {
