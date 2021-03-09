@@ -19,11 +19,6 @@ else()
     endforeach()
 endif()
 
-# Variables
-# =============================================================================
-set(TWEEDLEDUM_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
-set(TWEEDLEDUM_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
-
 # Options
 # =============================================================================
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
@@ -40,24 +35,29 @@ option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 # =============================================================================
 add_subdirectory(third_party)
 
+# Python bindings
+# =============================================================================
+if(TWEEDLEDUM_PYBINDS)
+    pybind11_add_module(_tweedledum MODULE)
+    target_include_directories(_tweedledum PRIVATE ${PROJECT_SOURCE_DIR}/include)
+    target_link_libraries(_tweedledum PRIVATE eigen fmt::fmt-header-only mockturtle)
+    add_subdirectory(python/tweedledum)
+    if(SKBUILD)
+        install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
+    endif()
+endif()
+
 # Library
 # =============================================================================
-add_library(tweedledum)
+add_library(tweedledum OBJECT)
 target_include_directories(tweedledum PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum eigen fmt::fmt-header-only mockturtle)
-
+target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle)
 add_subdirectory(lib)
 
 # Examples
 # =============================================================================
 if(TWEEDLEDUM_EXAMPLES)
   add_subdirectory(examples)
-endif()
-
-# Python bindings
-# =============================================================================
-if(TWEEDLEDUM_PYBINDS)
-    add_subdirectory(python/tweedledum)
 endif()
 
 # Tests

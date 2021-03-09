@@ -1,6 +1,5 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
-pybind11_add_module(_tweedledum
-MODULE
+target_sources(_tweedledum PUBLIC
     bindings.cpp
     classical/kitty.cpp
     classical/mockturtle.cpp
@@ -13,7 +12,3 @@ MODULE
     operators/standard.cpp
     passes/passes.cpp
 )
-target_link_libraries(_tweedledum PRIVATE tweedledum)
-if(SKBUILD)
-    install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
-endif()
