@@ -49,7 +49,8 @@ public:
     // Wires
     WireRef create_qubit(std::string_view name)
     {
-        last_instruction_.emplace_back(InstRef::invalid());
+        last_instruction_.emplace(last_instruction_.begin() + num_qubits(), 
+                                  InstRef::invalid());
         return do_create_qubit(name);
     }
 
@@ -242,13 +243,14 @@ private:
 
     void connect_instruction(Instruction& inst)
     {
+        uint32_t const inst_uid = instructions_.size() - 1;
         for (auto& [wref, iref] : inst.qubits_) {
             iref = last_instruction_.at(wref);
-            last_instruction_.at(wref).uid_ = instructions_.size() - 1;
+            last_instruction_.at(wref).uid_ = inst_uid;
         }
         for (auto& [wref, iref] : inst.cbits_) {
             iref = last_instruction_.at(wref);
-            last_instruction_.at(wref).uid_ = instructions_.size() - 1;
+            last_instruction_.at(wref + num_qubits()).uid_ = inst_uid;
         }
     }
 

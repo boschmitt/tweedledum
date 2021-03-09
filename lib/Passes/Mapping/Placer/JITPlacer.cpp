@@ -42,8 +42,8 @@ bool JITPlacer::add_front_layer()
         if (add_instruction(inst) == false) {
                 new_front_layer.push_back(ref);
                 auto const qubits = inst.qubits();
-                involved_phy_.at(state_.wire_to_wire(qubits.at(0))) = 1u;
-                involved_phy_.at(state_.wire_to_wire(qubits.at(1))) = 1u;
+                involved_phy_.at(state_.v_to_phy.at(qubits.at(0))) = 1u;
+                involved_phy_.at(state_.v_to_phy.at(qubits.at(1))) = 1u;
                 continue;
         }
         added_at_least_one = true;
@@ -93,7 +93,7 @@ std::vector<WireRef> JITPlacer::find_free_phy() const
     std::vector<WireRef> free_phy;
     for (uint32_t i = 0; i < state_.phy_to_v.size(); ++i) {
         if (state_.phy_to_v.at(i) == WireRef::invalid()) {
-            free_phy.push_back(state_.mapped.wire_ref(i));
+            free_phy.push_back(state_.mapped.qubit_ref(i));
         }
     }
     return free_phy;
@@ -165,15 +165,15 @@ bool JITPlacer::add_instruction(Instruction const& inst)
         }
     });
     // FIXME: implement .at in SmallVector!
-    WireRef phy0 = state_.wire_to_wire(qubits[0]);
-    WireRef phy1 = state_.wire_to_wire(qubits[1]);
+    WireRef phy0 = state_.v_to_phy.at(qubits[0]);
+    WireRef phy1 = state_.v_to_phy.at(qubits[1]);
     if (phy0 == WireRef::invalid() && phy1 == WireRef::invalid()) {
-        place_two_v(state_.wire_to_v.at(qubits[0]), state_.wire_to_v.at(qubits[1]));
+        place_two_v(qubits[0], qubits[1]);
     } else if (phy0 == WireRef::invalid() || phy1 == WireRef::invalid()) {
-        place_one_v(state_.wire_to_v.at(qubits[0]), state_.wire_to_v.at(qubits[1]));
+        place_one_v(qubits[0], qubits[1]);
     }
-    phy0 = state_.wire_to_wire(qubits[0]);
-    phy1 = state_.wire_to_wire(qubits[1]);
+    phy0 = state_.v_to_phy.at(qubits[0]);
+    phy1 = state_.v_to_phy.at(qubits[1]);
     if (!state_.device.are_connected(phy0, phy1)) {
         return false;
     }
@@ -193,7 +193,7 @@ JITPlacer::Swap JITPlacer::find_swap()
     for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
         auto const& [u, v] = state_.device.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.wire_ref(u), state_.mapped.wire_ref(v));
+            swap_candidates.emplace_back(state_.mapped.qubit_ref(u), state_.mapped.qubit_ref(v));
         }
     }
 
@@ -240,8 +240,8 @@ double JITPlacer::compute_cost(std::vector<WireRef> const& v_to_phy, std::vector
     double cost = 0.0;
     for (InstRef ref : layer) {
         Instruction const& inst = current_->instruction(ref);
-        WireRef const v0 = state_.wire_to_v.at(inst.qubit(0));
-        WireRef const v1 = state_.wire_to_v.at(inst.qubit(1));
+        WireRef const v0 = inst.qubit(0);
+        WireRef const v1 = inst.qubit(1);
         WireRef const phy0 = v_to_phy.at(v0);
         WireRef const phy1 = v_to_phy.at(v1);
         if (phy0 == WireRef::invalid() || phy1 == WireRef::invalid()) {

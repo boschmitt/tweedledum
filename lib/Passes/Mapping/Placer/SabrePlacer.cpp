@@ -42,8 +42,8 @@ bool SabrePlacer::add_front_layer()
         if (add_instruction(inst) == false) {
                 new_front_layer.push_back(ref);
                 auto const qubits = inst.qubits();
-                involved_phy_.at(state_.wire_to_wire(qubits.at(0))) = 1u;
-                involved_phy_.at(state_.wire_to_wire(qubits.at(1))) = 1u;
+                involved_phy_.at(state_.v_to_phy.at(qubits.at(0))) = 1u;
+                involved_phy_.at(state_.v_to_phy.at(qubits.at(1))) = 1u;
                 continue;
         }
         added_at_least_one = true;
@@ -95,7 +95,7 @@ bool SabrePlacer::add_instruction(Instruction const& inst)
     SmallVector<WireRef, 2> qubits;
     inst.foreach_wire([&](WireRef ref) {
         if (ref.kind() == Wire::Kind::quantum) {
-            qubits.push_back(state_.wire_to_wire(ref));
+            qubits.push_back(state_.v_to_phy.at(ref));
         }
     });
 
@@ -122,7 +122,7 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
         auto const& [u, v] = state_.device.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.wire_ref(u), state_.mapped.wire_ref(v));
+            swap_candidates.emplace_back(state_.mapped.qubit_ref(u), state_.mapped.qubit_ref(v));
         }
     }
 
@@ -162,8 +162,8 @@ double SabrePlacer::compute_cost(std::vector<WireRef> const& v_to_phy, std::vect
     double cost = 0.0;
     for (InstRef ref : layer) {
         Instruction const& inst = current_->instruction(ref);
-        WireRef const v0 = state_.wire_to_v.at(inst.qubit(0));
-        WireRef const v1 = state_.wire_to_v.at(inst.qubit(1));
+        WireRef const v0 = inst.qubit(0);
+        WireRef const v1 = inst.qubit(1);
         cost += (state_.device.distance(v_to_phy.at(v0), v_to_phy.at(v1)) - 1);
     }
     return cost;

@@ -131,37 +131,37 @@ private:
 
 class WireStorage {
 public:
-    WireStorage() : num_qubits_(0u) {}
+    WireStorage() = default;
 
     uint32_t num_wires() const
     {
-        return wires_.size();
+        return num_qubits() + num_cbits();
     }
 
     uint32_t num_qubits() const
     {
-        return num_qubits_;
+        return qubits_.size();
     }
 
     uint32_t num_cbits() const
     {
-        return num_wires() - num_qubits();
+        return cbits_.size();
     }
 
-    WireRef wire_ref(uint32_t idx) const
+    WireRef qubit_ref(uint32_t const uid) const
     {
-        assert(idx < refs_.size());
-        return refs_.at(idx);
+        assert(uid < num_qubits());
+        return WireRef::qubit(uid);
     }
 
-    auto begin_wire() const
+    std::vector<WireRef> qubits() const
     {
-        return wires_.cbegin();
-    }
-
-    auto end_wire() const
-    {
-        return wires_.cend();
+        std::vector<WireRef> qs;
+        qs.reserve(num_qubits());
+        for (Wire const& qubit : qubits_) {
+            qs.push_back(WireRef::qubit(qubit.uid));
+        }
+        return qs;
     }
 
     template<typename Fn>
@@ -172,13 +172,22 @@ public:
                       std::is_invocable_r_v<void, Fn, Wire const&> ||
                       std::is_invocable_r_v<void, Fn, WireRef, Wire const&>);
         // clang-format on
-        for (uint32_t i = 0u; i < wires_.size(); ++i) {
+        for (Wire const& qubit : qubits_) {
             if constexpr (std::is_invocable_r_v<void, Fn, WireRef>) {
-                fn(refs_.at(i));
+                fn(WireRef::qubit(qubit.uid));
             } else if constexpr (std::is_invocable_r_v<void, Fn, Wire const&>) {
-                fn(wires_.at(i));
+                fn(qubit);
             } else {
-                fn(refs_.at(i), wires_.at(i));
+                fn(WireRef::qubit(qubit.uid), qubit);
+            }
+        }
+        for (Wire const& cbit : cbits_) {
+            if constexpr (std::is_invocable_r_v<void, Fn, WireRef>) {
+                fn(WireRef::cbit(cbit.uid));
+            } else if constexpr (std::is_invocable_r_v<void, Fn, Wire const&>) {
+                fn(cbit);
+            } else {
+                fn(WireRef::cbit(cbit.uid), cbit);
             }
         }
     }
@@ -186,25 +195,21 @@ public:
 protected:
     WireRef do_create_qubit(std::string_view name)
     {
-        uint32_t const uid = wires_.size();
-        wires_.emplace_back(uid, name, Wire::Kind::quantum);
-        num_qubits_++;
-        refs_.push_back(WireRef::qubit(uid));
-        return refs_.back();
+        uint32_t const uid = qubits_.size();
+        qubits_.emplace_back(uid, name, Wire::Kind::quantum);
+        return WireRef::qubit(uid);
     }
 
     WireRef do_create_cbit(std::string_view name)
     {
-        uint32_t const uid = wires_.size();
-        wires_.emplace_back(uid, name, Wire::Kind::classical);
-        refs_.push_back(WireRef::cbit(uid));
-        return refs_.back();
+        uint32_t const uid = cbits_.size();
+        cbits_.emplace_back(uid, name, Wire::Kind::classical);
+        return WireRef::cbit(uid);
     }
 
 private:
-    uint32_t num_qubits_ = 0u;
-    std::vector<WireRef> refs_;
-    std::vector<Wire> wires_;
+    std::vector<Wire> qubits_;
+    std::vector<Wire> cbits_;
 };
 
 } // namespace tweedledum

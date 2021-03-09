@@ -20,8 +20,7 @@ namespace tweedledum {
 inline Circuit shallow_duplicate(Circuit const& original)
 {
     Circuit duplicate;
-    std::for_each(original.begin_wire(), original.end_wire(),
-    [&](Wire const& wire) {
+    original.foreach_wire([&](Wire const& wire) {
         switch (wire.kind) {
         case Wire::Kind::classical:
             duplicate.create_cbit(wire.name);

@@ -43,8 +43,8 @@ bool JITRouter::add_front_layer()
         if (try_add_instruction(ref, inst) == false) {
                 new_front_layer.push_back(ref);
                 auto const qubits = inst.qubits();
-                involved_phy_.at(state_.wire_to_wire(qubits.at(0))) = 1u;
-                involved_phy_.at(state_.wire_to_wire(qubits.at(1))) = 1u;
+                involved_phy_.at(state_.v_to_phy.at(qubits.at(0))) = 1u;
+                involved_phy_.at(state_.v_to_phy.at(qubits.at(1))) = 1u;
                 continue;
         }
         added_at_least_one = true;
@@ -94,7 +94,7 @@ std::vector<WireRef> JITRouter::find_free_phy() const
     std::vector<WireRef> free_phy;
     for (uint32_t i = 0; i < state_.phy_to_v.size(); ++i) {
         if (state_.phy_to_v.at(i) == WireRef::invalid()) {
-            free_phy.push_back(state_.mapped.wire_ref(i));
+            free_phy.push_back(state_.mapped.qubit_ref(i));
         }
     }
     return free_phy;
@@ -171,7 +171,7 @@ void JITRouter::add_instruction(Instruction const& inst)
     std::vector<WireRef> new_wires;
     new_wires.reserve(inst.num_wires());
     inst.foreach_wire([&](WireRef ref) {
-        new_wires.push_back(state_.wire_to_wire(ref));
+        new_wires.push_back(state_.v_to_phy.at(ref));
     });
     state_.mapped.apply_operator(inst, new_wires);
 }
@@ -187,24 +187,24 @@ bool JITRouter::try_add_instruction(InstRef ref, Instruction const& inst)
         }
     });
 
-    WireRef phy0 = state_.wire_to_wire(qubits[0]);
+    WireRef phy0 = state_.v_to_phy.at(qubits[0]);
     if (inst.num_qubits() == 1) {
         if (phy0 == WireRef::invalid()) {
-            delayed_.at(state_.wire_to_v.at(qubits[0])).push_back(ref);
+            delayed_.at(qubits[0]).push_back(ref);
         } else {
             add_instruction(inst);
         }
         return true;
     }
     // FIXME: implement .at in SmallVector!
-    WireRef phy1 = state_.wire_to_wire(qubits[1]);
+    WireRef phy1 = state_.v_to_phy.at(qubits[1]);
     if (phy0 == WireRef::invalid() && phy1 == WireRef::invalid()) {
-        place_two_v(state_.wire_to_v.at(qubits[0]), state_.wire_to_v.at(qubits[1]));
+        place_two_v(qubits[0], qubits[1]);
     } else if (phy0 == WireRef::invalid() || phy1 == WireRef::invalid()) {
-        place_one_v(state_.wire_to_v.at(qubits[0]), state_.wire_to_v.at(qubits[1]));
+        place_one_v(qubits[0], qubits[1]);
     }
-    phy0 = state_.wire_to_wire(qubits[0]);
-    phy1 = state_.wire_to_wire(qubits[1]);
+    phy0 = state_.v_to_phy.at(qubits[0]);
+    phy1 = state_.v_to_phy.at(qubits[1]);
     if (!state_.device.are_connected(phy0, phy1)) {
         return false;
     }
@@ -225,7 +225,7 @@ JITRouter::Swap JITRouter::find_swap()
     for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
         auto const& [u, v] = state_.device.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.wire_ref(u), state_.mapped.wire_ref(v));
+            swap_candidates.emplace_back(state_.mapped.qubit_ref(u), state_.mapped.qubit_ref(v));
         }
     }
 
@@ -272,8 +272,8 @@ double JITRouter::compute_cost(std::vector<WireRef> const& v_to_phy, std::vector
     double cost = 0.0;
     for (InstRef ref : layer) {
         Instruction const& inst = state_.original.instruction(ref);
-        WireRef const v0 = state_.wire_to_v.at(inst.qubit(0));
-        WireRef const v1 = state_.wire_to_v.at(inst.qubit(1));
+        WireRef const v0 = inst.qubit(0);
+        WireRef const v1 = inst.qubit(1);
         WireRef const phy0 = v_to_phy.at(v0);
         WireRef const phy1 = v_to_phy.at(v1);
         if (phy0 == WireRef::invalid() || phy1 == WireRef::invalid()) {
