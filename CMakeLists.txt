@@ -51,7 +51,7 @@ endif()
 # =============================================================================
 add_library(tweedledum OBJECT)
 target_include_directories(tweedledum PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum eigen fmt::fmt-header-only mockturtle)
+target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle)
 add_subdirectory(lib)
 
 # Examples
