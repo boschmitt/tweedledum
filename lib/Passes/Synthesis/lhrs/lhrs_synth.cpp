@@ -43,14 +43,14 @@ inline klut_network collapse_to_klut(xag_network const& xag)
     return *collapse_mapped_network<klut_network>(mapped_xag);
 }
 
-inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
+inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     xag_network const& xag, Config const& config)
 {
     using Action = BaseStrategy::Action;
 
     auto const klut = collapse_to_klut(xag);
     config.strategy->compute_steps(klut);
-    node_map<WireRef, klut_network> to_qubit(klut, WireRef::invalid());
+    node_map<Qubit, klut_network> to_qubit(klut, Qubit::invalid());
 
     uint32_t i = 0u;
     klut.foreach_pi([&](auto const& node) {
@@ -81,9 +81,9 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
 
     // Perform the action of all the steps.
     for (auto const& step : *config.strategy) {
-        std::vector<WireRef> qs;
+        std::vector<Qubit> qs;
         klut.foreach_fanin(step.node, [&](auto const& signal) {
-            WireRef qubit = to_qubit[klut.get_node(signal)];
+            Qubit qubit = to_qubit[klut.get_node(signal)];
             if (klut.is_complemented(signal)) {
                 qs.emplace_back(!qubit);
             } else {
@@ -92,7 +92,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
         });
         switch (step.action) {
         case Action::compute:
-            if (to_qubit[step.node] == WireRef::invalid()) {
+            if (to_qubit[step.node] == Qubit::invalid()) {
                 to_qubit[step.node] = circuit.request_ancilla();
             }
             break;
@@ -109,9 +109,9 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     for (uint32_t po : to_compute_po) {
         auto const signal = klut.po_at(po - klut.num_pis());
         auto const node = klut.get_node(signal);
-        WireRef qubit = to_qubit[node];
+        Qubit qubit = to_qubit[node];
         if (klut.is_complemented(signal)) {
-            qubit.complement();
+            qubit = !qubit;
         }
         circuit.apply_operator(Op::X(), {qubit, qubits.at(po)});
     }
@@ -119,14 +119,14 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     for (uint32_t po : to_complement_po) {
         auto const signal = klut.po_at(po - klut.num_pis());
         auto const node = klut.get_node(signal);
-        WireRef const qubit = to_qubit[node];
+        Qubit const qubit = to_qubit[node];
         circuit.apply_operator(Op::X(), {qubit});
     }
 }
 
 }
 
-void lhrs_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void lhrs_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     mockturtle::xag_network const& xag, nlohmann::json const& config)
 {
     Config cfg(config);
@@ -140,7 +140,7 @@ Circuit lhrs_synth(mockturtle::xag_network const& xag, nlohmann::json const& con
     Config cfg(config);
     // Create the necessary qubits
     uint32_t num_qubits = xag.num_pis() + xag.num_pos();
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         wires.emplace_back(circuit.create_qubit());

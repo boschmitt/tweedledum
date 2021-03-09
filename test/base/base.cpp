@@ -16,9 +16,9 @@ TEST_CASE("Toffoli gate", "[base]")
     using namespace tweedledum;
 
     Circuit high_level;
-    WireRef q0 = high_level.create_qubit();
-    WireRef q1 = high_level.create_qubit();
-    WireRef q2 = high_level.create_qubit();
+    Qubit q0 = high_level.create_qubit();
+    Qubit q1 = high_level.create_qubit();
+    Qubit q2 = high_level.create_qubit();
     high_level.apply_operator(Op::X(), {q0, q1, q2});
 
     SECTION("Identified Phases") {

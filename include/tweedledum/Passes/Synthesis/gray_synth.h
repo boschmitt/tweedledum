@@ -45,7 +45,7 @@ namespace tweedledum {
  * \param[in] parities List of parities and their associated angles.
  */
 // Each column is a parity, num_rows = num_qubits
-void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     BMatrix linear_trans, LinearPP parities,
     nlohmann::json const& config);
 

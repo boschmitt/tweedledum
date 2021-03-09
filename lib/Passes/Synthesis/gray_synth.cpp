@@ -62,7 +62,7 @@ inline void add_gate(State const& state, BMatrix& matrix, GateList& gates)
     }
 }
 
-inline GateList synthesize(std::vector<WireRef> const& qubits, BMatrix& matrix)
+inline GateList synthesize(std::vector<Qubit> const& qubits, BMatrix& matrix)
 {
     GateList gates;
     uint32_t const num_qubits = qubits.size();
@@ -129,7 +129,7 @@ inline GateList synthesize(std::vector<WireRef> const& qubits, BMatrix& matrix)
  * \param[in] parities List of parities and their associated angles.
  */
 // Each column is a parity, num_rows = num_qubits
-void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     BMatrix linear_trans, LinearPP parities, nlohmann::json const& config)
 {
     if (parities.size() == 0) {
@@ -188,7 +188,7 @@ Circuit gray_synth(uint32_t num_qubits, LinearPP const& parities,
     Circuit circuit;
 
     // Create the necessary qubits
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         wires.emplace_back(circuit.create_qubit());

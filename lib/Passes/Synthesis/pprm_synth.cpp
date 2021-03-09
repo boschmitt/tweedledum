@@ -26,12 +26,12 @@ struct Config {
     }
 };
 
-inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
+inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     kitty::dynamic_truth_table const& function, Config config)
 {
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(qubits.size());
-    WireRef const target = qubits.back();
+    Qubit const target = qubits.back();
     for (auto const& cube : kitty::esop_from_pprm(function)) {
         auto bits = cube._bits;
         for (uint32_t v = 0u; bits; bits >>= 1, ++v) {
@@ -52,7 +52,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
 
 }
 
-void pprm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void pprm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     Config cfg(config);
@@ -66,7 +66,7 @@ Circuit pprm_synth(kitty::dynamic_truth_table const& function, nlohmann::json co
     Circuit circuit;
     Config cfg(config);
 
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(function.num_vars() + 1);
     for (uint32_t i = 0u; i < function.num_vars(); ++i) {
         wires.emplace_back(circuit.create_qubit());

@@ -13,7 +13,7 @@
 
 namespace tweedledum {
 
-void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
+void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
     std::vector<Angle> const& angles, nlohmann::json const& config);
 
 Circuit diagonal_synth(std::vector<Angle> const& angles, nlohmann::json const& config);

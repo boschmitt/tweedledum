@@ -21,9 +21,9 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
     nlohmann::json config;
     SECTION("Double-control Z") {
         Circuit expected;
-        WireRef q0 = expected.create_qubit();
-        WireRef q1 = expected.create_qubit();
-        WireRef q2 = expected.create_qubit();
+        Qubit q0 = expected.create_qubit();
+        Qubit q1 = expected.create_qubit();
+        Qubit q2 = expected.create_qubit();
         expected.apply_operator(Op::P(sym_angle::pi), {q1, q2, q0});
 
         std::vector<Angle> angles(7, sym_angle::zero);
@@ -33,9 +33,9 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
     }
     SECTION("Double-control Rx ~ CX") {
         Circuit expected;
-        WireRef q0 = expected.create_qubit();
-        WireRef q1 = expected.create_qubit();
-        WireRef q2 = expected.create_qubit();
+        Qubit q0 = expected.create_qubit();
+        Qubit q1 = expected.create_qubit();
+        Qubit q2 = expected.create_qubit();
         expected.apply_operator(Op::Rx(sym_angle::pi), {q1, q2, q0});
 
         std::vector<Angle> angles(6, sym_angle::zero);

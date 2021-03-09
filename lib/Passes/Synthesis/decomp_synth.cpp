@@ -81,12 +81,12 @@ inline auto decompose(std::vector<uint32_t>& perm, uint32_t var)
     return std::make_pair(std::move(left), std::move(right));
 }
 
-inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
+inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     std::vector<uint32_t> perm)
 {
     std::vector<kitty::dynamic_truth_table> truth_tables;
     truth_tables.reserve(qubits.size() * 2);
-    std::list<std::pair<uint32_t, std::vector<WireRef>>> gates;
+    std::list<std::pair<uint32_t, std::vector<Qubit>>> gates;
     auto pos = gates.begin();
     for (uint32_t i = 0u; i < qubits.size(); ++i) {
         auto&& [left, right] = decompose(perm, i);
@@ -103,7 +103,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
         }
 
         if (!kitty::is_const0(left_tt)) {
-            std::vector<WireRef> left_qubits;
+            std::vector<Qubit> left_qubits;
             for (auto element : kitty::min_base_inplace(left_tt)) {
                 left_qubits.emplace_back(qubits.at(element));
             }
@@ -114,7 +114,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
             ++pos;
         }
         if (!kitty::is_const0(right_tt)) {
-            std::vector<WireRef> right_qubits;
+            std::vector<Qubit> right_qubits;
             for (auto element : kitty::min_base_inplace(right_tt)) {
                 right_qubits.emplace_back(qubits.at(element));
             }
@@ -131,7 +131,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
 
 }
 
-void decomp_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void decomp_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     std::vector<uint32_t> const& perm)
 {
     assert(!perm.empty() && !(perm.size() & (perm.size() - 1)));
@@ -145,7 +145,7 @@ Circuit decomp_synth(std::vector<uint32_t> const& perm)
 
     // Create the necessary qubits
     uint32_t const num_qubits = __builtin_ctz(perm.size());
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         wires.emplace_back(circuit.create_qubit());

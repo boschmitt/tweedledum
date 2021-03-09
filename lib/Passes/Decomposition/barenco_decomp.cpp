@@ -15,7 +15,7 @@ struct Config {
     uint32_t controls_threshold;
     uint32_t max_qubits;
     // std::vector<uint8_t> locked;
-    WireRef locked;
+    Qubit locked;
     Operator const compute_op;
     Operator const cleanup_op;
 
@@ -23,7 +23,7 @@ struct Config {
         : controls_threshold(2u)
         , max_qubits(0u)
         // , locked(n, 0)
-        , locked(WireRef::invalid())
+        , locked(Qubit::invalid())
         , compute_op(Op::Rx(sym_angle::pi))
         , cleanup_op(Op::Rx(-sym_angle::pi))
         // , compute_op(Op::X())
@@ -41,18 +41,15 @@ struct Config {
     }
 };
 
-inline std::vector<WireRef> get_workspace(Circuit& circuit, std::vector<WireRef> const& qubits, Config const& cfg)
+inline std::vector<Qubit> get_workspace(Circuit& circuit, std::vector<Qubit> const& qubits, Config const& cfg)
 {
-    std::vector<WireRef> workspace;
-    circuit.foreach_wire([&](WireRef ref) {
-        if (ref.kind() != Wire::Kind::quantum) {
-            return;
-        }
+    std::vector<Qubit> workspace;
+    circuit.foreach_qubit([&](Qubit ref) {
         // if (cfg.locked[ref]) {
         if (cfg.locked == ref) {
             return;
         }
-        for (WireRef qubit : qubits) {
+        for (Qubit qubit : qubits) {
             if (ref.uid() == qubit.uid()) {
                 return;
             }
@@ -62,10 +59,10 @@ inline std::vector<WireRef> get_workspace(Circuit& circuit, std::vector<WireRef>
     return workspace;
 }
 
-inline void v_dirty(Circuit& circuit, Operator const& op, std::vector<WireRef> const& qubits, Config const& cfg)
+inline void v_dirty(Circuit& circuit, Operator const& op, std::vector<Qubit> const& qubits, Config const& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
-    std::vector<WireRef> workspace = get_workspace(circuit, qubits, cfg);
+    std::vector<Qubit> workspace = get_workspace(circuit, qubits, cfg);
     uint32_t const workspace_size = workspace.size();
     workspace.push_back(qubits.back());
 
@@ -73,27 +70,27 @@ inline void v_dirty(Circuit& circuit, Operator const& op, std::vector<WireRef> c
     // When offset is 1 this is cleaning up the workspace
     for (int offset = 0; offset <= 1; ++offset) {
         for (int i = offset; i < static_cast<int>(num_controls) - 2; ++i) {
-            WireRef const c0 = qubits.at(num_controls - 1 - i);
-            WireRef const c1 = workspace.at(workspace_size - 1 - i);
-            WireRef const t = workspace.at(workspace_size - i);
+            Qubit const c0 = qubits.at(num_controls - 1 - i);
+            Qubit const c1 = workspace.at(workspace_size - 1 - i);
+            Qubit const t = workspace.at(workspace_size - i);
             circuit.apply_operator(i ? cfg.compute_op : op, {c0, c1, t});
         }
 
         circuit.apply_operator(offset ? cfg.cleanup_op : cfg.compute_op, {qubits[0], qubits[1], workspace[workspace_size - (num_controls - 2)]});
 
         for (int i = num_controls - 2 - 1; i >= offset; --i) {
-            WireRef const c0 = qubits.at(num_controls - 1 - i);
-            WireRef const c1 = workspace.at(workspace_size - 1 - i);
-            WireRef const t = workspace.at(workspace_size - i);
+            Qubit const c0 = qubits.at(num_controls - 1 - i);
+            Qubit const c1 = workspace.at(workspace_size - 1 - i);
+            Qubit const t = workspace.at(workspace_size - i);
             circuit.apply_operator(i ? cfg.cleanup_op : op, {c0, c1, t});
         }
     }
 }
 
-inline void v_clean(Circuit& circuit, Operator const& op, std::vector<WireRef> const& qubits, Config const& cfg)
+inline void v_clean(Circuit& circuit, Operator const& op, std::vector<Qubit> const& qubits, Config const& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
-    std::vector<WireRef> ancillae;
+    std::vector<Qubit> ancillae;
     for (uint32_t i = 0; i < (num_controls - 2); ++i) {
         ancillae.push_back(circuit.request_ancilla());
     }
@@ -112,12 +109,12 @@ inline void v_clean(Circuit& circuit, Operator const& op, std::vector<WireRef> c
         j -= 1;
     }
     circuit.apply_operator(cfg.cleanup_op, {qubits[0], qubits[1], ancillae.at(0)});
-    for (WireRef const ref : ancillae) {
+    for (Qubit const ref : ancillae) {
         circuit.release_ancilla(ref);
     }
 }
 
-inline void dirty_ancilla(Circuit& circuit, Operator const& op, std::vector<WireRef> const& qubits, Config const& cfg)
+inline void dirty_ancilla(Circuit& circuit, Operator const& op, std::vector<Qubit> const& qubits, Config const& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
     if (num_controls <= cfg.controls_threshold) {
@@ -135,20 +132,20 @@ inline void dirty_ancilla(Circuit& circuit, Operator const& op, std::vector<Wire
         return;
     }
 
-    std::vector<WireRef> workspace = get_workspace(circuit, qubits, cfg);
+    std::vector<Qubit> workspace = get_workspace(circuit, qubits, cfg);
     // Not enough qubits in the workspace, extra decomposition step
     // Lemma 7.3: For any n ≥ 5, and m ∈ {2, ... , n − 3} a (n−2)-toffoli gate
     // can be simulated by a circuit consisting of two m-toffoli gates and two
     // (n−m−1)-toffoli gates
-    std::vector<WireRef> qubits0;
-    std::vector<WireRef> qubits1;
+    std::vector<Qubit> qubits0;
+    std::vector<Qubit> qubits1;
     for (auto i = 0u; i < (num_controls >> 1); ++i) {
         qubits0.push_back(qubits[i]);
     }
     for (auto i = (num_controls >> 1); i < num_controls; ++i) {
         qubits1.push_back(qubits[i]);
     }
-    WireRef free_qubit = workspace.front();
+    Qubit free_qubit = workspace.front();
     qubits0.push_back(free_qubit);
     qubits1.push_back(free_qubit);
     qubits1.push_back(qubits.back());
@@ -158,7 +155,7 @@ inline void dirty_ancilla(Circuit& circuit, Operator const& op, std::vector<Wire
     dirty_ancilla(circuit, op, qubits1, cfg);
 }
 
-inline void clean_ancilla(Circuit& circuit, Operator const& op, std::vector<WireRef> const& qubits, Config& cfg)
+inline void clean_ancilla(Circuit& circuit, Operator const& op, std::vector<Qubit> const& qubits, Config& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
     if (num_controls <= cfg.controls_threshold) {
@@ -180,8 +177,8 @@ inline void clean_ancilla(Circuit& circuit, Operator const& op, std::vector<Wire
     // Lemma 7.3: For any n ≥ 5, and m ∈ {2, ... , n − 3} a (n−2)-toffoli gate
     // can be simulated by a circuit consisting of two m-toffoli gates and two
     // (n−m−1)-toffoli gates
-    std::vector<WireRef> qubits0;
-    std::vector<WireRef> qubits1;
+    std::vector<Qubit> qubits0;
+    std::vector<Qubit> qubits1;
     for (auto i = 0u; i < (num_controls >> 1); ++i) {
         qubits0.push_back(qubits[i]);
     }
@@ -190,7 +187,7 @@ inline void clean_ancilla(Circuit& circuit, Operator const& op, std::vector<Wire
     }
     if (circuit.num_ancillae() > 0) {
         // fmt::print("b\n");
-        WireRef ancilla = circuit.request_ancilla();
+        Qubit ancilla = circuit.request_ancilla();
         // cfg.locked[ancilla] = 1;
         qubits0.push_back(ancilla);
         qubits1.push_back(ancilla);
@@ -201,8 +198,8 @@ inline void clean_ancilla(Circuit& circuit, Operator const& op, std::vector<Wire
         circuit.release_ancilla(ancilla);
         return;
     }
-    std::vector<WireRef> workspace = get_workspace(circuit, qubits, cfg);
-    WireRef free_qubit = workspace.front();
+    std::vector<Qubit> workspace = get_workspace(circuit, qubits, cfg);
+    Qubit free_qubit = workspace.front();
     qubits0.push_back(free_qubit);
     qubits1.push_back(free_qubit);
     qubits1.push_back(qubits.back());
@@ -221,7 +218,7 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
         // cfg.locked.push_back(0);
     }
     if (inst.num_controls() == 3u && circuit.num_ancillae() > 0) {
-        WireRef ancilla = circuit.request_ancilla();
+        Qubit ancilla = circuit.request_ancilla();
         circuit.apply_operator(cfg.compute_op, {inst.control(0), inst.control(1), ancilla});
         circuit.apply_operator(inst, {inst.control(2), ancilla, inst.target()});
         circuit.apply_operator(cfg.cleanup_op, {inst.control(0), inst.control(1), ancilla});

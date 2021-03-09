@@ -31,14 +31,14 @@ struct Config {
     }
 };
 
-inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
+inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     kitty::dynamic_truth_table const& function, Config const& config)
 {
-    WireRef const target = qubits.back();
+    Qubit const target = qubits.back();
     for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
         uint32_t bits = cube._bits;
         uint32_t mask = cube._mask;
-        std::vector<WireRef> wires;
+        std::vector<Qubit> wires;
         for (uint32_t v = 0u; mask; mask >>= 1, bits >>= 1, ++v) {
             if ((mask & 1) == 0u) {
                 continue;
@@ -47,8 +47,8 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
         }
         if (config.phase_esop) {
             auto it = std::find_if(wires.rbegin(), wires.rend(), 
-            [](WireRef ref) {
-                return !ref.is_complemented();
+            [](Qubit ref) {
+                return ref.polarity() == Qubit::Polarity::positive;
             });
             if (it == wires.rend()) {
                 circuit.apply_operator(Op::X(), {wires.back()});
@@ -67,7 +67,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
 
 }
 
-void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void pkrm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     Config cfg(config);
@@ -81,7 +81,7 @@ Circuit pkrm_synth(kitty::dynamic_truth_table const& function, nlohmann::json co
     Circuit circuit;
     Config cfg(config);
 
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(function.num_vars() + 1);
     for (uint32_t i = 0u; i < function.num_vars(); ++i) {
         wires.emplace_back(circuit.create_qubit());
@@ -93,7 +93,7 @@ Circuit pkrm_synth(kitty::dynamic_truth_table const& function, nlohmann::json co
     return circuit;
 }
 
-void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void pkrm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     Instruction const& inst, nlohmann::json const& config)
 {
     if (!inst.is_a<Op::TruthTable>()) {
@@ -103,7 +103,7 @@ void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
     pkrm_synth(circuit, qubits, tt.truth_table(), config);
 }
 
-void pkrm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void pkrm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     mockturtle::xag_network const& xag, nlohmann::json const& config)
 {
     if (xag.num_pis() <= 16u && xag.num_pos() == 1) {

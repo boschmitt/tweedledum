@@ -26,7 +26,7 @@ inline void complement_qubit(uint32_t i, std::vector<Angle>& angles)
 }
 
 inline std::vector<Angle> fix_angles(
-    std::vector<WireRef>& qubits, std::vector<Angle> const& angles)
+    std::vector<Qubit>& qubits, std::vector<Angle> const& angles)
 {
     std::vector<Angle> new_angles;
     std::transform(angles.begin(), angles.end(),
@@ -37,11 +37,11 @@ inline std::vector<Angle> fix_angles(
     // Normalize qubits polarity
     uint32_t index = 0u;
     for (uint32_t i = qubits.size(); i-- > 0;) {
-        if (!qubits.at(index).is_complemented()) {
+        if (qubits.at(index).polarity() != Qubit::Polarity::negative) {
             index += 1;
             continue;
         }
-        qubits.at(index).complement();
+        qubits.at(index) = !qubits.at(index);
         complement_qubit(index, new_angles);
         index += 1;
     }
@@ -64,7 +64,7 @@ inline void fast_hadamard_transform(std::vector<Angle>& angles)
 
 }
 
-void diagonal_synth(Circuit& circuit, std::vector<WireRef> qubits,
+void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
     std::vector<Angle> const& angles, nlohmann::json const& config)
 {
     // Number of angles + 1 needs to be a power of two!
@@ -99,7 +99,7 @@ Circuit diagonal_synth(std::vector<Angle> const& angles, nlohmann::json const& c
 
     Circuit circuit;
     // Create the necessary qubits
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         wires.emplace_back(circuit.create_qubit());

@@ -94,7 +94,7 @@ inline GateList lower_cnot_synthesis(BMatrix& matrix, uint32_t section_size)
     return gates;
 }
 
-inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
+inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     BMatrix matrix, uint32_t const section_size, bool const inverse)
 {
     GateList lower = lower_cnot_synthesis(matrix, section_size);
@@ -122,7 +122,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
     }
 }
 
-inline void best_effort_synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
+inline void best_effort_synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     BMatrix const& matrix, bool const reverse)
 {
     BMatrix temp_matrix = matrix;
@@ -156,7 +156,7 @@ inline void best_effort_synthesize(Circuit& circuit, std::vector<WireRef> const&
 }
 }
 
-void linear_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     BMatrix const& matrix, nlohmann::json const& config)
 {
     Config cfg(config);
@@ -174,7 +174,7 @@ Circuit linear_synth(BMatrix const& matrix, nlohmann::json const& config)
 
     // Create the necessary qubits
     uint32_t const num_qubits = matrix.rows();
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         wires.emplace_back(circuit.create_qubit());

@@ -51,7 +51,7 @@ namespace tweedledum {
  * \param[in] qubits The wires that will be used.
  * \param[in] matrix An N x N binary matrix.
  */
-void linear_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     BMatrix const& matrix, nlohmann::json const& config);
 
 /*! \brief Synthesis of linear reversible circuits (CNOT synthesis).

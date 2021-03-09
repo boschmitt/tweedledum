@@ -92,11 +92,9 @@ bool SabrePlacer::add_instruction(Instruction const& inst)
 {
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
     // Transform the wires to a new
-    SmallVector<WireRef, 2> qubits;
-    inst.foreach_wire([&](WireRef ref) {
-        if (ref.kind() == Wire::Kind::quantum) {
-            qubits.push_back(state_.v_to_phy.at(ref));
-        }
+    SmallVector<Qubit, 2> qubits;
+    inst.foreach_qubit([&](Qubit ref) {
+        qubits.push_back(state_.v_to_phy.at(ref));
     });
 
     if (inst.num_qubits() == 1) {
@@ -109,7 +107,7 @@ bool SabrePlacer::add_instruction(Instruction const& inst)
     return true;
 }
 
-void SabrePlacer::add_swap(WireRef const phy0, WireRef const phy1)
+void SabrePlacer::add_swap(Qubit const phy0, Qubit const phy1)
 {
     fmt::print("Add swap: {} <-> {}\n", phy0, phy1);
     state_.swap_qubits(phy0, phy1);
@@ -122,7 +120,7 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
         auto const& [u, v] = state_.device.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.qubit_ref(u), state_.mapped.qubit_ref(v));
+            swap_candidates.emplace_back(state_.mapped.qubit(u), state_.mapped.qubit(v));
         }
     }
 
@@ -133,7 +131,7 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     // Compute cost
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
-        std::vector<WireRef> v_to_phy = state_.v_to_phy;
+        std::vector<Qubit> v_to_phy = state_.v_to_phy;
         std::swap(v_to_phy.at(state_.phy_to_v.at(phy0)), v_to_phy.at(state_.phy_to_v.at(phy1)));
         double swap_cost = compute_cost(v_to_phy, front_layer_);
         double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
@@ -157,13 +155,13 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     return swap_candidates.at(min);
 }
 
-double SabrePlacer::compute_cost(std::vector<WireRef> const& v_to_phy, std::vector<InstRef> const& layer)
+double SabrePlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
         Instruction const& inst = current_->instruction(ref);
-        WireRef const v0 = inst.qubit(0);
-        WireRef const v1 = inst.qubit(1);
+        Qubit const v0 = inst.qubit(0);
+        Qubit const v1 = inst.qubit(1);
         cost += (state_.device.distance(v_to_phy.at(v0), v_to_phy.at(v1)) - 1);
     }
     return cost;

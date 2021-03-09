@@ -110,7 +110,7 @@ public:
     {}
 
     template<typename OpT>
-    void apply_operator(OpT&& optor, std::vector<WireRef> const& qubits)
+    void apply_operator(OpT&& optor, std::vector<Qubit> const& qubits)
     {
         std::vector<uint32_t> const temp_qubits(qubits.begin(), qubits.end());
         apply_operator(std::forward<OpT>(optor), temp_qubits);

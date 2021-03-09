@@ -22,13 +22,11 @@ public:
     bool run(uint32_t seed = 17u)
     {
         // Initialize with the trivial placement
-        for (uint32_t i = 0u; i < state_.mapped.num_qubits(); ++i) {
-            state_.v_to_phy.at(i) = state_.mapped.wire_ref(i);
-        }
+        state_.v_to_phy = state_.mapped.qubits();
         std::mt19937 rnd(seed);
         std::shuffle(state_.v_to_phy.begin(), state_.v_to_phy.end(), rnd);
         for (uint32_t i = 0u; i < state_.v_to_phy.size(); ++i) {
-            state_.phy_to_v.at(state_.v_to_phy.at(i)) = state_.mapped.wire_ref(i);
+            state_.phy_to_v.at(state_.v_to_phy.at(i)) = state_.mapped.qubit(i);
         }
         return false;
     }

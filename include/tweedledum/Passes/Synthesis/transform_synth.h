@@ -46,7 +46,7 @@ namespace tweedledum {
  * \param[in] qubits The wires that will be used.
  * \param[in] perm A vector of different integers.
  */
-void transform_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void transform_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     std::vector<uint32_t> const& perm);
 
 /*! \brief Reversible synthesis based on symbolic transformation.

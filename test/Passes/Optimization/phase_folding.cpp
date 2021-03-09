@@ -19,7 +19,7 @@ TEST_CASE("Trivial phase folding", "[phase_folding][optimization]")
     using namespace tweedledum;
     SECTION("Trivial 1 qubit") {
         Circuit circuit;
-        WireRef q0 = circuit.create_qubit();
+        Qubit q0 = circuit.create_qubit();
         circuit.apply_operator(Op::T(), {q0});
         circuit.apply_operator(Op::Tdg(), {q0});
         
@@ -29,8 +29,8 @@ TEST_CASE("Trivial phase folding", "[phase_folding][optimization]")
     }
     SECTION("Trivial 2 qubit swap") {
         Circuit circuit;
-        WireRef q0 = circuit.create_qubit();
-        WireRef q1 = circuit.create_qubit();
+        Qubit q0 = circuit.create_qubit();
+        Qubit q1 = circuit.create_qubit();
         circuit.apply_operator(Op::T(), {q0});
         circuit.apply_operator(Op::Swap(), {q1, q0});
         circuit.apply_operator(Op::Tdg(), {q1});

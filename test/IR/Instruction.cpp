@@ -13,7 +13,7 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    WireRef q0 = circuit.create_qubit();
+    Qubit q0 = circuit.create_qubit();
     circuit.apply_operator(Op::H(), {q0});
     circuit.apply_operator(Op::P(sym_angle::pi_quarter), {q0});
     circuit.apply_operator(Op::P(sym_angle::pi_half), {q0});
@@ -40,7 +40,7 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
         circuit.foreach_instruction([&adjoints](Instruction const& inst) {
             std::optional<Operator> adj = inst.adjoint();
             REQUIRE(adj);
-            adjoints.apply_operator(*adj, inst.wires());
+            adjoints.apply_operator(*adj, inst.qubits());
         });
         REQUIRE(circuit.size() == adjoints.size());
 
@@ -67,7 +67,7 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
         // Create a circuit with adjoints but on other qubits
         Circuit non_adjoints;
         non_adjoints.create_qubit();
-        WireRef q1 = non_adjoints.create_qubit();
+        Qubit q1 = non_adjoints.create_qubit();
         circuit.foreach_instruction([&non_adjoints, q1](Instruction const& inst) {
             std::optional<Operator> adj = inst.adjoint();
             non_adjoints.apply_operator(*adj, {q1});
@@ -94,8 +94,8 @@ TEST_CASE("Check single-target, two-qubit adjointness", "[instruction][ir]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    WireRef q0 = circuit.create_qubit();
-    WireRef q1 = circuit.create_qubit();
+    Qubit q0 = circuit.create_qubit();
+    Qubit q1 = circuit.create_qubit();
     circuit.apply_operator(Op::H(), {q0});
     circuit.apply_operator(Op::P(sym_angle::pi_quarter), {q0, q1});
     circuit.apply_operator(Op::P(sym_angle::pi_half), {q0, q1});
@@ -123,7 +123,7 @@ TEST_CASE("Check single-target, two-qubit adjointness", "[instruction][ir]")
         circuit.foreach_instruction([&adjoints](Instruction const& inst) {
             std::optional<Operator> adj = inst.adjoint();
             REQUIRE(adj);
-            adjoints.apply_operator(*adj, inst.wires());
+            adjoints.apply_operator(*adj, inst.qubits());
         });
         REQUIRE(circuit.size() == adjoints.size());
 
@@ -177,8 +177,8 @@ TEST_CASE("Check two-target, two-qubit adjointness", "[instruction][ir]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    WireRef q0 = circuit.create_qubit();
-    WireRef q1 = circuit.create_qubit();
+    Qubit q0 = circuit.create_qubit();
+    Qubit q1 = circuit.create_qubit();
     circuit.apply_operator(Op::Rxx(sym_angle::pi_quarter), {q0, q1});
     circuit.apply_operator(Op::Rxx(sym_angle::pi_half), {q0, q1});
     circuit.apply_operator(Op::Rxx(sym_angle::pi), {q0, q1});
@@ -198,7 +198,7 @@ TEST_CASE("Check two-target, two-qubit adjointness", "[instruction][ir]")
         circuit.foreach_instruction([&adjoints](Instruction const& inst) {
             std::optional<Operator> adj = inst.adjoint();
             REQUIRE(adj);
-            adjoints.apply_operator(*adj, inst.wires());
+            adjoints.apply_operator(*adj, inst.qubits());
         });
         REQUIRE(circuit.size() == adjoints.size());
 

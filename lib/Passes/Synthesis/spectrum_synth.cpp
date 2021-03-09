@@ -11,7 +11,7 @@
 
 namespace tweedledum {
 
-void spectrum_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void spectrum_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     uint32_t const num_controls = function.num_vars();
@@ -44,7 +44,7 @@ Circuit spectrum_synth(kitty::dynamic_truth_table const& function, nlohmann::jso
 {
     Circuit circuit;
     // Create the necessary qubits
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(function.num_vars() + 1);
     for (uint32_t i = 0u; i < function.num_vars() + 1; ++i) {
         wires.emplace_back(circuit.create_qubit());

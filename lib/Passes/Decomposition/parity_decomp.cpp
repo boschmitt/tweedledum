@@ -14,7 +14,7 @@ namespace {
 
 inline bool decompose(Circuit& circuit, Instruction const& inst)
 {
-    inst.foreach_control([&](WireRef wref) {
+    inst.foreach_control([&](Qubit wref) {
         circuit.apply_operator(Op::X(), {wref, inst.target()});
     });
     return true;

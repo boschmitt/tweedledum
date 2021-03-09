@@ -13,7 +13,7 @@
 
 namespace tweedledum {
 
-void xag_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void xag_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     mockturtle::xag_network const& xag, nlohmann::json const& config = {});
 
 Circuit xag_synth(mockturtle::xag_network const& xag, nlohmann::json const& config = {});

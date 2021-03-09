@@ -24,14 +24,14 @@ namespace deprecated {
 // This is a literal translation of the algorithm given in Figure 5 of the
 // Cuccaro et al. paper.
 inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
-    std::vector<WireRef> const& a, std::vector<WireRef> const& b, WireRef carry)
+    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
     for (uint32_t i = 1; i < n; ++i) {
         circuit.apply_operator(Op::X(), {a[i], b[i]});
     }
-    WireRef x = circuit.request_ancilla();
+    Qubit x = circuit.request_ancilla();
     circuit.apply_operator(Op::X(), {a[1], x});
     circuit.apply_operator(Op::X(), {a[0], b[0], x});
     circuit.apply_operator(Op::X(), {a[2], a[1]});
@@ -78,14 +78,14 @@ inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
 // Cuccaro et al. paper.  The only difference here is that the inversters are
 // absorbed into the the controls of the Toffoli gates.
 inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
-    std::vector<WireRef> const& a, std::vector<WireRef> const& b, WireRef carry)
+    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
     for (uint32_t i = 1; i < n; ++i) {
         circuit.apply_operator(Op::X(), {a[i], b[i]});
     }
-    WireRef x = circuit.request_ancilla();
+    Qubit x = circuit.request_ancilla();
     circuit.apply_operator(Op::X(), {a[1], x});
     circuit.apply_operator(Op::X(), {a[0], b[0], x});
     circuit.apply_operator(Op::X(), {a[2], a[1]});
@@ -122,11 +122,11 @@ inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
 
 // This is an implementation based on Figure 4 of the Cuccaro et al. paper.
 inline void carry_ripple_adder_inplace_cdkm_v1(Circuit& circuit,
-    std::vector<WireRef> const& a, std::vector<WireRef> const& b, WireRef carry)
+    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
-    WireRef x = circuit.request_ancilla();
+    Qubit x = circuit.request_ancilla();
     // MAJ(x, b0, a0)
     circuit.apply_operator(Op::X(), {a[0], b[0]});
     circuit.apply_operator(Op::X(), {a[0], x});
@@ -152,7 +152,7 @@ inline void carry_ripple_adder_inplace_cdkm_v1(Circuit& circuit,
 
 // Ripple-Carry approach with depth O(n)
 inline void carry_ripple_adder_inplace_ttk(Circuit& circuit,
-    std::vector<WireRef> a, std::vector<WireRef> const& b, WireRef carry)
+    std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -187,7 +187,7 @@ inline void carry_ripple_adder_inplace_ttk(Circuit& circuit,
 
 // Generic function that takes the adder I think is best (:
 inline void carry_ripple_adder_inplace(Circuit& circuit,
-    std::vector<WireRef> const& a, std::vector<WireRef> const& b, WireRef carry)
+    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     carry_ripple_adder_inplace_ttk(circuit, a, b, carry);
 }
@@ -195,15 +195,15 @@ inline void carry_ripple_adder_inplace(Circuit& circuit,
 inline Circuit carry_ripple_adder_inplace(uint32_t n)
 {
     Circuit circuit;
-    std::vector<WireRef> a_qubits;
-    std::vector<WireRef> b_qubits;
+    std::vector<Qubit> a_qubits;
+    std::vector<Qubit> b_qubits;
     for (uint32_t i = 0; i < n; ++i) {
         a_qubits.push_back(circuit.create_qubit(fmt::format("a{}", i)));
     }
     for (uint32_t i = 0; i < n; ++i) {
         b_qubits.push_back(circuit.create_qubit(fmt::format("b{}", i)));
     }
-    WireRef carry = circuit.create_qubit();
+    Qubit carry = circuit.create_qubit();
     carry_ripple_adder_inplace_ttk(circuit, a_qubits, b_qubits, carry);
     return circuit;
 }

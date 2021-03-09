@@ -27,9 +27,9 @@ TEST_CASE("Trivial cases for linear_synth", "[linear_synth][synth]")
     Circuit synthesized = linear_synth(linear_trans, config);
 
     Circuit expected;
-    WireRef q0 = expected.create_qubit();
-    WireRef q1 = expected.create_qubit();
-    WireRef q2 = expected.create_qubit();
+    Qubit q0 = expected.create_qubit();
+    Qubit q1 = expected.create_qubit();
+    Qubit q2 = expected.create_qubit();
     expected.apply_operator(Op::X(), {q2, q1});
     expected.apply_operator(Op::X(), {q1, q0});
     CHECK(check_unitary(expected, synthesized));

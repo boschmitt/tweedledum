@@ -11,7 +11,7 @@ namespace {
 
 // I added this level of indirection because I can implement this method with
 // other codes or just using binary sequence.
-inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits, LinearPP parities)
+inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits, LinearPP parities)
 {
     // Generate Gray code
     std::vector<uint32_t> gray_code(1u << circuit.num_qubits());
@@ -55,7 +55,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits, Lin
 
 }
 
-void all_linear_synth(Circuit& circuit, std::vector<WireRef> const& qubits, LinearPP const& parities)
+void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits, LinearPP const& parities)
 {
     if (parities.size() == 0) {
         return;
@@ -68,7 +68,7 @@ Circuit all_linear_synth(uint32_t num_qubits, LinearPP const& parities)
     Circuit circuit;
 
     // Create the necessary qubits
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         wires.emplace_back(circuit.create_qubit());

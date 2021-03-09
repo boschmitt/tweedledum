@@ -163,14 +163,14 @@ inline GateList multidirectional(std::vector<uint32_t> perm)
     return gates;
 }
 
-inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
+inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     std::vector<uint32_t> const& perm)
 {
     // GateList gates = unidirectional(perm);
     // GateList gates = bidirectional(perm);
     GateList gates = multidirectional(perm);
     for (auto [controls, targets] : gates) {
-        std::vector<WireRef> cs;
+        std::vector<Qubit> cs;
         for (uint32_t c = 0; controls; controls >>= 1, ++c) {
             if (controls & 1) {
                 cs.emplace_back(qubits.at(c));
@@ -189,7 +189,7 @@ inline void synthesize(Circuit& circuit, std::vector<WireRef> const& qubits,
 }
 }
 
-void transform_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
+void transform_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     std::vector<uint32_t> const& perm)
 {
     assert(!perm.empty() && !(perm.size() & (perm.size() - 1)));
@@ -203,7 +203,7 @@ Circuit transform_synth(std::vector<uint32_t> const& perm)
 
     // Create the necessary qubits
     uint32_t const num_qubits = __builtin_ctz(perm.size());
-    std::vector<WireRef> wires;
+    std::vector<Qubit> wires;
     wires.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         wires.emplace_back(circuit.create_qubit());

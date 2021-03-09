@@ -88,22 +88,22 @@ undo_increment:
     }
 }
 
-std::vector<WireRef> JITPlacer::find_free_phy() const
+std::vector<Qubit> JITPlacer::find_free_phy() const
 {
-    std::vector<WireRef> free_phy;
+    std::vector<Qubit> free_phy;
     for (uint32_t i = 0; i < state_.phy_to_v.size(); ++i) {
-        if (state_.phy_to_v.at(i) == WireRef::invalid()) {
-            free_phy.push_back(state_.mapped.qubit_ref(i));
+        if (state_.phy_to_v.at(i) == Qubit::invalid()) {
+            free_phy.push_back(state_.mapped.qubit(i));
         }
     }
     return free_phy;
 }
 
-void JITPlacer::place_two_v(WireRef const v0, WireRef const v1)
+void JITPlacer::place_two_v(Qubit const v0, Qubit const v1)
 {
-    WireRef phy0 = state_.v_to_phy.at(v0);
-    WireRef phy1 = state_.v_to_phy.at(v1);
-    std::vector<WireRef> const free_phy = find_free_phy();
+    Qubit phy0 = state_.v_to_phy.at(v0);
+    Qubit phy1 = state_.v_to_phy.at(v1);
+    std::vector<Qubit> const free_phy = find_free_phy();
     assert(free_phy.size() >= 2u);
     if (free_phy.size() == 2u) {
         phy0 = free_phy.at(0);
@@ -112,8 +112,8 @@ void JITPlacer::place_two_v(WireRef const v0, WireRef const v1)
         uint32_t min_dist = std::numeric_limits<uint32_t>::max();
         for (uint32_t i = 0u; i < free_phy.size(); ++i) {
             for (uint32_t j = i + 1u; j < free_phy.size(); ++j) {
-                WireRef const i_phy = free_phy.at(i);
-                WireRef const j_phy = free_phy.at(j);
+                Qubit const i_phy = free_phy.at(i);
+                Qubit const j_phy = free_phy.at(j);
                 if (min_dist < state_.device.distance(i_phy, j_phy)) {
                     continue;
                 }
@@ -129,13 +129,13 @@ void JITPlacer::place_two_v(WireRef const v0, WireRef const v1)
     state_.phy_to_v.at(phy1) = v1;
 }
 
-void JITPlacer::place_one_v(WireRef v0, WireRef v1)
+void JITPlacer::place_one_v(Qubit v0, Qubit v1)
 {
-    WireRef phy0 = state_.v_to_phy.at(v0);
-    WireRef phy1 = state_.v_to_phy.at(v1);
-    std::vector<WireRef> const free_phy = find_free_phy();
+    Qubit phy0 = state_.v_to_phy.at(v0);
+    Qubit phy1 = state_.v_to_phy.at(v1);
+    std::vector<Qubit> const free_phy = find_free_phy();
     assert(free_phy.size() >= 1u);
-    if (phy1 == WireRef::invalid()) {
+    if (phy1 == Qubit::invalid()) {
         std::swap(v0, v1);
         std::swap(phy0, phy1);
     }
@@ -158,18 +158,16 @@ bool JITPlacer::add_instruction(Instruction const& inst)
         return true;
     }
     // Transform the wires to a new
-    SmallVector<WireRef, 2> qubits;
-    inst.foreach_wire([&](WireRef ref) {
-        if (ref.kind() == Wire::Kind::quantum) {
-            qubits.push_back(ref);
-        }
+    SmallVector<Qubit, 2> qubits;
+    inst.foreach_qubit([&](Qubit ref) {
+        qubits.push_back(ref);
     });
     // FIXME: implement .at in SmallVector!
-    WireRef phy0 = state_.v_to_phy.at(qubits[0]);
-    WireRef phy1 = state_.v_to_phy.at(qubits[1]);
-    if (phy0 == WireRef::invalid() && phy1 == WireRef::invalid()) {
+    Qubit phy0 = state_.v_to_phy.at(qubits[0]);
+    Qubit phy1 = state_.v_to_phy.at(qubits[1]);
+    if (phy0 == Qubit::invalid() && phy1 == Qubit::invalid()) {
         place_two_v(qubits[0], qubits[1]);
-    } else if (phy0 == WireRef::invalid() || phy1 == WireRef::invalid()) {
+    } else if (phy0 == Qubit::invalid() || phy1 == Qubit::invalid()) {
         place_one_v(qubits[0], qubits[1]);
     }
     phy0 = state_.v_to_phy.at(qubits[0]);
@@ -180,7 +178,7 @@ bool JITPlacer::add_instruction(Instruction const& inst)
     return true;
 }
 
-void JITPlacer::add_swap(WireRef const phy0, WireRef const phy1)
+void JITPlacer::add_swap(Qubit const phy0, Qubit const phy1)
 {
     num_swaps_ += 1;
     state_.swap_qubits(phy0, phy1);
@@ -193,7 +191,7 @@ JITPlacer::Swap JITPlacer::find_swap()
     for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
         auto const& [u, v] = state_.device.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.qubit_ref(u), state_.mapped.qubit_ref(v));
+            swap_candidates.emplace_back(state_.mapped.qubit(u), state_.mapped.qubit(v));
         }
     }
 
@@ -204,13 +202,13 @@ JITPlacer::Swap JITPlacer::find_swap()
     // Compute cost
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
-        std::vector<WireRef> v_to_phy = state_.v_to_phy;
-        WireRef const v0 = state_.phy_to_v.at(phy0);
-        WireRef const v1 = state_.phy_to_v.at(phy1);
-        if (v0 != WireRef::invalid()) {
+        std::vector<Qubit> v_to_phy = state_.v_to_phy;
+        Qubit const v0 = state_.phy_to_v.at(phy0);
+        Qubit const v1 = state_.phy_to_v.at(phy1);
+        if (v0 != Qubit::invalid()) {
             v_to_phy.at(v0) = phy1;
         }
-        if (v1 != WireRef::invalid()) {
+        if (v1 != Qubit::invalid()) {
             v_to_phy.at(v1) = phy0;
         }
         double swap_cost = compute_cost(v_to_phy, front_layer_);
@@ -235,16 +233,16 @@ JITPlacer::Swap JITPlacer::find_swap()
     return swap_candidates.at(min);
 }
 
-double JITPlacer::compute_cost(std::vector<WireRef> const& v_to_phy, std::vector<InstRef> const& layer)
+double JITPlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
         Instruction const& inst = current_->instruction(ref);
-        WireRef const v0 = inst.qubit(0);
-        WireRef const v1 = inst.qubit(1);
-        WireRef const phy0 = v_to_phy.at(v0);
-        WireRef const phy1 = v_to_phy.at(v1);
-        if (phy0 == WireRef::invalid() || phy1 == WireRef::invalid()) {
+        Qubit const v0 = inst.qubit(0);
+        Qubit const v1 = inst.qubit(1);
+        Qubit const phy0 = v_to_phy.at(v0);
+        Qubit const phy1 = v_to_phy.at(v1);
+        if (phy0 == Qubit::invalid() || phy1 == Qubit::invalid()) {
             continue;
         }
         cost += (state_.device.distance(phy0, phy1) - 1);
