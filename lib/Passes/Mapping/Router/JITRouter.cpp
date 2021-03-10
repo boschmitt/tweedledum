@@ -173,7 +173,7 @@ void JITRouter::add_instruction(Instruction const& inst)
     inst.foreach_qubit([&](Qubit ref) {
         new_wires.push_back(state_.v_to_phy.at(ref));
     });
-    state_.mapped.apply_operator(inst, new_wires);
+    state_.mapped.apply_operator(inst, new_wires, inst.cbits());
 }
 
 bool JITRouter::try_add_instruction(InstRef ref, Instruction const& inst)

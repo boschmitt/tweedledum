@@ -103,14 +103,14 @@ bool SabreRouter::add_instruction(Instruction const& inst)
     });
 
     if (inst.num_qubits() == 1) {
-        state_.mapped.apply_operator(inst, new_wires);
+        state_.mapped.apply_operator(inst, new_wires, inst.cbits());
         return true;
     }
     // FIXME: implement .at in SmallVector!
     if (!state_.device.are_connected(qubits[0], qubits[1])) {
         return false;
     }
-    state_.mapped.apply_operator(inst, new_wires);
+    state_.mapped.apply_operator(inst, new_wires, inst.cbits());
     return true;
 }
 
