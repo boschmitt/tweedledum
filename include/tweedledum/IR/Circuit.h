@@ -98,16 +98,18 @@ public:
 
     // Instructions
     template<typename OpT>
-    InstRef apply_operator(OpT&& optor, std::vector<Qubit> const& qubits)
+    InstRef apply_operator(OpT&& optor, std::vector<Qubit> const& qubits,
+        std::vector<Cbit> const& cbits = {})
     {
-        Instruction& inst = instructions_.emplace_back(std::forward<OpT>(optor), qubits);
+        Instruction& inst = instructions_.emplace_back(std::forward<OpT>(optor), qubits, cbits);
         connect_instruction(inst);
         return InstRef(instructions_.size() - 1);
     }
 
-    InstRef apply_operator(Instruction const& optor, std::vector<Qubit> const& qubits)
+    InstRef apply_operator(Instruction const& optor, 
+        std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits = {})
     {
-        Instruction& inst = instructions_.emplace_back(optor, qubits);
+        Instruction& inst = instructions_.emplace_back(optor, qubits, cbits);
         connect_instruction(inst);
         return InstRef(instructions_.size() - 1);
     }
@@ -121,9 +123,10 @@ public:
     }
 
     // Composition
-    void append(Circuit const& other, std::vector<Qubit> const& qubits)
+    void append(Circuit const& other, std::vector<Qubit> const& qubits, 
+        std::vector<Cbit> const& cbits)
     {
-        // assert(other.num_cbits() == cbits.size());
+        assert(other.num_cbits() == cbits.size());
         assert(other.num_qubits() == qubits.size());
 
         other.foreach_instruction([&](Instruction const& inst) {
@@ -131,8 +134,12 @@ public:
             inst.foreach_qubit([&](Qubit qubit) {
                 this_qubits.push_back(qubits.at(qubit));
             });
+            std::vector<Cbit> this_cbits;
+            inst.foreach_cbit([&](Cbit cbit) {
+                this_cbits.push_back(cbits.at(cbit));
+            });
             assert(!this_qubits.empty());
-            apply_operator(inst, this_qubits);
+            apply_operator(inst, this_qubits, this_cbits);
         });
     }
 

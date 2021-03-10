@@ -13,7 +13,7 @@
 #include <kitty/kitty.hpp>
 
 // DBS = Decomposition-based synthesis
-TEST_CASE("Synthesize a permutation using DBS", "[decomp-based][synth]")
+TEST_CASE("Synthesize a permutation using DBS", "[decomp_synth][synth]")
 {
     using namespace tweedledum;
     SECTION("Prime 3") {

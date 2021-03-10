@@ -14,8 +14,8 @@ namespace {
 
 inline bool decompose(Circuit& circuit, Instruction const& inst)
 {
-    inst.foreach_control([&](Qubit wref) {
-        circuit.apply_operator(Op::X(), {wref, inst.target()});
+    inst.foreach_control([&](Qubit qubit) {
+        circuit.apply_operator(Op::X(), {qubit, inst.target()}, inst.cbits());
     });
     return true;
 }
@@ -29,15 +29,15 @@ void parity_decomp(Circuit& circuit, Instruction const& inst)
 
 Circuit parity_decomp(Circuit const& original)
 {
-    Circuit result = shallow_duplicate(original);
+    Circuit decomposed = shallow_duplicate(original);
     original.foreach_instruction([&](Instruction const& inst) {
         if (inst.is_a<Op::Parity>()) {
-            decompose(result, inst);
+            decompose(decomposed, inst);
             return;
         }
-        result.apply_operator(inst);
+        decomposed.apply_operator(inst);
     });
-    return result;
+    return decomposed;
 }
 
 } // namespace tweedledum

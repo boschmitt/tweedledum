@@ -25,8 +25,8 @@ inline void complement_qubit(uint32_t i, std::vector<Angle>& angles)
     }
 }
 
-inline std::vector<Angle> fix_angles(
-    std::vector<Qubit>& qubits, std::vector<Angle> const& angles)
+inline std::vector<Angle> fix_angles(std::vector<Qubit>& qubits,
+    std::vector<Angle> const& angles)
 {
     std::vector<Angle> new_angles;
     std::transform(angles.begin(), angles.end(),
@@ -65,14 +65,15 @@ inline void fast_hadamard_transform(std::vector<Angle>& angles)
 }
 
 void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
-    std::vector<Angle> const& angles, nlohmann::json const& config)
+    std::vector<Cbit> const& cbits, std::vector<Angle> const& angles,
+    nlohmann::json const& config)
 {
     // Number of angles + 1 needs to be a power of two!
     assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
     assert(!qubits.empty() && qubits.size() <= 32);
     assert((1u << qubits.size()) == angles.size());
-    std::sort(qubits.begin(), qubits.end());
 
+    std::sort(qubits.begin(), qubits.end());
     std::vector<Angle> new_angles = fix_angles(qubits, angles);
     fast_hadamard_transform(new_angles);
     LinearPP parities;
@@ -84,13 +85,15 @@ void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
         parities.add_term(i, new_angles.at(i) / factor);
     }
     if (parities.size() == new_angles.size() - 1) {
-        all_linear_synth(circuit, qubits, parities);
+        all_linear_synth(circuit, qubits, cbits, parities);
     } else {
-        gray_synth(circuit, qubits, BMatrix::Identity(qubits.size(), qubits.size()), parities, config);
+        gray_synth(circuit, qubits, cbits, BMatrix::Identity(qubits.size(),
+            qubits.size()), parities, config);
     }
 }
 
-Circuit diagonal_synth(std::vector<Angle> const& angles, nlohmann::json const& config)
+Circuit diagonal_synth(std::vector<Angle> const& angles,
+    nlohmann::json const& config)
 {
     // Number of angles + 1 needs to be a power of two!
     assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
@@ -98,13 +101,12 @@ Circuit diagonal_synth(std::vector<Angle> const& angles, nlohmann::json const& c
     assert(num_qubits <= 32u);
 
     Circuit circuit;
-    // Create the necessary qubits
-    std::vector<Qubit> wires;
-    wires.reserve(num_qubits);
+    std::vector<Qubit> qubits;
+    qubits.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
-        wires.emplace_back(circuit.create_qubit());
+        qubits.emplace_back(circuit.create_qubit());
     }
-    diagonal_synth(circuit, wires, angles, config);
+    diagonal_synth(circuit, qubits, {}, angles, config);
     return circuit;
 }
 

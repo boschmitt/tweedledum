@@ -77,7 +77,7 @@ inline void resynth_slice(Circuit const& original, Slice const& slice,
         // Circuit linear = linear_synth(result, qubits, matrix, config);
         Circuit subcircuit = linear_synth(matrix, config);
         if (subcircuit.size() < num_cnot) {
-            result.append(subcircuit, qubits);
+            result.append(subcircuit, qubits, {});
         } else {
             for (InstRef index : slice.linear_gates) {
                 Instruction const& inst = original.instruction(index);

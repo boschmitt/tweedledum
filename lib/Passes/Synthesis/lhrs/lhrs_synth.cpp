@@ -44,7 +44,8 @@ inline klut_network collapse_to_klut(xag_network const& xag)
 }
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    xag_network const& xag, Config const& config)
+    std::vector<Cbit> const& cbits, xag_network const& xag, 
+    Config const& config)
 {
     using Action = BaseStrategy::Action;
 
@@ -102,7 +103,8 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
             break;
         }
         qs.push_back(to_qubit[step.node]);
-        circuit.apply_operator(Op::TruthTable(klut.node_function(step.node)), qs);
+        circuit.apply_operator(
+            Op::TruthTable(klut.node_function(step.node)), qs, cbits);
     }
 
     // Compute the outputs that need to be "copied" from other qubits.
@@ -113,39 +115,40 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
         if (klut.is_complemented(signal)) {
             qubit = !qubit;
         }
-        circuit.apply_operator(Op::X(), {qubit, qubits.at(po)});
+        circuit.apply_operator(Op::X(), {qubit, qubits.at(po)}, cbits);
     }
     // Complement what needs to be complemented.
     for (uint32_t po : to_complement_po) {
         auto const signal = klut.po_at(po - klut.num_pis());
         auto const node = klut.get_node(signal);
         Qubit const qubit = to_qubit[node];
-        circuit.apply_operator(Op::X(), {qubit});
+        circuit.apply_operator(Op::X(), {qubit}, cbits);
     }
 }
 
 }
 
 void lhrs_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    mockturtle::xag_network const& xag, nlohmann::json const& config)
+    std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
+    nlohmann::json const& config)
 {
     Config cfg(config);
-    synthesize(circuit, qubits, xag, cfg);
+    synthesize(circuit, qubits, cbits, xag, cfg);
 }
 
 //  LUT-based hierarchical reversible logic synthesis (LHRS)
-Circuit lhrs_synth(mockturtle::xag_network const& xag, nlohmann::json const& config)
+Circuit lhrs_synth(mockturtle::xag_network const& xag,
+    nlohmann::json const& config)
 {
     Circuit circuit;
     Config cfg(config);
-    // Create the necessary qubits
     uint32_t num_qubits = xag.num_pis() + xag.num_pos();
-    std::vector<Qubit> wires;
-    wires.reserve(num_qubits);
+    std::vector<Qubit> qubits;
+    qubits.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
-        wires.emplace_back(circuit.create_qubit());
+        qubits.emplace_back(circuit.create_qubit());
     }
-    synthesize(circuit, wires, xag, cfg);
+    synthesize(circuit, qubits, {}, xag, cfg);
     return circuit;
 }
 

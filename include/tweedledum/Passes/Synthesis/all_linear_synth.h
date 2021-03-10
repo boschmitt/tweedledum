@@ -60,9 +60,11 @@ namespace tweedledum {
  * 
  * \param[inout] circuit A circuit in which the parities will be synthesized on.
  * \param[in] qubits The qubits that will be used.
+ * \param[in] cbits The cbits that will be used.
  * \param[in] parities List of parities and their associated angles.
  */
-void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits, LinearPP const& parities);
+void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+    std::vector<Cbit> const& cbits, LinearPP const& parities);
 
 /*! \brief Synthesis of a CNOT-dihedral circuits with all linear combinations.
  *

@@ -57,15 +57,16 @@ public:
         , cbits_conns_(other.cbits_conns_)
     {}
 
-    Instruction(Instruction const& other, std::vector<Qubit> const& qubits)
+    Instruction(Instruction const& other, std::vector<Qubit> const& qubits,
+        std::vector<Cbit> const& cbits)
         : Operator(static_cast<Operator const&>(other))
     {
         for (Qubit qubit : qubits) {
             qubits_conns_.emplace_back(qubit, InstRef::invalid());
         }
-        // for (Cbit cbit : cbits) {
-        //     cbits_conns_.emplace_back(cbit, InstRef::invalid());
-        // }
+        for (Cbit cbit : cbits) {
+            cbits_conns_.emplace_back(cbit, InstRef::invalid());
+        }
         assert(qubits_conns_.size() >= this->num_targets());
     }
 
@@ -245,15 +246,16 @@ private:
     friend class Circuit;
 
     template<typename OpT>
-    Instruction(OpT&& optor, std::vector<Qubit> const& qubits)
+    Instruction(OpT&& optor, std::vector<Qubit> const& qubits,
+        std::vector<Cbit> const& cbits)
         : Operator(std::forward<OpT>(optor))
     {
         for (Qubit qubit : qubits) {
             qubits_conns_.emplace_back(qubit, InstRef::invalid());
         }
-        // for (Cbit cbit : cbits) {
-        //     cbits_conns_.emplace_back(cbit, InstRef::invalid());
-        // }
+        for (Cbit cbit : cbits) {
+            cbits_conns_.emplace_back(cbit, InstRef::invalid());
+        }
         assert(qubits_conns_.size() >= this->num_targets());
     }
 

@@ -29,7 +29,7 @@ public:
     Synthesizer() = default;
 
     void operator()(mockturtle::xag_network const& xag, Circuit& circuit,
-        std::vector<Qubit> const& qubits);
+        std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits);
 
 private:
     void pre_process(HighLevelXAG& hl_xag);
@@ -45,6 +45,7 @@ private:
     void cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
 
     std::vector<Qubit> qubits_;
+    std::vector<Cbit> cbits_;
     // NodeRef -> Qubit, tells in which qubit a node was computed
     std::vector<Qubit> to_qubit_;
     // NodeRef -> Cleanup method
@@ -218,7 +219,7 @@ void Synthesizer::add_parity(Circuit& circuit, std::vector<Qubit> const& qubits)
     if (qubits.size() == 1) {
         return;
     }
-    circuit.apply_operator(Op::Parity(), qubits);
+    circuit.apply_operator(Op::Parity(), qubits, cbits_);
 }
 
 void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
@@ -265,73 +266,74 @@ void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
     if (!in01.empty()) {
         add_parity(circuit, in01);
         in1.push_back(in01.back());
-        circuit.apply_operator(Op::X(), {in01.back(), in0.back()});
+        circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
     }
     add_parity(circuit, in1);
     // fmt::print(">>>>>>>> Tof\n");
     // Compute Toffoli
     Qubit c0 = node.is_negated(0) ? !in0.back() : in0.back();
     Qubit c1 = node.is_negated(1) ? !in1.back() : in1.back();
-    circuit.apply_operator(Op::X(), {c0, c1, target});
+    circuit.apply_operator(Op::X(), {c0, c1, target}, cbits_);
     // fmt::print(">>>>>>>> C\n");
     // Cleanup the input to the Toffoli gate
     add_parity(circuit, in1);
     if (!in01.empty()) {
-        circuit.apply_operator(Op::X(), {in01.back(), in0.back()});
+        circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
         add_parity(circuit, in01);
     }
     add_parity(circuit, in0);
 }
 
-void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
-{
-    HighLevelXAG::Node const& node = hl_xag.get_node(ref);
-    std::vector<Qubit> in0;
-    std::vector<Qubit> in1;
-    std::vector<Qubit> in01;
+// void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+// {
+//     HighLevelXAG::Node const& node = hl_xag.get_node(ref);
+//     std::vector<Qubit> in0;
+//     std::vector<Qubit> in1;
+//     std::vector<Qubit> in01;
 
-    std::for_each(node.cbegin_in0(), node.cend_in0(),
-    [&](HighLevelXAG::NodeRef input_ref) { 
-        in0.push_back(to_qubit_.at(input_ref));
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
+//     std::for_each(node.cbegin_in0(), node.cend_in0(),
+//     [&](HighLevelXAG::NodeRef input_ref) { 
+//         in0.push_back(to_qubit_.at(input_ref));
+//         hl_xag.dereference(input_ref);
+//         assert(to_qubit_.at(input_ref) != Qubit::invalid());
+//     });
 
-    std::for_each(node.cbegin_in1(), node.cend_in1(),
-    [&](HighLevelXAG::NodeRef input_ref) {
-        in1.push_back(to_qubit_.at(input_ref)); 
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
+//     std::for_each(node.cbegin_in1(), node.cend_in1(),
+//     [&](HighLevelXAG::NodeRef input_ref) {
+//         in1.push_back(to_qubit_.at(input_ref)); 
+//         hl_xag.dereference(input_ref);
+//         assert(to_qubit_.at(input_ref) != Qubit::invalid());
+//     });
 
-    std::for_each(node.cbegin_in01(), node.cend_in01(),
-    [&](HighLevelXAG::NodeRef input_ref) {
-        in01.push_back(to_qubit_.at(input_ref));
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
+//     std::for_each(node.cbegin_in01(), node.cend_in01(),
+//     [&](HighLevelXAG::NodeRef input_ref) {
+//         in01.push_back(to_qubit_.at(input_ref));
+//         hl_xag.dereference(input_ref);
+//         assert(to_qubit_.at(input_ref) != Qubit::invalid());
+//     });
 
-    // Compute the inputs to the Toffoli gate (inplace)
-    add_parity(circuit, in0);
-    if (!in01.empty()) {
-        add_parity(circuit, in01);
-        in1.push_back(in01.back());
-        circuit.apply_operator(Op::X(), {in01.back(), in0.back()});
-    }
-    add_parity(circuit, in1);
-    // Compute Toffoli
-    Qubit c0 = node.is_negated(0) ? !in0.back() : in0.back();
-    Qubit c1 = node.is_negated(1) ? !in1.back() : in1.back();
-    // circuit.create_instruction(GateLib::R1(0.0), {c0}, c1);
-    // circuit.create_instruction(GateLib::H(), {target});
-    // Cleanup the input to the Toffoli gate
-    add_parity(circuit, in1);
-    if (!in01.empty()) {
-        circuit.apply_operator(Op::X(), {in01.back(), in0.back()});
-        add_parity(circuit, in01);
-    }
-    add_parity(circuit, in0);
-}
+//     // Compute the inputs to the Toffoli gate (inplace)
+//     add_parity(circuit, in0);
+//     if (!in01.empty()) {
+//         add_parity(circuit, in01);
+//         in1.push_back(in01.back());
+//         circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
+//     }
+//     add_parity(circuit, in1);
+//     // Compute Toffoli
+//     Qubit c0 = node.is_negated(0) ? !in0.back() : in0.back();
+//     Qubit c1 = node.is_negated(1) ? !in1.back() : in1.back();
+//     circuit.apply_operator(Op::X(), {c0, c1, target}, cbits_);
+//     // circuit.create_instruction(GateLib::R1(0.0), {c0}, c1);
+//     // circuit.create_instruction(GateLib::H(), {target});
+//     // Cleanup the input to the Toffoli gate
+//     add_parity(circuit, in1);
+//     if (!in01.empty()) {
+//         circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
+//         add_parity(circuit, in01);
+//     }
+//     add_parity(circuit, in0);
+// }
 
 bool Synthesizer::try_compute(
     Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
@@ -386,10 +388,12 @@ void Synthesizer::try_cleanup_inputs(Circuit& circuit, HighLevelXAG& hl_xag, Hig
 }
 
 void Synthesizer::operator()(mockturtle::xag_network const& xag,
-    Circuit& circuit, std::vector<Qubit> const& qubits)
+    Circuit& circuit, std::vector<Qubit> const& qubits, 
+    std::vector<Cbit> const& cbits)
 {
     HighLevelXAG hl_xag = to_pag(xag);
     qubits_ = qubits;
+    cbits_ = cbits;
     to_qubit_.resize(hl_xag.size(), Qubit::invalid());
     qubit_info_.resize(qubits.size(), {0, hl_xag.num_levels()});
     cleanup_.resize(hl_xag.size(), 1); // by default cleanup everything (:
@@ -446,14 +450,14 @@ void Synthesizer::operator()(mockturtle::xag_network const& xag,
             qubit_idx += 1;
             return;
         }
-        circuit.apply_operator(Op::X(), {to_qubit_.at(node_ref), qubits.at(qubit_idx)});
+        circuit.apply_operator(Op::X(), {to_qubit_.at(node_ref), qubits.at(qubit_idx)}, cbits_);
         qubit_idx += 1;
     });
     qubit_idx = hl_xag.num_inputs();
     std::for_each(hl_xag.cbegin_outputs(), hl_xag.cend_outputs(),
     [&](HighLevelXAG::OutputRef ref) {
         if (ref.second) {
-            circuit.apply_operator(Op::X(), {qubits.at(qubit_idx)});
+            circuit.apply_operator(Op::X(), {qubits.at(qubit_idx)}, cbits_);
         }
         qubit_idx += 1;
     });
@@ -463,24 +467,25 @@ void Synthesizer::operator()(mockturtle::xag_network const& xag,
 #pragma endregion
 
 void xag_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    mockturtle::xag_network const& xag, nlohmann::json const& config)
+    std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
+    nlohmann::json const& config)
 {
     xag_synth_detail::Synthesizer xag_synthesize;
-    xag_synthesize(xag, circuit, qubits);
+    xag_synthesize(xag, circuit, qubits, cbits);
 }
 
-Circuit xag_synth(mockturtle::xag_network const& xag, nlohmann::json const& config)
+Circuit xag_synth(mockturtle::xag_network const& xag,
+    nlohmann::json const& config)
 {
     Circuit circuit;
     // Config cfg(config);
-    // Create the necessary qubits
     uint32_t num_qubits = xag.num_pis() + xag.num_pos();
-    std::vector<Qubit> wires;
-    wires.reserve(num_qubits);
+    std::vector<Qubit> qubits;
+    qubits.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
-        wires.emplace_back(circuit.create_qubit());
+        qubits.emplace_back(circuit.create_qubit());
     }
-    xag_synth(circuit, wires, xag, config);
+    xag_synth(circuit, qubits, {}, xag, config);
     return circuit;
 }
 

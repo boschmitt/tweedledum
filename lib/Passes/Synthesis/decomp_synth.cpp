@@ -82,7 +82,7 @@ inline auto decompose(std::vector<uint32_t>& perm, uint32_t var)
 }
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<uint32_t> perm)
+    std::vector<Cbit> const& cbits, std::vector<uint32_t> perm)
 {
     std::vector<kitty::dynamic_truth_table> truth_tables;
     truth_tables.reserve(qubits.size() * 2);
@@ -90,7 +90,6 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     auto pos = gates.begin();
     for (uint32_t i = 0u; i < qubits.size(); ++i) {
         auto&& [left, right] = decompose(perm, i);
-
         auto& left_tt = truth_tables.emplace_back(qubits.size());
         auto& right_tt = truth_tables.emplace_back(qubits.size());
         for (uint32_t row = 0; row < perm.size(); ++row) {
@@ -125,32 +124,31 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
         }
     }
     for (auto const& [tt_idx, qubits] : gates) {
-        circuit.apply_operator(Op::TruthTable(truth_tables.at(tt_idx)), qubits);
+        circuit.apply_operator(Op::TruthTable(truth_tables.at(tt_idx)), qubits,
+            cbits);
     }
 }
 
 }
 
-void decomp_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<uint32_t> const& perm)
+void decomp_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
+    std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm)
 {
     assert(!perm.empty() && !(perm.size() & (perm.size() - 1)));
-    synthesize(circuit, qubits, perm);
+    synthesize(circuit, qubits, cbits, perm);
 }
 
 Circuit decomp_synth(std::vector<uint32_t> const& perm)
 {
     assert(!perm.empty() && !(perm.size() & (perm.size() - 1)));
     Circuit circuit;
-
-    // Create the necessary qubits
     uint32_t const num_qubits = __builtin_ctz(perm.size());
-    std::vector<Qubit> wires;
-    wires.reserve(num_qubits);
+    std::vector<Qubit> qubits;
+    qubits.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
-        wires.emplace_back(circuit.create_qubit());
+        qubits.emplace_back(circuit.create_qubit());
     }
-    decomp_synth(circuit, wires, perm);
+    decomp_synth(circuit, qubits, {}, perm);
     return circuit;
 }
 

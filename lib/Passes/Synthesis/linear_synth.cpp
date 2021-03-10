@@ -36,7 +36,8 @@ struct Config {
 using AbstractGate = std::pair<uint32_t, uint32_t>;
 using GateList = std::vector<AbstractGate>;
 
-inline void pattern_elimination(BMatrix& matrix, uint32_t start, uint32_t end, GateList& gates)
+inline void pattern_elimination(BMatrix& matrix, uint32_t start, uint32_t end,
+    GateList& gates)
 {
     std::vector<uint32_t> table(matrix.rows(), 0);
     auto const begin = table.begin() + start;
@@ -61,7 +62,8 @@ inline void pattern_elimination(BMatrix& matrix, uint32_t start, uint32_t end, G
     }
 }
 
-inline void gaussian_elimination(BMatrix& matrix, uint32_t start, uint32_t end, GateList& gates)
+inline void gaussian_elimination(BMatrix& matrix, uint32_t start, uint32_t end,
+    GateList& gates)
 {
     for (uint32_t col = start; col < end; ++col) {
         bool is_diagonal_one = (matrix(col, col) == MyBool(1u));
@@ -95,7 +97,8 @@ inline GateList lower_cnot_synthesis(BMatrix& matrix, uint32_t section_size)
 }
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    BMatrix matrix, uint32_t const section_size, bool const inverse)
+    std::vector<Cbit> const& cbits, BMatrix matrix, uint32_t const section_size,
+    bool const inverse)
 {
     GateList lower = lower_cnot_synthesis(matrix, section_size);
     matrix.transposeInPlace();
@@ -118,11 +121,12 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
         std::reverse(to_add.begin(), to_add.end());
     }
     for (auto const& [control, target] : to_add) {
-        circuit.apply_operator(Op::X(), {qubits[control], qubits[target]});
+        circuit.apply_operator(Op::X(), {qubits[control], qubits[target]}, cbits);
     }
 }
 
-inline void best_effort_synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
+inline void best_effort_synthesize(Circuit& circuit,
+    std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
     BMatrix const& matrix, bool const reverse)
 {
     BMatrix temp_matrix = matrix;
@@ -152,34 +156,33 @@ inline void best_effort_synthesize(Circuit& circuit, std::vector<Qubit> const& q
         }
         ++current_ss;
     } while ((current_ss < max_ss) && (best_size > 1));
-    synthesize(circuit, qubits, matrix, best_ss, reverse);
+    synthesize(circuit, qubits, cbits, matrix, best_ss, reverse);
 }
 }
 
 void linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    BMatrix const& matrix, nlohmann::json const& config)
+    std::vector<Cbit> const& cbits, BMatrix const& matrix,
+    nlohmann::json const& config)
 {
     Config cfg(config);
     if (cfg.best_effort) {
-        best_effort_synthesize(circuit, qubits, matrix, cfg.inverse);
+        best_effort_synthesize(circuit, qubits, cbits, matrix, cfg.inverse);
         return;
     }
-    synthesize(circuit, qubits, matrix, cfg.section_size, cfg.inverse);
+    synthesize(circuit, qubits, cbits, matrix, cfg.section_size, cfg.inverse);
 }
 
 Circuit linear_synth(BMatrix const& matrix, nlohmann::json const& config)
 {
     assert(matrix.rows() == matrix.cols());
     Circuit circuit;
-
-    // Create the necessary qubits
     uint32_t const num_qubits = matrix.rows();
-    std::vector<Qubit> wires;
-    wires.reserve(num_qubits);
+    std::vector<Qubit> qubits;
+    qubits.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
-        wires.emplace_back(circuit.create_qubit());
+        qubits.emplace_back(circuit.create_qubit());
     }
-    linear_synth(circuit, wires, matrix, config);
+    linear_synth(circuit, qubits, {}, matrix, config);
     return circuit;
 }
 

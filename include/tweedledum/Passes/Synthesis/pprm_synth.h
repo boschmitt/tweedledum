@@ -18,8 +18,10 @@ namespace tweedledum {
 // positive polarity (not complemented form). PPRM is a canonical expression, so further
 // minimization is not possible.
 void pprm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
+    std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+    nlohmann::json const& config = {});
 
-Circuit pprm_synth(kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
+Circuit pprm_synth(kitty::dynamic_truth_table const& function,
+    nlohmann::json const& config = {});
 
 } // namespace tweedledum
