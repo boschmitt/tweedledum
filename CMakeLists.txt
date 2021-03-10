@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 if(MSVC)
-    add_compile_options(/Wall)
+    add_compile_options(/Wall /utf-8)
 else()
     include(CheckCXXCompilerFlag)
     add_compile_options(-W -Wall -Wextra)
