@@ -2,4 +2,4 @@
 # CMake build : tweedledum library
 add_subdirectory(Passes)
 add_subdirectory(Target)
-# add_subdirectory(Utils)
+add_subdirectory(Utils)

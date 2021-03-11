@@ -7,7 +7,7 @@
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <tweedledum/Operators/All.h>
-// #include <tweedledum/Utils/Visualization/string_utf8.h>
+#include <tweedledum/Utils/Visualization/string_utf8.h>
 
 void init_Circuit(pybind11::module& module)
 {
@@ -78,7 +78,7 @@ void init_Circuit(pybind11::module& module)
         .def("append", &Circuit::append)
         // Python stuff
         .def("__iter__", [](Circuit const& c) { return py::make_iterator(c.py_begin(), c.py_end()); }, py::keep_alive<0, 1>())
-        .def("__len__", &Circuit::size);
-     //    .def("__str__", [](Circuit const& c) { return to_string_utf8(c); });
+        .def("__len__", &Circuit::size)
+        .def("__str__", [](Circuit const& c) { return to_string_utf8(c); });
 
 }
