@@ -8,10 +8,23 @@
 
 namespace tweedledum {
 
-Device read_device_from_json(std::string const& filename)
+Device Device::from_edge_list(std::vector<Device::Edge> const& edges)
 {
-    std::ifstream input(filename, std::ios::in);
-    nlohmann::json device_info = nlohmann::json::parse(input);
+    uint32_t num_qubits = 0;
+    for (auto const& [v, w] : edges) {
+        num_qubits = std::max(num_qubits, v);
+        num_qubits = std::max(num_qubits, w);
+    }
+    num_qubits += 1;
+    Device device(num_qubits, "");
+    for (auto const& [v, w] : edges) {
+        device.add_edge(v, w);
+    }
+    return device;
+}
+
+Device Device::from_json(nlohmann::json const& device_info)
+{
     uint32_t const num_qubits = device_info["n_qubits"];
     std::string name = device_info["backend_name"];
     Device device(num_qubits, name);
@@ -21,6 +34,13 @@ Device read_device_from_json(std::string const& filename)
         device.add_edge(v, w);
     }
     return device;
+}
+
+Device Device::from_file(std::string const& filename)
+{
+    std::ifstream input(filename, std::ios::in);
+    nlohmann::json device_info = nlohmann::json::parse(input);
+    return from_json(device_info);
 }
 
 } // namespace tweedledum
