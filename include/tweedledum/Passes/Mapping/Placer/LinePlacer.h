@@ -22,8 +22,8 @@ public:
 
     void run()
     {
-        std::fill(state_.v_to_phy.begin(), state_.v_to_phy.end(), WireRef::invalid());
-        std::fill(state_.phy_to_v.begin(), state_.phy_to_v.end(), WireRef::invalid());
+        std::fill(state_.v_to_phy.begin(), state_.v_to_phy.end(), Qubit::invalid());
+        std::fill(state_.phy_to_v.begin(), state_.phy_to_v.end(), Qubit::invalid());
         partition_into_timeframes();
         build_connectivity_graph();
         extract_lines();

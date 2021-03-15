@@ -53,87 +53,97 @@ class Instruction : public Operator {
 public:
     // This is called by realloc!!
     Instruction(Instruction const& other)
-        : Operator(static_cast<Operator const&>(other)), qubits_(other.qubits_)
-        , cbits_(other.cbits_)
+        : Operator(static_cast<Operator const&>(other)), qubits_conns_(other.qubits_conns_)
+        , cbits_conns_(other.cbits_conns_)
     {}
 
-    Instruction(Instruction const& other, std::vector<WireRef> const& wires)
+    Instruction(Instruction const& other, std::vector<Qubit> const& qubits,
+        std::vector<Cbit> const& cbits)
         : Operator(static_cast<Operator const&>(other))
     {
-        for (WireRef ref : wires) {
-            if (ref.kind() == Wire::Kind::quantum) {
-                qubits_.emplace_back(ref, InstRef::invalid());
-            } else {
-                cbits_.emplace_back(ref, InstRef::invalid());
-            }
+        for (Qubit qubit : qubits) {
+            qubits_conns_.emplace_back(qubit, InstRef::invalid());
         }
-        assert(qubits_.size() >= this->num_targets());
+        for (Cbit cbit : cbits) {
+            cbits_conns_.emplace_back(cbit, InstRef::invalid());
+        }
+        assert(qubits_conns_.size() >= this->num_targets());
     }
 
     uint32_t num_controls() const
     {
-        return qubits_.size() - this->num_targets();
+        return qubits_conns_.size() - this->num_targets();
     }
 
-    WireRef control(uint32_t const idx = 0u) const 
+    Qubit control(uint32_t const idx = 0u) const 
     {
         assert(idx < num_controls());
-        return qubits_[idx].wire_ref;
+        return qubits_conns_[idx].qubit;
     }
 
-    WireRef target(uint32_t const idx = 0u) const 
+    Qubit target(uint32_t const idx = 0u) const 
     {
         assert(idx < this->num_targets());
-        return qubits_[num_controls() + idx].wire_ref;
+        return qubits_conns_[num_controls() + idx].qubit;
     }
 
     uint32_t num_qubits() const
     {
-        return qubits_.size();
+        return qubits_conns_.size();
     }
 
     uint32_t num_cbits() const
     {
-        return cbits_.size();
+        return cbits_conns_.size();
     }
 
     uint32_t num_wires() const
     {
         return num_qubits() + num_cbits();
     }
- 
-    WireRef qubit(uint32_t idx) const
+
+    Qubit cbit(uint32_t idx) const
     {
-        assert(idx < qubits_.size());
-        return qubits_[idx].wire_ref;
+        assert(idx < qubits_conns_.size());
+        return qubits_conns_[idx].qubit;
     }
 
-    std::vector<WireRef> qubits() const
+    std::vector<Cbit> cbits() const
     {
-        std::vector<WireRef> qubits;
-        qubits.reserve(qubits_.size());
-        std::transform(qubits_.begin(), qubits_.end(), std::back_inserter(qubits),
-        [](Connection const& c) -> WireRef { return c.wire_ref; });
+        std::vector<Cbit> cbits;
+        cbits.reserve(cbits_conns_.size());
+        std::transform(cbits_conns_.begin(), cbits_conns_.end(), 
+        std::back_inserter(cbits), 
+        [](CbitConnection const& c) -> Cbit { 
+            return c.cbit; 
+        });
+        return cbits;
+    }
+
+    Qubit qubit(uint32_t idx) const
+    {
+        assert(idx < qubits_conns_.size());
+        return qubits_conns_[idx].qubit;
+    }
+
+    std::vector<Qubit> qubits() const
+    {
+        std::vector<Qubit> qubits;
+        qubits.reserve(qubits_conns_.size());
+        std::transform(qubits_conns_.begin(), qubits_conns_.end(), 
+        std::back_inserter(qubits), 
+        [](QubitConnection const& c) -> Qubit { 
+            return c.qubit; 
+        });
         return qubits;
-    }
-
-    std::vector<WireRef> wires() const
-    {
-        std::vector<WireRef> wires;
-        wires.reserve(qubits_.size()+ cbits_.size());
-        std::transform(qubits_.begin(), qubits_.end(), std::back_inserter(wires),
-        [](Connection const& c) -> WireRef { return c.wire_ref; });
-        std::transform(cbits_.begin(), cbits_.end(), std::back_inserter(wires),
-        [](Connection const& c) -> WireRef { return c.wire_ref; });
-        return wires;
     }
 
     bool is_adjoint(Instruction const& other) const
     {
-        if (qubits_ != other.qubits_) {
+        if (qubits_conns_ != other.qubits_conns_) {
             return false;
         }
-        if (cbits_ != other.cbits_) {
+        if (cbits_conns_ != other.cbits_conns_) {
             return false;
         }
         std::optional<Operator> adj = other.adjoint();
@@ -143,31 +153,14 @@ public:
         return static_cast<Operator const&>(*this) == *adj;
     }
 
-    // bool is_dependent(Instruction const& other) const
-    // {
-    //     // Need to check the Operators
-    //     return true;
-    // }
-    
     template<typename Fn>
-    void foreach_wire(Fn&& fn) const
+    void foreach_cbit(Fn&& fn) const
     {
-        static_assert(std::is_invocable_r_v<void, Fn, WireRef> ||
+        static_assert(std::is_invocable_r_v<void, Fn, Cbit> ||
                       std::is_invocable_r_v<void, Fn, InstRef>);
-
-        for (Connection const& connection : qubits_) {
-            if constexpr (std::is_invocable_r_v<void, Fn, WireRef>) {
-                fn(connection.wire_ref);
-            } else {
-                if (connection.inst_ref == InstRef::invalid()) {
-                    continue;
-                }
-                fn(connection.inst_ref);
-            }
-        }
-        for (Connection const& connection : cbits_) {
-            if constexpr (std::is_invocable_r_v<void, Fn, WireRef>) {
-                fn(connection.wire_ref);
+        for (CbitConnection const& connection : cbits_conns_) {
+            if constexpr (std::is_invocable_r_v<void, Fn, Cbit>) {
+                fn(connection.cbit);
             } else {
                 if (connection.inst_ref == InstRef::invalid()) {
                     continue;
@@ -178,87 +171,97 @@ public:
     }
 
     template<typename Fn>
-    void foreach_cbit(Fn&& fn) const
+    void foreach_qubit(Fn&& fn) const
     {
-        static_assert(std::is_invocable_r_v<void, Fn, WireRef>);
-        for (uint32_t i = 0; i < cbits_.size(); ++i) {
-            fn(cbits_[i].wire_ref);
+        static_assert(std::is_invocable_r_v<void, Fn, Qubit> ||
+                      std::is_invocable_r_v<void, Fn, InstRef>);
+        for (QubitConnection const& connection : qubits_conns_) {
+            if constexpr (std::is_invocable_r_v<void, Fn, Qubit>) {
+                fn(connection.qubit);
+            } else {
+                if (connection.inst_ref == InstRef::invalid()) {
+                    continue;
+                }
+                fn(connection.inst_ref);
+            }
         }
     }
 
     template<typename Fn>
     void foreach_control(Fn&& fn) const
     {
-        static_assert(std::is_invocable_r_v<void, Fn, WireRef>);
-        for (uint32_t i = 0; i < qubits_.size() - num_targets(); ++i) {
-            fn(qubits_[i].wire_ref);
+        static_assert(std::is_invocable_r_v<void, Fn, Qubit>);
+        for (uint32_t i = 0; i < qubits_conns_.size() - num_targets(); ++i) {
+            fn(qubits_conns_[i].qubit);
         }
     }
 
     template<typename Fn>
     void foreach_target(Fn&& fn) const
     {
-        static_assert(std::is_invocable_r_v<void, Fn, WireRef>);
-        for (uint32_t i = num_controls(); i < qubits_.size(); ++i) {
-            fn(qubits_[i].wire_ref);
+        static_assert(std::is_invocable_r_v<void, Fn, Qubit>);
+        for (uint32_t i = num_controls(); i < qubits_conns_.size(); ++i) {
+            fn(qubits_conns_[i].qubit);
         }
-    }
-
-    // FIXME: I want to make these at least protected..
-    auto py_begin() const
-    {
-        return qubits_.begin();
-    }
-
-    auto py_end() const
-    {
-        return qubits_.end();
     }
 
     bool operator==(Instruction const& other) const
     {
-        if (qubits_ != other.qubits_) {
+        if (qubits_conns_ != other.qubits_conns_) {
             return false;
         }
-        if (cbits_ != other.cbits_) {
+        if (cbits_conns_ != other.cbits_conns_) {
             return false;
         }
         return static_cast<Operator const&>(*this) == static_cast<Operator const&>(other);
     }
 
 private:
-    struct Connection {
-        WireRef wire_ref;
+    struct QubitConnection {
+        Qubit qubit;
         InstRef inst_ref;
-        Connection(WireRef w, InstRef i) : wire_ref(w), inst_ref(i)
+        QubitConnection(Qubit qubit, InstRef i) : qubit(qubit), inst_ref(i)
         {}
 
         // FIXME: this quite counterintuitive
-        bool operator==(Connection const& other) const
+        bool operator==(QubitConnection const& other) const
         {
-            return wire_ref == other.wire_ref;
+            return qubit == other.qubit;
+        }
+    };
+
+    struct CbitConnection {
+        Cbit cbit;
+        InstRef inst_ref;
+        CbitConnection(Cbit cbit, InstRef i) : cbit(cbit), inst_ref(i)
+        {}
+
+        // FIXME: this quite counterintuitive
+        bool operator==(CbitConnection const& other) const
+        {
+            return cbit == other.cbit;
         }
     };
 
     friend class Circuit;
 
     template<typename OpT>
-    Instruction(OpT&& optor, std::vector<WireRef> const& wires)
+    Instruction(OpT&& optor, std::vector<Qubit> const& qubits,
+        std::vector<Cbit> const& cbits)
         : Operator(std::forward<OpT>(optor))
     {
-        for (WireRef ref : wires) {
-            if (ref.kind() == Wire::Kind::quantum) {
-                qubits_.emplace_back(ref, InstRef::invalid());
-            } else {
-                cbits_.emplace_back(ref, InstRef::invalid());
-            }
+        for (Qubit qubit : qubits) {
+            qubits_conns_.emplace_back(qubit, InstRef::invalid());
         }
-        assert(qubits_.size() >= this->num_targets());
+        for (Cbit cbit : cbits) {
+            cbits_conns_.emplace_back(cbit, InstRef::invalid());
+        }
+        assert(qubits_conns_.size() >= this->num_targets());
     }
 
     // TODO: Come up with a good value for the size of the inline buffer!
-    SmallVector<Connection, 3> qubits_;
-    SmallVector<Connection, 1> cbits_;
+    SmallVector<QubitConnection, 3> qubits_conns_;
+    SmallVector<CbitConnection, 1> cbits_conns_;
 
     // I not sure about this:
     // This is needed because the constructor is private and a container such

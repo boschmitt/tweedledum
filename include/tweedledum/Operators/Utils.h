@@ -13,7 +13,7 @@
 
 namespace tweedledum {
 
-inline void apply_identified_phase(Circuit& circuit, Angle angle, WireRef target)
+inline void apply_identified_phase(Circuit& circuit, Angle angle, Qubit target)
 {
     if (!angle.is_numerically_defined()) {
         if (angle == sym_angle::pi_quarter) {

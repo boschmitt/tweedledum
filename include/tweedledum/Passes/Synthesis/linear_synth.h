@@ -28,7 +28,7 @@
 //
 // What is the problem we are trying to solve here?
 //
-//    Synthesize an arbitrary linear reversible circuit on N wires using as
+//    Synthesize an arbitrary linear reversible circuit on N qubits using as
 //    few CX gates as possible.
 //
 // This problem can be mapped to the problem of row reducing an N × N binary 
@@ -48,17 +48,19 @@ namespace tweedledum {
  * 
  * \param[inout] circuit A circuit in which the linear transformation will be 
  * synthesized on.
- * \param[in] qubits The wires that will be used.
+ * \param[in] qubits The qubits that will be used.
+ * \param[in] cbits The cbits that will be used.
  * \param[in] matrix An N x N binary matrix.
  */
-void linear_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    BMatrix const& matrix, nlohmann::json const& config);
+void linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+    std::vector<Cbit> const& cbits, BMatrix const& matrix,
+    nlohmann::json const& config = {});
 
 /*! \brief Synthesis of linear reversible circuits (CNOT synthesis).
  *
  * \param[in] matrix An N x N binary matrix.
- * \return A linear reversible circuit on N wires.
+ * \return A linear reversible circuit on N qubits.
  */
-Circuit linear_synth(BMatrix const& matrix, nlohmann::json const& config);
+Circuit linear_synth(BMatrix const& matrix, nlohmann::json const& config = {});
 
 } // namespace tweedledum

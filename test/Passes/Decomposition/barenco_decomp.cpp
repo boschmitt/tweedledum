@@ -44,7 +44,7 @@ TEST_CASE("Trivial clean ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled X") {
         for (uint32_t i = 4u; i <= 9; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
             original.apply_operator(Op::X(), qubits);
@@ -56,7 +56,7 @@ TEST_CASE("Trivial clean ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled Y") {
         for (uint32_t i = 1u; i <= 9; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
             original.apply_operator(Op::Y(), qubits);
@@ -68,7 +68,7 @@ TEST_CASE("Trivial clean ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled Z") {
         for (uint32_t i = 1u; i <= 9; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
             original.apply_operator(Op::Z(), qubits);
@@ -89,7 +89,7 @@ TEST_CASE("Trivial dirty ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled X") {
         for (uint32_t i = 4u; i <= 9; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
 
@@ -104,7 +104,7 @@ TEST_CASE("Trivial dirty ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled Y") {
         for (uint32_t i = 1u; i <= 9; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
 
@@ -119,7 +119,7 @@ TEST_CASE("Trivial dirty ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled Z") {
         for (uint32_t i = 1u; i <= 9; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
 
@@ -141,7 +141,7 @@ TEST_CASE("Trivial clean V ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled X") {
         for (uint32_t i = 4u; i <= 7; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
 
@@ -154,7 +154,7 @@ TEST_CASE("Trivial clean V ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled Y") {
         for (uint32_t i = 4u; i <= 7; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
 
@@ -167,7 +167,7 @@ TEST_CASE("Trivial clean V ancilla barenco decomp", "[barenco_decomp][decomp]")
     SECTION("(Mutiple) controlled Z") {
         for (uint32_t i = 4u; i <= 7; ++i) {
             Circuit original;
-            std::vector<WireRef> qubits(i, WireRef::invalid());
+            std::vector<Qubit> qubits(i, Qubit::invalid());
             std::generate(qubits.begin(), qubits.end(),
             [&]() { return original.create_qubit(); });
 

@@ -40,10 +40,10 @@ TEST_CASE("Trivial cases for gray_synth", "[gray_synth][synth]")
         // The example in the paper is wrong! :( 
         // (it took me a while to figure it out)
         Circuit expected;
-        WireRef q0 = expected.create_qubit();
-        WireRef q1 = expected.create_qubit();
-        WireRef q2 = expected.create_qubit();
-        WireRef q3 = expected.create_qubit();
+        Qubit q0 = expected.create_qubit();
+        Qubit q1 = expected.create_qubit();
+        Qubit q2 = expected.create_qubit();
+        Qubit q3 = expected.create_qubit();
         expected.apply_operator(Op::T(), {q0});
         expected.apply_operator(Op::X(), {q2, q1});
         expected.apply_operator(Op::T(), {q1});

@@ -32,8 +32,8 @@ TEST_CASE("Adder", "[adder][generators]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    std::vector<WireRef> a_qubits;
-    std::vector<WireRef> b_qubits;
+    std::vector<Qubit> a_qubits;
+    std::vector<Qubit> b_qubits;
     uint32_t n = 4;
     for (uint32_t i = 0; i < n; ++i) {
         a_qubits.push_back(circuit.create_qubit(fmt::format("a{}", i)));
@@ -41,7 +41,7 @@ TEST_CASE("Adder", "[adder][generators]")
     for (uint32_t i = 0; i < n; ++i) {
         b_qubits.push_back(circuit.create_qubit(fmt::format("b{}", i)));
     }
-    WireRef carry = circuit.create_qubit();
+    Qubit carry = circuit.create_qubit();
     carry_ripple_adder_inplace(circuit, a_qubits, b_qubits, carry);
     CHECK(validate_adder(circuit, n));
 }

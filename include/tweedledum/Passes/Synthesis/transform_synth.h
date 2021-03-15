@@ -43,11 +43,12 @@ namespace tweedledum {
  * 
  * \param[inout] circuit A circuit in which the permutation will be synthesized
  * on.
- * \param[in] qubits The wires that will be used.
+ * \param[in] qubits The qubits that will be used.
+ * \param[in] cbits The cbits that will be used.
  * \param[in] perm A vector of different integers.
  */
-void transform_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    std::vector<uint32_t> const& perm);
+void transform_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+    std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm);
 
 /*! \brief Reversible synthesis based on symbolic transformation.
  *

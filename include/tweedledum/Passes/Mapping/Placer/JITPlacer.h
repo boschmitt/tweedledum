@@ -35,7 +35,7 @@ public:
     }
 
 private:
-    using Swap = std::pair<WireRef, WireRef>;
+    using Swap = std::pair<Qubit, Qubit>;
 
     void do_run();
 
@@ -50,19 +50,19 @@ private:
 
     void select_extended_layer();
 
-    std::vector<WireRef> find_free_phy() const;
+    std::vector<Qubit> find_free_phy() const;
 
-    void place_two_v(WireRef const v0, WireRef const v1);
+    void place_two_v(Qubit const v0, Qubit const v1);
 
-    void place_one_v(WireRef const v0, WireRef const v1);
+    void place_one_v(Qubit const v0, Qubit const v1);
 
     bool add_instruction(Instruction const& inst);
 
-    void add_swap(WireRef const phy0, WireRef const phy1);
+    void add_swap(Qubit const phy0, Qubit const phy1);
 
     Swap find_swap();
 
-    double compute_cost(std::vector<WireRef> const&, std::vector<InstRef> const&);
+    double compute_cost(std::vector<Qubit> const&, std::vector<InstRef> const&);
 
     MapState& state_;
     Circuit const* current_;

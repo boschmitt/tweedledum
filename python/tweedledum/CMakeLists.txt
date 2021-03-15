@@ -4,6 +4,8 @@ target_sources(_tweedledum PUBLIC
     classical/kitty.cpp
     classical/mockturtle.cpp
     classical/utils.cpp
+    ir/cbit.cpp
+    ir/qubit.cpp
     ir/instruction.cpp
     ir/circuit.cpp
     operators/extension.cpp

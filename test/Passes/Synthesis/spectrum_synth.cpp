@@ -24,9 +24,9 @@ TEST_CASE("Trivial cases for spectrum_synth", "[spectrum_synth][synth]")
     CHECK(synthesized.num_qubits() == 3u);
     
     Circuit expected;
-    WireRef q0 = expected.create_qubit();
-    WireRef q1 = expected.create_qubit();
-    WireRef q2 = expected.create_qubit();
+    Qubit q0 = expected.create_qubit();
+    Qubit q1 = expected.create_qubit();
+    Qubit q2 = expected.create_qubit();
     expected.apply_operator(Op::X(), {q0, q1, q2});
     CHECK(check_unitary(expected, synthesized));
 }

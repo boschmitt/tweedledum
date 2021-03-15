@@ -7,16 +7,18 @@
 #include "../operators/operators.h"
 
 #include <pybind11/pybind11.h>
+#include <tweedledum/IR/Cbit.h>
 #include <tweedledum/IR/Circuit.h>
-#include <tweedledum/IR/Wire.h>
+#include <tweedledum/IR/Qubit.h>
 #include <vector>
 
 namespace tweedledum {
 
 template<>
-inline InstRef Circuit::apply_operator(pybind11::object const& obj, std::vector<WireRef> const& wires)
+inline InstRef Circuit::apply_operator(pybind11::object const& obj,
+    std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits)
 {
-    return this->apply_operator(python::PyOperator(obj), wires);
+    return this->apply_operator(python::PyOperator(obj), qubits, cbits);
 }
 
 } // namespace tweedledum

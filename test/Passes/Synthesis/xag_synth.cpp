@@ -37,8 +37,8 @@ mockturtle::xag_network to_xag_network(
     }
     circuit.foreach_instruction([&](Instruction const& inst) {
         std::vector<Signal> signals;
-        inst.foreach_wire([&](WireRef w) {
-            signals.push_back(to_signal[w.uid()] ^ w.is_complemented());
+        inst.foreach_qubit([&](Qubit w) {
+            signals.push_back(to_signal[w.uid()] ^ (w.polarity() == Qubit::Polarity::negative));
         });
         if (inst.is_a<Op::Parity>()) {
             to_signal[inst.target().uid()] = network.create_nary_xor(signals);

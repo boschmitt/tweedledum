@@ -41,13 +41,14 @@ namespace tweedledum {
  *
  * \param[inout] circuit A circuit in which the parities will be synthesized on.
  * \param[in] qubits The qubits that will be used.
+ * \param[in] cbits The cbits that will be used.
  * \param[in] linear_trans The overall linear transformation
  * \param[in] parities List of parities and their associated angles.
  */
 // Each column is a parity, num_rows = num_qubits
-void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    BMatrix linear_trans, LinearPP parities,
-    nlohmann::json const& config);
+void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
+    std::vector<Cbit> const& cbits, BMatrix linear_trans, LinearPP parities,
+    nlohmann::json const& config = {});
 
 /*! \brief Synthesis of a CNOT-dihedral circuits.
  *
@@ -56,6 +57,6 @@ void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
  * \return A CNOT-dihedral circuit on `num_qubits`.
  */
 Circuit gray_synth(uint32_t num_qubits, LinearPP const& parities,
-    nlohmann::json const& config);
+    nlohmann::json const& config = {});
 
 } // namespace tweedledum

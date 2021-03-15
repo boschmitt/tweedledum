@@ -21,11 +21,11 @@ namespace deprecated {
 // Implementation based on TTK ripple carry adder.  This basically just make 
 // a one complement by adding inverters (NOT) gates.
 inline void less_than_ttk(Circuit& circuit,
-    std::vector<WireRef> a, std::vector<WireRef> const& b, WireRef lt)
+    std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit lt)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
-    for (WireRef w : a) {
+    for (Qubit w : a) {
         circuit.apply_operator(Op::X(), {w});
     }
     a.push_back(lt);
@@ -62,7 +62,7 @@ inline void less_than_ttk(Circuit& circuit,
 // This is a slightly better version.  The only difference here is that the 
 // inversters are absorbed into the the controls of the Toffoli gates.
 inline void less_than_ttk(Circuit& circuit,
-    std::vector<WireRef> a, std::vector<WireRef> const& b, WireRef lt)
+    std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit lt)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -100,7 +100,7 @@ inline void less_than_ttk(Circuit& circuit,
 
 // Generic function that takes the one I think is best (:
 inline void less_than(Circuit& circuit,
-    std::vector<WireRef> const& a, std::vector<WireRef> const& b, WireRef carry)
+    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     less_than_ttk(circuit, a, b, carry);
 }
@@ -108,15 +108,15 @@ inline void less_than(Circuit& circuit,
 inline Circuit less_than(uint32_t n)
 {
     Circuit circuit;
-    std::vector<WireRef> a_qubits;
-    std::vector<WireRef> b_qubits;
+    std::vector<Qubit> a_qubits;
+    std::vector<Qubit> b_qubits;
     for (uint32_t i = 0; i < n; ++i) {
         a_qubits.push_back(circuit.create_qubit(fmt::format("a{}", i)));
     }
     for (uint32_t i = 0; i < n; ++i) {
         b_qubits.push_back(circuit.create_qubit(fmt::format("b{}", i)));
     }
-    WireRef carry = circuit.create_qubit();
+    Qubit carry = circuit.create_qubit();
     less_than(circuit, a_qubits, b_qubits, carry);
     return circuit;
 }

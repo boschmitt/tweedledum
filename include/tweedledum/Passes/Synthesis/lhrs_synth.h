@@ -13,10 +13,12 @@
 
 namespace tweedledum {
 
-void lhrs_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    mockturtle::xag_network const& xag, nlohmann::json const& config);
+void lhrs_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+    std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
+    nlohmann::json const& config = {});
 
 //  LUT-based hierarchical reversible logic synthesis (LHRS)
-Circuit lhrs_synth(mockturtle::xag_network const& xag, nlohmann::json const& config);
+Circuit lhrs_synth(mockturtle::xag_network const& xag,
+    nlohmann::json const& config = {});
 
 } // namespace tweedledum

@@ -62,7 +62,7 @@ inline void add_gate(State const& state, BMatrix& matrix, GateList& gates)
     }
 }
 
-inline GateList synthesize(std::vector<WireRef> const& qubits, BMatrix& matrix)
+inline GateList synthesize(std::vector<Qubit> const& qubits, BMatrix& matrix)
 {
     GateList gates;
     uint32_t const num_qubits = qubits.size();
@@ -116,21 +116,9 @@ inline GateList synthesize(std::vector<WireRef> const& qubits, BMatrix& matrix)
 }
 }
 
-/*! \brief Synthesis of a CNOT-dihedral circuits with all linear combinations.
- *
- * This is the in-place variant of ``all_linear_synth`` in which the circuit is
- * passed as a parameter and can potentially already contain some gates.  The
- * parameter ``qubits`` provides a qubit mapping to the existing qubits in the
- * circuit.
- *
- * \param[inout] circuit A circuit in which the parities will be synthesized on.
- * \param[in] qubits The qubits that will be used.
- * \param[in] linear_trans The overall linear transformation
- * \param[in] parities List of parities and their associated angles.
- */
-// Each column is a parity, num_rows = num_qubits
-void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    BMatrix linear_trans, LinearPP parities, nlohmann::json const& config)
+void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
+    std::vector<Cbit> const& cbits, BMatrix linear_trans, LinearPP parities,
+    nlohmann::json const& config)
 {
     if (parities.size() == 0) {
         return;
@@ -153,17 +141,18 @@ void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
         qubits_states.at(i) = (1u << i);
         auto angle = parities.extract_term(qubits_states.at(i));
         if (angle != 0.0) {
-            circuit.apply_operator(Op::P(angle), {qubits.at(i)});
+            circuit.apply_operator(Op::P(angle), {qubits.at(i)}, cbits);
         }
     }
     // Effectively create the circuit
     for (auto const& [control, target] : gates) {
-        circuit.apply_operator(Op::X(), {qubits.at(control), qubits.at(target)});
+        circuit.apply_operator(Op::X(), {qubits.at(control), qubits.at(target)},
+            cbits);
         qubits_states.at(target) ^= qubits_states.at(control);
         linear_trans.row(target) += linear_trans.row(control);
         auto angle = parities.extract_term(qubits_states.at(target));
         if (angle != 0.0) {
-            circuit.apply_operator(Op::P(angle), {qubits.at(target)});
+            circuit.apply_operator(Op::P(angle), {qubits.at(target)}, cbits);
         }
     }
 
@@ -173,30 +162,20 @@ void gray_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
         linear_synth_cfg["linear_synth"] = config["linear_synth"];
     }
     linear_synth_cfg["linear_synth"]["inverse"] = true;
-    linear_synth(circuit, qubits, linear_trans, linear_synth_cfg);
+    linear_synth(circuit, qubits, cbits, linear_trans, linear_synth_cfg);
 }
 
-/*! \brief Synthesis of a CNOT-dihedral circuits.
- *
- * \param[in] num_qubits The number of qubits.
- * \param[in] parities List of parities and their associated angles.
- * \return A CNOT-dihedral circuit on `num_qubits`.
- */
 Circuit gray_synth(uint32_t num_qubits, LinearPP const& parities,
     nlohmann::json const& config)
 {
     Circuit circuit;
-
-    // Create the necessary qubits
-    std::vector<WireRef> wires;
-    wires.reserve(num_qubits);
+    std::vector<Qubit> qubits;
+    qubits.reserve(num_qubits);
     for (uint32_t i = 0u; i < num_qubits; ++i) {
-        wires.emplace_back(circuit.create_qubit());
+        qubits.emplace_back(circuit.create_qubit());
     }
-
-    // Create the linear
     BMatrix linear_trans = BMatrix::Identity(num_qubits, num_qubits);
-    gray_synth(circuit, wires, linear_trans, parities, config);
+    gray_synth(circuit, qubits, {}, linear_trans, parities, config);
     return circuit;
 }
 

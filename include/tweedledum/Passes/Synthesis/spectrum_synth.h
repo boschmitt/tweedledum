@@ -13,9 +13,11 @@
 
 namespace tweedledum {
 
-void spectrum_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
+void spectrum_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+    std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+    nlohmann::json const& config = {});
 
-Circuit spectrum_synth(kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
+Circuit spectrum_synth(kitty::dynamic_truth_table const& function,
+    nlohmann::json const& config = {});
 
 } // namespace tweedledum

@@ -34,7 +34,7 @@ public:
     }
 
 private:
-    using Swap = std::pair<WireRef, WireRef>;
+    using Swap = std::pair<Qubit, Qubit>;
 
     void do_run();
 
@@ -50,11 +50,11 @@ private:
 
     bool add_instruction(Instruction const& inst);
 
-    void add_swap(WireRef const phy0, WireRef const phy1);
+    void add_swap(Qubit const phy0, Qubit const phy1);
 
     Swap find_swap();
 
-    double compute_cost(std::vector<WireRef> const&, std::vector<InstRef> const&);
+    double compute_cost(std::vector<Qubit> const&, std::vector<InstRef> const&);
 
     MapState& state_;
     Circuit const* current_;

@@ -32,7 +32,7 @@ TEST_CASE("Euler decomp test cases", "[euler_decomp][decomp]")
     using namespace tweedledum;
     bool const upto_global_phase = true;
     Circuit original;
-    WireRef q0 = original.create_qubit();
+    Qubit q0 = original.create_qubit();
     UMatrix2 matrix = Op::H().matrix();
     original.apply_operator(Op::Unitary(matrix), {q0});
 
@@ -45,7 +45,7 @@ TEST_CASE("Euler decomp test cases", "[euler_decomp][decomp]")
     double phi = 0.7;
     for (uint32_t i = 0; i < 22u; ++i) {
         Circuit original;
-        WireRef q0 = original.create_qubit();
+        Qubit q0 = original.create_qubit();
         UMatrix2 matrix = create_matrix(smallest * std::pow(factor, i), phi, lambda);
         original.apply_operator(Op::Unitary(matrix), {q0});
         Circuit decomposed = euler_decomp(original);

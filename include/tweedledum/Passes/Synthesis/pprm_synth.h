@@ -17,9 +17,11 @@ namespace tweedledum {
 // PPRM: The positive polarity Reed-Muller form is an ESOP, where each variable has
 // positive polarity (not complemented form). PPRM is a canonical expression, so further
 // minimization is not possible.
-void pprm_synth(Circuit& circuit, std::vector<WireRef> const& qubits,
-    kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
+void pprm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+    std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+    nlohmann::json const& config = {});
 
-Circuit pprm_synth(kitty::dynamic_truth_table const& function, nlohmann::json const& config = {});
+Circuit pprm_synth(kitty::dynamic_truth_table const& function,
+    nlohmann::json const& config = {});
 
 } // namespace tweedledum

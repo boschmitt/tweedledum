@@ -26,8 +26,8 @@ void LinePlacer::partition_into_timeframes()
             frame.at(ref) = max_timeframe;
         } else {
             frame.at(ref) = ++max_timeframe;
-            uint32_t const control = state_.wire_to_v.at(inst.qubit(0));
-            uint32_t const target = state_.wire_to_v.at(inst.qubit(1));
+            uint32_t const control = inst.qubit(0);
+            uint32_t const target = inst.qubit(1);
             if (max_timeframe == timeframes_.size()) {
                 timeframes_.emplace_back();
             }
@@ -113,7 +113,7 @@ int LinePlacer::pick_neighbor(uint32_t const phy) const
 {
     int max_degree_neighbor = -1;
     state_.device.foreach_neighbor(phy, [&](uint32_t const neighbor) {
-        if (state_.phy_to_v.at(neighbor) != WireRef::invalid()) {
+        if (state_.phy_to_v.at(neighbor) != Qubit::invalid()) {
             return;
         }
         if (max_degree_neighbor == -1) {
@@ -137,8 +137,8 @@ void LinePlacer::place_lines()
         }
     }
     for (std::vector<uint32_t> const& line : lines_) {
-        state_.phy_to_v.at(max_degree_phy) = state_.mapped.wire_ref(line.at(0));
-        state_.v_to_phy.at(line.at(0)) = state_.mapped.wire_ref(max_degree_phy);
+        state_.phy_to_v.at(max_degree_phy) = state_.mapped.qubit(line.at(0));
+        state_.v_to_phy.at(line.at(0)) = state_.mapped.qubit(max_degree_phy);
         // --phy_degree_.at(max_degree_phy);
         phy_degree_.at(max_degree_phy) = 0;
         for (uint32_t i = 1u; i < line.size(); ++i) {
@@ -146,13 +146,13 @@ void LinePlacer::place_lines()
             if (neighbor == -1) {
                 break;
             }
-            state_.phy_to_v.at(neighbor) = state_.mapped.wire_ref(line.at(i));
-            state_.v_to_phy.at(line.at(i)) = state_.mapped.wire_ref(neighbor);
+            state_.phy_to_v.at(neighbor) = state_.mapped.qubit(line.at(i));
+            state_.v_to_phy.at(line.at(i)) = state_.mapped.qubit(neighbor);
             // --phy_degree_.at(neighbor);
             phy_degree_.at(neighbor) = 0;
         }
         for (uint32_t i = 0u; i < phy_degree_.size(); ++i) {
-            // if (state_.phy_to_v.at(i) != WireRef::invalid()) {
+            // if (state_.phy_to_v.at(i) != Qubit::invalid()) {
             //     continue;
             // }
             if (phy_degree_.at(max_degree_phy) < phy_degree_.at(i)) {

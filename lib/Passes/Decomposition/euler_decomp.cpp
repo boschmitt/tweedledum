@@ -27,7 +27,7 @@ struct Config {
     Config(nlohmann::json const& config)
         : basis(Basis::zyz)
     {
-        auto euler_cfg = config.find("euler_cfg");
+        auto euler_cfg = config.find("euler_decomp");
         if (euler_cfg != config.end()) {
             if (euler_cfg->contains("basis")) {
                 if (euler_cfg->at("basis") == "zyz") {
@@ -68,16 +68,16 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
         params.lambda += -sym_angle::pi_half;
         params.phi += sym_angle::pi_half;
     }
-    circuit.apply_operator(Op::Rz(params.lambda), inst.qubits());
+    circuit.apply_operator(Op::Rz(params.lambda), inst.qubits(), inst.cbits());
     switch (cfg.basis) {
         case Config::Basis::zxz:
-            circuit.apply_operator(Op::Rx(params.theta), inst.qubits());
+            circuit.apply_operator(Op::Rx(params.theta), inst.qubits(), inst.cbits());
             break;
         case Config::Basis::zyz:
-            circuit.apply_operator(Op::Ry(params.theta), inst.qubits());
+            circuit.apply_operator(Op::Ry(params.theta), inst.qubits(), inst.cbits());
             break;
     }
-    circuit.apply_operator(Op::Rz(params.phi), inst.qubits());
+    circuit.apply_operator(Op::Rz(params.phi), inst.qubits(), inst.cbits());
     circuit.global_phase() += params.phase;
     return true;
 }
@@ -93,15 +93,15 @@ void euler_decomp(Circuit& circuit, Instruction const& inst, nlohmann::json cons
 Circuit euler_decomp(Circuit const& original, nlohmann::json const& config)
 {
     Config cfg(config);
-    Circuit result = shallow_duplicate(original);
+    Circuit decomposed = shallow_duplicate(original);
     original.foreach_instruction([&](Instruction const& inst) {
         if (inst.is_a<Op::Unitary>() && inst.num_qubits() == 1u) {
-            decompose(result, inst, cfg);
+            decompose(decomposed, inst, cfg);
             return;
         }
-        result.apply_operator(inst);
+        decomposed.apply_operator(inst);
     });
-    return result;
+    return decomposed;
 }
 
 } // namespace tweedledum
