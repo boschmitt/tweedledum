@@ -11,3 +11,6 @@
 
 #include "Mapping/Router/JITRouter.h"
 #include "Mapping/Router/SabreRouter.h"
+
+#include "Mapping/JIT_map.h"
+#include "Mapping/sabre_map.h"

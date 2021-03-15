@@ -13,4 +13,5 @@ target_sources(_tweedledum PUBLIC
     operators/meta.cpp
     operators/standard.cpp
     passes/passes.cpp
+    target/device.cpp
 )

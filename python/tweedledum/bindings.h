@@ -25,3 +25,6 @@ void init_std_operators(pybind11::module& module);
 
 // Passes
 void init_Passes(pybind11::module& module);
+
+// Target
+void init_Device(pybind11::module& module);
