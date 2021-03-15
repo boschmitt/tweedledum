@@ -26,7 +26,11 @@ public:
         return Qubit();
     }
 
-    Qubit(Qubit const& other) = default;
+    constexpr Qubit(uint32_t uid, Polarity polarity = Polarity::positive)
+        : uid_(uid), polarity_(static_cast<uint32_t>(polarity))
+    {}
+
+    constexpr Qubit(Qubit const& other) = default;
 
     Qubit& operator=(Qubit const& other)
     {
@@ -68,10 +72,6 @@ public:
 
 protected:
     friend class WireStorage;
-
-    constexpr Qubit(uint32_t uid, Polarity polarity = Polarity::positive)
-        : uid_(uid), polarity_(static_cast<uint32_t>(polarity))
-    {}
 
     union {
         uint32_t data_;

@@ -2,11 +2,11 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Mapping/Placer/SabrePlacer.h"
+#include "tweedledum/Passes/Mapping/RePlacer/SabreRePlacer.h"
 
 namespace tweedledum {
 
-void SabrePlacer::do_run()
+void SabreRePlacer::do_run()
 {
     current_->foreach_output([&](InstRef const ref, Instruction const& inst) {
         visited_.at(ref) += 1;
@@ -33,7 +33,7 @@ void SabrePlacer::do_run()
     }
 }
 
-bool SabrePlacer::add_front_layer()
+bool SabreRePlacer::add_front_layer()
 {
     bool added_at_least_one = false;
     std::vector<InstRef> new_front_layer;
@@ -42,8 +42,8 @@ bool SabrePlacer::add_front_layer()
         if (add_instruction(inst) == false) {
                 new_front_layer.push_back(ref);
                 auto const qubits = inst.qubits();
-                involved_phy_.at(state_.v_to_phy.at(qubits.at(0))) = 1u;
-                involved_phy_.at(state_.v_to_phy.at(qubits.at(1))) = 1u;
+                involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
+                involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
                 continue;
         }
         added_at_least_one = true;
@@ -58,7 +58,7 @@ bool SabrePlacer::add_front_layer()
     return added_at_least_one;
 }
 
-void SabrePlacer::select_extended_layer()
+void SabreRePlacer::select_extended_layer()
 {
     extended_layer_.clear();
     std::vector<InstRef> incremented;
@@ -88,39 +88,38 @@ undo_increment:
     }
 }
 
-bool SabrePlacer::add_instruction(Instruction const& inst)
+bool SabreRePlacer::add_instruction(Instruction const& inst)
 {
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
     // Transform the wires to a new
     SmallVector<Qubit, 2> qubits;
     inst.foreach_qubit([&](Qubit ref) {
-        qubits.push_back(state_.v_to_phy.at(ref));
+        qubits.push_back(placement_.v_to_phy(ref));
     });
 
     if (inst.num_qubits() == 1) {
         return true;
     }
     // FIXME: implement .at in SmallVector!
-    if (!state_.device.are_connected(qubits[0], qubits[1])) {
+    if (!device_.are_connected(qubits[0], qubits[1])) {
         return false;
     }
     return true;
 }
 
-void SabrePlacer::add_swap(Qubit const phy0, Qubit const phy1)
+void SabreRePlacer::add_swap(Qubit const phy0, Qubit const phy1)
 {
-    fmt::print("Add swap: {} <-> {}\n", phy0, phy1);
-    state_.swap_qubits(phy0, phy1);
+    placement_.swap_qubits(phy0, phy1);
 }
 
-SabrePlacer::Swap SabrePlacer::find_swap()
+SabreRePlacer::Swap SabreRePlacer::find_swap()
 {
     // Obtain SWAP candidates
     std::vector<Swap> swap_candidates;
-    for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
-        auto const& [u, v] = state_.device.edge(i);
+    for (uint32_t i = 0u; i < device_.num_edges(); ++i) {
+        auto const& [u, v] = device_.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.qubit(u), state_.mapped.qubit(v));
+            swap_candidates.emplace_back(Qubit(u), Qubit(v));
         }
     }
 
@@ -131,10 +130,12 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     // Compute cost
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
-        std::vector<Qubit> v_to_phy = state_.v_to_phy;
-        std::swap(v_to_phy.at(state_.phy_to_v.at(phy0)), v_to_phy.at(state_.phy_to_v.at(phy1)));
+        std::vector<Qubit> v_to_phy = placement_.v_to_phy();
+        std::swap(v_to_phy.at(placement_.phy_to_v(phy0)),
+                  v_to_phy.at(placement_.phy_to_v(phy1)));
         double swap_cost = compute_cost(v_to_phy, front_layer_);
-        double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
+        double const max_decay =
+            std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 
         if (!extended_layer_.empty()) {
             double const f_cost = swap_cost / front_layer_.size();
@@ -155,16 +156,26 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     return swap_candidates.at(min);
 }
 
-double SabrePlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
+double SabreRePlacer::compute_cost(std::vector<Qubit> const& v_to_phy,
+    std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
         Instruction const& inst = current_->instruction(ref);
         Qubit const v0 = inst.qubit(0);
         Qubit const v1 = inst.qubit(1);
-        cost += (state_.device.distance(v_to_phy.at(v0), v_to_phy.at(v1)) - 1);
+        cost += (device_.distance(v_to_phy.at(v0), v_to_phy.at(v1)) - 1);
     }
     return cost;
+}
+
+/*! \brief Yet to be written.
+ */
+void sabre_re_place(Device const& device, Circuit const& original,
+    Placement& placement)
+{
+    SabreRePlacer re_placer(device, original, placement);
+    re_placer.run();
 }
 
 } // namespace tweedledum

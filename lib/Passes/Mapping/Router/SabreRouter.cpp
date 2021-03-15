@@ -7,9 +7,18 @@
 
 namespace tweedledum {
 
-void SabreRouter::run()
+std::pair<Circuit, Mapping> SabreRouter::run()
 {
-    state_.original.foreach_output([&](InstRef const ref, Instruction const& inst) {
+    Circuit mapped;
+    original_.foreach_cbit([&](std::string_view name) {
+        mapped.create_cbit(name);
+    });
+    for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
+        mapped.create_qubit();
+    }
+    mapped_ = &mapped;
+
+    original_.foreach_output([&](InstRef const ref, Instruction const& inst) {
         visited_.at(ref) += 1;
         if (visited_.at(ref) == inst.num_wires()) {
             front_layer_.push_back(ref);
@@ -32,6 +41,8 @@ void SabreRouter::run()
         add_swap(phy0, phy1);
         std::fill(involved_phy_.begin(), involved_phy_.end(), 0);
     }
+    std::swap(mapping_.init_placement, mapping_.placement);
+    return {reverse(mapped), mapping_};
 }
 
 bool SabreRouter::add_front_layer()
@@ -39,16 +50,16 @@ bool SabreRouter::add_front_layer()
     bool added_at_least_one = false;
     std::vector<InstRef> new_front_layer;
     for (InstRef ref : front_layer_) {
-        Instruction const& inst = state_.original.instruction(ref);
+        Instruction const& inst = original_.instruction(ref);
         if (add_instruction(inst) == false) {
                 new_front_layer.push_back(ref);
                 auto const qubits = inst.qubits();
-                involved_phy_.at(state_.v_to_phy.at(qubits.at(0))) = 1u;
-                involved_phy_.at(state_.v_to_phy.at(qubits.at(1))) = 1u;
+                involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(0))) = 1u;
+                involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(1))) = 1u;
                 continue;
         }
         added_at_least_one = true;
-        state_.original.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
+        original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
             visited_.at(cref) += 1;
             if (visited_.at(cref) == child.num_wires()) {
                 new_front_layer.push_back(cref);
@@ -67,7 +78,7 @@ void SabreRouter::select_extended_layer()
     while (!tmp_layer.empty()) {
         std::vector<InstRef> new_tmp_layer;
         for (InstRef const ref : tmp_layer) {
-            state_.original.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
+            original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
                 visited_.at(cref) += 1;
                 incremented.push_back(cref);
                 if (visited_.at(cref) == child.num_wires()) {
@@ -97,37 +108,37 @@ bool SabreRouter::add_instruction(Instruction const& inst)
     SmallVector<Qubit, 2> qubits;
     new_wires.reserve(inst.num_wires());
     inst.foreach_qubit([&](Qubit ref) {
-        Qubit const new_wire = state_.v_to_phy.at(ref);
+        Qubit const new_wire = mapping_.placement.v_to_phy(ref);
         new_wires.push_back(new_wire);
         qubits.push_back(new_wire);
     });
 
     if (inst.num_qubits() == 1) {
-        state_.mapped.apply_operator(inst, new_wires, inst.cbits());
+        mapped_->apply_operator(inst, new_wires, inst.cbits());
         return true;
     }
     // FIXME: implement .at in SmallVector!
-    if (!state_.device.are_connected(qubits[0], qubits[1])) {
+    if (!device_.are_connected(qubits[0], qubits[1])) {
         return false;
     }
-    state_.mapped.apply_operator(inst, new_wires, inst.cbits());
+    mapped_->apply_operator(inst, new_wires, inst.cbits());
     return true;
 }
 
 void SabreRouter::add_swap(Qubit const phy0, Qubit const phy1)
 {
-    state_.swap_qubits(phy0, phy1);
-    state_.mapped.apply_operator(Op::Swap(), {phy0, phy1});
+    mapping_.placement.swap_qubits(phy0, phy1);
+    mapped_->apply_operator(Op::Swap(), {phy0, phy1});
 }
 
 SabreRouter::Swap SabreRouter::find_swap()
 {
     // Obtain SWAP candidates
     std::vector<Swap> swap_candidates;
-    for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
-        auto const& [u, v] = state_.device.edge(i);
+    for (uint32_t i = 0u; i < device_.num_edges(); ++i) {
+        auto const& [u, v] = device_.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.qubit(u), state_.mapped.qubit(v));
+            swap_candidates.emplace_back(Qubit(u), Qubit(v));
         }
     }
 
@@ -138,8 +149,8 @@ SabreRouter::Swap SabreRouter::find_swap()
     // Compute cost
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
-        std::vector<Qubit> v_to_phy = state_.v_to_phy;
-        std::swap(v_to_phy.at(state_.phy_to_v.at(phy0)), v_to_phy.at(state_.phy_to_v.at(phy1)));
+        std::vector<Qubit> v_to_phy = mapping_.placement.v_to_phy();
+        std::swap(v_to_phy.at(mapping_.placement.phy_to_v(phy0)), v_to_phy.at(mapping_.placement.phy_to_v(phy1)));
         double swap_cost = compute_cost(v_to_phy, front_layer_);
         double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 
@@ -166,10 +177,10 @@ double SabreRouter::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
-        Instruction const& inst = state_.original.instruction(ref);
+        Instruction const& inst = original_.instruction(ref);
         Qubit const v0 = inst.qubit(0);
         Qubit const v1 = inst.qubit(1);
-        cost += (state_.device.distance(v_to_phy.at(v0), v_to_phy.at(v1)) - 1);
+        cost += (device_.distance(v_to_phy.at(v0), v_to_phy.at(v1)) - 1);
     }
     return cost;
 }

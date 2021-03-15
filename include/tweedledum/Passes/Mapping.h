@@ -4,10 +4,13 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "Mapping/Placer/JITPlacer.h"
 #include "Mapping/Placer/LinePlacer.h"
 #include "Mapping/Placer/RandomPlacer.h"
-#include "Mapping/Placer/SabrePlacer.h"
+#include "Mapping/Placer/SATPlacer.h"
+#include "Mapping/Placer/TrivialPlacer.h"
+
+#include "Mapping/RePlacer/JITRePlacer.h"
+#include "Mapping/RePlacer/SabreRePlacer.h"
 
 #include "Mapping/Router/JITRouter.h"
 #include "Mapping/Router/SabreRouter.h"

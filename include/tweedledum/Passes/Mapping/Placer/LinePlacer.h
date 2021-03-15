@@ -5,9 +5,9 @@
 #pragma once
 
 #include "../../../IR/Circuit.h"
-#include "../../../IR/Wire.h"
+#include "../../../IR/Qubit.h"
 #include "../../../Target/Device.h"
-#include "../MapState.h"
+#include "../../../Target/Placement.h"
 
 #include <vector>
 
@@ -15,19 +15,19 @@ namespace tweedledum {
 
 class LinePlacer {
 public:
-    LinePlacer(MapState& state)
-        : state_(state), v_degree_(num_v(), 0u), phy_degree_(num_phy(), 0u)
+    LinePlacer(Device const& device, Circuit const& original)
+        : device_(device)
+        , original_(original)
+        , v_degree_(num_v(), 0u), phy_degree_(num_phy(), 0u)
         , timeframes_(1u)
     {}
 
-    void run()
+    std::optional<Placement> run()
     {
-        std::fill(state_.v_to_phy.begin(), state_.v_to_phy.end(), Qubit::invalid());
-        std::fill(state_.phy_to_v.begin(), state_.phy_to_v.end(), Qubit::invalid());
         partition_into_timeframes();
         build_connectivity_graph();
         extract_lines();
-        place_lines();
+        return place_lines();
     }
 
 private:
@@ -36,13 +36,13 @@ private:
     // Returns the number of *virtual* qubits.
     uint32_t num_v() const
     {
-        return state_.original.num_qubits();
+        return original_.num_qubits();
     }
 
     // Returns the number of *physical* qubits.
     uint32_t num_phy() const
     {
-        return state_.device.num_qubits();
+        return device_.num_qubits();
     }
 
     void partition_into_timeframes();
@@ -53,17 +53,23 @@ private:
 
     void extract_lines();
 
-    int pick_neighbor(uint32_t const phy) const;
+    int pick_neighbor(Placement const& placement, uint32_t phy) const;
 
-    void place_lines();
+    std::optional<Placement> place_lines();
 
-    MapState& state_;
+    Device const& device_;
+    Circuit const& original_;
 
     std::vector<uint32_t> v_degree_;
-	std::vector<uint32_t> phy_degree_;
-	std::vector<std::vector<pair_type>> timeframes_;
-	std::vector<pair_type> connectivity_graph_;
-	std::vector<std::vector<uint32_t>> lines_;
+    std::vector<uint32_t> phy_degree_;
+    std::vector<std::vector<pair_type>> timeframes_;
+    std::vector<pair_type> connectivity_graph_;
+    std::vector<std::vector<uint32_t>> lines_;
 };
+
+/*! \brief Yet to be written.
+ */
+std::optional<Placement> line_place(Device const& device,
+    Circuit const& original);
 
 } // namespace tweedledum

@@ -4,34 +4,36 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../MapState.h"
+#include "../../../IR/Circuit.h"
+#include "../../../IR/Qubit.h"
 #include "../../../Operators/Reversible.h"
+#include "../../../Target/Device.h"
+#include "../../../Target/Placement.h"
 #include "../../Utility/reverse.h"
 
 namespace tweedledum {
 
-class JITPlacer {
+class SabreRePlacer {
 public:
-    JITPlacer(MapState& state)
-        : state_(state), visited_(state_.original.size(), 0u)
-        , involved_phy_(state_.device.num_qubits(), 0u)
-        , phy_decay_(state_.device.num_qubits(), 1.0), num_swaps_(0u)
+    SabreRePlacer(Device const& device, Circuit const& original,
+        Placement& placement)
+        : device_(device), original_(original), placement_(placement)
+        , visited_(original.size(), 0u)
+        , involved_phy_(device_.num_qubits(), 0u)
+        , phy_decay_(device_.num_qubits(), 1.0)
     {
         extended_layer_.reserve(e_set_size_);
     }
 
     void run()
     {
-        Circuit reversed = reverse(state_.original);
+        current_ = &original_;
+        do_run();
 
-        for (uint32_t i = 0; i < 1; ++i) {
-            current_ = &state_.original;
-            do_run();
-
-            current_ = &reversed;
-            reset();
-            do_run();
-        }
+        Circuit reversed = reverse(original_);
+        current_ = &reversed;
+        reset();
+        do_run();
     }
 
 private:
@@ -43,18 +45,11 @@ private:
     {
         std::fill(visited_.begin(), visited_.end(), 0u);
         std::fill(phy_decay_.begin(), phy_decay_.end(), 1.0);
-        num_swaps_ = 0u;
     }
 
     bool add_front_layer();
 
     void select_extended_layer();
-
-    std::vector<Qubit> find_free_phy() const;
-
-    void place_two_v(Qubit const v0, Qubit const v1);
-
-    void place_one_v(Qubit const v0, Qubit const v1);
 
     bool add_instruction(Instruction const& inst);
 
@@ -64,8 +59,11 @@ private:
 
     double compute_cost(std::vector<Qubit> const&, std::vector<InstRef> const&);
 
-    MapState& state_;
+    Device const& device_;
+    Circuit const& original_;
     Circuit const* current_;
+    Placement& placement_;
+
     std::vector<uint32_t> visited_;
 
     // Sabre internals
@@ -73,7 +71,6 @@ private:
     std::vector<InstRef> extended_layer_;
     std::vector<uint32_t> involved_phy_;
     std::vector<float> phy_decay_;
-    uint32_t num_swaps_;
     
     // Sabre configuration
     uint32_t e_set_size_ = 20;
@@ -82,5 +79,10 @@ private:
     uint32_t num_rounds_decay_reset = 5;
     bool use_look_ahead_ = true;
 };
+
+/*! \brief Yet to be written.
+ */
+void sabre_re_place(Device const& device, Circuit const& original,
+    Placement& placement);
 
 } // namespace tweedledum

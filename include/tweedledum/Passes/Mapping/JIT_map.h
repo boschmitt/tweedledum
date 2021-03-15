@@ -16,12 +16,10 @@ namespace tweedledum {
 
 inline Circuit JIT_map(Circuit const& original, Device const& device)
 {
-    MapState state(original, device);
-    LinePlacer placer_line(state);
-    placer_line.run();
-    JITRouter router(state);
-    router.run();
-    return state.mapped;
+    auto placement = line_place(device, original);
+    JITRouter router(device, original, *placement);
+    auto [circuit, mapping] = router.run();
+    return circuit;
 }
 
 } // namespace tweedledum

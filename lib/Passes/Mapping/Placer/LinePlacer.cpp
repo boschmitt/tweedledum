@@ -16,10 +16,10 @@ namespace tweedledum {
 // which can be executed simultaneously.
 void LinePlacer::partition_into_timeframes()
 {
-    std::vector<uint32_t> frame(state_.original.size(), 0u);
-    state_.original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
+    std::vector<uint32_t> frame(original_.size(), 0u);
+    original_.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t max_timeframe = 0u;
-        state_.original.foreach_child(ref, [&](InstRef child) {
+        original_.foreach_child(ref, [&](InstRef child) {
             max_timeframe = std::max(max_timeframe, frame.at(child));
         });
         if (inst.num_qubits() == 1) {
@@ -109,11 +109,11 @@ void LinePlacer::extract_lines()
     [](auto const& l0, auto const& l1) { return l0.size() > l1.size(); });
 }
 
-int LinePlacer::pick_neighbor(uint32_t const phy) const
+int LinePlacer::pick_neighbor(Placement const& placement, uint32_t phy) const
 {
     int max_degree_neighbor = -1;
-    state_.device.foreach_neighbor(phy, [&](uint32_t const neighbor) {
-        if (state_.phy_to_v.at(neighbor) != Qubit::invalid()) {
+    device_.foreach_neighbor(phy, [&](uint32_t const neighbor) {
+        if (placement.phy_to_v(neighbor) != Qubit::invalid()) {
             return;
         }
         if (max_degree_neighbor == -1) {
@@ -127,32 +127,33 @@ int LinePlacer::pick_neighbor(uint32_t const phy) const
     return max_degree_neighbor;
 }
 
-void LinePlacer::place_lines()
+std::optional<Placement> LinePlacer::place_lines()
 {
     uint32_t max_degree_phy = 0u;
     for (uint32_t phy = 0u; phy < phy_degree_.size(); ++phy) {
-        phy_degree_.at(phy) = state_.device.degree(phy);
-        if (state_.device.degree(max_degree_phy) < state_.device.degree(phy)) {
+        phy_degree_.at(phy) = device_.degree(phy);
+        if (device_.degree(max_degree_phy) < device_.degree(phy)) {
             max_degree_phy = phy;
         }
     }
+    Placement placement(device_.num_qubits());
     for (std::vector<uint32_t> const& line : lines_) {
-        state_.phy_to_v.at(max_degree_phy) = state_.mapped.qubit(line.at(0));
-        state_.v_to_phy.at(line.at(0)) = state_.mapped.qubit(max_degree_phy);
+        placement.phy_to_v(max_degree_phy) = Qubit(line.at(0));
+        placement.v_to_phy(line.at(0)) = Qubit(max_degree_phy);
         // --phy_degree_.at(max_degree_phy);
         phy_degree_.at(max_degree_phy) = 0;
         for (uint32_t i = 1u; i < line.size(); ++i) {
-            int neighbor = pick_neighbor(max_degree_phy);
+            int neighbor = pick_neighbor(placement, max_degree_phy);
             if (neighbor == -1) {
                 break;
             }
-            state_.phy_to_v.at(neighbor) = state_.mapped.qubit(line.at(i));
-            state_.v_to_phy.at(line.at(i)) = state_.mapped.qubit(neighbor);
+            placement.phy_to_v(neighbor) = Qubit(line.at(i));
+            placement.v_to_phy(line.at(i)) = Qubit(neighbor);
             // --phy_degree_.at(neighbor);
             phy_degree_.at(neighbor) = 0;
         }
         for (uint32_t i = 0u; i < phy_degree_.size(); ++i) {
-            // if (state_.phy_to_v.at(i) != Qubit::invalid()) {
+            // if (placement.phy_to_v(i) != Qubit::invalid()) {
             //     continue;
             // }
             if (phy_degree_.at(max_degree_phy) < phy_degree_.at(i)) {
@@ -160,6 +161,15 @@ void LinePlacer::place_lines()
             }
         }
     }
+    return placement;
+}
+
+/*! \brief Yet to be written.
+ */
+std::optional<Placement> line_place(Device const& device, Circuit const& original)
+{
+    LinePlacer placer(device, original);
+    return placer.run();
 }
 
 } // namespace tweedledum
