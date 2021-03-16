@@ -33,14 +33,17 @@ public:
         return phy_to_v_.at(phy);
     }
 
-    Qubit& v_to_phy(Qubit const v) 
+    // This function only for for mapping v <-> phy when they have not already
+    // been mapped before! TODO: protect it with an assertion
+    void map_v_phy(Qubit const v, Qubit const phy)
     {
-        return v_to_phy_.at(v);
-    }
-
-    Qubit& phy_to_v(Qubit const phy)
-    {
-        return phy_to_v_.at(phy);
+        assert(v != Qubit::invalid() || phy != Qubit::invalid());
+        if (v != Qubit::invalid()) {
+            v_to_phy_.at(v) = phy;
+        }
+        if (phy != Qubit::invalid()) {
+            phy_to_v_.at(phy) = v;
+        }
     }
 
     std::vector<Qubit> const& v_to_phy() const
@@ -51,31 +54,6 @@ public:
     std::vector<Qubit> const& phy_to_v() const
     {
         return phy_to_v_;
-    }
-
-    void v_to_phy(std::vector<Qubit> const& placement)
-    {
-        reset();
-        v_to_phy_ = placement;
-        for (uint32_t i = 0u; i < v_to_phy_.size(); ++i) {
-            if (v_to_phy_.at(i) == Qubit::invalid()) {
-                continue;
-            }
-            phy_to_v_.at(v_to_phy_.at(i)) = Qubit(i); 
-        }
-    }
-
-    void phy_to_v(std::vector<Qubit> const& placement)
-    {
-        reset();
-        phy_to_v_ = placement;
-        for (uint32_t i = 0; i < phy_to_v_.size(); ++i) {
-            Qubit const v =  phy_to_v_.at(i);
-            if (v == Qubit::invalid()) {
-                continue;
-            }
-            v_to_phy_.at(v) = Qubit(i); 
-        }
     }
 
     void swap_qubits(Qubit const phy0, Qubit const phy1)

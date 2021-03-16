@@ -53,7 +53,7 @@ private:
 
     void extract_lines();
 
-    int pick_neighbor(Placement const& placement, uint32_t phy) const;
+    Qubit pick_neighbor(Placement const& placement, uint32_t phy) const;
 
     std::optional<Placement> place_lines();
 

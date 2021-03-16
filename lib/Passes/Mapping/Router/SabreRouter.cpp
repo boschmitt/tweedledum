@@ -146,7 +146,8 @@ SabreRouter::Swap SabreRouter::find_swap()
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
         std::vector<Qubit> v_to_phy = mapping_.placement.v_to_phy();
-        std::swap(v_to_phy.at(mapping_.placement.phy_to_v(phy0)), v_to_phy.at(mapping_.placement.phy_to_v(phy1)));
+        std::swap(v_to_phy.at(mapping_.placement.phy_to_v(phy0)),
+                  v_to_phy.at(mapping_.placement.phy_to_v(phy1)));
         double swap_cost = compute_cost(v_to_phy, front_layer_);
         double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 

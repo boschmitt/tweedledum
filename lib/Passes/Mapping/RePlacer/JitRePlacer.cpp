@@ -123,10 +123,8 @@ void JitRePlacer::place_two_v(Qubit const v0, Qubit const v1)
             }
         }
     }
-    placement_.v_to_phy(v0) = phy0;
-    placement_.v_to_phy(v1) = phy1;
-    placement_.phy_to_v(phy0) = v0;
-    placement_.phy_to_v(phy1) = v1;
+    placement_.map_v_phy(v0, phy0);
+    placement_.map_v_phy(v1, phy1);
 }
 
 void JitRePlacer::place_one_v(Qubit v0, Qubit v1)
@@ -147,8 +145,7 @@ void JitRePlacer::place_one_v(Qubit v0, Qubit v1)
             phy0 = free_phy.at(i);
         }
     }
-    placement_.v_to_phy(v0) = phy0;
-    placement_.phy_to_v(phy0) = v0;
+    placement_.map_v_phy(v0, phy0);
 }
 
 bool JitRePlacer::add_instruction(Instruction const& inst)

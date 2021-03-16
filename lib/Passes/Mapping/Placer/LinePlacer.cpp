@@ -109,15 +109,15 @@ void LinePlacer::extract_lines()
     [](auto const& l0, auto const& l1) { return l0.size() > l1.size(); });
 }
 
-int LinePlacer::pick_neighbor(Placement const& placement, uint32_t phy) const
+Qubit LinePlacer::pick_neighbor(Placement const& placement, uint32_t phy) const
 {
-    int max_degree_neighbor = -1;
+    Qubit max_degree_neighbor = Qubit::invalid();
     device_.foreach_neighbor(phy, [&](uint32_t const neighbor) {
         if (placement.phy_to_v(neighbor) != Qubit::invalid()) {
             return;
         }
-        if (max_degree_neighbor == -1) {
-            max_degree_neighbor = neighbor;
+        if (max_degree_neighbor == Qubit::invalid()) {
+            max_degree_neighbor = Qubit(neighbor);
             return;
         }
         if (phy_degree_.at(max_degree_neighbor) < phy_degree_.at(neighbor)) {
@@ -129,28 +129,25 @@ int LinePlacer::pick_neighbor(Placement const& placement, uint32_t phy) const
 
 std::optional<Placement> LinePlacer::place_lines()
 {
-    uint32_t max_degree_phy = 0u;
+    Qubit max_degree_phy = Qubit(0u);
     for (uint32_t phy = 0u; phy < phy_degree_.size(); ++phy) {
         phy_degree_.at(phy) = device_.degree(phy);
         if (device_.degree(max_degree_phy) < device_.degree(phy)) {
-            max_degree_phy = phy;
+            max_degree_phy = Qubit(phy);
         }
     }
     Placement placement(device_.num_qubits(), original_.num_qubits());
     for (std::vector<uint32_t> const& line : lines_) {
-        placement.phy_to_v(max_degree_phy) = Qubit(line.at(0));
-        placement.v_to_phy(line.at(0)) = Qubit(max_degree_phy);
+        placement.map_v_phy(Qubit(line.at(0)), max_degree_phy);
         // --phy_degree_.at(max_degree_phy);
         phy_degree_.at(max_degree_phy) = 0;
         for (uint32_t i = 1u; i < line.size(); ++i) {
-            int neighbor = pick_neighbor(placement, max_degree_phy);
-            if (neighbor == -1) {
+            Qubit neighbor = pick_neighbor(placement, max_degree_phy);
+            if (neighbor == Qubit::invalid()) {
                 break;
             }
-            placement.phy_to_v(neighbor) = Qubit(line.at(i));
-            placement.v_to_phy(line.at(i)) = Qubit(neighbor);
-            // --phy_degree_.at(neighbor);
-            phy_degree_.at(neighbor) = 0;
+            placement.map_v_phy(Qubit(line.at(i)), neighbor);
+            phy_degree_.at(neighbor) = 0u;
         }
         for (uint32_t i = 0u; i < phy_degree_.size(); ++i) {
             // if (placement.phy_to_v(i) != Qubit::invalid()) {

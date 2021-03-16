@@ -25,8 +25,7 @@ public:
         Placement placement(device_.num_qubits(), original_.num_qubits());
         for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
             Qubit const qubit = Qubit(i);
-            placement.v_to_phy(qubit) = qubit;
-            placement.phy_to_v(qubit) = qubit;
+            placement.map_v_phy(qubit, qubit);
         }
         return placement;
     }

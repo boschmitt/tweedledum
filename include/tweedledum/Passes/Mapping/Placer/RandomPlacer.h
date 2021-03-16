@@ -24,15 +24,17 @@ public:
 
     std::optional<Placement> run()
     {
-        // Initialize with the trivial placement
-        std::vector<Qubit> phy_to_v(device_.num_qubits(), Qubit::invalid());
+        std::vector<Qubit> phys;
         for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
-            phy_to_v.at(i) = Qubit(i);
+            phys.emplace_back(i);
         }
         std::mt19937 rnd(seed_);
-        std::shuffle(phy_to_v.begin(), phy_to_v.end(), rnd);
+        std::shuffle(phys.begin(), phys.end(), rnd);
+
         Placement placement(device_.num_qubits(), original_.num_qubits());
-        placement.phy_to_v(phy_to_v);
+        for (uint32_t i = 0u; i < original_.num_qubits(); ++i) {
+            placement.map_v_phy(Qubit(i), phys.at(i));
+        }
         return placement;
     }
 

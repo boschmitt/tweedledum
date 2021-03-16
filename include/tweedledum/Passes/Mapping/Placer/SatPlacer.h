@@ -56,30 +56,15 @@ private:
     Placement decode(std::vector<LBool> const& model)
     {
         Placement placement(num_phy(), num_v());
-        std::vector<uint8_t> phy_used(num_phy(), 0);
         for (uint32_t v_qid = 0; v_qid < num_v(); ++v_qid) {
             for (uint32_t phy_qid = 0; phy_qid < num_phy(); ++phy_qid) {
                 Var var = v_to_phy_var(v_qid, phy_qid);
                 if (model.at(var) == LBool::true_) {
                     Qubit const v = Qubit(v_qid);
                     Qubit const phy = Qubit(phy_qid);
-                    placement.v_to_phy(v) = phy;
-                    placement.phy_to_v(phy) = v;
-                    phy_used.at(phy) = 1;
+                    placement.map_v_phy(v, phy);
                     break;
                 }
-            }
-        }
-        for (uint32_t v_qid = num_v(); v_qid < num_phy(); ++v_qid) {
-            for (uint32_t phy_qid = 0; phy_qid < num_phy(); ++phy_qid) {
-                if (phy_used.at(phy_qid)) {
-                    continue;
-                }
-                Qubit const v = Qubit(v_qid);
-                Qubit const phy = Qubit(phy_qid);
-                placement.v_to_phy(v) = phy;
-                placement.phy_to_v(phy) = v;
-                phy_used.at(phy) = 1;
             }
         }
         return placement;

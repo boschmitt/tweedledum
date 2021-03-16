@@ -47,11 +47,11 @@ std::pair<Circuit, Mapping> JitRouter::run()
     for (uint32_t i = 0; i < v_to_phy.size(); ++i) {
         if (v_to_phy.at(i) == Qubit::invalid()) {
             assert(!phys.empty());
+            Qubit const v = Qubit(i);
             Qubit const phy = phys.back();
             phys.pop_back();
-            placement_.v_to_phy(Qubit(i)) = phy;
-            placement_.phy_to_v(phy) = Qubit(i);
-            add_delayed(Qubit(i));
+            placement_.map_v_phy(v, phy);
+            add_delayed(v);
         }
     }
     Circuit const result = reverse(mapped);
@@ -156,10 +156,8 @@ void JitRouter::place_two_v(Qubit const v0, Qubit const v1)
             }
         }
     }
-    placement_.v_to_phy(v0) = phy0;
-    placement_.v_to_phy(v1) = phy1;
-    placement_.phy_to_v(phy0) = v0;
-    placement_.phy_to_v(phy1) = v1;
+    placement_.map_v_phy(v0, phy0);
+    placement_.map_v_phy(v1, phy1);
     add_delayed(v0);
     add_delayed(v1);
 }
@@ -182,8 +180,7 @@ void JitRouter::place_one_v(Qubit v0, Qubit v1)
             phy0 = free_phy.at(i);
         }
     }
-    placement_.v_to_phy(v0) = phy0;
-    placement_.phy_to_v(phy0) = v0;
+    placement_.map_v_phy(v0, phy0);
     add_delayed(v0);
 }
 
