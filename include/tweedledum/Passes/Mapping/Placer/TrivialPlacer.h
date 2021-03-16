@@ -22,7 +22,7 @@ public:
 
     std::optional<Placement> run()
     {
-        Placement placement(device_.num_qubits());
+        Placement placement(device_.num_qubits(), original_.num_qubits());
         for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
             Qubit const qubit = Qubit(i);
             placement.v_to_phy(qubit) = qubit;

@@ -31,7 +31,7 @@ public:
         }
         std::mt19937 rnd(seed_);
         std::shuffle(phy_to_v.begin(), phy_to_v.end(), rnd);
-        Placement placement(device_.num_qubits());
+        Placement placement(device_.num_qubits(), original_.num_qubits());
         placement.phy_to_v(phy_to_v);
         return placement;
     }

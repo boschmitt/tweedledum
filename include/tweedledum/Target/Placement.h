@@ -12,8 +12,8 @@ namespace tweedledum {
 
 class Placement {
 public:
-    Placement(uint32_t num_phy_qubits)
-        : v_to_phy_(num_phy_qubits, Qubit::invalid())
+    Placement(uint32_t num_phy_qubits, uint32_t num_v_qubits)
+        : v_to_phy_(num_v_qubits, Qubit::invalid())
         , phy_to_v_(num_phy_qubits, Qubit::invalid())
     {} 
 
@@ -70,7 +70,11 @@ public:
         reset();
         phy_to_v_ = placement;
         for (uint32_t i = 0; i < phy_to_v_.size(); ++i) {
-            v_to_phy_.at(phy_to_v_.at(i)) = Qubit(i); 
+            Qubit const v =  phy_to_v_.at(i);
+            if (v == Qubit::invalid()) {
+                continue;
+            }
+            v_to_phy_.at(v) = Qubit(i); 
         }
     }
 

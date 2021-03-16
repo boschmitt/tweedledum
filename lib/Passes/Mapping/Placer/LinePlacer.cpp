@@ -136,7 +136,7 @@ std::optional<Placement> LinePlacer::place_lines()
             max_degree_phy = phy;
         }
     }
-    Placement placement(device_.num_qubits());
+    Placement placement(device_.num_qubits(), original_.num_qubits());
     for (std::vector<uint32_t> const& line : lines_) {
         placement.phy_to_v(max_degree_phy) = Qubit(line.at(0));
         placement.v_to_phy(line.at(0)) = Qubit(max_degree_phy);

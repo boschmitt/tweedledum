@@ -17,8 +17,8 @@ namespace tweedledum {
 class JitRouter {
 public:
     JitRouter(Device const& device, Circuit const& original,
-        Placement const& init_placement)
-        : device_(device), original_(original), mapping_(init_placement)
+        Placement const& placement)
+        : device_(device), original_(original), placement_(placement)
         , visited_(original_.size(), 0u)
         , involved_phy_(device_.num_qubits(), 0u)
         , phy_decay_(device_.num_qubits(), 1.0)
@@ -27,31 +27,16 @@ public:
         extended_layer_.reserve(e_set_size_);
     }
 
-    std::pair<Circuit, Mapping> run()
-    {
-        Circuit mapped;
-        original_.foreach_cbit([&](std::string_view name) {
-            mapped.create_cbit(name);
-        });
-        for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
-            mapped.create_qubit();
-        }
-        mapped_ = &mapped;
-        do_run();
-        std::swap(mapping_.init_placement, mapping_.placement);
-        return {reverse(mapped), mapping_};
-    }
+    std::pair<Circuit, Mapping> run();
 
 private:
     using Swap = std::pair<Qubit, Qubit>;
-
-    void do_run();
 
     bool add_front_layer();
 
     void select_extended_layer();
 
-    std::vector<Qubit> find_free_phy() const;
+    std::vector<Qubit> find_unmapped(std::vector<Qubit> const& map) const;
 
     void place_two_v(Qubit const v0, Qubit const v1);
 
@@ -72,7 +57,7 @@ private:
     Device const& device_;
     Circuit const& original_;
     Circuit* mapped_;
-    Mapping mapping_;
+    Placement placement_;
     std::vector<uint32_t> visited_;
 
     // Sabre internals

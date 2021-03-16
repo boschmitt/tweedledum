@@ -55,7 +55,7 @@ public:
 private:
     Placement decode(std::vector<LBool> const& model)
     {
-        Placement placement(num_phy());
+        Placement placement(num_phy(), num_v());
         std::vector<uint8_t> phy_used(num_phy(), 0);
         for (uint32_t v_qid = 0; v_qid < num_v(); ++v_qid) {
             for (uint32_t phy_qid = 0; phy_qid < num_phy(); ++phy_qid) {
