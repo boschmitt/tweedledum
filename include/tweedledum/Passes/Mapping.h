@@ -6,13 +6,13 @@
 
 #include "Mapping/Placer/LinePlacer.h"
 #include "Mapping/Placer/RandomPlacer.h"
-#include "Mapping/Placer/SATPlacer.h"
+#include "Mapping/Placer/SatPlacer.h"
 #include "Mapping/Placer/TrivialPlacer.h"
 
-#include "Mapping/RePlacer/JITRePlacer.h"
+#include "Mapping/RePlacer/JitRePlacer.h"
 #include "Mapping/RePlacer/SabreRePlacer.h"
 
-#include "Mapping/Router/JITRouter.h"
+#include "Mapping/Router/JitRouter.h"
 #include "Mapping/Router/SabreRouter.h"
 
 #include "Mapping/JIT_map.h"

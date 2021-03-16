@@ -7,7 +7,7 @@
 #include "../../IR/Circuit.h"
 #include "../../Target/Device.h"
 #include "Placer/LinePlacer.h"
-#include "Router/JITRouter.h"
+#include "Router/JitRouter.h"
 
 #include <string_view>
 
@@ -17,7 +17,7 @@ inline std::pair<Circuit, Mapping> jit_map(Device const& device,
     Circuit const& original)
 {
     auto placement = line_place(device, original);
-    JITRouter router(device, original, *placement);
+    JitRouter router(device, original, *placement);
     return router.run();
 }
 

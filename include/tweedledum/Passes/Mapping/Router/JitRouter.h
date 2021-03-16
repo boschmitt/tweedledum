@@ -14,9 +14,9 @@
 
 namespace tweedledum {
 
-class JITRouter {
+class JitRouter {
 public:
-    JITRouter(Device const& device, Circuit const& original,
+    JitRouter(Device const& device, Circuit const& original,
         Placement const& init_placement)
         : device_(device), original_(original), mapping_(init_placement)
         , visited_(original_.size(), 0u)
@@ -33,11 +33,7 @@ public:
         original_.foreach_cbit([&](std::string_view name) {
             mapped.create_cbit(name);
         });
-        for (uint32_t i = 0u; i < original_.num_qubits(); ++i) {
-            Qubit const qubit = mapping_.placement.phy_to_v(i);
-            mapped.create_qubit(original_.name(qubit));
-        }
-        for (uint32_t i = original_.num_qubits(); i < device_.num_qubits(); ++i) {
+        for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
             mapped.create_qubit();
         }
         mapped_ = &mapped;

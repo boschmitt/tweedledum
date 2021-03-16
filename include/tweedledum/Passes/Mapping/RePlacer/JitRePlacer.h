@@ -13,9 +13,9 @@
 
 namespace tweedledum {
 
-class JITRePlacer {
+class JitRePlacer {
 public:
-    JITRePlacer(Device const& device, Circuit const& original, 
+    JitRePlacer(Device const& device, Circuit const& original, 
         Placement& placement)
         : device_(device), original_(original), placement_(placement)
         , visited_(original_.size(), 0u)

@@ -2,14 +2,13 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Mapping/Router/JITRouter.h"
-#include "tweedledum/Operators/Reversible.h"
+#include "tweedledum/Passes/Mapping/RePlacer/JitRePlacer.h"
 
 namespace tweedledum {
 
-void JITRouter::do_run()
+void JitRePlacer::do_run()
 {
-    original_.foreach_output([&](InstRef const ref, Instruction const& inst) {
+    current_->foreach_output([&](InstRef const ref, Instruction const& inst) {
         visited_.at(ref) += 1;
         if (visited_.at(ref) == inst.num_wires()) {
             front_layer_.push_back(ref);
@@ -34,21 +33,21 @@ void JITRouter::do_run()
     }
 }
 
-bool JITRouter::add_front_layer()
+bool JitRePlacer::add_front_layer()
 {
     bool added_at_least_one = false;
     std::vector<InstRef> new_front_layer;
     for (InstRef ref : front_layer_) {
-        Instruction const& inst = original_.instruction(ref);
-        if (try_add_instruction(ref, inst) == false) {
+        Instruction const& inst = current_->instruction(ref);
+        if (add_instruction(inst) == false) {
                 new_front_layer.push_back(ref);
                 auto const qubits = inst.qubits();
-                involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(0))) = 1u;
-                involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(1))) = 1u;
+                involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
+                involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
                 continue;
         }
         added_at_least_one = true;
-        original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
+        current_->foreach_child(ref, [&](InstRef cref, Instruction const& child) {
             visited_.at(cref) += 1;
             if (visited_.at(cref) == child.num_wires()) {
                 new_front_layer.push_back(cref);
@@ -59,7 +58,7 @@ bool JITRouter::add_front_layer()
     return added_at_least_one;
 }
 
-void JITRouter::select_extended_layer()
+void JitRePlacer::select_extended_layer()
 {
     extended_layer_.clear();
     std::vector<InstRef> incremented;
@@ -67,7 +66,7 @@ void JITRouter::select_extended_layer()
     while (!tmp_layer.empty()) {
         std::vector<InstRef> new_tmp_layer;
         for (InstRef const ref : tmp_layer) {
-            original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
+            current_->foreach_child(ref, [&](InstRef cref, Instruction const& child) {
                 visited_.at(cref) += 1;
                 incremented.push_back(cref);
                 if (visited_.at(cref) == child.num_wires()) {
@@ -89,21 +88,21 @@ undo_increment:
     }
 }
 
-std::vector<Qubit> JITRouter::find_free_phy() const
+std::vector<Qubit> JitRePlacer::find_free_phy() const
 {
     std::vector<Qubit> free_phy;
     for (uint32_t i = 0; i < device_.num_qubits(); ++i) {
-        if (mapping_.placement.phy_to_v(i) == Qubit::invalid()) {
+        if (placement_.phy_to_v(i) == Qubit::invalid()) {
             free_phy.push_back(Qubit(i));
         }
     }
     return free_phy;
 }
-    
-void JITRouter::place_two_v(Qubit const v0, Qubit const v1)
+
+void JitRePlacer::place_two_v(Qubit const v0, Qubit const v1)
 {
-    Qubit phy0 = mapping_.placement.v_to_phy(v0);
-    Qubit phy1 = mapping_.placement.v_to_phy(v1);
+    Qubit phy0 = placement_.v_to_phy(v0);
+    Qubit phy1 = placement_.v_to_phy(v1);
     std::vector<Qubit> const free_phy = find_free_phy();
     assert(free_phy.size() >= 2u);
     if (free_phy.size() == 2u) {
@@ -124,18 +123,16 @@ void JITRouter::place_two_v(Qubit const v0, Qubit const v1)
             }
         }
     }
-    mapping_.placement.v_to_phy(v0) = phy0;
-    mapping_.placement.v_to_phy(v1) = phy1;
-    mapping_.placement.phy_to_v(phy0) = v0;
-    mapping_.placement.phy_to_v(phy1) = v1;
-    add_delayed(v0);
-    add_delayed(v1);
+    placement_.v_to_phy(v0) = phy0;
+    placement_.v_to_phy(v1) = phy1;
+    placement_.phy_to_v(phy0) = v0;
+    placement_.phy_to_v(phy1) = v1;
 }
 
-void JITRouter::place_one_v(Qubit v0, Qubit v1)
+void JitRePlacer::place_one_v(Qubit v0, Qubit v1)
 {
-    Qubit phy0 = mapping_.placement.v_to_phy(v0);
-    Qubit phy1 = mapping_.placement.v_to_phy(v1);
+    Qubit phy0 = placement_.v_to_phy(v0);
+    Qubit phy1 = placement_.v_to_phy(v1);
     std::vector<Qubit> const free_phy = find_free_phy();
     assert(free_phy.size() >= 1u);
     if (phy1 == Qubit::invalid()) {
@@ -150,72 +147,44 @@ void JITRouter::place_one_v(Qubit v0, Qubit v1)
             phy0 = free_phy.at(i);
         }
     }
-    mapping_.placement.v_to_phy(v0) = phy0;
-    mapping_.placement.phy_to_v(phy0) = v0;
-    add_delayed(v0);
+    placement_.v_to_phy(v0) = phy0;
+    placement_.phy_to_v(phy0) = v0;
 }
 
-//FIXME: need take care of wires
-void JITRouter::add_delayed(Qubit const v)
-{
-    assert(v < delayed_.size());
-    for (InstRef ref : delayed_.at(v)) {
-        Instruction const& inst = original_.instruction(ref);
-        add_instruction(inst);
-    }
-    delayed_.at(v).clear();
-}
-
-void JITRouter::add_instruction(Instruction const& inst)
-{
-    std::vector<Qubit> phys;
-    inst.foreach_qubit([&](Qubit v) {
-        phys.push_back(mapping_.placement.v_to_phy(v));
-    });
-    mapped_->apply_operator(inst, phys, inst.cbits());
-}
-
-bool JITRouter::try_add_instruction(InstRef ref, Instruction const& inst)
+bool JitRePlacer::add_instruction(Instruction const& inst)
 {
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
+    if (inst.num_qubits() == 1) {
+        return true;
+    }
     // Transform the wires to a new
     SmallVector<Qubit, 2> qubits;
     inst.foreach_qubit([&](Qubit ref) {
         qubits.push_back(ref);
     });
-
-    Qubit phy0 = mapping_.placement.v_to_phy(qubits[0]);
-    if (inst.num_qubits() == 1) {
-        if (phy0 == Qubit::invalid()) {
-            delayed_.at(qubits[0]).push_back(ref);
-        } else {
-            add_instruction(inst);
-        }
-        return true;
-    }
     // FIXME: implement .at in SmallVector!
-    Qubit phy1 = mapping_.placement.v_to_phy(qubits[1]);
+    Qubit phy0 = placement_.v_to_phy(qubits[0]);
+    Qubit phy1 = placement_.v_to_phy(qubits[1]);
     if (phy0 == Qubit::invalid() && phy1 == Qubit::invalid()) {
         place_two_v(qubits[0], qubits[1]);
     } else if (phy0 == Qubit::invalid() || phy1 == Qubit::invalid()) {
         place_one_v(qubits[0], qubits[1]);
     }
-    phy0 = mapping_.placement.v_to_phy(qubits[0]);
-    phy1 = mapping_.placement.v_to_phy(qubits[1]);
+    phy0 = placement_.v_to_phy(qubits[0]);
+    phy1 = placement_.v_to_phy(qubits[1]);
     if (!device_.are_connected(phy0, phy1)) {
         return false;
     }
-    add_instruction(inst);
     return true;
 }
 
-void JITRouter::add_swap(Qubit const phy0, Qubit const phy1)
+void JitRePlacer::add_swap(Qubit const phy0, Qubit const phy1)
 {
-    mapping_.placement.swap_qubits(phy0, phy1);
-    mapped_->apply_operator(Op::Swap(), {phy0, phy1});
+    num_swaps_ += 1;
+    placement_.swap_qubits(phy0, phy1);
 }
 
-JITRouter::Swap JITRouter::find_swap()
+JitRePlacer::Swap JitRePlacer::find_swap()
 {
     // Obtain SWAP candidates
     std::vector<Swap> swap_candidates;
@@ -233,9 +202,9 @@ JITRouter::Swap JITRouter::find_swap()
     // Compute cost
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
-        std::vector<Qubit> v_to_phy = mapping_.placement.v_to_phy();
-        Qubit const v0 = mapping_.placement.phy_to_v(phy0);
-        Qubit const v1 = mapping_.placement.phy_to_v(phy1);
+        std::vector<Qubit> v_to_phy = placement_.v_to_phy();
+        Qubit const v0 = placement_.phy_to_v(phy0);
+        Qubit const v1 = placement_.phy_to_v(phy1);
         if (v0 != Qubit::invalid()) {
             v_to_phy.at(v0) = phy1;
         }
@@ -264,11 +233,11 @@ JITRouter::Swap JITRouter::find_swap()
     return swap_candidates.at(min);
 }
 
-double JITRouter::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
+double JitRePlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
-        Instruction const& inst = original_.instruction(ref);
+        Instruction const& inst = current_->instruction(ref);
         Qubit const v0 = inst.qubit(0);
         Qubit const v1 = inst.qubit(1);
         Qubit const phy0 = v_to_phy.at(v0);
@@ -279,6 +248,13 @@ double JITRouter::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<I
         cost += (device_.distance(phy0, phy1) - 1);
     }
     return cost;
+}
+
+void jit_re_place(Device const& device, Circuit const& original,
+    Placement& placement)
+{
+    JitRePlacer re_placer(device, original, placement);
+    re_placer.run();
 }
 
 } // namespace tweedledum

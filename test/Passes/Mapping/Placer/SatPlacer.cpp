@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Mapping/Placer/SATPlacer.h"
+#include "tweedledum/Passes/Mapping/Placer/SatPlacer.h"
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Qubit.h"
@@ -11,7 +11,7 @@
 
 #include <catch.hpp>
 
-TEST_CASE("SATPlacer test cases", "[SATPlacer][mapping]")
+TEST_CASE("SatPlacer test cases", "[SatPlacer][mapping]")
 {
     using namespace tweedledum;
     Circuit circuit;

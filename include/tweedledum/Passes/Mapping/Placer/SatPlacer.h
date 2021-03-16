@@ -16,13 +16,13 @@
 namespace tweedledum {
 
 template<typename Solver>
-class SATPlacer {
+class SatPlacer {
     using LBool = bill::lbool_type;
     using Lit = bill::lit_type;
     using Var = bill::var_type;
 
 public:
-    SATPlacer(Device const& device, Circuit const& original, Solver& solver)
+    SatPlacer(Device const& device, Circuit const& original, Solver& solver)
         : device_(device)
         , original_(original)
         , solver_(solver)

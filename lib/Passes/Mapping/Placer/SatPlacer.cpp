@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Mapping/Placer/SATPlacer.h"
+#include "tweedledum/Passes/Mapping/Placer/SatPlacer.h"
 
 namespace tweedledum {
 
@@ -11,7 +11,7 @@ namespace tweedledum {
 std::optional<Placement> sat_place(Device const& device, Circuit const& original)
 {
     bill::solver solver;
-    SATPlacer placer(device, original, solver);
+    SatPlacer placer(device, original, solver);
     return placer.run();
 }
 
