@@ -33,7 +33,7 @@ void init_Passes(pybind11::module& module)
         "Parity operators decomposition pass.");
 
     // Mapping
-    module.def("JIT_map", &JIT_map);
+    module.def("jit_map", &jit_map);
 
     module.def("sabre_map", &sabre_map);
 
