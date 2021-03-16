@@ -18,7 +18,7 @@ TEST_CASE("SatPlacer test cases", "[SatPlacer][mapping]")
     SECTION("Empty circuit") {
         Device device = Device::path(circuit.num_qubits());
         auto placement = sat_place(device, circuit);
-        CHECK(placement);
+        CHECK_FALSE(placement);
     }
     SECTION("Circuit with no instructions") {
         circuit.create_qubit();
