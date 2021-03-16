@@ -104,24 +104,20 @@ bool SabreRouter::add_instruction(Instruction const& inst)
 {
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
     // Transform the wires to a new
-    std::vector<Qubit> new_wires;
-    SmallVector<Qubit, 2> qubits;
-    new_wires.reserve(inst.num_wires());
-    inst.foreach_qubit([&](Qubit ref) {
-        Qubit const new_wire = mapping_.placement.v_to_phy(ref);
-        new_wires.push_back(new_wire);
-        qubits.push_back(new_wire);
+    std::vector<Qubit> phys;
+    inst.foreach_qubit([&](Qubit v) {
+        Qubit const phy = mapping_.placement.v_to_phy(v);
+        phys.push_back(phy);
     });
 
     if (inst.num_qubits() == 1) {
-        mapped_->apply_operator(inst, new_wires, inst.cbits());
+        mapped_->apply_operator(inst, phys, inst.cbits());
         return true;
     }
-    // FIXME: implement .at in SmallVector!
-    if (!device_.are_connected(qubits[0], qubits[1])) {
+    if (!device_.are_connected(phys.at(0), phys.at(1))) {
         return false;
     }
-    mapped_->apply_operator(inst, new_wires, inst.cbits());
+    mapped_->apply_operator(inst, phys, inst.cbits());
     return true;
 }
 

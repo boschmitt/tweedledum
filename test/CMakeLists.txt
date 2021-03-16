@@ -16,7 +16,9 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/RandomPlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/SATPlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/TrivialPlacer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/sat_map.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/sat_map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/jit_map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/sabre_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/phase_folding.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Simulation/simulate_classically.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Synthesis/all_linear_synth.cpp

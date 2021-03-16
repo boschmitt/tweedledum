@@ -4,7 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #include "../nlohmann_json.h"
 
-#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 #include <tweedledum/Target/Device.h>
 

@@ -42,4 +42,5 @@ PYBIND11_MODULE(_tweedledum, module)
     // Target
     py::module target = module.def_submodule("target", "Tweedledum target");
     init_Device(target);
+    init_Mapping(target);
 }

@@ -168,12 +168,11 @@ void JITRouter::add_delayed(Qubit const v)
 
 void JITRouter::add_instruction(Instruction const& inst)
 {
-    std::vector<Qubit> new_wires;
-    new_wires.reserve(inst.num_wires());
-    inst.foreach_qubit([&](Qubit ref) {
-        new_wires.push_back(mapping_.placement.v_to_phy(ref));
+    std::vector<Qubit> phys;
+    inst.foreach_qubit([&](Qubit v) {
+        phys.push_back(mapping_.placement.v_to_phy(v));
     });
-    mapped_->apply_operator(inst, new_wires, inst.cbits());
+    mapped_->apply_operator(inst, phys, inst.cbits());
 }
 
 bool JITRouter::try_add_instruction(InstRef ref, Instruction const& inst)

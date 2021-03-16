@@ -87,6 +87,11 @@ public:
         std::swap(phy_to_v_.at(phy0), phy_to_v_.at(phy1));
     }
 
+    bool operator==(Placement const& other) const
+    {
+        return v_to_phy_ == other.v_to_phy_ && phy_to_v_ == other.phy_to_v_;
+    }
+
 private:
     std::vector<Qubit> v_to_phy_;
     std::vector<Qubit> phy_to_v_;
