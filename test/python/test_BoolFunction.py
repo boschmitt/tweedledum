@@ -134,6 +134,46 @@ class TestBoolFunction(unittest.TestCase):
                 tmp = BitVec(2, a) ^ BitVec(2, b)
                 self.assertEqual(result, tmp)
 
+    def test_eq(self):
+        function = BoolFunction(examples.eq)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(1)), 1), (type(BitVec(1)), 1)])
+        for a in range(2):
+            for b in range(2):
+                result = examples.eq(BitVec(1, a), BitVec(1, b))
+                tmp = BitVec(1, a) == BitVec(1, b)
+                self.assertEqual(result, tmp)
+
+    def test_bit_eq_2bit(self):
+        function = BoolFunction(examples.eq_2bit)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(2)), 2), (type(BitVec(2)), 2)])
+        for a in range(4):
+            for b in range(4):
+                result = examples.eq_2bit(BitVec(2, a), BitVec(2, b))
+                tmp = BitVec(2, a) == BitVec(2, b)
+                self.assertEqual(result, tmp)
+
+    def test_ne(self):
+        function = BoolFunction(examples.ne)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(1)), 1), (type(BitVec(1)), 1)])
+        for a in range(2):
+            for b in range(2):
+                result = examples.ne(BitVec(1, a), BitVec(1, b))
+                tmp = BitVec(1, a) != BitVec(1, b)
+                self.assertEqual(result, tmp)
+
+    def test_bit_ne_2bit(self):
+        function = BoolFunction(examples.ne_2bit)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(2)), 2), (type(BitVec(2)), 2)])
+        for a in range(4):
+            for b in range(4):
+                result = examples.ne_2bit(BitVec(2, a), BitVec(2, b))
+                tmp = BitVec(2, a) != BitVec(2, b)
+                self.assertEqual(result, tmp)
+
 class TestBoolFunctionSimulation(unittest.TestCase):
     def test_constant(self):
         function = BoolFunction(examples.constant)
@@ -259,6 +299,46 @@ class TestBoolFunctionSimulation(unittest.TestCase):
             for b in range(4):
                 result = function.simulate(BitVec(2, a), BitVec(2, b))
                 tmp = BitVec(2, a) ^ BitVec(2, b)
+                self.assertEqual(result, tmp)
+
+    def test_eq(self):
+        function = BoolFunction(examples.eq)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(1)), 1), (type(BitVec(1)), 1)])
+        for a in range(2):
+            for b in range(2):
+                result = function.simulate(BitVec(1, a), BitVec(1, b))
+                tmp = BitVec(1, a) == BitVec(1, b)
+                self.assertEqual(result, tmp)
+
+    def test_bit_eq_2bit(self):
+        function = BoolFunction(examples.eq_2bit)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(2)), 2), (type(BitVec(2)), 2)])
+        for a in range(4):
+            for b in range(4):
+                result = function.simulate(BitVec(2, a), BitVec(2, b))
+                tmp = BitVec(2, a) == BitVec(2, b)
+                self.assertEqual(result, tmp)
+
+    def test_ne(self):
+        function = BoolFunction(examples.ne)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(1)), 1), (type(BitVec(1)), 1)])
+        for a in range(2):
+            for b in range(2):
+                result = function.simulate(BitVec(1, a), BitVec(1, b))
+                tmp = BitVec(1, a) != BitVec(1, b)
+                self.assertEqual(result, tmp)
+
+    def test_bit_ne_2bit(self):
+        function = BoolFunction(examples.ne_2bit)
+        self.assertEqual(function._parameters_signature,
+                         [(type(BitVec(2)), 2), (type(BitVec(2)), 2)])
+        for a in range(4):
+            for b in range(4):
+                result = function.simulate(BitVec(2, a), BitVec(2, b))
+                tmp = BitVec(2, a) != BitVec(2, b)
                 self.assertEqual(result, tmp)
 
 class TestBoolFunctionFullSimulation(unittest.TestCase):

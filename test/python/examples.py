@@ -69,3 +69,19 @@ def bit_xor(a, b : BitVec(1)) -> BitVec(1):
 
 def bit_xor_2bit(a, b : BitVec(2)) -> BitVec(2):
     return a ^ b
+
+#-------------------------------------------------------------------------------
+
+def eq(a, b : BitVec(1)) -> BitVec(1):
+    return a == b
+
+def eq_2bit(a, b : BitVec(2)) -> BitVec(1):
+    return a == b
+
+#-------------------------------------------------------------------------------
+
+def ne(a, b : BitVec(1)) -> BitVec(1):
+    return a != b
+
+def ne_2bit(a, b : BitVec(2)) -> BitVec(1):
+    return a != b

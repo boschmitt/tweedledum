@@ -122,13 +122,13 @@ class BitVec(object):
 
     def __eq__(self, other):
         if isinstance(other, BitVec):
-            return self._length == other._length and self._value == other._value
-        return False
+            return BitVec(1, self._length == other._length or self._value == other._value)
+        raise TypeError("__eq__ operation: type mismatch")
 
     def __ne__(self, other):
         if isinstance(other, BitVec):
-            return self._length != other._length or self._value != other._value
-        return False
+            return BitVec(1, self._length != other._length or self._value != other._value)
+        raise TypeError("__ne__ operation: type mismatch")
 
     def __repr__(self):
         return f'BitVec("{self._length}","{str(self)}")'
