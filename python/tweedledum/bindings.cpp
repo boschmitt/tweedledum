@@ -6,7 +6,6 @@
 
 #include "ir/circuit.h"
 #include "operators/operators.h"
-#include "passes/passes.h"
 
 #include <pybind11/pybind11.h>
 
@@ -39,4 +38,9 @@ PYBIND11_MODULE(_tweedledum, module)
     // Passes 
     py::module passes = module.def_submodule("passes", "Tweedledum passes");
     init_Passes(passes);
+
+    // Target
+    py::module target = module.def_submodule("target", "Tweedledum target");
+    init_Device(target);
+    init_Mapping(target);
 }

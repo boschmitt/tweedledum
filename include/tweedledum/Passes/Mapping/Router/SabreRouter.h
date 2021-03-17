@@ -4,22 +4,29 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../MapState.h"
+#include "../../../IR/Circuit.h"
+#include "../../../IR/Qubit.h"
 #include "../../../Operators/Reversible.h"
+#include "../../../Target/Device.h"
+#include "../../../Target/Placement.h"
+#include "../../../Target/Mapping.h"
+#include "../../Utility/reverse.h"
 
 namespace tweedledum {
 
 class SabreRouter {
 public:
-    SabreRouter(MapState& state)
-        : state_(state), visited_(state.original.size(), 0u)
-        , involved_phy_(state.device.num_qubits(), 0u)
-        , phy_decay_(state.device.num_qubits(), 1.0)
+    SabreRouter(Device const& device, Circuit const& original,
+        Placement const& init_placement)
+        : device_(device), original_(original), mapping_(init_placement)
+        , visited_(original_.size(), 0u)
+        , involved_phy_(device_.num_qubits(), 0u)
+        , phy_decay_(device_.num_qubits(), 1.0)
     {
         extended_layer_.reserve(e_set_size_);
     }
 
-    void run();
+    std::pair<Circuit, Mapping> run();
 
 private:
     using Swap = std::pair<Qubit, Qubit>;
@@ -36,7 +43,10 @@ private:
 
     double compute_cost(std::vector<Qubit> const&, std::vector<InstRef> const&);
 
-    MapState& state_;
+    Device const& device_;
+    Circuit const& original_;
+    Circuit* mapped_;
+    Mapping mapping_;
     std::vector<uint32_t> visited_;
 
     // Sabre internals

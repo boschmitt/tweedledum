@@ -5,35 +5,27 @@
 #pragma once
 
 #include "../../../IR/Circuit.h"
-#include "../../../IR/Wire.h"
+#include "../../../IR/Qubit.h"
 #include "../../../Target/Device.h"
 #include "../../../Target/Placement.h"
 
-#include <random>
 #include <vector>
 
 namespace tweedledum {
 
-class RandomPlacer {
+class TrivialPlacer {
 public:
-    RandomPlacer(Device const& device, Circuit const& original)
+    TrivialPlacer(Device const& device, Circuit const& original)
         : device_(device)
         , original_(original)
-        , seed_(17u)
     {}
 
     std::optional<Placement> run()
     {
-        std::vector<Qubit> phys;
-        for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
-            phys.emplace_back(i);
-        }
-        std::mt19937 rnd(seed_);
-        std::shuffle(phys.begin(), phys.end(), rnd);
-
         Placement placement(device_.num_qubits(), original_.num_qubits());
-        for (uint32_t i = 0u; i < original_.num_qubits(); ++i) {
-            placement.map_v_phy(Qubit(i), phys.at(i));
+        for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
+            Qubit const qubit = Qubit(i);
+            placement.map_v_phy(qubit, qubit);
         }
         return placement;
     }
@@ -41,12 +33,11 @@ public:
 private:
     Device const& device_;
     Circuit const& original_;
-    uint32_t seed_;
 };
 
 /*! \brief Yet to be written.
  */
-std::optional<Placement> random_place(Device const& device,
+std::optional<Placement> trivial_place(Device const& device,
     Circuit const& original);
 
 } // namespace tweedledum

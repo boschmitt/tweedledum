@@ -2,11 +2,11 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Mapping/Placer/SabrePlacer.h"
+#include "tweedledum/Passes/Mapping/RePlacer/JitRePlacer.h"
 
 namespace tweedledum {
 
-void SabrePlacer::do_run()
+void JitRePlacer::do_run()
 {
     current_->foreach_output([&](InstRef const ref, Instruction const& inst) {
         visited_.at(ref) += 1;
@@ -33,7 +33,7 @@ void SabrePlacer::do_run()
     }
 }
 
-bool SabrePlacer::add_front_layer()
+bool JitRePlacer::add_front_layer()
 {
     bool added_at_least_one = false;
     std::vector<InstRef> new_front_layer;
@@ -42,8 +42,8 @@ bool SabrePlacer::add_front_layer()
         if (add_instruction(inst) == false) {
                 new_front_layer.push_back(ref);
                 auto const qubits = inst.qubits();
-                involved_phy_.at(state_.v_to_phy.at(qubits.at(0))) = 1u;
-                involved_phy_.at(state_.v_to_phy.at(qubits.at(1))) = 1u;
+                involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
+                involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
                 continue;
         }
         added_at_least_one = true;
@@ -58,7 +58,7 @@ bool SabrePlacer::add_front_layer()
     return added_at_least_one;
 }
 
-void SabrePlacer::select_extended_layer()
+void JitRePlacer::select_extended_layer()
 {
     extended_layer_.clear();
     std::vector<InstRef> incremented;
@@ -88,39 +88,107 @@ undo_increment:
     }
 }
 
-bool SabrePlacer::add_instruction(Instruction const& inst)
+std::vector<Qubit> JitRePlacer::find_free_phy() const
+{
+    std::vector<Qubit> free_phy;
+    for (uint32_t i = 0; i < device_.num_qubits(); ++i) {
+        if (placement_.phy_to_v(i) == Qubit::invalid()) {
+            free_phy.push_back(Qubit(i));
+        }
+    }
+    return free_phy;
+}
+
+void JitRePlacer::place_two_v(Qubit const v0, Qubit const v1)
+{
+    Qubit phy0 = placement_.v_to_phy(v0);
+    Qubit phy1 = placement_.v_to_phy(v1);
+    std::vector<Qubit> const free_phy = find_free_phy();
+    assert(free_phy.size() >= 2u);
+    if (free_phy.size() == 2u) {
+        phy0 = free_phy.at(0);
+        phy1 = free_phy.at(1);
+    } else {
+        uint32_t min_dist = std::numeric_limits<uint32_t>::max();
+        for (uint32_t i = 0u; i < free_phy.size(); ++i) {
+            for (uint32_t j = i + 1u; j < free_phy.size(); ++j) {
+                Qubit const i_phy = free_phy.at(i);
+                Qubit const j_phy = free_phy.at(j);
+                if (min_dist < device_.distance(i_phy, j_phy)) {
+                    continue;
+                }
+                min_dist = device_.distance(i_phy, j_phy);
+                phy0 = i_phy;
+                phy1 = j_phy;
+            }
+        }
+    }
+    placement_.map_v_phy(v0, phy0);
+    placement_.map_v_phy(v1, phy1);
+}
+
+void JitRePlacer::place_one_v(Qubit v0, Qubit v1)
+{
+    Qubit phy0 = placement_.v_to_phy(v0);
+    Qubit phy1 = placement_.v_to_phy(v1);
+    std::vector<Qubit> const free_phy = find_free_phy();
+    assert(free_phy.size() >= 1u);
+    if (phy1 == Qubit::invalid()) {
+        std::swap(v0, v1);
+        std::swap(phy0, phy1);
+    }
+    phy0 = free_phy.at(0);
+    uint32_t min_dist = device_.distance(phy1, phy0);
+    for (uint32_t i = 1u; i < free_phy.size(); ++i) {
+        if (min_dist > device_.distance(phy1, free_phy.at(i))) {
+            min_dist = device_.distance(phy1, free_phy.at(i));
+            phy0 = free_phy.at(i);
+        }
+    }
+    placement_.map_v_phy(v0, phy0);
+}
+
+bool JitRePlacer::add_instruction(Instruction const& inst)
 {
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
-    // Transform the wires to a new
-    SmallVector<Qubit, 2> qubits;
-    inst.foreach_qubit([&](Qubit ref) {
-        qubits.push_back(state_.v_to_phy.at(ref));
-    });
-
     if (inst.num_qubits() == 1) {
         return true;
     }
+    // Transform the wires to a new
+    SmallVector<Qubit, 2> qubits;
+    inst.foreach_qubit([&](Qubit ref) {
+        qubits.push_back(ref);
+    });
     // FIXME: implement .at in SmallVector!
-    if (!state_.device.are_connected(qubits[0], qubits[1])) {
+    Qubit phy0 = placement_.v_to_phy(qubits[0]);
+    Qubit phy1 = placement_.v_to_phy(qubits[1]);
+    if (phy0 == Qubit::invalid() && phy1 == Qubit::invalid()) {
+        place_two_v(qubits[0], qubits[1]);
+    } else if (phy0 == Qubit::invalid() || phy1 == Qubit::invalid()) {
+        place_one_v(qubits[0], qubits[1]);
+    }
+    phy0 = placement_.v_to_phy(qubits[0]);
+    phy1 = placement_.v_to_phy(qubits[1]);
+    if (!device_.are_connected(phy0, phy1)) {
         return false;
     }
     return true;
 }
 
-void SabrePlacer::add_swap(Qubit const phy0, Qubit const phy1)
+void JitRePlacer::add_swap(Qubit const phy0, Qubit const phy1)
 {
-    fmt::print("Add swap: {} <-> {}\n", phy0, phy1);
-    state_.swap_qubits(phy0, phy1);
+    num_swaps_ += 1;
+    placement_.swap_qubits(phy0, phy1);
 }
 
-SabrePlacer::Swap SabrePlacer::find_swap()
+JitRePlacer::Swap JitRePlacer::find_swap()
 {
     // Obtain SWAP candidates
     std::vector<Swap> swap_candidates;
-    for (uint32_t i = 0u; i < state_.device.num_edges(); ++i) {
-        auto const& [u, v] = state_.device.edge(i);
+    for (uint32_t i = 0u; i < device_.num_edges(); ++i) {
+        auto const& [u, v] = device_.edge(i);
         if (involved_phy_.at(u) || involved_phy_.at(v)) {
-            swap_candidates.emplace_back(state_.mapped.qubit(u), state_.mapped.qubit(v));
+            swap_candidates.emplace_back(Qubit(u), Qubit(v));
         }
     }
 
@@ -131,8 +199,15 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     // Compute cost
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
-        std::vector<Qubit> v_to_phy = state_.v_to_phy;
-        std::swap(v_to_phy.at(state_.phy_to_v.at(phy0)), v_to_phy.at(state_.phy_to_v.at(phy1)));
+        std::vector<Qubit> v_to_phy = placement_.v_to_phy();
+        Qubit const v0 = placement_.phy_to_v(phy0);
+        Qubit const v1 = placement_.phy_to_v(phy1);
+        if (v0 != Qubit::invalid()) {
+            v_to_phy.at(v0) = phy1;
+        }
+        if (v1 != Qubit::invalid()) {
+            v_to_phy.at(v1) = phy0;
+        }
         double swap_cost = compute_cost(v_to_phy, front_layer_);
         double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 
@@ -155,16 +230,28 @@ SabrePlacer::Swap SabrePlacer::find_swap()
     return swap_candidates.at(min);
 }
 
-double SabrePlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
+double JitRePlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
         Instruction const& inst = current_->instruction(ref);
         Qubit const v0 = inst.qubit(0);
         Qubit const v1 = inst.qubit(1);
-        cost += (state_.device.distance(v_to_phy.at(v0), v_to_phy.at(v1)) - 1);
+        Qubit const phy0 = v_to_phy.at(v0);
+        Qubit const phy1 = v_to_phy.at(v1);
+        if (phy0 == Qubit::invalid() || phy1 == Qubit::invalid()) {
+            continue;
+        }
+        cost += (device_.distance(phy0, phy1) - 1);
     }
     return cost;
+}
+
+void jit_re_place(Device const& device, Circuit const& original,
+    Placement& placement)
+{
+    JitRePlacer re_placer(device, original, placement);
+    re_placer.run();
 }
 
 } // namespace tweedledum

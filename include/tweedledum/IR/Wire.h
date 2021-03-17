@@ -55,6 +55,16 @@ public:
         return qubits_;
     }
 
+    std::string_view name(Cbit cbit) const
+    {
+        return cbit_names_.at(cbit);
+    }
+
+    std::string_view name(Qubit qubit) const
+    {
+        return qubit_names_.at(qubit);
+    }
+
     template<typename Fn>
     void foreach_cbit(Fn&& fn) const
     {

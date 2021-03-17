@@ -7,21 +7,18 @@
 #include "../../IR/Circuit.h"
 #include "../../Target/Device.h"
 #include "Placer/LinePlacer.h"
-#include "Router/JITRouter.h"
-#include "MapState.h"
+#include "Router/JitRouter.h"
 
 #include <string_view>
 
 namespace tweedledum {
 
-inline Circuit JIT_map(Circuit const& original, Device const& device)
+inline std::pair<Circuit, Mapping> jit_map(Device const& device,
+    Circuit const& original)
 {
-    MapState state(original, device);
-    LinePlacer placer_line(state);
-    placer_line.run();
-    JITRouter router(state);
-    router.run();
-    return state.mapped;
+    auto placement = line_place(device, original);
+    JitRouter router(device, original, *placement);
+    return router.run();
 }
 
 } // namespace tweedledum
