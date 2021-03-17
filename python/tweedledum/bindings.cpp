@@ -39,6 +39,11 @@ PYBIND11_MODULE(_tweedledum, module)
     py::module passes = module.def_submodule("passes", "Tweedledum passes");
     init_Passes(passes);
 
+    // Synthesis 
+    py::module synth =
+        module.def_submodule("synthesis", "Tweedledum synthesis methods");
+    init_Synthesis(synth);
+
     // Target
     py::module target = module.def_submodule("target", "Tweedledum target");
     init_Device(target);
