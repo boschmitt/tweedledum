@@ -7,8 +7,8 @@
 #include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Extension/Parity.h"
 #include "tweedledum/Operators/Standard/X.h"
-#include "tweedledum/Passes/Synthesis/linear_synth.h"
 #include "tweedledum/Passes/Utility/shallow_duplicate.h"
+#include "tweedledum/Synthesis/linear_synth.h"
 
 namespace tweedledum {
 namespace {

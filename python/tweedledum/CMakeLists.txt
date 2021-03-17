@@ -13,6 +13,7 @@ target_sources(_tweedledum PUBLIC
     operators/meta.cpp
     operators/standard.cpp
     passes/passes.cpp
+    synthesis/synthesis.cpp
     target/device.cpp
     target/mapping.cpp
 )
