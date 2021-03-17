@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Mapping/JIT_map.h"
+#include "tweedledum/Passes/Mapping/jit_map.h"
 
 #include "../check_mapping.h"
 #include "test_circuits.h"
