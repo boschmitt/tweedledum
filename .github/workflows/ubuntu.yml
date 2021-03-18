@@ -29,8 +29,8 @@ jobs:
 
     - name: Install dependencies
       run: |
+        conda update -n test conda
         conda install symengine -c conda-forge
-        ls $CONDA/envs/test/lib
 
     - name: Configure CMake
       env:
@@ -40,7 +40,7 @@ jobs:
         mkdir -p build
         cd build
         cmake .. \
-          -DSYMENGINE_PATH_HINT=$CONDA/envs/test/lib/cmake
+          -DSYMENGINE_PATH_HINT=$CONDA/envs/test/lib/cmake \
           -DCMAKE_BUILD_TYPE=Release\
           -DTWEEDLEDUM_TESTS=ON \
           -DTWEEDLEDUM_PYBINDS=ON
