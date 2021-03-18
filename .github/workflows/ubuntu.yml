@@ -9,6 +9,9 @@ jobs:
   build-ubuntu:
     name: Build and run tests (GCC-${{ matrix.gcc }})
     runs-on: ubuntu-20.04
+    defaults:
+      run:
+        shell: bash -l {0}
     strategy:
       matrix:
         gcc: [8, 9, 10]
