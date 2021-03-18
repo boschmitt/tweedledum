@@ -35,7 +35,7 @@ option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 # 3rd-party libraries
 # =============================================================================
 add_subdirectory(third_party)
-find_package(SymEngine 0.7.0 REQUIRED CONFIG PATHS SYMENGINE_PATH_HINT)
+find_package(SymEngine REQUIRED CONFIG PATHS SYMENGINE_PATH_HINT)
 
 # Python bindings
 # =============================================================================
