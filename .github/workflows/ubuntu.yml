@@ -16,6 +16,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install dependencies
+      run: |
+        $CONDA/bin/conda env update --file environment.yml --name base
+        $CONDA/bin/conda install symengine -c conda-forge
+
     - name: Configure CMake
       env:
         CC: gcc-${{ matrix.gcc }}
