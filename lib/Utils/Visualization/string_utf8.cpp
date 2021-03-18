@@ -121,6 +121,8 @@ public:
             , num_controls_(num_controls)
         {}
 
+        virtual ~Operator() = default;
+
         uint32_t num_controls() const
         {
             return num_controls_;
