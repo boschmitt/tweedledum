@@ -29,7 +29,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        conda update -n test conda
         conda install symengine -c conda-forge
 
     - name: Configure CMake
