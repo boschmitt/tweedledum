@@ -28,12 +28,14 @@ option(TWEEDLEDUM_TOOLS "Build tools" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_PYBIND11 "Use an external pybind11 library" OFF)
+option(SYMENGINE_PATH_HINT "PATH" "")
 
 option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 
 # 3rd-party libraries
 # =============================================================================
 add_subdirectory(third_party)
+find_package(SymEngine 0.7.0 REQUIRED CONFIG PATHS SYMENGINE_PATH_HINT)
 
 # Python bindings
 # =============================================================================
@@ -50,8 +52,11 @@ endif()
 # Library
 # =============================================================================
 add_library(tweedledum OBJECT)
-target_include_directories(tweedledum PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle)
+target_include_directories(tweedledum PUBLIC 
+    ${PROJECT_SOURCE_DIR}/include
+    ${SYMENGINE_INCLUDE_DIRS}
+)
+target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle ${SYMENGINE_LIBRARIES})
 add_subdirectory(lib)
 
 # Examples
