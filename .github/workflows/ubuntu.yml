@@ -8,7 +8,7 @@ on:
 jobs:
   build-ubuntu:
     name: Build and run tests (GCC-${{ matrix.gcc }})
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         gcc: [8, 9, 10]
@@ -27,11 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         conda install symengine -c conda-forge
-        ls $CONDA
-        ls $CONDA/envs
-        ls $CONDA/envs/test
         ls $CONDA/envs/test/lib
-        ls $CONDA/envs/test/lib/cmake
 
     - name: Configure CMake
       env:
