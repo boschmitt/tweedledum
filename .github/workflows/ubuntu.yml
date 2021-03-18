@@ -16,10 +16,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        activate-environment: test
+        environment-file: environment.yml
+        python-version: 3.9
+        auto-activate-base: false
+
     - name: Install dependencies
       run: |
-        $CONDA/bin/conda env update --file environment.yml --name base
-        $CONDA/bin/conda install symengine -c conda-forge
+        conda install symengine -c conda-forge
 
     - name: Configure CMake
       env:
