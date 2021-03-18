@@ -35,7 +35,7 @@ jobs:
         mkdir -p build
         cd build
         cmake .. \
-          -SYMENGINE_PATH_HINT=$CONDA/envs/test/lib
+          -DSYMENGINE_PATH_HINT=$CONDA/envs/test/lib
           -DCMAKE_BUILD_TYPE=Release\
           -DTWEEDLEDUM_TESTS=ON \
           -DTWEEDLEDUM_PYBINDS=ON
