@@ -21,6 +21,7 @@ jobs:
         activate-environment: test
         python-version: 3.9
         auto-activate-base: false
+        miniconda-version: latest
 
     - name: Install dependencies
       run: |
