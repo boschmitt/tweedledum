@@ -4,7 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/Operators/Standard.h"
-#include "tweedledum/Utils/Angle.h"
+#include "tweedledum/Utils/Numbers.h"
 
 #include "../check_unitary.h"
 
@@ -43,46 +43,24 @@ TEST_CASE("Toffoli gate", "[base]")
         decomposed.apply_operator(Op::H(), {q2});
         CHECK(check_unitary(high_level, decomposed));
     }
-    SECTION("Generic phase gates with symbolic angles") {
-        Circuit decomposed;
-        decomposed.create_qubit();
-        decomposed.create_qubit();
-        decomposed.create_qubit();
-        decomposed.apply_operator(Op::H(), {q2});
-        decomposed.apply_operator(Op::P(sym_angle::pi_quarter), {q0});
-        decomposed.apply_operator(Op::P(sym_angle::pi_quarter), {q1});
-        decomposed.apply_operator(Op::P(sym_angle::pi_quarter), {q2});
-        decomposed.apply_operator(Op::X(), {q1, q2});
-        decomposed.apply_operator(Op::P(-sym_angle::pi_quarter), {q2});
-        decomposed.apply_operator(Op::X(), {q0, q2});
-        decomposed.apply_operator(Op::P(sym_angle::pi_quarter), {q2});
-        decomposed.apply_operator(Op::X(), {q1, q2});
-        decomposed.apply_operator(Op::P(-sym_angle::pi_quarter), {q2});
-        decomposed.apply_operator(Op::X(), {q0, q2});
-        decomposed.apply_operator(Op::X(), {q0, q1});
-        decomposed.apply_operator(Op::P(-sym_angle::pi_quarter), {q1});
-        decomposed.apply_operator(Op::X(), {q0, q1});
-        decomposed.apply_operator(Op::H(), {q2});
-        CHECK(check_unitary(high_level, decomposed));
-    }
     SECTION("Generic phase gates with numeric angles") {
         Circuit decomposed;
         decomposed.create_qubit();
         decomposed.create_qubit();
         decomposed.create_qubit();
         decomposed.apply_operator(Op::H(), {q2});
-        decomposed.apply_operator(Op::P(PI_4_k), {q0});
-        decomposed.apply_operator(Op::P(PI_4_k), {q1});
-        decomposed.apply_operator(Op::P(PI_4_k), {q2});
+        decomposed.apply_operator(Op::P(numbers::pi_div_4), {q0});
+        decomposed.apply_operator(Op::P(numbers::pi_div_4), {q1});
+        decomposed.apply_operator(Op::P(numbers::pi_div_4), {q2});
         decomposed.apply_operator(Op::X(), {q1, q2});
-        decomposed.apply_operator(Op::P(-PI_4_k), {q2});
+        decomposed.apply_operator(Op::P(-numbers::pi_div_4), {q2});
         decomposed.apply_operator(Op::X(), {q0, q2});
-        decomposed.apply_operator(Op::P(PI_4_k), {q2});
+        decomposed.apply_operator(Op::P(numbers::pi_div_4), {q2});
         decomposed.apply_operator(Op::X(), {q1, q2});
-        decomposed.apply_operator(Op::P(-PI_4_k), {q2});
+        decomposed.apply_operator(Op::P(-numbers::pi_div_4), {q2});
         decomposed.apply_operator(Op::X(), {q0, q2});
         decomposed.apply_operator(Op::X(), {q0, q1});
-        decomposed.apply_operator(Op::P(-PI_4_k), {q1});
+        decomposed.apply_operator(Op::P(-numbers::pi_div_4), {q1});
         decomposed.apply_operator(Op::X(), {q0, q1});
         decomposed.apply_operator(Op::H(), {q2});
         CHECK(check_unitary(high_level, decomposed));

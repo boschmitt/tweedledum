@@ -4,7 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../Utils/Angle.h"
 #include "../../Utils/Matrix.h"
 
 #include <cmath>
@@ -19,7 +18,7 @@ public:
         return "std.ry";
     }
 
-    Ry(Angle angle) : angle_(angle)
+    Ry(double angle) : angle_(angle)
     {}
 
     Ry adjoint() const
@@ -27,12 +26,17 @@ public:
         return Ry(-angle_);
     }
 
+    double angle() const
+    {
+        return angle_;
+    }
+
     UMatrix2 const matrix() const
     {
-        return (UMatrix2() << std::cos(angle_.numeric_value() / 2.),
-                              -std::sin(angle_.numeric_value() / 2.),
-                              std::sin(angle_.numeric_value() / 2.),
-                              std::cos(angle_.numeric_value() / 2.)).finished();
+        return (UMatrix2() << std::cos(angle_ / 2.),
+                              -std::sin(angle_ / 2.),
+                              std::sin(angle_ / 2.),
+                              std::cos(angle_ / 2.)).finished();
     }
 
     bool operator==(Ry const& other) const
@@ -41,7 +45,7 @@ public:
     }
 
 private:
-    Angle const angle_;
+    double const angle_;
 };
 
 } // namespace tweedledum

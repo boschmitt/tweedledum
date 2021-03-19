@@ -29,7 +29,7 @@ Circuit phase_folding(Circuit const& original)
     LinearPP parities;
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t const t = inst.target(0u);
-        Angle const angle = rotation_angle(inst);
+        double const angle = rotation_angle(inst);
         if (inst.num_cbits() || (inst.num_qubits() > 2)) {
             goto new_vars_end;
         }
@@ -58,7 +58,7 @@ Circuit phase_folding(Circuit const& original)
             qubit_pathsum.at(t) = esop;
             return;
         }
-        if (angle != sym_angle::zero) {
+        if (angle != 0.0) {
             parities.add_term(qubit_pathsum.at(t), angle);
         }
         return;
@@ -112,8 +112,8 @@ Circuit phase_folding(Circuit const& original)
             }
         }
         optimized.apply_operator(inst);
-        Angle const angle = parities.extract_term(qubit_pathsum.at(t));
-        if (angle == sym_angle::zero) {
+        double const angle = parities.extract_term(qubit_pathsum.at(t));
+        if (angle == 0.0) {
             return;
         }
         apply_identified_phase(optimized, angle, inst.target());

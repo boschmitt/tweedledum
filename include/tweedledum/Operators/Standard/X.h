@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../Utils/Matrix.h"
+#include "../../Utils/Numbers.h"
 
 #include <array>
 #include <string_view>
@@ -23,6 +24,11 @@ public:
     static X adjoint()
     {
         return X();
+    }
+
+    static double angle() 
+    {
+        return numbers::pi;
     }
 
     static UMatrix2 const matrix()

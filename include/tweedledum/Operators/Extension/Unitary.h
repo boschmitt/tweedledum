@@ -6,7 +6,6 @@
 
 #include "../../IR/Instruction.h"
 #include "../../IR/Wire.h"
-#include "../../Utils/Angle.h"
 #include "../../Utils/Matrix.h"
 
 #include <cassert>
@@ -23,11 +22,11 @@ public:
         return "ext.unitary";
     }
 
-    Unitary(UMatrix const& unitary, std::optional<Angle> const& phase = std::nullopt)
+    Unitary(UMatrix const& unitary, std::optional<double> const& phase = std::nullopt)
         : global_phase_(phase), unitary_(unitary)
     {}
 
-    Unitary(UMatrix&& unitary, std::optional<Angle> const& phase = std::nullopt)
+    Unitary(UMatrix&& unitary, std::optional<double> const& phase = std::nullopt)
         : global_phase_(phase), unitary_(unitary)
     {}
 
@@ -36,7 +35,7 @@ public:
         return unitary_;
     }
 
-    Angle global_phase()
+    double global_phase()
     {
         if (!global_phase_) {
             calculate_global_phase();
@@ -60,14 +59,14 @@ private:
     void calculate_global_phase()
     {
         Complex const phase = 1. / std::sqrt(unitary_.determinant());
-        Angle angle = -std::arg(phase);
+        double angle = -std::arg(phase);
         global_phase_.emplace(angle);
-        if (angle != sym_angle::zero) {
-            unitary_ *= std::exp(Complex(0., angle.numeric_value()));
+        if (angle != 0.0) {
+            unitary_ *= std::exp(Complex(0., angle));
         }
     }
 
-    std::optional<Angle> global_phase_;
+    std::optional<double> global_phase_;
     UMatrix unitary_;
 
     friend bool is_approx_equal(Unitary& rhs, Unitary& lhs,
@@ -104,7 +103,7 @@ inline bool is_approx_equal(Unitary& rhs, Unitary& lhs,
 
 class UnitaryBuilder {
 public:
-    UnitaryBuilder(uint32_t const num_qubits, Angle const& phase = sym_angle::zero)
+    UnitaryBuilder(uint32_t const num_qubits, double const& phase = 0.0)
         : global_phase_(phase)
         , matrix_(UMatrix::Identity((1 << num_qubits), (1 << num_qubits)))
     {}
@@ -119,7 +118,7 @@ public:
     template<typename OpT>
     void apply_operator(OpT&& optor, std::vector<uint32_t> const& qubits)
     {
-        if (qubits.size() == 1) {
+        if (qubits.size() == 1u) {
             apply_matrix(optor.matrix(), qubits);
             return;
         }
@@ -168,8 +167,8 @@ public:
 
     Unitary finished()
     {
-        if (global_phase_ != sym_angle::zero) {
-            matrix_ *= std::exp(Complex(0., global_phase_.numeric_value()));
+        if (global_phase_ != 0.0) {
+            matrix_ *= std::exp(Complex(0., global_phase_));
         }
         return Unitary(matrix_, global_phase_);
     }
@@ -265,7 +264,7 @@ private:
         }
     }
 
-    Angle const global_phase_;
+    double const global_phase_;
     UMatrix matrix_;
 };
 

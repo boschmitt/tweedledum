@@ -6,6 +6,7 @@
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/Operators/All.h"
+#include "tweedledum/Utils/Numbers.h"
 
 #include <catch.hpp>
 
@@ -15,18 +16,18 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
     Circuit circuit;
     Qubit q0 = circuit.create_qubit();
     circuit.apply_operator(Op::H(), {q0});
-    circuit.apply_operator(Op::P(sym_angle::pi_quarter), {q0});
-    circuit.apply_operator(Op::P(sym_angle::pi_half), {q0});
-    circuit.apply_operator(Op::P(sym_angle::pi), {q0});
-    circuit.apply_operator(Op::Rx(sym_angle::pi_quarter), {q0});
-    circuit.apply_operator(Op::Rx(sym_angle::pi_half), {q0});
-    circuit.apply_operator(Op::Rx(sym_angle::pi), {q0});
-    circuit.apply_operator(Op::Ry(sym_angle::pi_quarter), {q0});
-    circuit.apply_operator(Op::Ry(sym_angle::pi_half), {q0});
-    circuit.apply_operator(Op::Ry(sym_angle::pi), {q0});
-    circuit.apply_operator(Op::Rz(sym_angle::pi_quarter), {q0});
-    circuit.apply_operator(Op::Rz(sym_angle::pi_half), {q0});
-    circuit.apply_operator(Op::Rz(sym_angle::pi), {q0});
+    circuit.apply_operator(Op::P(numbers::pi_div_4), {q0});
+    circuit.apply_operator(Op::P(numbers::pi_div_2), {q0});
+    circuit.apply_operator(Op::P(numbers::pi), {q0});
+    circuit.apply_operator(Op::Rx(numbers::pi_div_4), {q0});
+    circuit.apply_operator(Op::Rx(numbers::pi_div_2), {q0});
+    circuit.apply_operator(Op::Rx(numbers::pi), {q0});
+    circuit.apply_operator(Op::Ry(numbers::pi_div_4), {q0});
+    circuit.apply_operator(Op::Ry(numbers::pi_div_2), {q0});
+    circuit.apply_operator(Op::Ry(numbers::pi), {q0});
+    circuit.apply_operator(Op::Rz(numbers::pi_div_4), {q0});
+    circuit.apply_operator(Op::Rz(numbers::pi_div_2), {q0});
+    circuit.apply_operator(Op::Rz(numbers::pi), {q0});
     circuit.apply_operator(Op::S(), {q0});
     circuit.apply_operator(Op::T(), {q0});
     circuit.apply_operator(Op::X(), {q0});
@@ -97,18 +98,18 @@ TEST_CASE("Check single-target, two-qubit adjointness", "[instruction][ir]")
     Qubit q0 = circuit.create_qubit();
     Qubit q1 = circuit.create_qubit();
     circuit.apply_operator(Op::H(), {q0});
-    circuit.apply_operator(Op::P(sym_angle::pi_quarter), {q0, q1});
-    circuit.apply_operator(Op::P(sym_angle::pi_half), {q0, q1});
-    circuit.apply_operator(Op::P(sym_angle::pi), {q0, q1});
-    circuit.apply_operator(Op::Rx(sym_angle::pi_quarter), {q0, q1});
-    circuit.apply_operator(Op::Rx(sym_angle::pi_half), {q0, q1});
-    circuit.apply_operator(Op::Rx(sym_angle::pi), {q0, q1});
-    circuit.apply_operator(Op::Ry(sym_angle::pi_quarter), {q0, q1});
-    circuit.apply_operator(Op::Ry(sym_angle::pi_half), {q0, q1});
-    circuit.apply_operator(Op::Ry(sym_angle::pi), {q0, q1});
-    circuit.apply_operator(Op::Rz(sym_angle::pi_quarter), {q0, q1});
-    circuit.apply_operator(Op::Rz(sym_angle::pi_half), {q0, q1});
-    circuit.apply_operator(Op::Rz(sym_angle::pi), {q0, q1});
+    circuit.apply_operator(Op::P(numbers::pi_div_4), {q0, q1});
+    circuit.apply_operator(Op::P(numbers::pi_div_2), {q0, q1});
+    circuit.apply_operator(Op::P(numbers::pi), {q0, q1});
+    circuit.apply_operator(Op::Rx(numbers::pi_div_4), {q0, q1});
+    circuit.apply_operator(Op::Rx(numbers::pi_div_2), {q0, q1});
+    circuit.apply_operator(Op::Rx(numbers::pi), {q0, q1});
+    circuit.apply_operator(Op::Ry(numbers::pi_div_4), {q0, q1});
+    circuit.apply_operator(Op::Ry(numbers::pi_div_2), {q0, q1});
+    circuit.apply_operator(Op::Ry(numbers::pi), {q0, q1});
+    circuit.apply_operator(Op::Rz(numbers::pi_div_4), {q0, q1});
+    circuit.apply_operator(Op::Rz(numbers::pi_div_2), {q0, q1});
+    circuit.apply_operator(Op::Rz(numbers::pi), {q0, q1});
     circuit.apply_operator(Op::S(), {q0, q1});
     circuit.apply_operator(Op::T(), {q0, q1});
     circuit.apply_operator(Op::X(), {q0, q1});
@@ -179,15 +180,15 @@ TEST_CASE("Check two-target, two-qubit adjointness", "[instruction][ir]")
     Circuit circuit;
     Qubit q0 = circuit.create_qubit();
     Qubit q1 = circuit.create_qubit();
-    circuit.apply_operator(Op::Rxx(sym_angle::pi_quarter), {q0, q1});
-    circuit.apply_operator(Op::Rxx(sym_angle::pi_half), {q0, q1});
-    circuit.apply_operator(Op::Rxx(sym_angle::pi), {q0, q1});
-    circuit.apply_operator(Op::Ryy(sym_angle::pi_quarter), {q0, q1});
-    circuit.apply_operator(Op::Ryy(sym_angle::pi_half), {q0, q1});
-    circuit.apply_operator(Op::Ryy(sym_angle::pi), {q0, q1});
-    circuit.apply_operator(Op::Rzz(sym_angle::pi_quarter), {q0, q1});
-    circuit.apply_operator(Op::Rzz(sym_angle::pi_half), {q0, q1});
-    circuit.apply_operator(Op::Rzz(sym_angle::pi), {q0, q1});
+    circuit.apply_operator(Op::Rxx(numbers::pi_div_4), {q0, q1});
+    circuit.apply_operator(Op::Rxx(numbers::pi_div_2), {q0, q1});
+    circuit.apply_operator(Op::Rxx(numbers::pi), {q0, q1});
+    circuit.apply_operator(Op::Ryy(numbers::pi_div_4), {q0, q1});
+    circuit.apply_operator(Op::Ryy(numbers::pi_div_2), {q0, q1});
+    circuit.apply_operator(Op::Ryy(numbers::pi), {q0, q1});
+    circuit.apply_operator(Op::Rzz(numbers::pi_div_4), {q0, q1});
+    circuit.apply_operator(Op::Rzz(numbers::pi_div_2), {q0, q1});
+    circuit.apply_operator(Op::Rzz(numbers::pi), {q0, q1});
     circuit.apply_operator(Op::Swap(), {q0, q1});
 
     SECTION("Adjoints") {

@@ -7,8 +7,8 @@
 #include "tweedledum/Operators/Extension.h"
 #include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Passes/Utility/shallow_duplicate.h"
-#include "tweedledum/Utils/Angle.h"
 #include "tweedledum/Utils/Matrix.h"
+#include "tweedledum/Utils/Numbers.h"
 
 #include <cmath>
 
@@ -39,10 +39,10 @@ struct Config {
 };
 
 struct Params {
-    Angle theta;
-    Angle lambda;
-    Angle phi;
-    Angle phase;
+    double theta;
+    double lambda;
+    double phi;
+    double phase;
 };
 
 inline Params zyz_params(UMatrix const& matrix) 
@@ -65,8 +65,8 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
 {
     Params params = zyz_params(inst.matrix().value());
     if (cfg.basis == Config::Basis::zxz) {
-        params.lambda += -sym_angle::pi_half;
-        params.phi += sym_angle::pi_half;
+        params.lambda += -numbers::pi_div_2;
+        params.phi += numbers::pi_div_2;
     }
     circuit.apply_operator(Op::Rz(params.lambda), inst.qubits(), inst.cbits());
     switch (cfg.basis) {

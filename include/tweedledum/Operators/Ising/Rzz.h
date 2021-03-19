@@ -4,7 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../Utils/Angle.h"
 #include "../../Utils/Matrix.h"
 
 #include <cmath>
@@ -19,7 +18,7 @@ public:
         return "ising.rzz";
     }
 
-    Rzz(Angle angle) : angle_(angle)
+    Rzz(double angle) : angle_(angle)
     {}
 
     Rzz adjoint() const
@@ -29,8 +28,8 @@ public:
 
     UMatrix4 const matrix() const
     {
-        Complex const p = std::exp(Complex(0., angle_.numeric_value() / 2));
-        Complex const n = std::exp(Complex(0., -angle_.numeric_value() / 2));
+        Complex const p = std::exp(Complex(0., angle_ / 2));
+        Complex const n = std::exp(Complex(0., -angle_ / 2));
         return (UMatrix4() << p, 0, 0, 0,
                               0, n, 0, 0,
                               0, 0, n, 0,
@@ -48,7 +47,7 @@ public:
     }
 
 private:
-    Angle const angle_;
+    double const angle_;
 };
 
 } // namespace tweedledum
