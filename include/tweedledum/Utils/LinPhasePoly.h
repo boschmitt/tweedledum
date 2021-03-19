@@ -10,11 +10,13 @@
 namespace tweedledum {
 
 // Linear Phase Polynomial (LinerPP)
-class LinearPP {
-    using Parity = std::vector<uint32_t>;
-    using LinearTerm = std::pair<Parity, double>;
-
+class LinPhasePoly {
 public:
+    using Parity = std::vector<uint32_t>;
+    using PhaseParity = std::pair<Parity, double>;
+
+    LinPhasePoly() = default;
+
     uint32_t size() const
     {
         return terms_.size();
@@ -30,12 +32,12 @@ public:
         return terms_.cend();
     }
 
-    void add_term(uint32_t parity, double const& angle)
+    void add_term(uint32_t parity, double const angle)
     {
         add_term(convert(parity), angle);
     }
 
-    void add_term(Parity const& parity, double const& angle)
+    void add_term(Parity const& parity, double const angle)
     {
         auto it = lower_bound(terms_.begin(), terms_.end(), parity);
         if (it != terms_.end() && it->first == parity) {
@@ -45,12 +47,12 @@ public:
         terms_.emplace(it, parity, angle);
     }
 
-    double extract_term(uint32_t parity)
+    double extract_phase(uint32_t parity)
     {
-        return extract_term(convert(parity));
+        return extract_phase(convert(parity));
     }
 
-    double extract_term(Parity const& parity)
+    double extract_phase(Parity const& parity)
     {
         auto it = lower_bound(terms_.begin(), terms_.end(), parity);
         if (it == terms_.end() || it->first != parity) {
@@ -62,7 +64,7 @@ public:
     }
 
 private:
-    using Iterator = typename std::vector<LinearTerm>::iterator;
+    using Iterator = typename std::vector<PhaseParity>::iterator;
     using DistType = typename std::iterator_traits<Iterator>::difference_type;
 
     std::vector<uint32_t> convert(uint32_t parity) const
@@ -97,7 +99,7 @@ private:
         return first;
     }
 
-    std::vector<LinearTerm> terms_;
+    std::vector<PhaseParity> terms_;
 };
 
 } // namespace tweedledum

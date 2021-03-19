@@ -12,7 +12,7 @@ namespace {
 // I added this level of indirection because I can implement this method with
 // other codes or just using binary sequence.
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, LinearPP parities)
+    std::vector<Cbit> const& cbits, LinPhasePoly phase_parities)
 {
     // Generate Gray code
     std::vector<uint32_t> gray_code(1u << circuit.num_qubits());
@@ -21,12 +21,12 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     }
 
     // Initialize the parity of each qubit state
-    // Applying phase gate to parities that consisting of just one variable
+    // Applying phase gate to phase_parities that consisting of just one variable
     // i is the index of the target
     std::vector<uint32_t> qubits_states(circuit.num_qubits(), 0);
     for (uint32_t i = 0u; i < circuit.num_qubits(); ++i) {
         qubits_states[i] = (1u << i);
-        auto angle = parities.extract_term(qubits_states[i]);
+        auto angle = phase_parities.extract_phase(qubits_states[i]);
         if (angle != 0.0) {
             circuit.apply_operator(Op::P(angle), {qubits[i]}, cbits);
         }
@@ -38,7 +38,7 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
             circuit.apply_operator(Op::X(), {qubits[c0], qubits[i]}, cbits);
 
             qubits_states[i] ^= qubits_states[c0];
-            auto angle = parities.extract_term(qubits_states[i]);
+            auto angle = phase_parities.extract_phase(qubits_states[i]);
             if (angle != 0.0) {
                 circuit.apply_operator(Op::P(angle), {qubits[i]}, cbits);
             }
@@ -47,7 +47,7 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
         circuit.apply_operator(Op::X(), {qubits[c1], qubits[i]}, cbits);
 
         qubits_states[i] ^= qubits_states[c1];
-        auto angle = parities.extract_term(qubits_states[i]);
+        auto angle = phase_parities.extract_phase(qubits_states[i]);
         if (angle != 0.0) {
             circuit.apply_operator(Op::P(angle), {qubits[i]}, cbits);
         }
@@ -57,15 +57,15 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
 }
 
 void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, LinearPP const& parities)
+    std::vector<Cbit> const& cbits, LinPhasePoly const& phase_parities)
 {
-    if (parities.size() == 0) {
+    if (phase_parities.size() == 0) {
         return;
     }
-    synthesize(circuit, qubits, cbits, parities);
+    synthesize(circuit, qubits, cbits, phase_parities);
 }
 
-Circuit all_linear_synth(uint32_t num_qubits, LinearPP const& parities)
+Circuit all_linear_synth(uint32_t num_qubits, LinPhasePoly const& phase_parities)
 {
     Circuit circuit;
     std::vector<Qubit> qubits;
@@ -73,7 +73,7 @@ Circuit all_linear_synth(uint32_t num_qubits, LinearPP const& parities)
     for (uint32_t i = 0u; i < num_qubits; ++i) {
         qubits.emplace_back(circuit.create_qubit());
     }
-    all_linear_synth(circuit, qubits, {}, parities);
+    all_linear_synth(circuit, qubits, {}, phase_parities);
     return circuit;
 }
 

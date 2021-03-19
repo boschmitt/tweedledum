@@ -117,15 +117,15 @@ inline GateList synthesize(std::vector<Qubit> const& qubits, BMatrix& matrix)
 }
 
 void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
-    std::vector<Cbit> const& cbits, BMatrix linear_trans, LinearPP parities,
+    std::vector<Cbit> const& cbits, BMatrix linear_trans, LinPhasePoly phase_parities,
     nlohmann::json const& config)
 {
-    if (parities.size() == 0) {
+    if (phase_parities.size() == 0) {
         return;
     }
-    BMatrix parities_matrix = BMatrix::Zero(qubits.size(), parities.size());
+    BMatrix parities_matrix = BMatrix::Zero(qubits.size(), phase_parities.size());
     uint32_t col = 0;
-    for (auto const& [parity, angle] : parities) {
+    for (auto const& [parity, angle] : phase_parities) {
         for (uint32_t lit : parity) {
             parities_matrix((lit >> 1) - 1, col) = MyBool(1);
         }
@@ -134,12 +134,12 @@ void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
 
     auto gates = synthesize(qubits, parities_matrix);
     // Initialize the parity of each qubit state
-    // Applying phase gate to parities that consisting of just one variable
+    // Applying phase gate to phase_parities that consisting of just one variable
     // i is the index of the target
     std::vector<uint32_t> qubits_states(circuit.num_qubits(), 0);
     for (uint32_t i = 0u; i < circuit.num_qubits(); ++i) {
         qubits_states.at(i) = (1u << i);
-        auto angle = parities.extract_term(qubits_states.at(i));
+        auto angle = phase_parities.extract_phase(qubits_states.at(i));
         if (angle != 0.0) {
             circuit.apply_operator(Op::P(angle), {qubits.at(i)}, cbits);
         }
@@ -150,7 +150,7 @@ void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
             cbits);
         qubits_states.at(target) ^= qubits_states.at(control);
         linear_trans.row(target) += linear_trans.row(control);
-        auto angle = parities.extract_term(qubits_states.at(target));
+        auto angle = phase_parities.extract_phase(qubits_states.at(target));
         if (angle != 0.0) {
             circuit.apply_operator(Op::P(angle), {qubits.at(target)}, cbits);
         }
@@ -165,7 +165,7 @@ void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     linear_synth(circuit, qubits, cbits, linear_trans, linear_synth_cfg);
 }
 
-Circuit gray_synth(uint32_t num_qubits, LinearPP const& parities,
+Circuit gray_synth(uint32_t num_qubits, LinPhasePoly const& phase_parities,
     nlohmann::json const& config)
 {
     Circuit circuit;
@@ -175,7 +175,7 @@ Circuit gray_synth(uint32_t num_qubits, LinearPP const& parities,
         qubits.emplace_back(circuit.create_qubit());
     }
     BMatrix linear_trans = BMatrix::Identity(num_qubits, num_qubits);
-    gray_synth(circuit, qubits, {}, linear_trans, parities, config);
+    gray_synth(circuit, qubits, {}, linear_trans, phase_parities, config);
     return circuit;
 }
 

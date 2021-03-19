@@ -6,7 +6,7 @@
 
 #include "../IR/Circuit.h"
 #include "../IR/Wire.h"
-#include "../Utils/LinearPP.h"
+#include "../Utils/LinPhasePoly.h"
 
 #include <vector>
 
@@ -64,7 +64,7 @@ namespace tweedledum {
  * \param[in] parities List of parities and their associated angles.
  */
 void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, LinearPP const& parities);
+    std::vector<Cbit> const& cbits, LinPhasePoly const& parities);
 
 /*! \brief Synthesis of a CNOT-dihedral circuits with all linear combinations.
  *
@@ -72,7 +72,7 @@ void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
  * \param[in] parities List of parities and their associated angles.
  * \return A CNOT-dihedral circuit on `num_qubits`.
  */
-Circuit all_linear_synth(uint32_t num_qubits, LinearPP const& parities);
+Circuit all_linear_synth(uint32_t num_qubits, LinPhasePoly const& parities);
 
 
 } // namespace tweedledum
