@@ -8,7 +8,7 @@
 #include <tweedledum/Utils/Classical/xag_simulate.h>
 #include <tweedledum/Utils/Classical/xag_stats.h>
 
-void init_utils(pybind11::module& module)
+void init_classical_utils(pybind11::module& module)
 {
     namespace py = pybind11;
     using namespace tweedledum;

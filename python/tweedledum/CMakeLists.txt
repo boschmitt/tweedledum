@@ -16,4 +16,5 @@ target_sources(_tweedledum PUBLIC
     synthesis/synthesis.cpp
     target/device.cpp
     target/mapping.cpp
+    utils/utils.cpp
 )

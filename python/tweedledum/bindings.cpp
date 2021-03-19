@@ -19,7 +19,7 @@ PYBIND11_MODULE(_tweedledum, module)
     py::module classical = module.def_submodule("classical", "Tweedledum classical");
     init_kitty(classical);
     init_mockturtle(classical);
-    init_utils(classical);
+    init_classical_utils(classical);
 
     // IR
     py::module ir = module.def_submodule("ir", "Tweedledum intermediate representation");
@@ -48,4 +48,8 @@ PYBIND11_MODULE(_tweedledum, module)
     py::module target = module.def_submodule("target", "Tweedledum target");
     init_Device(target);
     init_Mapping(target);
+
+    // Utils
+    py::module utils = module.def_submodule("utils", "Tweedledum utility data structures");
+    init_utils(utils);
 }
