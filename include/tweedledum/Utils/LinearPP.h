@@ -4,8 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "Angle.h"
-
 #include <iterator>
 #include <vector>
 
@@ -14,7 +12,7 @@ namespace tweedledum {
 // Linear Phase Polynomial (LinerPP)
 class LinearPP {
     using Parity = std::vector<uint32_t>;
-    using LinearTerm = std::pair<Parity, Angle>;
+    using LinearTerm = std::pair<Parity, double>;
 
 public:
     uint32_t size() const
@@ -32,12 +30,12 @@ public:
         return terms_.cend();
     }
 
-    void add_term(uint32_t parity, Angle const& angle)
+    void add_term(uint32_t parity, double const& angle)
     {
         add_term(convert(parity), angle);
     }
 
-    void add_term(Parity const& parity, Angle const& angle)
+    void add_term(Parity const& parity, double const& angle)
     {
         auto it = lower_bound(terms_.begin(), terms_.end(), parity);
         if (it != terms_.end() && it->first == parity) {
@@ -47,18 +45,18 @@ public:
         terms_.emplace(it, parity, angle);
     }
 
-    Angle extract_term(uint32_t parity)
+    double extract_term(uint32_t parity)
     {
         return extract_term(convert(parity));
     }
 
-    Angle extract_term(Parity const& parity)
+    double extract_term(Parity const& parity)
     {
         auto it = lower_bound(terms_.begin(), terms_.end(), parity);
         if (it == terms_.end() || it->first != parity) {
             return 0;
         }
-        Angle const angle = it->second;
+        double const angle = it->second;
         terms_.erase(it);
         return angle;
     }

@@ -8,6 +8,7 @@
 #include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Utils/LinearPP.h"
+#include "tweedledum/Utils/Numbers.h"
 
 #include "../check_unitary.h"
 
@@ -20,12 +21,12 @@ TEST_CASE("Trivial cases for gray_synth", "[gray_synth][synth]")
     nlohmann::json config;
     SECTION("Check simple example from Amy paper") {
         LinearPP parities;
-        parities.add_term(0b0110, sym_angle::pi_quarter);
-        parities.add_term(0b0001, sym_angle::pi_quarter);
-        parities.add_term(0b1001, sym_angle::pi_quarter);
-        parities.add_term(0b0111, sym_angle::pi_quarter);
-        parities.add_term(0b1011, sym_angle::pi_quarter);
-        parities.add_term(0b0011, sym_angle::pi_quarter);
+        parities.add_term(0b0110, numbers::pi_div_4);
+        parities.add_term(0b0001, numbers::pi_div_4);
+        parities.add_term(0b1001, numbers::pi_div_4);
+        parities.add_term(0b0111, numbers::pi_div_4);
+        parities.add_term(0b1011, numbers::pi_div_4);
+        parities.add_term(0b0011, numbers::pi_div_4);
         Circuit synthesized = gray_synth(4, parities, config);
         BMatrix transform = BMatrix::Identity(4, 4);
         synthesized.foreach_instruction([&transform](Instruction const& inst) {

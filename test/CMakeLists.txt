@@ -31,7 +31,6 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/spectrum_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/transform_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/xag_synth.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Utils/Angle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/BMatrix.cpp
 )
 

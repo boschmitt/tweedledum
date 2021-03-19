@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../IR/Circuit.h"
-#include "../Utils/Angle.h"
+#include "../Utils/Numbers.h"
 #include "Standard/P.h"
 #include "Standard/S.h"
 #include "Standard/T.h"
@@ -13,34 +13,32 @@
 
 namespace tweedledum {
 
-inline void apply_identified_phase(Circuit& circuit, Angle angle, Qubit target)
+inline void apply_identified_phase(Circuit& circuit, double angle, Qubit target)
 {
-    if (!angle.is_numerically_defined()) {
-        if (angle == sym_angle::pi_quarter) {
-            circuit.apply_operator(Op::T(), {target});
-            return;
-        }
-        if (angle == -sym_angle::pi_quarter) {
-            circuit.apply_operator(Op::Tdg(), {target});
-            return;
-        }
-        if (angle == sym_angle::pi_half) {
-            circuit.apply_operator(Op::S(), {target});
-            return;
-        }
-        if (angle == -sym_angle::pi_half) {
-            circuit.apply_operator(Op::Sdg(), {target});
-            return;
-        }
-        if (angle == sym_angle::pi || angle == -sym_angle::pi) {
-            circuit.apply_operator(Op::Z(), {target});
-            return;
-        }
+    if (angle == numbers::pi_div_4) {
+        circuit.apply_operator(Op::T(), {target});
+        return;
+    }
+    if (angle == -numbers::pi_div_4) {
+        circuit.apply_operator(Op::Tdg(), {target});
+        return;
+    }
+    if (angle == numbers::pi_div_2) {
+        circuit.apply_operator(Op::S(), {target});
+        return;
+    }
+    if (angle == -numbers::pi_div_2) {
+        circuit.apply_operator(Op::Sdg(), {target});
+        return;
+    }
+    if (angle == numbers::pi || angle == -numbers::pi) {
+        circuit.apply_operator(Op::Z(), {target});
+        return;
     }
     circuit.apply_operator(Op::P(angle), {target});
 }
 
-inline Angle rotation_angle(Instruction const& inst)
+inline double rotation_angle(Instruction const& inst)
 {
     if (inst.is_a<Op::P>()) {
         return inst.cast<Op::P>().angle();
@@ -60,7 +58,7 @@ inline Angle rotation_angle(Instruction const& inst)
     if (inst.is_a<Op::Z>()) {
         return inst.cast<Op::Z>().angle();
     }
-    return sym_angle::zero;
+    return 0.0;
 }
 
 }

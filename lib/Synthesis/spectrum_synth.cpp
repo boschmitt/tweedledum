@@ -7,7 +7,6 @@
 #include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Synthesis/all_linear_synth.h"
 #include "tweedledum/Synthesis/gray_synth.h"
-#include "tweedledum/Utils/Angle.h"
 
 namespace tweedledum {
 
@@ -24,7 +23,7 @@ void spectrum_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     extended_f &= g;
 
     LinearPP parities;
-    Angle const norm(1, (1 << extended_f.num_vars()));
+    double const norm = numbers::pi / (1 << extended_f.num_vars());
     auto const spectrum = kitty::rademacher_walsh_spectrum(extended_f);
     for (uint32_t i = 1u; i < spectrum.size(); ++i) {
         if (spectrum[i] == 0) {

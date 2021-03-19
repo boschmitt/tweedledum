@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../Utils/Matrix.h"
+#include "../../Utils/Numbers.h"
 
 #include <array>
 #include <string_view>
@@ -27,9 +28,9 @@ public:
 
     static inline Sdg adjoint();
 
-    static Angle angle() 
+    static double angle() 
     {
-        return sym_angle::pi_half;
+        return numbers::pi_div_2;
     }
 
     static UMatrix2 const matrix()
@@ -51,9 +52,9 @@ public:
         return S();
     }
 
-    static Angle angle() 
+    static double angle() 
     {
-        return -sym_angle::pi_half;
+        return -numbers::pi_div_2;
     }
 
     static UMatrix2 const matrix()

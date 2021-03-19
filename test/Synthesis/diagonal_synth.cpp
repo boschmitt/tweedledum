@@ -7,7 +7,7 @@
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Standard.h"
-#include "tweedledum/Utils/Angle.h"
+#include "tweedledum/Utils/Numbers.h"
 
 #include "../check_unitary.h"
 
@@ -24,10 +24,10 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
         Qubit q0 = expected.create_qubit();
         Qubit q1 = expected.create_qubit();
         Qubit q2 = expected.create_qubit();
-        expected.apply_operator(Op::P(sym_angle::pi), {q1, q2, q0});
+        expected.apply_operator(Op::P(numbers::pi), {q1, q2, q0});
 
-        std::vector<Angle> angles(7, sym_angle::zero);
-        angles.push_back(sym_angle::pi);
+        std::vector<double> angles(7, 0.0);
+        angles.push_back(numbers::pi);
         Circuit synthesized = diagonal_synth(angles, config);
         CHECK(check_unitary(expected, synthesized));
     }
@@ -36,11 +36,11 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
         Qubit q0 = expected.create_qubit();
         Qubit q1 = expected.create_qubit();
         Qubit q2 = expected.create_qubit();
-        expected.apply_operator(Op::Rx(sym_angle::pi), {q1, q2, q0});
+        expected.apply_operator(Op::Rx(numbers::pi), {q1, q2, q0});
 
-        std::vector<Angle> angles(6, sym_angle::zero);
-        angles.push_back(-sym_angle::pi_half);
-        angles.push_back(sym_angle::pi_half);
+        std::vector<double> angles(6, 0.0);
+        angles.push_back(-numbers::pi_div_2);
+        angles.push_back(numbers::pi_div_2);
         Circuit synthesized;
         synthesized.create_qubit();
         synthesized.create_qubit();

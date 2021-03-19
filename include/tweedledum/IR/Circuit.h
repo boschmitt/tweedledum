@@ -8,7 +8,6 @@
 #include "Instruction.h"
 #include "Qubit.h"
 #include "Wire.h"
-#include "../Utils/Angle.h"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -22,18 +21,18 @@ class BaseView;
 
 class Circuit : public WireStorage {
 public:
-    Circuit() : global_phase_(sym_angle::zero)
+    Circuit() : global_phase_(0.0)
     {
         instructions_.reserve(1024);
     }
 
     // Properties
-    Angle& global_phase()
+    double& global_phase()
     {
         return global_phase_;
     }
 
-    Angle global_phase() const
+    double global_phase() const
     {
         return global_phase_;
     }
@@ -269,7 +268,7 @@ private:
     std::vector<Instruction, Instruction::Allocator> instructions_;
     std::vector<InstRef> last_instruction_; // last instruction on a wire
     std::vector<Qubit> free_ancillae_; // Should this be here?!
-    Angle global_phase_;
+    double global_phase_;
 };
 
 } // namespace tweedledum

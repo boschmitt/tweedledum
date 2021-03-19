@@ -4,7 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../Utils/Angle.h"
 #include "../../Utils/Matrix.h"
 
 #include <cmath>
@@ -19,7 +18,7 @@ public:
         return "ising.ryy";
     }
 
-    Ryy(Angle angle) : angle_(angle)
+    Ryy(double angle) : angle_(angle)
     {}
 
     Ryy adjoint() const
@@ -29,8 +28,8 @@ public:
 
     UMatrix4 const matrix() const
     {
-        Complex const a = std::cos(angle_.numeric_value());
-        Complex const b{0., std::sin(angle_.numeric_value())};
+        Complex const a = std::cos(angle_);
+        Complex const b{0., std::sin(angle_)};
 
         return (UMatrix4() << a,  0,  0, b,
                               0,  a, -b, 0,
@@ -49,7 +48,7 @@ public:
     }
 
 private:
-    Angle const angle_;
+    double const angle_;
 };
 
 } // namespace tweedledum

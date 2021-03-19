@@ -14,7 +14,7 @@ TEST_CASE("Trivial cases for unitary builder", "[operators]")
 {
     using namespace tweedledum;
     SECTION("Rxx") {
-        Op::Rxx rxx(sym_angle::pi);
+        Op::Rxx rxx(numbers::pi);
         Op::Unitary expected(rxx.matrix());
 
         Op::UnitaryBuilder builder(2);
@@ -24,21 +24,21 @@ TEST_CASE("Trivial cases for unitary builder", "[operators]")
         CHECK(is_approx_equal(expected, built));
     }
     SECTION("Ryy") {
-        Op::Ryy ryy(sym_angle::pi);
+        Op::Ryy ryy(numbers::pi);
         Op::Unitary expected(ryy.matrix());
 
         Op::UnitaryBuilder builder(2);
-        builder.apply_operator(Op::Ryy(sym_angle::pi), std::vector({0u, 1u}));
+        builder.apply_operator(Op::Ryy(numbers::pi), std::vector({0u, 1u}));
         Op::Unitary built = builder.finished();
 
         CHECK(is_approx_equal(expected, built));
     }
     SECTION("Rzz") {
-        Op::Rzz rzz(sym_angle::pi);
+        Op::Rzz rzz(numbers::pi);
         Op::Unitary expected(rzz.matrix());
 
         Op::UnitaryBuilder builder(2);
-        builder.apply_operator(Op::Rzz(sym_angle::pi), std::vector({0u, 1u}));
+        builder.apply_operator(Op::Rzz(numbers::pi), std::vector({0u, 1u}));
         Op::Unitary built = builder.finished();
 
         CHECK(is_approx_equal(expected, built));

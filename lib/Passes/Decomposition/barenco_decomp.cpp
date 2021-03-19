@@ -22,8 +22,8 @@ struct Config {
         : controls_threshold(2u)
         , max_qubits(0u)
         , locked(Qubit::invalid())
-        , compute_op(Op::Rx(sym_angle::pi))
-        , cleanup_op(Op::Rx(-sym_angle::pi))
+        , compute_op(Op::Rx(numbers::pi))
+        , cleanup_op(Op::Rx(-numbers::pi))
     {
         auto barenco_cfg = config.find("barenco_decomp");
         if (barenco_cfg != config.end()) {
