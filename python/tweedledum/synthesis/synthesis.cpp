@@ -2,6 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include "../my_bool.h"
 #include "../nlohmann_json.h"
 
 #include <pybind11/eigen.h>
@@ -21,6 +22,16 @@ void init_Synthesis(pybind11::module& module)
     module.def("decomp_synth", 
         py::overload_cast<Circuit&, std::vector<Qubit> const&, std::vector<Cbit> const&, std::vector<uint32_t> const&>(&decomp_synth),
         "Reversible synthesis based on functional decomposition.");
+
+    module.def("gray_synth",
+        py::overload_cast<uint32_t, LinPhasePoly const&, nlohmann::json const&>(&gray_synth),
+        py::arg("num_qubits"), py::arg("parities"), py::arg("config") = nlohmann::json(),
+        "Synthesis of a CNOT-dihedral circuits.");
+
+    module.def("gray_synth",
+        py::overload_cast<Circuit&, std::vector<Qubit> const&, std::vector<Cbit> const&, BMatrix, LinPhasePoly, nlohmann::json const&>(&gray_synth),
+        py::arg("circuit"), py::arg("qubits"), py::arg("cbits"), py::arg("linear_trans"), py::arg("parities"), py::arg("config") = nlohmann::json(),
+        "Synthesis of a CNOT-dihedral circuits.");
 
     module.def("lhrs_synth",
         py::overload_cast<mockturtle::xag_network const&, nlohmann::json const&>(&lhrs_synth),
