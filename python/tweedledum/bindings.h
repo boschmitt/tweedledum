@@ -9,7 +9,7 @@
 // Classical
 void init_kitty(pybind11::module& module);
 void init_mockturtle(pybind11::module& module);
-void init_utils(pybind11::module& module);
+void init_classical_utils(pybind11::module& module);
 
 // IR
 void init_Cbit(pybind11::module& module);
@@ -32,3 +32,6 @@ void init_Synthesis(pybind11::module& module);
 // Target
 void init_Device(pybind11::module& module);
 void init_Mapping(pybind11::module& module);
+
+// Utils
+void init_utils(pybind11::module& module);
