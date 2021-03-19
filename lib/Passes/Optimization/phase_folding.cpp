@@ -5,7 +5,7 @@
 #include "tweedledum/Passes/Optimization/phase_folding.h"
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Operators/Utils.h"
-#include "tweedledum/Utils/LinearPP.h"
+#include "tweedledum/Utils/LinPhasePoly.h"
 
 namespace tweedledum {
 
@@ -26,7 +26,7 @@ Circuit phase_folding(Circuit const& original)
         qubit_pathsum.emplace_back(1u, (num_path_vars++ << 1));
     });
 
-    LinearPP parities;
+    LinPhasePoly phase_parities;
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t const t = inst.target(0u);
         double const angle = rotation_angle(inst);
@@ -59,7 +59,7 @@ Circuit phase_folding(Circuit const& original)
             return;
         }
         if (angle != 0.0) {
-            parities.add_term(qubit_pathsum.at(t), angle);
+            phase_parities.add_term(qubit_pathsum.at(t), angle);
         }
         return;
 
@@ -112,7 +112,7 @@ Circuit phase_folding(Circuit const& original)
             }
         }
         optimized.apply_operator(inst);
-        double const angle = parities.extract_term(qubit_pathsum.at(t));
+        double const angle = phase_parities.extract_phase(qubit_pathsum.at(t));
         if (angle == 0.0) {
             return;
         }

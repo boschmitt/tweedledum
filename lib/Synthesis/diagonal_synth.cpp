@@ -76,19 +76,19 @@ void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
     std::sort(qubits.begin(), qubits.end());
     std::vector<double> new_angles = fix_angles(qubits, angles);
     fast_hadamard_transform(new_angles);
-    LinearPP parities;
+    LinPhasePoly phase_parities;
     uint32_t factor = (1 << (qubits.size() - 1));
     for (uint32_t i = 1u; i < new_angles.size(); ++i) {
         if (new_angles.at(i) == 0) {
             continue;
         }
-        parities.add_term(i, new_angles.at(i) / factor);
+        phase_parities.add_term(i, new_angles.at(i) / factor);
     }
-    if (parities.size() == new_angles.size() - 1) {
-        all_linear_synth(circuit, qubits, cbits, parities);
+    if (phase_parities.size() == new_angles.size() - 1) {
+        all_linear_synth(circuit, qubits, cbits, phase_parities);
     } else {
         gray_synth(circuit, qubits, cbits, BMatrix::Identity(qubits.size(),
-            qubits.size()), parities, config);
+            qubits.size()), phase_parities, config);
     }
 }
 

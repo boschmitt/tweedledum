@@ -22,7 +22,7 @@ void spectrum_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     kitty::create_nth_var(g, num_controls);
     extended_f &= g;
 
-    LinearPP parities;
+    LinPhasePoly parities;
     double const norm = numbers::pi / (1 << extended_f.num_vars());
     auto const spectrum = kitty::rademacher_walsh_spectrum(extended_f);
     for (uint32_t i = 1u; i < spectrum.size(); ++i) {

@@ -6,14 +6,14 @@
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
-#include "tweedledum/Utils/LinearPP.h"
+#include "tweedledum/Utils/LinPhasePoly.h"
 
 #include <catch.hpp>
 
 TEST_CASE("Trivial cases for all linear synthe", "[all-linear][synth]")
 {
     using namespace tweedledum;
-    LinearPP parities;
-    Circuit circuit = all_linear_synth(1, parities);
+    LinPhasePoly phase_parities;
+    Circuit circuit = all_linear_synth(1, phase_parities);
     CHECK(circuit.size() == 0);
 }
