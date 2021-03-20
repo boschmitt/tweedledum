@@ -155,7 +155,7 @@ public:
         bool inverted_qubits = false, Style style = Style::Compact)
         : style_(style), inverted_qubits_(inverted_qubits)
         , num_qubits_(num_qubits)
-        , num_cbits_(style_ == Style::NotCompact ? num_cbits : 1)
+        , num_cbits_(style_ == Style::NotCompact ? num_cbits : (num_cbits > 1))
         , height_((2 * (num_qubits_ + num_cbits_) + 1))
     { }
 
