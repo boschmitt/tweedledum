@@ -55,6 +55,18 @@ public:
     std::string_view kind() const
     {
         return concept_->kind(&model_);
+    };
+
+    std::string_view name() const
+    {
+        std::string_view the_kind = kind();
+        auto pos = the_kind.find_first_of(".");
+        if (pos ==  std::string_view::npos) {
+            pos = 0;
+        } else {
+            ++pos;
+        }
+        return std::string_view(the_kind.data() + pos, the_kind.size() - pos);
     }; 
 
     std::optional<UMatrix> const matrix() const

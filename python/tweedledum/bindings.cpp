@@ -6,7 +6,6 @@
 
 #include "ir/circuit.h"
 #include "operators/operators.h"
-#include "passes/passes.h"
 
 #include <pybind11/pybind11.h>
 
@@ -20,10 +19,12 @@ PYBIND11_MODULE(_tweedledum, module)
     py::module classical = module.def_submodule("classical", "Tweedledum classical");
     init_kitty(classical);
     init_mockturtle(classical);
-    init_utils(classical);
+    init_classical_utils(classical);
 
     // IR
     py::module ir = module.def_submodule("ir", "Tweedledum intermediate representation");
+    init_Cbit(ir);
+    init_Qubit(ir);
     init_Instruction(ir);
     init_Circuit(ir);
 
@@ -37,4 +38,18 @@ PYBIND11_MODULE(_tweedledum, module)
     // Passes 
     py::module passes = module.def_submodule("passes", "Tweedledum passes");
     init_Passes(passes);
+
+    // Synthesis 
+    py::module synth =
+        module.def_submodule("synthesis", "Tweedledum synthesis methods");
+    init_Synthesis(synth);
+
+    // Target
+    py::module target = module.def_submodule("target", "Tweedledum target");
+    init_Device(target);
+    init_Mapping(target);
+
+    // Utils
+    py::module utils = module.def_submodule("utils", "Tweedledum utility data structures");
+    init_utils(utils);
 }

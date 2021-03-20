@@ -1,8 +1,7 @@
 name: Windows
 
 on:
-  push:
-    branches: [master]
+  workflow_dispatch:
   pull_request:
     branches: [master]
 
@@ -32,8 +31,6 @@ jobs:
       working-directory: build
       run: nmake _tweedledum
 
-    # I will not run the tests unless my hands on a windows machine
-    # Unfortunately, I cannot reproduce the errors :(
-    # - name: Run tests
-    #   run: |
-    #     .\build\test\run_tests.exe
+    - name: Run tests
+      run: |
+        .\build\test\run_tests.exe

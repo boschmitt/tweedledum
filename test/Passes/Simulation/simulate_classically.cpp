@@ -16,9 +16,9 @@ TEST_CASE("Simulate reversible circuit", "[simulate_classically]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    WireRef q0 = circuit.create_qubit();
-    WireRef q1 = circuit.create_qubit();
-    WireRef q2 = circuit.create_qubit();
+    Qubit q0 = circuit.create_qubit();
+    Qubit q1 = circuit.create_qubit();
+    Qubit q2 = circuit.create_qubit();
 
     SECTION("Empty circuit")
     {

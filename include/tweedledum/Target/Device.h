@@ -16,7 +16,7 @@ namespace tweedledum {
 
 class Device {
 public:
-    using edge_type = std::pair<uint32_t, uint32_t>;
+    using Edge = std::pair<uint32_t, uint32_t>;
 
 #pragma region Generic topologies
     // Create a device for a path topology.
@@ -68,6 +68,12 @@ public:
     }
 #pragma endregion
 
+    static Device from_edge_list(std::vector<Edge> const& edges);
+
+    static Device from_json(nlohmann::json const& device_info);
+
+    static Device from_file(std::string const& filename);
+
     Device(uint32_t const num_qubits, std::string_view name = {})
         : name_(name), neighbors_(num_qubits), dist_matrix_()
     {}
@@ -100,7 +106,7 @@ public:
         return edges_.size();
     }
 
-    edge_type const& edge(uint32_t const i) const
+    Edge const& edge(uint32_t const i) const
     {
         return edges_.at(i);
     }
@@ -111,7 +117,7 @@ public:
         if (!shortest_path_.empty()) {
             return distance(v, u) == 1u;
         }
-        edge_type const edge = {std::min(v, u), std::max(u, v)};
+        Edge const edge = {std::min(v, u), std::max(u, v)};
         auto const search = std::find(edges_.begin(), edges_.end(), edge);
         if (search == edges_.end()) {
             return false;
@@ -197,7 +203,7 @@ private:
 private:
     std::string name_;
     std::vector<std::vector<uint32_t>> neighbors_;
-    std::vector<edge_type> edges_;
+    std::vector<Edge> edges_;
     mutable std::vector<std::vector<uint32_t>> dist_matrix_;
     mutable std::vector<std::vector<uint32_t>> shortest_path_;
 };
@@ -338,7 +344,5 @@ inline std::vector<Device::edge_type> Device::steiner_tree(
     }
     return tree;
 }
-
-Device read_device_from_json(std::string const& filename);
 
 } // namespace tweedledum

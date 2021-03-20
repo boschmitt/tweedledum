@@ -17,10 +17,10 @@ inline DynamicBitset<WordType> simulate_classically(
 {
     assert(circuit.num_qubits() == pattern.size());
     circuit.foreach_instruction([&](Instruction const& inst) {
-        WireRef target = WireRef::invalid();
+        Qubit target = Qubit::invalid();
         bool execute = true;
         if (inst.is_a<Op::X>()) {
-            inst.foreach_control([&](WireRef const& wire) {
+            inst.foreach_control([&](Qubit const& wire) {
                 auto bit = pattern[wire];
                 execute &= bit ^ wire.polarity();
             });
@@ -32,7 +32,7 @@ inline DynamicBitset<WordType> simulate_classically(
             }
             uint32_t pos = 0u;
             for (uint32_t i = 0; i < inst.num_qubits() - 1; ++i) {
-                WireRef const wire = inst.target(i);
+                Qubit const wire = inst.target(i);
                 pos |= (pattern[wire] << i);
             }
             execute &= kitty::get_bit(tt.truth_table(), pos);

@@ -6,6 +6,11 @@ file(GLOB FILENAMES *.cpp)
 
 foreach(filename ${FILENAMES})
     get_filename_component(basename ${filename} NAME_WE)
-    add_executable(${basename} ${filename})
-    target_link_libraries(${basename} PUBLIC tweedledum)
+    add_executable(${basename} $<TARGET_OBJECTS:tweedledum> ${filename})
+    target_include_directories(${basename}  PRIVATE 
+        $<TARGET_PROPERTY:tweedledum,INCLUDE_DIRECTORIES>
+    )
+    target_link_libraries(${basename}  PRIVATE 
+        $<TARGET_PROPERTY:tweedledum,LINK_LIBRARIES>
+    )
 endforeach()

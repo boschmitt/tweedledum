@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../Utils/Matrix.h"
+#include "../../Utils/Numbers.h"
 
 #include <array>
 #include <string_view>
@@ -19,8 +20,8 @@ class Tdg;
 // of how the RZ(\pi/4) matrix looks like).  This is a non-Clifford gate and a
 // fourth-root of Pauli-Z.
 class T {
-    constexpr static double _1_sqrt2 = 0.707106781186547524401;
-    constexpr static std::array<Complex, 4> mat_ = {1., 0., 0., {_1_sqrt2, _1_sqrt2}};
+    constexpr static std::array<Complex, 4> mat_ =
+        {1., 0., 0., {numbers::inv_sqrt2, numbers::inv_sqrt2}};
 public:
     static constexpr std::string_view kind()
     {
@@ -29,9 +30,9 @@ public:
 
     static inline Tdg adjoint();
 
-    static Angle angle() 
+    static double angle() 
     {
-        return sym_angle::pi_quarter;
+        return numbers::pi_div_4;
     }
 
     static UMatrix2 const matrix()
@@ -45,8 +46,8 @@ public:
 // The operator induces a -π/4 phase.  This is a non-Clifford gate and a 
 // fourth-root of Pauli-Z.
 class Tdg {
-    constexpr static double _1_sqrt2 = 0.707106781186547524401;
-    constexpr static std::array<Complex, 4> mat_ = {1., 0., 0., {_1_sqrt2, -_1_sqrt2}};
+    constexpr static std::array<Complex, 4> mat_ =
+        {1., 0., 0., {numbers::inv_sqrt2, -numbers::inv_sqrt2}};
 public:
     static constexpr std::string_view kind()
     {
@@ -58,9 +59,9 @@ public:
         return T();
     }
 
-    static Angle angle() 
+    static double angle() 
     {
-        return -sym_angle::pi_quarter;
+        return -numbers::pi_div_4;
     }
 
     static UMatrix2 const matrix()

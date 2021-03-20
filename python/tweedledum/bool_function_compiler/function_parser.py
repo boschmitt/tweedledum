@@ -122,7 +122,7 @@ class FunctionParser(ast.NodeVisitor):
                raise ParseError("Unsupported comparator") 
 
         result = self._logic_network.create_nary_and(partial_results)
-        return FunctionParser.types['BitVec'], [result]
+        return (FunctionParser.types['BitVec'], 1), [result]
 
     def visit_Constant(self, node):
         return node.value

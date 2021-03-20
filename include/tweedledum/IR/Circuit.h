@@ -4,9 +4,10 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "Cbit.h"
 #include "Instruction.h"
+#include "Qubit.h"
 #include "Wire.h"
-#include "../Utils/Angle.h"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -20,18 +21,18 @@ class BaseView;
 
 class Circuit : public WireStorage {
 public:
-    Circuit() : global_phase_(sym_angle::zero)
+    Circuit() : global_phase_(0.0)
     {
         instructions_.reserve(1024);
     }
 
     // Properties
-    Angle& global_phase()
+    double& global_phase()
     {
         return global_phase_;
     }
 
-    Angle global_phase() const
+    double global_phase() const
     {
         return global_phase_;
     }
@@ -47,13 +48,14 @@ public:
     }
 
     // Wires
-    WireRef create_qubit(std::string_view name)
+    Qubit create_qubit(std::string_view name)
     {
-        last_instruction_.emplace_back(InstRef::invalid());
+        last_instruction_.emplace(last_instruction_.begin() + num_qubits(), 
+                                  InstRef::invalid());
         return do_create_qubit(name);
     }
 
-    WireRef create_qubit()
+    Qubit create_qubit()
     {
         std::string const name = fmt::format("__q{}", num_qubits());
         return create_qubit(name);
@@ -61,33 +63,33 @@ public:
 
     void create_ancilla()
     {
-        WireRef const qubit = create_qubit(fmt::format("__a{}", num_qubits()));
+        Qubit const qubit = create_qubit(fmt::format("__a{}", num_qubits()));
         free_ancillae_.push_back(qubit);
     }
 
-    WireRef request_ancilla()
+    Qubit request_ancilla()
     {
         if (free_ancillae_.empty()) {
             return create_qubit(fmt::format("__a{}", num_qubits()));
         } else {
-            WireRef qubit = free_ancillae_.back();
+            Qubit qubit = free_ancillae_.back();
             free_ancillae_.pop_back();
             return qubit;
         }
     }
 
-    void release_ancilla(WireRef qubit)
+    void release_ancilla(Qubit qubit)
     {
         free_ancillae_.push_back(qubit);
     }
 
-    WireRef create_cbit(std::string_view name)
+    Cbit create_cbit(std::string_view name)
     {
         last_instruction_.emplace_back(InstRef::invalid());
         return do_create_cbit(name);
     }
 
-    WireRef create_cbit()
+    Cbit create_cbit()
     {
         std::string const name = fmt::format("__c{}", num_cbits());
         return create_cbit(name);
@@ -95,24 +97,18 @@ public:
 
     // Instructions
     template<typename OpT>
-    InstRef apply_operator(OpT&& optor, std::vector<WireRef> const& wires)
+    InstRef apply_operator(OpT&& optor, std::vector<Qubit> const& qubits,
+        std::vector<Cbit> const& cbits = {})
     {
-        Instruction& inst = instructions_.emplace_back(std::forward<OpT>(optor), wires);
+        Instruction& inst = instructions_.emplace_back(std::forward<OpT>(optor), qubits, cbits);
         connect_instruction(inst);
         return InstRef(instructions_.size() - 1);
     }
 
-    // template<typename OpT>
-    // InstRef apply_operator(OpT const& optor, std::vector<WireRef> const& wires)
-    // {
-    //     Instruction& inst = instructions_.emplace_back(optor, wires);
-    //     connect_instruction(inst);
-    //     return InstRef(instructions_.size() - 1);
-    // }
-
-    InstRef apply_operator(Instruction const& optor, std::vector<WireRef> const& wires)
+    InstRef apply_operator(Instruction const& optor, 
+        std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits = {})
     {
-        Instruction& inst = instructions_.emplace_back(optor, wires);
+        Instruction& inst = instructions_.emplace_back(optor, qubits, cbits);
         connect_instruction(inst);
         return InstRef(instructions_.size() - 1);
     }
@@ -126,16 +122,23 @@ public:
     }
 
     // Composition
-    void append(Circuit const& other, std::vector<WireRef> const& wires)
+    void append(Circuit const& other, std::vector<Qubit> const& qubits, 
+        std::vector<Cbit> const& cbits)
     {
-        assert(other.num_wires() == wires.size());
+        assert(other.num_cbits() == cbits.size());
+        assert(other.num_qubits() == qubits.size());
+
         other.foreach_instruction([&](Instruction const& inst) {
-            std::vector<WireRef> this_wires;
-            inst.foreach_wire([&](WireRef wire) {
-                this_wires.push_back(wires.at(wire));
+            std::vector<Qubit> this_qubits;
+            inst.foreach_qubit([&](Qubit qubit) {
+                this_qubits.push_back(qubits.at(qubit));
             });
-            assert(!this_wires.empty());
-            apply_operator(inst, this_wires);
+            std::vector<Cbit> this_cbits;
+            inst.foreach_cbit([&](Cbit cbit) {
+                this_cbits.push_back(cbits.at(cbit));
+            });
+            assert(!this_qubits.empty());
+            apply_operator(inst, this_qubits, this_cbits);
         });
     }
 
@@ -215,7 +218,16 @@ public:
                       std::is_invocable_r_v<void, Fn, InstRef, Instruction const&>);
         // clang-format on
         Instruction const& inst = instructions_.at(ref);
-        inst.foreach_wire([&](InstRef const iref) {
+        inst.foreach_cbit([&](InstRef const iref) {
+            if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
+                fn(iref);
+            } else if constexpr (std::is_invocable_r_v<void, Fn, Instruction const&>) {
+                fn(instructions_.at(iref));
+            } else {
+                fn(iref, instructions_.at(iref));
+            }
+        });
+        inst.foreach_qubit([&](InstRef const iref) {
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(iref);
             } else if constexpr (std::is_invocable_r_v<void, Fn, Instruction const&>) {
@@ -242,20 +254,21 @@ private:
 
     void connect_instruction(Instruction& inst)
     {
-        for (auto& [wref, iref] : inst.qubits_) {
+        uint32_t const inst_uid = instructions_.size() - 1;
+        for (auto& [wref, iref] : inst.qubits_conns_) {
             iref = last_instruction_.at(wref);
-            last_instruction_.at(wref).uid_ = instructions_.size() - 1;
+            last_instruction_.at(wref).uid_ = inst_uid;
         }
-        for (auto& [wref, iref] : inst.cbits_) {
+        for (auto& [wref, iref] : inst.cbits_conns_) {
             iref = last_instruction_.at(wref);
-            last_instruction_.at(wref).uid_ = instructions_.size() - 1;
+            last_instruction_.at(wref + num_qubits()).uid_ = inst_uid;
         }
     }
 
     std::vector<Instruction, Instruction::Allocator> instructions_;
     std::vector<InstRef> last_instruction_; // last instruction on a wire
-    std::vector<WireRef> free_ancillae_; // Should this be here?!
-    Angle global_phase_;
+    std::vector<Qubit> free_ancillae_; // Should this be here?!
+    double global_phase_;
 };
 
 } // namespace tweedledum

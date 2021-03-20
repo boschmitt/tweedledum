@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../Utils/Matrix.h"
+#include "../../Utils/Numbers.h"
 
 #include <array>
 #include <string_view>
@@ -25,9 +26,9 @@ public:
         return Z();
     }
 
-    static Angle angle() 
+    static double angle() 
     {
-        return sym_angle::pi;
+        return numbers::pi;
     }
 
     static UMatrix2 const matrix()

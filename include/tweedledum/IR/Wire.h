@@ -4,6 +4,9 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "Cbit.h"
+#include "Qubit.h"
+
 #include <cassert>
 #include <limits>
 #include <string>
@@ -11,205 +14,125 @@
 
 namespace tweedledum {
 
-class WireStorage;
-
-struct Wire {
-    enum Kind { classical, quantum };
-
-    uint32_t const uid;
-    std::string const name;
-    Kind const kind;
-
-    Wire(uint32_t uid, std::string_view name, Kind kind)
-        : uid(uid), name(name), kind(kind)
-    {}
-
-    // FIXME: maybe this it too much! :D
-    operator uint32_t() const
-    {
-        return uid;
-    }
-};
-
-class WireRef {
-public:
-    // // Copy constructor
-    // WireRef(WireRef const& other)
-    //     : data_(other.data_)
-    // {}
-
-    WireRef(WireRef const& other) = default;
-
-    // Copy assignment
-    WireRef& operator=(WireRef const& other)
-    {
-        data_ = other.data_;
-        return *this;
-    }
-
-    // Return the sentinel value
-    static constexpr WireRef invalid()
-    {
-        return WireRef();
-    }
-
-    uint32_t uid() const
-    {
-        return uid_;
-    }
-
-    Wire::Kind kind() const
-    {
-        return kind_;
-    }
-
-    enum Polarity { positive, negative };
-
-    Polarity polarity() const
-    {
-        return static_cast<Polarity>(polarity_);
-    }
-
-    void complement()
-    {
-        polarity_ ^= 1u;
-    }
-
-    bool is_complemented() const
-    {
-        return polarity_;
-    }
-
-    WireRef operator!() const
-    {
-        WireRef complemented(*this);
-        complemented.polarity_ ^= 1u;
-        return complemented;
-    }
-
-    bool operator==(WireRef other) const
-    {
-        return data_ == other.data_;
-    }
-
-    bool operator!=(WireRef other) const
-    {
-        return data_ != other.data_;
-    }
-
-    operator uint32_t() const
-    {
-        return uid_;
-    }
-
-protected:
-    friend class WireStorage;
-
-    static constexpr WireRef qubit(uint32_t uid)
-    {
-        return WireRef(uid, Wire::Kind::quantum);
-    }
-
-    static constexpr WireRef cbit(uint32_t uid)
-    {
-        return WireRef(uid, Wire::Kind::classical);
-    }
-
-    constexpr WireRef(uint32_t uid, Wire::Kind k, Polarity p = Polarity::positive)
-        : uid_(uid), kind_(k), polarity_(p)
-    {}
-
-    union {
-        uint32_t data_;
-        struct {
-            uint32_t const uid_ : 30;
-            Wire::Kind const kind_ : 1;
-            uint32_t polarity_ : 1;
-        };
-    };
-
-private:
-    constexpr WireRef()
-        : data_(std::numeric_limits<uint32_t>::max())
-    {}
-};
-
 class WireStorage {
 public:
-    WireStorage() : num_qubits_(0u) {}
+    WireStorage() = default;
 
     uint32_t num_wires() const
     {
-        return wires_.size();
+        return num_qubits() + num_cbits();
     }
 
     uint32_t num_qubits() const
     {
-        return num_qubits_;
+        return qubits_.size();
     }
 
     uint32_t num_cbits() const
     {
-        return num_wires() - num_qubits();
+        return cbits_.size();
     }
 
-    WireRef wire_ref(uint32_t idx) const
+    Cbit cbit(uint32_t const uid) const
     {
-        assert(idx < refs_.size());
-        return refs_.at(idx);
+        assert(uid < num_cbits());
+        return Cbit(uid);
     }
 
-    auto begin_wire() const
+    std::vector<Cbit> cbits() const
     {
-        return wires_.cbegin();
+        return cbits_;
     }
 
-    auto end_wire() const
+    Qubit qubit(uint32_t const uid) const
     {
-        return wires_.cend();
+        assert(uid < num_qubits());
+        return Qubit(uid);
+    }
+
+    std::vector<Qubit> qubits() const
+    {
+        return qubits_;
+    }
+
+    std::string_view name(Cbit cbit) const
+    {
+        return cbit_names_.at(cbit);
+    }
+
+    std::string_view name(Qubit qubit) const
+    {
+        return qubit_names_.at(qubit);
     }
 
     template<typename Fn>
-    void foreach_wire(Fn&& fn) const
+    void foreach_cbit(Fn&& fn) const
     {
         // clang-format off
-        static_assert(std::is_invocable_r_v<void, Fn, WireRef> ||
-                      std::is_invocable_r_v<void, Fn, Wire const&> ||
-                      std::is_invocable_r_v<void, Fn, WireRef, Wire const&>);
+        static_assert(std::is_invocable_r_v<void, Fn, Cbit> ||
+                      std::is_invocable_r_v<void, Fn, std::string_view> ||
+                      std::is_invocable_r_v<void, Fn, Cbit, std::string_view>);
         // clang-format on
-        for (uint32_t i = 0u; i < wires_.size(); ++i) {
-            if constexpr (std::is_invocable_r_v<void, Fn, WireRef>) {
-                fn(refs_.at(i));
-            } else if constexpr (std::is_invocable_r_v<void, Fn, Wire const&>) {
-                fn(wires_.at(i));
-            } else {
-                fn(refs_.at(i), wires_.at(i));
+        if constexpr (std::is_invocable_r_v<void, Fn, Cbit>) {
+            for (Cbit const& cbit : cbits_) {
+                fn(cbit);
+            }
+        } else if constexpr (std::is_invocable_r_v<void, Fn, std::string_view>) {
+            for (std::string const& name : cbit_names_) {
+                fn(name);
+            }
+        } else {
+            for (uint32_t i = 0; i < num_cbits(); ++i) {
+                fn(cbits_.at(i), cbit_names_.at(i));
+            }
+        }
+    }
+
+    template<typename Fn>
+    void foreach_qubit(Fn&& fn) const
+    {
+        // clang-format off
+        static_assert(std::is_invocable_r_v<void, Fn, Qubit> ||
+                      std::is_invocable_r_v<void, Fn, std::string_view> ||
+                      std::is_invocable_r_v<void, Fn, Qubit, std::string_view>);
+        // clang-format on
+        if constexpr (std::is_invocable_r_v<void, Fn, Qubit>) {
+            for (Qubit const& qubit : qubits_) {
+                fn(qubit);
+            }
+        } else if constexpr (std::is_invocable_r_v<void, Fn, std::string_view>) {
+            for (std::string const& name : qubit_names_) {
+                fn(name);
+            }
+        } else {
+            for (uint32_t i = 0; i < num_qubits(); ++i) {
+                fn(qubits_.at(i), qubit_names_.at(i));
             }
         }
     }
 
 protected:
-    WireRef do_create_qubit(std::string_view name)
+    Cbit do_create_cbit(std::string_view name)
     {
-        uint32_t uid = wires_.size();
-        wires_.emplace_back(uid, name, Wire::Kind::quantum);
-        num_qubits_++;
-        refs_.push_back({uid, Wire::Kind::quantum});
-        return refs_.back();
+        uint32_t const uid = cbits_.size();
+        cbits_.push_back(Cbit(uid));
+        cbit_names_.emplace_back(name);
+        return cbits_.back();
     }
 
-    WireRef do_create_cbit(std::string_view name)
+    Qubit do_create_qubit(std::string_view name)
     {
-        uint32_t uid = wires_.size();
-        wires_.emplace_back(uid, name, Wire::Kind::classical);
-        refs_.push_back({uid, Wire::Kind::classical});
-        return refs_.back();
+        uint32_t const uid = qubits_.size();
+        qubits_.push_back(Qubit(uid));
+        qubit_names_.emplace_back(name);
+        return qubits_.back();
     }
 
 private:
-    uint32_t num_qubits_ = 0u;
-    std::vector<WireRef> refs_;
-    std::vector<Wire> wires_;
+    std::vector<Cbit> cbits_;
+    std::vector<std::string> cbit_names_;
+    std::vector<Qubit> qubits_;
+    std::vector<std::string> qubit_names_;
 };
 
 } // namespace tweedledum

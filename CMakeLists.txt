@@ -1,13 +1,13 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
 # CMake build : tweedledum library
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 project(tweedledum LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 if(MSVC)
-    add_compile_options(/Wall)
+    add_compile_options(/Wall /utf-8)
 else()
     include(CheckCXXCompilerFlag)
     add_compile_options(-W -Wall -Wextra)
@@ -18,11 +18,6 @@ else()
         endif()
     endforeach()
 endif()
-
-# Variables
-# =============================================================================
-set(TWEEDLEDUM_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
-set(TWEEDLEDUM_LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 
 # Options
 # =============================================================================
@@ -40,34 +35,29 @@ option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 # =============================================================================
 add_subdirectory(third_party)
 
+# Python bindings
+# =============================================================================
+if(TWEEDLEDUM_PYBINDS)
+    pybind11_add_module(_tweedledum MODULE)
+    target_include_directories(_tweedledum PRIVATE ${PROJECT_SOURCE_DIR}/include)
+    target_link_libraries(_tweedledum PRIVATE eigen fmt::fmt-header-only mockturtle)
+    add_subdirectory(python/tweedledum)
+    if(SKBUILD)
+        install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
+    endif()
+endif()
+
 # Library
 # =============================================================================
-add_library(tweedledum)
+add_library(tweedledum OBJECT)
 target_include_directories(tweedledum PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum eigen fmt::fmt-header-only mockturtle)
-
+target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle)
 add_subdirectory(lib)
 
 # Examples
 # =============================================================================
 if(TWEEDLEDUM_EXAMPLES)
   add_subdirectory(examples)
-endif()
-
-# Python bindings
-# =============================================================================
-if(TWEEDLEDUM_PYBINDS)
-    if(SKBUILD)
-        set(Python_EXECUTABLE "${PYTHON_EXECUTABLE}")
-        set(Python_INCLUDE_DIR "${PYTHON_INCLUDE_DIR}")
-        unset(PYTHON_EXECUTABLE)
-        unset(PYTHON_INCLUDE_DIR)
-        unset(PYTHON_LIBRARY)
-        unset(PYTHON_VERSION_STRING)
-    endif()
-    set(Python_FIND_IMPLEMENTATIONS CPython)
-    find_package(Python COMPONENTS Interpreter Development.Module REQUIRED)
-    add_subdirectory(python/tweedledum)
 endif()
 
 # Tests

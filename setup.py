@@ -2,11 +2,12 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
+import os
 import sys
 import setuptools
 
 try:
-    from skbuild import setup
+    import skbuild
 except ImportError:
     print('scikit-build is required to build from source.', file=sys.stderr)
     print('Please run:', file=sys.stderr)
@@ -14,10 +15,17 @@ except ImportError:
     print('  python -m pip install scikit-build')
     sys.exit(1)
 
-setup(
+README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                           'README.md')
+with open(README_PATH) as readme_file:
+    README = readme_file.read()
+
+skbuild.setup(
     name="tweedledum",
-    version="1.0.0-beta1",
+    version="1.0.0-beta3",
     description="A library for synthesizing and manipulating quantum circuits",
+    long_description=README,
+    long_description_content_type='text/markdown',
     url="https://github.com/boschmitt/tweedledum",
     author='Bruno Schmitt',
     author_email='bruno.schmitt@epfl.ch',

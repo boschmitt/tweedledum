@@ -7,7 +7,7 @@
 #include "../../../IR/Circuit.h"
 #include "../../../IR/Wire.h"
 #include "../../../Target/Device.h"
-#include "../MapState.h"
+#include "../../../Target/Placement.h"
 
 #include <random>
 #include <vector>
@@ -16,25 +16,37 @@ namespace tweedledum {
 
 class RandomPlacer {
 public:
-    RandomPlacer(MapState& state) : state_(state)
+    RandomPlacer(Device const& device, Circuit const& original)
+        : device_(device)
+        , original_(original)
+        , seed_(17u)
     {}
 
-    bool run(uint32_t seed = 17u)
+    std::optional<Placement> run()
     {
-        // Initialize with the trivial placement
-        for (uint32_t i = 0u; i < state_.mapped.num_qubits(); ++i) {
-            state_.v_to_phy.at(i) = state_.mapped.wire_ref(i);
+        std::vector<Qubit> phys;
+        for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
+            phys.emplace_back(i);
         }
-        std::mt19937 rnd(seed);
-        std::shuffle(state_.v_to_phy.begin(), state_.v_to_phy.end(), rnd);
-        for (uint32_t i = 0u; i < state_.v_to_phy.size(); ++i) {
-            state_.phy_to_v.at(state_.v_to_phy.at(i)) = state_.mapped.wire_ref(i);
+        std::mt19937 rnd(seed_);
+        std::shuffle(phys.begin(), phys.end(), rnd);
+
+        Placement placement(device_.num_qubits(), original_.num_qubits());
+        for (uint32_t i = 0u; i < original_.num_qubits(); ++i) {
+            placement.map_v_phy(Qubit(i), phys.at(i));
         }
-        return false;
+        return placement;
     }
 
 private:
-    MapState& state_;
+    Device const& device_;
+    Circuit const& original_;
+    uint32_t seed_;
 };
+
+/*! \brief Yet to be written.
+ */
+std::optional<Placement> random_place(Device const& device,
+    Circuit const& original);
 
 } // namespace tweedledum
