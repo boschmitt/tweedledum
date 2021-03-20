@@ -175,7 +175,7 @@ public:
         return shortest_path_.at(idx).size() - 1;
     }
 
-    std::vector<Device::edge_type> steiner_tree(std::vector<uint32_t> terminals, uint32_t root) const;
+    std::vector<Device::Edge> steiner_tree(std::vector<uint32_t> terminals, uint32_t root) const;
 
     /*! \brief Add an _undirected_ edge between two qubits */
     void add_edge(uint32_t const v, uint32_t const u)
@@ -276,14 +276,14 @@ inline void Device::compute_shortest_paths() const
  * \param[in] root A root for the Steiner tree
  * \return A spanning tree represented as a vector of edges
  */
-inline std::vector<Device::edge_type> Device::steiner_tree(
+inline std::vector<Device::Edge> Device::steiner_tree(
     std::vector<uint32_t> terminals, uint32_t root) const
 {
     if (terminals.empty()) {
         return {};
     }
     // The steiner tree
-    std::vector<Device::edge_type> tree;
+    std::vector<Device::Edge> tree;
 
     // Internal data structures
     std::vector<uint32_t> vertex_cost(num_qubits());

@@ -4,10 +4,9 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../IR/Circuit.h"
-#include "../../IR/Wire.h"
-#include "../../Target/Device.h"
-#include "../../Utils/Matrix.h"
+#include "../IR/Circuit.h"
+#include "../Target/Device.h"
+#include "../Utils/Matrix.h"
 
 #include <nlohmann/json.hpp>
 #include <vector>

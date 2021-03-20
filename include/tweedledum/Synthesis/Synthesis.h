@@ -13,5 +13,6 @@
 #include "pkrm_synth.h"
 #include "pprm_synth.h"
 #include "spectrum_synth.h"
+#include "steiner_gauss_synth.h"
 #include "transform_synth.h"
 #include "xag_synth.h"

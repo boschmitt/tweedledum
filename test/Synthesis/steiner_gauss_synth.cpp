@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Synthesis/steiner_gauss_synth.h"
+#include "tweedledum/Synthesis/steiner_gauss_synth.h"
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
@@ -22,9 +22,9 @@ TEST_CASE("Trivial cases for steiner_gauss_synth", "[steiner_gauss_synth][synth]
     BMatrix linear_trans(3, 3);
     Device path_3 = Device::path(3);
     Circuit expected;
-    WireRef q0 = expected.create_qubit();
-    WireRef q1 = expected.create_qubit();
-    WireRef q2 = expected.create_qubit();
+    Qubit q0 = expected.create_qubit();
+    Qubit q1 = expected.create_qubit();
+    Qubit q2 = expected.create_qubit();
     SECTION("Identity") {
         linear_trans << 1,0,0,
                         0,1,0,

@@ -2,8 +2,8 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Synthesis/steiner_gauss_synth.h"
-#include "tweedledum/Operators/Standard.h"
+#include "tweedledum/Synthesis/steiner_gauss_synth.h"
+#include "tweedledum/Operators/Standard/X.h"
 
 namespace tweedledum {
 
@@ -119,8 +119,8 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
     }
     std::reverse(gates.begin(), gates.end());
     for (auto const& [c, t] : gates) {
-        auto const control = circuit.wire_ref(c);
-        auto const target = circuit.wire_ref(t);
+        auto const control = circuit.qubit(c);
+        auto const target = circuit.qubit(t);
         circuit.apply_operator(Op::X(), {control, target});
     }
 }
