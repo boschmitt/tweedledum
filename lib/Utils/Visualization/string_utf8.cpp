@@ -400,10 +400,10 @@ private:
     }
 };
 
-class MeasureBox : public Box {
+class MeasureBox : public ControlledBox {
 public:
     MeasureBox(std::vector<Wire> const& dwires) 
-        : Box("m", dwires, 1u, dwires.size() - 2)
+        : ControlledBox("m", dwires, 1u, dwires.size() - 2)
     { }
 
 private:
