@@ -23,9 +23,9 @@
 namespace tweedledum {
 
 void steiner_gauss_synth(Circuit& circuit, Device const& device,
-    BMatrix const& matrix, nlohmann::json const& config);
+    BMatrix const& matrix, nlohmann::json const& config = {});
 
 Circuit steiner_gauss_synth(Device const& device, BMatrix const& matrix,
-    nlohmann::json const& config);
+    nlohmann::json const& config = {});
 
 } // namespace tweedledum
