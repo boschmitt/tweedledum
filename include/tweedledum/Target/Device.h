@@ -293,19 +293,20 @@ inline std::vector<Device::Edge> Device::steiner_tree(
     auto add_path = [&](std::vector<uint32_t> const& path) {
         std::vector<uint32_t> vertices;
         // Deal with the first element:
-        if (in_tree.at(*path.rbegin())) {
-            return std::vector<uint32_t>({*path.rbegin()});
+        if (in_tree.at(path.back())) {
+            return std::vector<uint32_t>(1, path.back());
         }
         in_tree.at(*path.rbegin()) = 1;
-        // Deal subsequent elements and add edges
+        uint32_t begin = tree.size();
         for (auto it = path.rbegin() + 1; it != path.rend(); ++it) {
             tree.emplace_back(*it, *(it - 1));
             vertices.push_back(*it);
             if (in_tree.at(*it)) {
-                return vertices;
+                break;
             }
             in_tree.at(*it) = 1;
         }
+        std::reverse(tree.begin() + begin, tree.end());
         return vertices;
     };
 
