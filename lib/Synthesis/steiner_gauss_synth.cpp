@@ -14,62 +14,68 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
 {
     constexpr auto inf = std::numeric_limits<uint32_t>::max();
     std::vector<AbstractGate> gates;
-    std::vector<uint8_t> above_diagonal(matrix.size());
+    std::vector<uint8_t> above_diagonal(matrix.size(), 0);
     for (auto col = 0u; col < matrix.cols(); ++col) {
         // Find pivot
         uint32_t pivot = inf;
-        uint32_t min_dist = inf;
-        for (auto row = col; row < matrix.rows(); ++row){
-            if (matrix(row, col) == MyBool(0u)) {
-                continue;
-            }
-            if (device.distance(row, col) < min_dist) {
-                pivot = row;
-                min_dist = device.distance(row, col);
-            }
-        }
-        assert(pivot != inf);
-
-        // Fill 1's in column i along shortest path to row i
-        std::fill(above_diagonal.begin(), above_diagonal.end(), 0);
+        bool crossed_diag = false;
         std::vector<AbstractGate> swap;
         std::vector<AbstractGate> cleanup_swap;
-        bool crossed_diag = false;
-        auto path = device.shortest_path(pivot, col);
-        uint32_t control = pivot;
-        for (auto const target : path) {
-            if (target == control || matrix(target, col) != MyBool(0u)) {
-                continue;
+        if (matrix(col, col) == MyBool(1u)) {
+            pivot = col;
+        } else {
+            // If the diagonal is not one, we need to look for a pivot, i.e, a
+            // row with an one, and move it to the diagonal.  Of course that we 
+            // just don't take any pivot, we look for the one closer to the 
+            // diagonal.
+            uint32_t min_dist = inf;
+            for (auto row = col + 1; row < matrix.rows(); ++row){
+                if (matrix(row, col) == MyBool(0u)) {
+                    continue;
+                }
+                if (device.distance(row, col) < min_dist) {
+                    pivot = row;
+                    min_dist = device.distance(row, col);
+                }
             }
-            matrix.row(target) += matrix.row(control);
-            swap.emplace_back(control, target);
-            if (control < col) {
-                crossed_diag = true;
-            }
-            above_diagonal.at(target) |= above_diagonal.at(control) || crossed_diag;
-            control = target;
-        }
-
-        if (crossed_diag) {
-            uint32_t target = col;
-            for (auto it = std::next(path.rbegin()); it != path.rend(); it++) {
-                uint32_t control = *it;
-                if (target == col) {
+            assert(pivot != inf);
+            auto path = device.shortest_path(pivot, col);
+            uint32_t control = pivot;
+            for (uint32_t i = 1; i < path.size(); ++i) {
+                uint32_t const target = path.at(i);
+                if (matrix(target, col) == MyBool(1u)) {
                     continue;
                 }
                 matrix.row(target) += matrix.row(control);
                 swap.emplace_back(control, target);
-                above_diagonal.at(target) |= above_diagonal.at(control) | (control < col);
-                target = control;
+                if (control < col) {
+                    crossed_diag = true;
+                }
+                above_diagonal.at(target) |= above_diagonal.at(control) || crossed_diag;
+                control = target;
             }
-            for (auto it = swap.rbegin(); it != swap.rend(); it++) {
-                auto const& [control, target] = *it;
-                if (above_diagonal.at(target) && control != pivot) {
+            if (crossed_diag) {
+                uint32_t target = col;
+                for (auto it = std::next(path.rbegin()); it != path.rend(); it++) {
+                    uint32_t control = *it;
+                    if (target == col) {
+                        continue;
+                    }
                     matrix.row(target) += matrix.row(control);
-                    cleanup_swap.emplace_back(control, target);
+                    swap.emplace_back(control, target);
+                    above_diagonal.at(target) |= above_diagonal.at(control) | (control < col);
+                    target = control;
+                }
+                for (auto it = swap.rbegin(); it != swap.rend(); it++) {
+                    auto const& [control, target] = *it;
+                    if (above_diagonal.at(target) && control != pivot) {
+                        matrix.row(target) += matrix.row(control);
+                        cleanup_swap.emplace_back(control, target);
+                    }
                 }
             }
         }
+
         // Compute steiner tree covering the 1's in column i
         pivot = col;
         std::fill(above_diagonal.begin(), above_diagonal.end(), 0);
@@ -80,12 +86,15 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
             }
             terminals.push_back(row);
         }
+        if (terminals.empty()) {
+            continue;
+        }
         auto s_tree = device.steiner_tree(terminals, pivot);
 
         // Propagate 1's to column col for each Steiner point
         std::vector<AbstractGate> compute;
         for (auto const& [control, target] : s_tree) {
-            if (matrix(target, col) == MyBool(1)) {
+            if (matrix(target, col) == MyBool(1u)) {
                 continue;
             }
             matrix.row(target) += matrix.row(control);
