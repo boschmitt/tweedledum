@@ -83,6 +83,16 @@ void init_Synthesis(pybind11::module& module)
         py::arg("circuit"), py::arg("qubits"), py::arg("cbits"), py::arg("function"), py::arg("config") = nlohmann::json(),
         "Synthesize a quantum circuit inplace from a function by computing the Rademacher-Walsh spectrum.");
 
+    module.def("steiner_gauss_synth",
+        py::overload_cast<Device const&, BMatrix const&, nlohmann::json const&>(&steiner_gauss_synth),
+        py::arg("device"), py::arg("matrix"), py::arg("config") = nlohmann::json(),
+        "Synthesis of coupled constrained linear reversible circuits (CNOT synthesis).");
+
+    module.def("steiner_gauss_synth",
+        py::overload_cast<Circuit&, Device const&, BMatrix const&, nlohmann::json const&>(&steiner_gauss_synth),
+        py::arg("circuit"), py::arg("device"), py::arg("matrix"), py::arg("config") = nlohmann::json(),
+        "Synthesis of coupled constrained linear reversible circuits (CNOT synthesis).");
+
     module.def("transform_synth", 
         py::overload_cast<std::vector<uint32_t> const&>(&transform_synth),
         "Reversible synthesis based on symbolic transformation.");

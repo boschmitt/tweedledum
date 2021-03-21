@@ -11,6 +11,7 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/pkrm_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/pprm_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/spectrum_synth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/steiner_gauss_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/transform_synth.cpp
 )
 

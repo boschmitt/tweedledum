@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
@@ -113,7 +114,7 @@ public:
     bool are_connected(uint32_t const v, uint32_t const u) const
     {
         assert(v <= num_qubits() && u <= num_qubits());
-        if (!dist_matrix_.empty()) {
+        if (!shortest_path_.empty()) {
             return distance(v, u) == 1u;
         }
         Edge const edge = {std::min(v, u), std::max(u, v)};
@@ -124,14 +125,57 @@ public:
         return true;
     }
 
-    uint32_t distance(uint32_t const v, uint32_t const u) const
+    /*! \brief Get a shortest path between two qubits
+    *
+    * Paths are computed once and cached.  Since I assume a undirected graph,
+    * I can save some space by only storing the path between `begin` to `end`,
+    * where `begin` < `end`.  If we are interested in the other direction, i.e,
+    * `begin` > `end` we just need to reverse the stored path.
+    * 
+    * TODO: When considering the fidelity of qubits the cost of (u, v) might be
+    * different than the cost of (v, u). (distance changes too!!)
+    * 
+    * \param[in] begin The starting qubit
+    * \param[in] end The ending qubit
+    * \return A shortest path between represented as a vector of qubits
+    */
+    std::vector<uint32_t> shortest_path(uint32_t begin, uint32_t end) const
     {
-        assert(v < num_qubits() && u < num_qubits());
-        if (dist_matrix_.empty()) {
-            compute_distance_matrix();
+        assert(begin < num_qubits() && end < num_qubits());
+        if (begin == end) {
+            return {};
         }
-        return dist_matrix_[v][u];
+        if (shortest_path_.empty()) {
+            compute_shortest_paths();
+        }
+        uint32_t const idx = triangle_idx(begin, end);
+        std::vector<uint32_t> result = shortest_path_.at(idx);
+        if (begin > end) {
+            std::reverse(result.begin(), result.end());
+        }
+        return result;
     }
+
+    /*! \brief Get the distance of a shortest path between two qubits
+    * 
+    * \param[in] begin The starting qubit
+    * \param[in] end The ending qubit
+    * \return The length of a shortest path between the qubits
+    */
+    uint32_t distance(uint32_t begin, uint32_t end) const
+    {
+        assert(begin < num_qubits() && end < num_qubits());
+        if (begin == end) {
+            return 0;
+        }
+        if (shortest_path_.empty()) {
+            compute_shortest_paths();
+        }
+        uint32_t const idx = triangle_idx(begin, end);
+        return shortest_path_.at(idx).size() - 1;
+    }
+
+    std::vector<Device::Edge> steiner_tree(std::vector<uint32_t> terminals, uint32_t root) const;
 
     /*! \brief Add an _undirected_ edge between two qubits */
     void add_edge(uint32_t const v, uint32_t const u)
@@ -146,34 +190,160 @@ public:
 #pragma endregion
 
 private:
-    void compute_distance_matrix() const;
+    void compute_shortest_paths() const;
+
+    uint32_t triangle_idx(uint32_t i, uint32_t j) const
+    {
+        if (i > j) {
+            std::swap(i, j);
+        }
+        return i * num_qubits() - (i - 1) * i / 2 + j - i;
+    }
 
 private:
     std::string name_;
     std::vector<std::vector<uint32_t>> neighbors_;
     std::vector<Edge> edges_;
     mutable std::vector<std::vector<uint32_t>> dist_matrix_;
+    mutable std::vector<std::vector<uint32_t>> shortest_path_;
 };
 
-inline void Device::compute_distance_matrix() const
+inline void Device::compute_shortest_paths() const
 {
-    dist_matrix_.resize(num_qubits(), std::vector<uint32_t>(num_qubits(), num_qubits() + 1));
-    for (uint32_t v = 0u; v < num_qubits(); ++v) {
-        dist_matrix_[v][v] = 0;
+    Eigen::MatrixXi shortest_paths(num_qubits(), num_qubits());
+    Eigen::MatrixXi dist(num_qubits(), num_qubits());
+
+    // All-pairs shortest paths
+    for (uint32_t i = 0; i < num_qubits(); i++) {
+        for (uint32_t j = 0; j < num_qubits(); j++) {
+            if (i == j) {
+                dist(i ,j) = 0;
+                shortest_paths(i, j) = j;
+            } else if (are_connected(i, j)) {
+                dist(i, j) = 1;
+                shortest_paths(i, j) = j;
+            } else {
+                dist(i, j) = num_qubits();
+                shortest_paths(i, j) = num_qubits();
+            }
+        }
     }
-    for (auto const& [v, w] : edges_) {
-        dist_matrix_[v][w] = 1;
-        dist_matrix_[w][v] = 1;
-    }
+
     for (uint32_t k = 0u; k < num_qubits(); ++k) {
         for (uint32_t i = 0u; i < num_qubits(); ++i) {
             for (uint32_t j = 0u; j < num_qubits(); ++j) {
-                if (dist_matrix_[i][j] > dist_matrix_[i][k] + dist_matrix_[k][j]) {
-                    dist_matrix_[i][j] = dist_matrix_[i][k] + dist_matrix_[k][j];
+                if (dist(i, j) > dist(i, k) + dist(k, j)) {
+                    dist(i, j) = dist(i, k) + dist(k, j);
+                    shortest_paths(i, j) = shortest_paths(i, k);
                 }
             }
         }
     }
+
+    shortest_path_.resize(num_qubits() * (num_qubits() + 1) / 2);
+    for (uint32_t i = 0u; i < num_qubits(); ++i) {
+        for (uint32_t j = i + 1; j < num_qubits(); ++j) {
+            uint32_t const idx = triangle_idx(j, i);
+            uint32_t current = i;
+            shortest_path_.at(idx).push_back(i);
+            while (current != j) {
+                current = shortest_paths(current, j);
+                shortest_path_.at(idx).push_back(current);
+            }
+        }
+    }
+}
+
+/*! \brief Get an approximation to a minimal Steiner tree
+ *
+ * Given a set of terminal nodes and a root node in the coupling graph,
+ * attempts to find a minimal weight set of edges connecting the root to
+ * each terminal.
+ * 
+ * Steiner Tree problem is NP-Hard.  Bellow is one simple approximate algorithm
+ * based on Shortest Path. (Usually computing all shortest paths is considered
+ * a disadvantage, but in this class I do compute them for other things.)
+ * 
+ * Outline:
+ *   1. Start with a subtree T consisting of one given terminal vertex
+ *   2. While T does not span all terminals
+ *        a) Select a terminal x not in T that is closest to a vertex in T.
+ *        b) Add to T the shortest path that connects x with T.
+ *
+ * The algorithm is (2-2/n) approximate
+ * 
+ * \param[in] terminals A vector of terminal qubits to be connected
+ * \param[in] root A root for the Steiner tree
+ * \return A spanning tree represented as a vector of edges
+ */
+inline std::vector<Device::Edge> Device::steiner_tree(
+    std::vector<uint32_t> terminals, uint32_t root) const
+{
+    if (terminals.empty()) {
+        return {};
+    }
+    // The steiner tree
+    std::vector<Device::Edge> tree;
+
+    // Internal data structures
+    std::vector<uint32_t> vertex_cost(num_qubits());
+    std::vector<uint32_t> edge_in(num_qubits(), root);
+    std::vector<uint8_t> in_tree(num_qubits(), 0);
+
+    auto add_path = [&](std::vector<uint32_t> const& path) {
+        std::vector<uint32_t> vertices;
+        // Deal with the first element:
+        if (in_tree.at(path.back())) {
+            return std::vector<uint32_t>(1, path.back());
+        }
+        in_tree.at(*path.rbegin()) = 1;
+        uint32_t begin = tree.size();
+        for (auto it = path.rbegin() + 1; it != path.rend(); ++it) {
+            tree.emplace_back(*it, *(it - 1));
+            vertices.push_back(*it);
+            if (in_tree.at(*it)) {
+                break;
+            }
+            in_tree.at(*it) = 1;
+        }
+        std::reverse(tree.begin() + begin, tree.end());
+        return vertices;
+    };
+
+    // Choose minimal vertex, i.e., vertex closest to the root
+    auto min_vertex = terminals.begin();
+    vertex_cost.at(*min_vertex) = distance(root, *min_vertex);
+    for (auto it = terminals.begin() + 1; it != terminals.end(); ++it) {
+        uint32_t const vertex = *it;
+        vertex_cost.at(vertex) = distance(root, vertex);
+        if (vertex_cost.at(vertex) < vertex_cost.at(*min_vertex)) {
+            min_vertex = it;
+        }
+    }
+
+    // While `tree` does not span all terminals
+    while (!terminals.empty()) {
+        uint32_t curr_vertex = *min_vertex;
+        terminals.erase(min_vertex);
+        auto const st = shortest_path(edge_in.at(curr_vertex), curr_vertex);
+        auto const new_vertices = add_path(st);
+        // Update costs and select a new minimal vertex
+        min_vertex = terminals.begin();
+        for (auto it = terminals.begin(); it != terminals.end(); ++it) {
+            uint32_t const vertex = *it;
+            for (uint32_t new_vertex : new_vertices) {
+                if (distance(new_vertex, vertex) < vertex_cost.at(vertex)) {
+                    vertex_cost.at(vertex) = distance(new_vertex, vertex);
+                    edge_in.at(vertex) = new_vertex;
+                }
+            }
+            vertex_cost.at(vertex) = distance(root, vertex);
+            if (vertex_cost.at(vertex) < vertex_cost.at(*min_vertex)) {
+                min_vertex = it;
+            }
+        }
+    }
+    return tree;
 }
 
 } // namespace tweedledum
