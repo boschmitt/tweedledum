@@ -61,9 +61,37 @@ jobs:
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: '10.15'
+
+      - name: Upload built wheels
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_wheels_macos_10_14:
+    name: Wheels • macos 10.14
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Build wheels
+        uses: joerick/cibuildwheel@v1.9.0
+        env:
+          CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
+          CIBW_ARCHS_MACOS: x86_64
+          CIBW_ENVIRONMENT: "CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ CXXFLAGS='-static-libstdc++'"
+          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+          MACOSX_DEPLOYMENT_TARGET: '10.14'
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v2
@@ -94,8 +122,8 @@ jobs:
           CC: cl.exe
           CXX: cl.exe
           CIBW_BUILD: cp3{6,7,8,9}*-win32
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
 
       - name: Upload built wheel 
         uses: actions/upload-artifact@v2

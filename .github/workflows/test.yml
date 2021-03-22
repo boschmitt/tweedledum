@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Wheels • macos 10.14
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Build wheels
+        uses: joerick/cibuildwheel@v1.9.0
+        env:
+          CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
+          CIBW_ARCHS_MACOS: x86_64
+          CMAKE_BUILD_PARALLEL_LEVEL: 2
+          CIBW_ENVIRONMENT: "CXX=$(brew --prefix llvm)/bin/clang CXXFLAGS='-static-libgcc -static-libstdc++'"
+          MACOSX_DEPLOYMENT_TARGET: '10.14'
+
+      - name: Upload built wheels
+        uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
