@@ -125,20 +125,24 @@ class FunctionParser(ast.NodeVisitor):
         return (FunctionParser.types['BitVec'], 1), [result]
 
     def visit_Constant(self, node):
-        return node.value
+        return ast.literal_eval(node)
 
     def visit_FunctionDef(self, node):
         if node.returns is None:
             raise ParseError("Return type is needed")
         if isinstance(node.returns, _ast.Call):
             return_type = node.returns.func.id
-            size = int(ast.literal_eval(node.returns.args[0]))
+            size = self.visit(node.returns.args[0])
+            if not isinstance(size, int):
+                ParseError("Size must be an integer")
             self._return_signature = [(FunctionParser.types[return_type], size)]
             self._symbol_table['__dee_ret_0'] = (return_type, None)
         elif isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
                 return_type = elt.func.id
-                size = int(ast.literal_eval(elt.args[0]))
+                size = self.visit(elt.args[0])
+                if not isinstance(size, int):
+                    ParseError("Size must be an integer")
                 self._return_signature.append((FunctionParser.types[return_type], size))
                 self._symbol_table[f'__dee_ret_{i}'] = (return_type, None)
         else:
@@ -207,7 +211,7 @@ class FunctionParser(ast.NodeVisitor):
     def _visit_annotation_Call(self, node):
         type_ = FunctionParser.types[node.func.id]
         if len(node.args) == 1:
-            size = ast.literal_eval(node.args[0])
+            size = self.visit(node.args[0])
             if not isinstance(size, int):
                 ParseError("Size must be an integer")
             return type_, size
