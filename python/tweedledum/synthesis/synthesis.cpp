@@ -15,6 +15,11 @@ void init_Synthesis(pybind11::module& module)
     using namespace tweedledum;
     namespace py = pybind11;
 
+    module.def("a_star_swap_synth", 
+        py::overload_cast<Device const&, std::vector<uint32_t> const&, std::vector<uint32_t> const&, nlohmann::json const&>(&a_star_swap_synth),
+        py::arg("device"), py::arg("init_cfg"), py::arg("final_cfg"), py::arg("config") = nlohmann::json(),
+        "Synthesize a quantum swap circuit.");
+
     module.def("decomp_synth",
         py::overload_cast<std::vector<uint32_t> const&>(&decomp_synth),
         "Reversible synthesis based on functional decomposition.");

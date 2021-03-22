@@ -4,6 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "a_star_swap_synth.h"
 #include "all_linear_synth.h"
 #include "decomp_synth.h"
 #include "diagonal_synth.h"
