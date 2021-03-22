@@ -59,7 +59,7 @@ jobs:
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         env:
-          CIBW_SKIP: cp27-* cp34-* cp35-* cp36-* pp* *win32
+          CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
@@ -93,7 +93,7 @@ jobs:
         env:
           CC: cl.exe
           CXX: cl.exe
-          CIBW_BUILD: cp{7,8,9}*-win32
+          CIBW_BUILD: cp3{6,7,8,9}*-win32
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
 
