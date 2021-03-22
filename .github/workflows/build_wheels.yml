@@ -62,6 +62,7 @@ jobs:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
           CMAKE_BUILD_PARALLEL_LEVEL: 2
+          CIBW_TEST_COMMAND: python -m unittest discover {project}/python/test/ 
           MACOSX_DEPLOYMENT_TARGET: '10.15'
 
       - name: Upload built wheels
@@ -94,6 +95,7 @@ jobs:
           CXX: cl.exe
           CIBW_BUILD: cp*-win32
           CMAKE_BUILD_PARALLEL_LEVEL: 2
+          CIBW_TEST_COMMAND: python -m unittest discover {project}/python/test/
 
       - name: Upload built wheel 
         uses: actions/upload-artifact@v2
