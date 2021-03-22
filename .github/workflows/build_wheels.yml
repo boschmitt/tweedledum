@@ -7,9 +7,102 @@ on:
       - published
 
 jobs:
-  build_sdist:
-    name: Source distribution
-    runs-on: ubuntu-latest
+  # build_sdist:
+  #   name: Source distribution
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: '3.7'
+
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade scikit-build
+
+  #     - name: Build sdist
+  #       run: |
+  #         python setup.py sdist --dist-dir=wheelhouse
+
+  #     - name: Upload built sdist
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         path: ./wheelhouse/*.tar.gz
+
+  # build_wheels:
+  #   name: Wheels • ${{ matrix.os }}
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-latest, windows-latest, macos-latest]
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: '3.7'
+
+  #     - name: Setup MSVC
+  #       uses: ilammy/msvc-dev-cmd@v1.5.0
+  #       if: runner.os == 'Windows'
+  #       env:
+  #           CC: cl.exe
+  #           CXX: cl.exe
+
+  #     - name: Build wheels
+  #       uses: joerick/cibuildwheel@v1.9.0
+  #       env:
+  #         CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
+  #         CIBW_ARCHS_MACOS: x86_64
+  #         CMAKE_BUILD_PARALLEL_LEVEL: 2
+  #         MACOSX_DEPLOYMENT_TARGET: '10.15'
+
+  #     - name: Upload built wheels
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         path: ./wheelhouse/*.whl
+
+  # build_wheels_win32:
+  #   name: Wheels • win32
+  #   runs-on: windows-latest
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v2
+  #       with:
+  #         python-version: '3.7'
+
+  #     - name: Setup MSVC
+  #       uses: ilammy/msvc-dev-cmd@v1.5.0
+  #       with:
+  #           arch: x86
+
+  #     - name: Build wheel
+  #       uses: joerick/cibuildwheel@v1.9.0
+  #       env:
+  #         CC: cl.exe
+  #         CXX: cl.exe
+  #         CIBW_BUILD: cp*-win32
+  #         CMAKE_BUILD_PARALLEL_LEVEL: 2
+
+  #     - name: Upload built wheel 
+  #       uses: actions/upload-artifact@v2
+  #       with:
+  #         path: ./wheelhouse/*.whl
+
+  build_wheels_macos_10_14:
+    name: Wheels • macos 10.14
+    runs-on: macos-latest
 
     steps:
       - name: Checkout code
@@ -19,42 +112,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.7'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade scikit-build
-
-      - name: Build sdist
-        run: |
-          python setup.py sdist --dist-dir=wheelhouse
-
-      - name: Upload built sdist
-        uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.tar.gz
-
-  build_wheels:
-    name: Wheels • ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1.5.0
-        if: runner.os == 'Windows'
-        env:
-            CC: cl.exe
-            CXX: cl.exe
 
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
@@ -62,40 +119,10 @@ jobs:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
           CMAKE_BUILD_PARALLEL_LEVEL: 2
-          MACOSX_DEPLOYMENT_TARGET: '10.15'
+          CIBW_ENVIRONMENT: "CXX=$(brew --prefix llvm)/bin/clang CXXFLAGS='-static-libgcc -static-libstdc++'"
+          MACOSX_DEPLOYMENT_TARGET: '10.14'
 
       - name: Upload built wheels
-        uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
-
-  build_wheels_win32:
-    name: Wheels • win32
-    runs-on: windows-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1.5.0
-        with:
-            arch: x86
-
-      - name: Build wheel
-        uses: joerick/cibuildwheel@v1.9.0
-        env:
-          CC: cl.exe
-          CXX: cl.exe
-          CIBW_BUILD: cp*-win32
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
-
-      - name: Upload built wheel 
         uses: actions/upload-artifact@v2
         with:
           path: ./wheelhouse/*.whl
