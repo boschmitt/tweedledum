@@ -207,7 +207,10 @@ class FunctionParser(ast.NodeVisitor):
     def _visit_annotation_Call(self, node):
         type_ = FunctionParser.types[node.func.id]
         if len(node.args) == 1:
-            return type_, self.visit(node.args[0])
+            size = ast.literal_eval(node.args[0])
+            if not isinstance(size, int):
+                ParseError("Size must be an integer")
+            return type_, size
         raise ParseError("Invalid number of arguments")
 
     def _const_BitVec(self, length, value=None):
