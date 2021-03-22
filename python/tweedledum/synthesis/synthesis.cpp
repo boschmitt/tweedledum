@@ -73,6 +73,11 @@ void init_Synthesis(pybind11::module& module)
         py::arg("circuit"), py::arg("qubits"), py::arg("cbits"), py::arg("function"), py::arg("config") = nlohmann::json(),
         "Synthesize a quantum circuit inplace from a function by computing PPRM representation.");
 
+    module.def("sat_swap_synth", 
+        py::overload_cast<Device const&, std::vector<uint32_t> const&, std::vector<uint32_t> const&, nlohmann::json const&>(&sat_swap_synth),
+        py::arg("device"), py::arg("init_cfg"), py::arg("final_cfg"), py::arg("config") = nlohmann::json(),
+        "Synthesize a quantum swap circuit.");
+
     module.def("spectrum_synth", 
         py::overload_cast<kitty::dynamic_truth_table const&, nlohmann::json const&>(&spectrum_synth),
         py::arg("function"), py::arg("config") = nlohmann::json(),

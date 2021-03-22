@@ -12,6 +12,7 @@
 #include "linear_synth.h"
 #include "pkrm_synth.h"
 #include "pprm_synth.h"
+#include "sat_swap_synth.h"
 #include "spectrum_synth.h"
 #include "steiner_gauss_synth.h"
 #include "transform_synth.h"

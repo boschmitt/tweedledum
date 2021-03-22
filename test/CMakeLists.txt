@@ -28,6 +28,7 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/linear_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/pkrm_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/pprm_synth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/sat_swap_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/spectrum_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/steiner_gauss_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/transform_synth.cpp
