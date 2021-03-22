@@ -132,13 +132,13 @@ class FunctionParser(ast.NodeVisitor):
             raise ParseError("Return type is needed")
         if isinstance(node.returns, _ast.Call):
             return_type = node.returns.func.id
-            size = int(node.returns.args[0].value)
+            size = int(ast.literal_eval(node.returns.args[0]))
             self._return_signature = [(FunctionParser.types[return_type], size)]
             self._symbol_table['__dee_ret_0'] = (return_type, None)
         elif isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
                 return_type = elt.func.id
-                size = int(elt.args[0].value)
+                size = int(ast.literal_eval(elt.args[0]))
                 self._return_signature.append((FunctionParser.types[return_type], size))
                 self._symbol_table[f'__dee_ret_{i}'] = (return_type, None)
         else:
