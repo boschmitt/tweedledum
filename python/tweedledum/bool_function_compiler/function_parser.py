@@ -89,16 +89,16 @@ class FunctionParser(ast.NodeVisitor):
     def visit_Call(self, node):
         type_ = FunctionParser.types[node.func.id]
         if len(node.args) == 1:
-            value = self.visit(node.args[0])
+            value = ast.literal_eval(node.args[0])
             if isinstance(value, str):
                 return (type_, len(value)), self._const_BitVec(len(value), value)
             elif isinstance(value, int):
                 return (type_, value),  self._const_BitVec(value)
         elif len(node.args) == 2:
-            length = self.visit(node.args[0])
+            length = ast.literal_eval(node.args[0])
             if not isinstance(length, int):
                 raise ParseError("BitVec requires length to be an integer")
-            value = self.visit(node.args[1])
+            value = ast.literal_eval(node.args[1])
             if isinstance(value, int):
                 value = "{:0{}b}".format(value, length)
             return (type_, length), self._const_BitVec(length, value)
@@ -124,21 +124,22 @@ class FunctionParser(ast.NodeVisitor):
         result = self._logic_network.create_nary_and(partial_results)
         return (FunctionParser.types['BitVec'], 1), [result]
 
-    def visit_Constant(self, node):
-        return node.value
-
     def visit_FunctionDef(self, node):
         if node.returns is None:
             raise ParseError("Return type is needed")
         if isinstance(node.returns, _ast.Call):
             return_type = node.returns.func.id
-            size = int(node.returns.args[0].value)
+            size = ast.literal_eval(node.returns.args[0])
+            if not isinstance(size, int):
+                ParseError("Size must be an integer")
             self._return_signature = [(FunctionParser.types[return_type], size)]
             self._symbol_table['__dee_ret_0'] = (return_type, None)
         elif isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
                 return_type = elt.func.id
-                size = int(elt.args[0].value)
+                size = ast.literal_eval(elt.args[0])
+                if not isinstance(size, int):
+                    ParseError("Size must be an integer")
                 self._return_signature.append((FunctionParser.types[return_type], size))
                 self._symbol_table[f'__dee_ret_{i}'] = (return_type, None)
         else:
@@ -207,7 +208,10 @@ class FunctionParser(ast.NodeVisitor):
     def _visit_annotation_Call(self, node):
         type_ = FunctionParser.types[node.func.id]
         if len(node.args) == 1:
-            return type_, self.visit(node.args[0])
+            size = ast.literal_eval(node.args[0])
+            if not isinstance(size, int):
+                ParseError("Size must be an integer")
+            return type_, size
         raise ParseError("Invalid number of arguments")
 
     def _const_BitVec(self, length, value=None):
