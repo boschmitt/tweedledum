@@ -5,6 +5,9 @@
 import os
 import sys
 import setuptools
+import time
+
+build_dev = os.environ.get('BUILD_TWEEDLEDUM_DEV', False)
 
 try:
     import skbuild
@@ -20,9 +23,21 @@ README_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)),
 with open(README_PATH) as readme_file:
     README = readme_file.read()
 
+def get_name():
+    if build_dev:
+        return "tweedledum-dev"
+    else:
+        return "tweedledum"
+
+def get_version():
+    if build_dev:
+        return "1.0.0.dev" + str(int(time.time()))
+    else:
+        return "1.0.0b3"
+
 skbuild.setup(
-    name="tweedledum",
-    version="1.0.0-beta3",
+    name=get_name(),
+    version=get_version(),
     description="A library for synthesizing and manipulating quantum circuits",
     long_description=README,
     long_description_content_type='text/markdown',
