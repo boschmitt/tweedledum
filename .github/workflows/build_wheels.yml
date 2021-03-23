@@ -70,9 +70,12 @@ jobs:
         with:
           path: ./wheelhouse/*.whl
 
-  build_wheels_macos_10_14:
-    name: Wheels • macos 10.14
+  build_wheels_older_macos:
+    name: Wheels • macOSX ${{ matrix.target }}
     runs-on: macos-latest
+    strategy:
+      matrix:
+        target: ['10.9', '10.10', '10.11', '10.12', '10.13', '10.14']
 
     steps:
       - name: Checkout code
@@ -91,7 +94,7 @@ jobs:
           CIBW_ENVIRONMENT: "CC=$(brew --prefix llvm)/bin/clang CXX=$(brew --prefix llvm)/bin/clang++ CXXFLAGS='-static-libstdc++'"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
-          MACOSX_DEPLOYMENT_TARGET: '10.14'
+          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v2
