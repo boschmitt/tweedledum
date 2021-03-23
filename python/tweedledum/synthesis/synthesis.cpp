@@ -28,6 +28,16 @@ void init_Synthesis(pybind11::module& module)
         py::overload_cast<Circuit&, std::vector<Qubit> const&, std::vector<Cbit> const&, std::vector<uint32_t> const&>(&decomp_synth),
         "Reversible synthesis based on functional decomposition.");
 
+    module.def("diagonal_synth",
+        py::overload_cast<std::vector<double> const&, nlohmann::json const&>(&diagonal_synth),
+        py::arg("angles"), py::arg("config") = nlohmann::json(),
+        "Synthesis of diagonal unitary matrices.");
+
+    module.def("diagonal_synth", 
+        py::overload_cast<Circuit&, std::vector<Qubit>, std::vector<Cbit> const&, std::vector<double> const&, nlohmann::json const&>(&diagonal_synth),
+        py::arg("circuit"), py::arg("qubits"), py::arg("cbits"), py::arg("angles"), py::arg("config") = nlohmann::json(),
+        "Synthesis of diagonal unitary matrices.");
+
     module.def("gray_synth",
         py::overload_cast<uint32_t, LinPhasePoly const&, nlohmann::json const&>(&gray_synth),
         py::arg("num_qubits"), py::arg("parities"), py::arg("config") = nlohmann::json(),
