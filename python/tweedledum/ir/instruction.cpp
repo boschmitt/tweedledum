@@ -6,6 +6,7 @@
 
 #include <pybind11/stl.h>
 #include <tweedledum/IR/Instruction.h>
+#include <tweedledum/Operators/Utils.h>
 
 void init_Instruction(pybind11::module& module)
 {
@@ -27,4 +28,6 @@ void init_Instruction(pybind11::module& module)
             auto const& temp = i.cast<python::PyOperator>();
             return temp.obj();
         });
+
+    module.def("rotation_angle", &rotation_angle, "Rotation angle.");
 }

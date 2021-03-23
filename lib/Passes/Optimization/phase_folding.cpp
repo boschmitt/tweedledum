@@ -29,7 +29,7 @@ Circuit phase_folding(Circuit const& original)
     LinPhasePoly phase_parities;
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t const t = inst.target(0u);
-        double const angle = rotation_angle(inst);
+        std::optional<double> const angle = rotation_angle(inst);
         if (inst.num_cbits() || (inst.num_qubits() > 2)) {
             goto new_vars_end;
         }
@@ -58,8 +58,8 @@ Circuit phase_folding(Circuit const& original)
             qubit_pathsum.at(t) = esop;
             return;
         }
-        if (angle != 0.0) {
-            phase_parities.add_term(qubit_pathsum.at(t), angle);
+        if (angle) {
+            phase_parities.add_term(qubit_pathsum.at(t), angle.value());
         }
         return;
 
