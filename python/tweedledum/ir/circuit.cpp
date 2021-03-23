@@ -6,6 +6,7 @@
 
 #include <pybind11/operators.h>
 #include <pybind11/stl.h>
+#include <tweedledum/Parser/qasm.h>
 #include <tweedledum/Operators/All.h>
 #include <tweedledum/Utils/Visualization/string_utf8.h>
 
@@ -15,6 +16,8 @@ void init_Circuit(pybind11::module& module)
     namespace py = pybind11;
 
     py::class_<Circuit>(module, "Circuit")
+        .def_static("from_qasm_file", &qasm::parse_source_file)
+        .def_static("from_qasm_string", &qasm::parse_source_buffer)
         .def(py::init<>())
         // Properties
         .def("num_ancillae", &Circuit::num_ancillae)
