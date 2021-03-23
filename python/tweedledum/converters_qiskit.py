@@ -2,7 +2,7 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 #-------------------------------------------------------------------------------
-from tweedledum.ir import Circuit, Qubit, Cbit
+from tweedledum.ir import Circuit, Qubit, Cbit, rotation_angle
 from tweedledum import operators as dum_ops
 
 from qiskit import QuantumRegister
@@ -100,24 +100,21 @@ def _convert_tweedledum_op(op):
         else:
             raise RuntimeError(f'Unrecognized operator: {op.kind()}')
 
+    if op.kind() in ['std.p', 'std.rx', 'std.ry', 'std.rz',
+                     'ising.rxx', 'ising.ryy', 'ising.rzz']:
+        angle = rotation_angle(op)
+        gate = base_gate(angle)
+    else:
+        gate = base_gate()
+
     # TODO: need to deal with cbits too!
     if op.num_controls() > 0:
         qubits = op.qubits()
         ctrl_state = ''
         for qubit in qubits[:op.num_controls()]:
-            ctrl_state += '{}'.format(int(qubit.polarity() == Qubit.Polarity.positive)) 
-        return base_gate().control(len(ctrl_state), ctrl_state=ctrl_state[::-1])
-    return base_gate()
-
-    # TODO:
-    # elif instruction.kind() == 'std.p':
-    #     return PhaseGate()
-    # elif instruction.kind() == 'std.rx':
-    #     return RZGate()
-    # elif instruction.kind() == 'std.ry':
-    #     return RZGate()
-    # elif instruction.kind() == 'std.rz':
-    #     return RZGate()
+            ctrl_state += '{}'.format(int(qubit.polarity() == Qubit.Polarity.positive))
+        return gate.control(len(ctrl_state), ctrl_state=ctrl_state[::-1])
+    return gate
 
 def tweedledum_to_qiskit_qc(circuit):
     qiskit_qc = QuantumCircuit(circuit.num_qubits())

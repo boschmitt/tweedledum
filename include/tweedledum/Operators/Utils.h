@@ -11,6 +11,8 @@
 #include "Standard/T.h"
 #include "Standard/Z.h"
 
+#include <optional>
+
 namespace tweedledum {
 
 inline void apply_identified_phase(Circuit& circuit, double angle, Qubit target)
@@ -38,7 +40,7 @@ inline void apply_identified_phase(Circuit& circuit, double angle, Qubit target)
     circuit.apply_operator(Op::P(angle), {target});
 }
 
-inline double rotation_angle(Instruction const& inst)
+inline std::optional<double> rotation_angle(Instruction const& inst)
 {
     if (inst.is_a<Op::P>()) {
         return inst.cast<Op::P>().angle();
@@ -58,7 +60,7 @@ inline double rotation_angle(Instruction const& inst)
     if (inst.is_a<Op::Z>()) {
         return inst.cast<Op::Z>().angle();
     }
-    return 0.0;
+    return std::nullopt;
 }
 
 }
