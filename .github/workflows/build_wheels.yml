@@ -70,7 +70,7 @@ jobs:
         with:
           path: ./wheelhouse/*.whl
 
-  build_wheels_macosx_10.9:
+  build_wheels_macosx_10_9:
     name: Wheels • macOSX 10.9
     runs-on: macos-latest
 
