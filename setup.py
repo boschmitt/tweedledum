@@ -7,7 +7,7 @@ import sys
 import setuptools
 import time
 
-build_dev = os.environ.get('BUILD_TWEEDLEDUM_DEV', False)
+build_dev_version = os.environ.get('TWEEDLEDUM_DEV_VERSION', False)
 
 try:
     import skbuild
@@ -24,14 +24,14 @@ with open(README_PATH) as readme_file:
     README = readme_file.read()
 
 def get_name():
-    if build_dev:
+    if build_dev_version:
         return "tweedledum-dev"
     else:
         return "tweedledum"
 
 def get_version():
-    if build_dev:
-        return "1.0.0.dev" + str(int(time.time()))
+    if build_dev_version:
+        return "1.0.0.dev" + str(build_dev_version)
     else:
         return "1.0.0b3"
 
