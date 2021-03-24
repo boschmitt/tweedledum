@@ -183,14 +183,27 @@ class FunctionParser(ast.NodeVisitor):
                 self._logic_network.create_po(s)
 
     def visit_Slice(self, node):
-        return slice(self.visit(node.lower), self.visit(node.upper))
+        lower = ast.literal_eval(node.lower)
+        upper = ast.literal_eval(node.lower)
+        return slice(lower, upper)
+
+    # Python < 3.9
+    def visit_Index(self, node):
+        if not isinstance(node.value, ast.Num):
+            raise ParseError("Subscript index must be a number")
+        return ast.literal_eval(node.value)
+
+    def visit_Constant(self, node):
+        return ast.literal_eval(node)
 
     def visit_Subscript(self, node):
         v_type, v_signals = self.visit(node.value)
         slice_ = self.visit(node.slice)
-        if isinstance(node.slice, ast.Constant):
+        if isinstance(slice_, int):
             return v_type, [v_signals[slice_]]
-        return v_type, v_signals[slice_]
+        if isinstance(slice_, slice):
+            return v_type, v_signals[slice_]
+        raise ParseError("Subscript must be an integer or a slice")
 
     def visit_UnaryOp(self, node):
         result_type, result_signal = self.visit(node.operand)
