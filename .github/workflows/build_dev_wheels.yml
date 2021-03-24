@@ -99,7 +99,6 @@ jobs:
 
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
-
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
           CIBW_ENVIRONMENT: "CC=gcc-10 CXX=g++-10 CXXFLAGS='-static-libgcc -static-libstdc++'"
