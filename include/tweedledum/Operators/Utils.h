@@ -60,6 +60,15 @@ inline std::optional<double> rotation_angle(Instruction const& inst)
     if (inst.is_a<Op::Z>()) {
         return inst.cast<Op::Z>().angle();
     }
+    if (inst.is_a<Op::Rx>()) {
+        return inst.cast<Op::Rx>().angle();
+    }
+    if (inst.is_a<Op::Ry>()) {
+        return inst.cast<Op::Ry>().angle();
+    }
+    if (inst.is_a<Op::Rz>()) {
+        return inst.cast<Op::Rz>().angle();
+    }
     return std::nullopt;
 }
 
