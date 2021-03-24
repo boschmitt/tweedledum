@@ -5,9 +5,10 @@ on:
 
 jobs:
   setup_date:
+    name: Setup version timestamp
     runs-on: ubuntu-latest
     outputs:
-      date: ${{ steps.date.outputs.now }}
+      timestamp: ${{ steps.date.outputs.now }}
     steps:
     - id: date 
       run: echo "::set-output name=now::$(date +'%Y%m%d%H%M')"
@@ -17,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup_date
     env:
-      TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.date}}
+      TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.timestamp}}
 
     steps:
       - name: Checkout code
@@ -45,8 +46,6 @@ jobs:
     name: Wheels • ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     needs: setup_date
-    env:
-      TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.date}}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -72,6 +71,7 @@ jobs:
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
+          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: '10.14'
@@ -85,8 +85,6 @@ jobs:
     name: Wheels • macOSX 10.9
     runs-on: macos-latest
     needs: setup_date
-    env:
-      TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.date}}
 
     steps:
       - name: Checkout code
@@ -102,7 +100,7 @@ jobs:
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
-          CIBW_ENVIRONMENT: "CC=gcc-10 CXX=g++-10 CXXFLAGS='-static-libgcc -static-libstdc++'"
+          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}} CC=gcc-10 CXX=g++-10 CXXFLAGS='-static-libgcc -static-libstdc++'"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: '10.9'
@@ -116,8 +114,6 @@ jobs:
     name: Wheels • win32
     runs-on: windows-latest
     needs: setup_date
-    env:
-      TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.date}}
 
     steps:
       - name: Checkout code
@@ -139,6 +135,7 @@ jobs:
           CC: cl.exe
           CXX: cl.exe
           CIBW_BUILD: cp3{6,7,8,9}*-win32
+          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
