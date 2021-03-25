@@ -19,35 +19,114 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
 {
     using namespace tweedledum;
     nlohmann::json config;
-    SECTION("Double-control Z") {
-        Circuit expected;
-        Qubit q0 = expected.create_qubit();
-        Qubit q1 = expected.create_qubit();
-        Qubit q2 = expected.create_qubit();
-        expected.apply_operator(Op::P(numbers::pi), {q1, q2, q0});
-
+    SECTION("Double-control Z = CCZ") {
+        std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
         std::vector<double> angles(7, 0.0);
         angles.push_back(numbers::pi);
-        Circuit synthesized = diagonal_synth(angles, config);
-        CHECK(check_unitary(expected, synthesized));
-    }
-    SECTION("Double-control Rx ~ CX") {
-        Circuit expected;
-        Qubit q0 = expected.create_qubit();
-        Qubit q1 = expected.create_qubit();
-        Qubit q2 = expected.create_qubit();
-        expected.apply_operator(Op::Rx(numbers::pi), {q1, q2, q0});
+        do { 
+            Circuit expected;
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.apply_operator(Op::P(numbers::pi), qubits);
 
+            Circuit synthesized;
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            diagonal_synth(synthesized, qubits, {}, angles, config);
+            CHECK(check_unitary(expected, synthesized));
+        } while(std::next_permutation(qubits.begin(), qubits.end()));
+    }
+    SECTION("Double-control Rx ~ CCX") {
+        std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
         std::vector<double> angles(6, 0.0);
         angles.push_back(-numbers::pi_div_2);
         angles.push_back(numbers::pi_div_2);
-        Circuit synthesized;
-        synthesized.create_qubit();
-        synthesized.create_qubit();
-        synthesized.create_qubit();
-        synthesized.apply_operator(Op::H(), {q0});
-        diagonal_synth(synthesized, {q1, q2, q0}, {}, angles, config);
-        synthesized.apply_operator(Op::H(), {q0});
-        CHECK(check_unitary(expected, synthesized));
+        do { 
+            Circuit expected;
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.apply_operator(Op::Rx(numbers::pi), qubits);
+
+            Circuit synthesized;
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            diagonal_synth(synthesized, qubits, {}, angles, config);
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            CHECK(check_unitary(expected, synthesized));
+        } while(std::next_permutation(qubits.begin(), qubits.end()));
+    }
+    SECTION("Double-control Rx (with first negative control) ~ CCX") {
+        std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
+        std::vector<double> angles(6, 0.0);
+        angles.push_back(-numbers::pi_div_2);
+        angles.push_back(numbers::pi_div_2);
+        do { 
+            std::vector<Qubit> qs = {!qubits[0], qubits[1], qubits[2]};
+            Circuit expected;
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.apply_operator(Op::Rx(numbers::pi), qs);
+
+            Circuit synthesized;
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            diagonal_synth(synthesized, qs, {}, angles, config);
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            CHECK(check_unitary(expected, synthesized));
+        } while(std::next_permutation(qubits.begin(), qubits.end()));
+    }
+    SECTION("Double-control Rx (with second negative control) ~ CCX") {
+        std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
+        std::vector<double> angles(6, 0.0);
+        angles.push_back(-numbers::pi_div_2);
+        angles.push_back(numbers::pi_div_2);
+        do { 
+            std::vector<Qubit> qs = {qubits[0], !qubits[1], qubits[2]};
+            Circuit expected;
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.apply_operator(Op::Rx(numbers::pi), qs);
+
+            Circuit synthesized;
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            diagonal_synth(synthesized, qs, {}, angles, config);
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            CHECK(check_unitary(expected, synthesized));
+        } while(std::next_permutation(qubits.begin(), qubits.end()));
+    }
+    SECTION("Double-control Rx (two negative controls) ~ CCX") {
+        std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
+        std::vector<double> angles(6, 0.0);
+        angles.push_back(-numbers::pi_div_2);
+        angles.push_back(numbers::pi_div_2);
+        do {
+            std::vector<Qubit> qs = {!qubits[0], !qubits[1], qubits[2]};
+            Circuit expected;
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.create_qubit();
+            expected.apply_operator(Op::Rx(numbers::pi), qs);
+
+            Circuit synthesized;
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.create_qubit();
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            diagonal_synth(synthesized, qs, {}, angles, config);
+            synthesized.apply_operator(Op::H(), {qubits.back()});
+            CHECK(check_unitary(expected, synthesized));
+        } while(std::next_permutation(qubits.begin(), qubits.end()));
     }
 }

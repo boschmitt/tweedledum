@@ -14,37 +14,12 @@ namespace tweedledum {
 
 namespace {
 
-inline void complement_qubit(uint32_t i, std::vector<double>& angles)
-{
-    uint32_t const size_2 = (angles.size() / 2);
-    uint32_t const step = (size_2 >> i);
-    for (uint32_t j = 0u; j < size_2; j += step) {
-        for (uint32_t k = (j << 1); k < (step + (j << 1)); k += 1) {
-            std::swap(angles.at(k), angles.at(step + k));
-        }
-    }
-}
-
 inline std::vector<double> fix_angles(std::vector<Qubit>& qubits,
     std::vector<double> const& angles)
 {
     std::vector<double> new_angles;
-    std::transform(angles.begin(), angles.end(),
-        std::back_inserter(new_angles), [](double a) {
-            return -a;
-        });
-
-    // Normalize qubits polarity
-    uint32_t index = 0u;
-    for (uint32_t i = qubits.size(); i-- > 0;) {
-        if (qubits.at(index).polarity() != Qubit::Polarity::negative) {
-            index += 1;
-            continue;
-        }
-        qubits.at(index) = !qubits.at(index);
-        complement_qubit(index, new_angles);
-        index += 1;
-    }
+    std::transform(angles.begin(), angles.end(), std::back_inserter(new_angles),
+        [](double a) { return -a; });
     return new_angles;
 }
 
@@ -73,7 +48,7 @@ void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
     assert(!qubits.empty() && qubits.size() <= 32);
     assert((1u << qubits.size()) == angles.size());
 
-    std::sort(qubits.begin(), qubits.end());
+    std::reverse(qubits.begin(), qubits.end());
     std::vector<double> new_angles = fix_angles(qubits, angles);
     fast_hadamard_transform(new_angles);
     LinPhasePoly phase_parities;
