@@ -131,7 +131,8 @@ public:
         other.foreach_instruction([&](Instruction const& inst) {
             std::vector<Qubit> this_qubits;
             inst.foreach_qubit([&](Qubit qubit) {
-                this_qubits.push_back(qubits.at(qubit));
+                Qubit const new_qubit = qubit.polarity() == Qubit::Polarity::positive ? qubits.at(qubit) : !qubits.at(qubit);
+                this_qubits.push_back(new_qubit);
             });
             std::vector<Cbit> this_cbits;
             inst.foreach_cbit([&](Cbit cbit) {
