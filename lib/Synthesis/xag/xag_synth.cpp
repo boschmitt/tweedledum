@@ -4,6 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #include "HighLevelXAG.h"
 #include "tweedledum/Operators/Extension/Parity.h"
+#include "tweedledum/Operators/Standard/Rx.h"
 #include "tweedledum/Operators/Standard/X.h"
 #include "tweedledum/Synthesis/xag_synth.h"
 
@@ -273,7 +274,11 @@ void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
     // Compute Toffoli
     Qubit c0 = node.is_negated(0) ? !in0.back() : in0.back();
     Qubit c1 = node.is_negated(1) ? !in1.back() : in1.back();
-    circuit.apply_operator(Op::X(), {c0, c1, target}, cbits_);
+    if (cleanup_.at(ref) == 1) {
+        circuit.apply_operator(Op::Rx(numbers::pi), {c0, c1, target}, cbits_);
+    } else {
+        circuit.apply_operator(Op::X(), {c0, c1, target}, cbits_);
+    }
     // fmt::print(">>>>>>>> C\n");
     // Cleanup the input to the Toffoli gate
     add_parity(circuit, in1);
@@ -284,56 +289,67 @@ void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
     add_parity(circuit, in0);
 }
 
-// void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
-// {
-//     HighLevelXAG::Node const& node = hl_xag.get_node(ref);
-//     std::vector<Qubit> in0;
-//     std::vector<Qubit> in1;
-//     std::vector<Qubit> in01;
+void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+{
+    HighLevelXAG::Node const& node = hl_xag.get_node(ref);
+    std::vector<Qubit> in0;
+    std::vector<Qubit> in1;
+    std::vector<Qubit> in01;
 
-//     std::for_each(node.cbegin_in0(), node.cend_in0(),
-//     [&](HighLevelXAG::NodeRef input_ref) { 
-//         in0.push_back(to_qubit_.at(input_ref));
-//         hl_xag.dereference(input_ref);
-//         assert(to_qubit_.at(input_ref) != Qubit::invalid());
-//     });
+    // fmt::print(">>>>>>>> input\n");
+    std::for_each(node.cbegin_in0(), node.cend_in0(),
+    [&](HighLevelXAG::NodeRef input_ref) { 
+        if(to_qubit_.at(input_ref) == target) {
+            return;
+        }
+        in0.push_back(to_qubit_.at(input_ref));
+        hl_xag.dereference(input_ref);
+        assert(to_qubit_.at(input_ref) != Qubit::invalid());
+    });
 
-//     std::for_each(node.cbegin_in1(), node.cend_in1(),
-//     [&](HighLevelXAG::NodeRef input_ref) {
-//         in1.push_back(to_qubit_.at(input_ref)); 
-//         hl_xag.dereference(input_ref);
-//         assert(to_qubit_.at(input_ref) != Qubit::invalid());
-//     });
+    if (node.is_parity()) {
+        in0.push_back(target);
+        add_parity(circuit, in0);
+        return;
+    }
 
-//     std::for_each(node.cbegin_in01(), node.cend_in01(),
-//     [&](HighLevelXAG::NodeRef input_ref) {
-//         in01.push_back(to_qubit_.at(input_ref));
-//         hl_xag.dereference(input_ref);
-//         assert(to_qubit_.at(input_ref) != Qubit::invalid());
-//     });
+    std::for_each(node.cbegin_in1(), node.cend_in1(),
+    [&](HighLevelXAG::NodeRef input_ref) {
+        in1.push_back(to_qubit_.at(input_ref)); 
+        hl_xag.dereference(input_ref);
+        assert(to_qubit_.at(input_ref) != Qubit::invalid());
+    });
 
-//     // Compute the inputs to the Toffoli gate (inplace)
-//     add_parity(circuit, in0);
-//     if (!in01.empty()) {
-//         add_parity(circuit, in01);
-//         in1.push_back(in01.back());
-//         circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
-//     }
-//     add_parity(circuit, in1);
-//     // Compute Toffoli
-//     Qubit c0 = node.is_negated(0) ? !in0.back() : in0.back();
-//     Qubit c1 = node.is_negated(1) ? !in1.back() : in1.back();
-//     circuit.apply_operator(Op::X(), {c0, c1, target}, cbits_);
-//     // circuit.create_instruction(GateLib::R1(0.0), {c0}, c1);
-//     // circuit.create_instruction(GateLib::H(), {target});
-//     // Cleanup the input to the Toffoli gate
-//     add_parity(circuit, in1);
-//     if (!in01.empty()) {
-//         circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
-//         add_parity(circuit, in01);
-//     }
-//     add_parity(circuit, in0);
-// }
+    std::for_each(node.cbegin_in01(), node.cend_in01(),
+    [&](HighLevelXAG::NodeRef input_ref) {
+        in01.push_back(to_qubit_.at(input_ref));
+        hl_xag.dereference(input_ref);
+        assert(to_qubit_.at(input_ref) != Qubit::invalid());
+    });
+    // fmt::print(">>>>>>>> actual: {}, {}, {}\n", in0.size(), in1.size(), in01.size());
+
+    // Compute the inputs to the Toffoli gate (inplace)
+    add_parity(circuit, in0);
+    if (!in01.empty()) {
+        add_parity(circuit, in01);
+        in1.push_back(in01.back());
+        circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
+    }
+    add_parity(circuit, in1);
+    // fmt::print(">>>>>>>> Tof\n");
+    // Compute Toffoli
+    Qubit c0 = node.is_negated(0) ? !in0.back() : in0.back();
+    Qubit c1 = node.is_negated(1) ? !in1.back() : in1.back();
+    circuit.apply_operator(Op::Rx(-numbers::pi), {c0, c1, target}, cbits_);
+    // fmt::print(">>>>>>>> C\n");
+    // Cleanup the input to the Toffoli gate
+    add_parity(circuit, in1);
+    if (!in01.empty()) {
+        circuit.apply_operator(Op::X(), {in01.back(), in0.back()}, cbits_);
+        add_parity(circuit, in01);
+    }
+    add_parity(circuit, in0);
+}
 
 bool Synthesizer::try_compute(
     Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
@@ -363,8 +379,8 @@ void Synthesizer::cleanup(
     Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     // fmt::print("cleanup: {}\n", ref);
-    // cleanup_node(circuit, to_qubit_.at(ref), hl_xag, ref);
-    compute_node(circuit, to_qubit_.at(ref), hl_xag, ref);
+    cleanup_node(circuit, to_qubit_.at(ref), hl_xag, ref);
+    // compute_node(circuit, to_qubit_.at(ref), hl_xag, ref);
     release_ancilla(circuit, to_qubit_.at(ref));
     to_qubit_.at(ref) = Qubit::invalid();
     cleanup_.at(ref) = 0;
