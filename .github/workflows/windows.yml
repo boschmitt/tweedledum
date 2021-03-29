@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   pull_request:
     branches: [master]
+    paths:
+      - '**/CMakeLists.txt'
+      - '**.cpp'
+      - '**.h'
+      - 'test/**'
+      - 'third_party/**'
 
 jobs:
   build-windows:
