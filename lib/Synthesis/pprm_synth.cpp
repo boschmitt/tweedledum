@@ -42,7 +42,16 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
             qs.push_back(qubits.at(v));
         }
         if (config.phase_esop) {
-            circuit.apply_operator(Op::Z(), qs, cbits);
+            if (qs.empty()) {
+                // We have the constant 1 as a cube.  A phase oracle is not
+                // capable of differentiating between f and (1 ^ f), meaning
+                // that this basically adds a global phase to the circuit
+                circuit.global_phase() += numbers::pi;
+                // pi seems like a logical choice, but I'm _not_ 100% sure about
+                // this!
+            } else {
+                circuit.apply_operator(Op::Z(), qs, cbits);
+            }
         } else {
             qs.push_back(target);
             circuit.apply_operator(Op::X(), qs, cbits);
