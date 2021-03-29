@@ -71,6 +71,7 @@ template<>
 struct NumTraits<tweedledum::MyBool> {
     typedef int Real;
     typedef tweedledum::MyBool Nested;
+    typedef uint32_t Literal;
     enum {
         IsComplex = 0,
         IsInteger = 1,
