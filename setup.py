@@ -31,9 +31,9 @@ def get_name():
 
 def get_version():
     if build_dev_version:
-        return "1.0.0.dev" + str(build_dev_version)
+        return "1.1.0.dev" + str(build_dev_version)
     else:
-        return "1.0.0b3"
+        return "1.0.0"
 
 skbuild.setup(
     name=get_name(),
