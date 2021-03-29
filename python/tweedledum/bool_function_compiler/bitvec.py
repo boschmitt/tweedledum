@@ -131,7 +131,7 @@ class BitVec(object):
         raise TypeError("__ne__ operation: type mismatch")
 
     def __repr__(self):
-        return f'BitVec("{self._length}","{str(self)}")'
+        return f"BitVec({self._length}, '{str(self)}')"
 
     def __str__(self):
         return "{:0{}b}".format(self._value, self._length)
