@@ -18,6 +18,12 @@ void init_Passes(pybind11::module& module)
     namespace py = pybind11;
 
     // Analysis
+    module.def("compute_alap_layers", &compute_alap_layers, 
+        "Compute instructions' ALAP layer.");
+
+    module.def("compute_asap_layers", &compute_asap_layers, 
+        "Compute instructions' ASAP layer.");
+
     module.def("count_operators", &count_operators, "Operators couting pass.");
 
     module.def("depth", &depth, "Compute depth pass.");
