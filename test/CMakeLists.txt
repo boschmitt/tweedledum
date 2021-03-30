@@ -12,6 +12,7 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Operators/Unitary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Analysis/compute_alap_layers.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Analysis/compute_asap_layers.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Analysis/compute_critical_paths.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Analysis/count_operators.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/euler_decomp.cpp
