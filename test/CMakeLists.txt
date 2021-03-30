@@ -19,6 +19,7 @@ set(tweedledum_tests_files
     # ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/sat_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/jit_map.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/sabre_map.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/gate_cancellation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/phase_folding.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Simulation/simulate_classically.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/a_star_swap_synth.cpp
