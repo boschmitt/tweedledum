@@ -15,8 +15,7 @@ namespace tweedledum {
 
 inline std::vector<uint32_t> compute_alap_layers(Circuit const& circuit)
 {
-    constexpr uint32_t inf = std::numeric_limits<uint32_t>::max();
-    std::vector<uint32_t> instruction_layer(circuit.size(), inf);
+    std::vector<uint32_t> instruction_layer(circuit.size(), 0u);
     circuit.foreach_output([&](InstRef const ref) {
         instruction_layer.at(ref) = 0u;
     });
@@ -25,7 +24,7 @@ inline std::vector<uint32_t> compute_alap_layers(Circuit const& circuit)
         uint32_t layer = instruction_layer.at(ref) + 1;
         circuit.foreach_child(ref, [&](InstRef child) {
             instruction_layer.at(child) =
-                std::min(instruction_layer.at(child), layer);
+                std::max(instruction_layer.at(child), layer);
         });
         max_layer = std::max(max_layer, layer);
     });
