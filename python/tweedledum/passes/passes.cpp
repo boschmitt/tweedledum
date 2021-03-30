@@ -6,7 +6,7 @@
 
 #include <pybind11/stl.h>
 #include <tweedledum/IR/Circuit.h>
-#include <tweedledum/Passes/Analysis/depth.h>
+#include <tweedledum/Passes/Analysis.h>
 #include <tweedledum/Passes/Decomposition.h>
 #include <tweedledum/Passes/Optimization.h>
 #include <tweedledum/Passes/Mapping.h>
@@ -18,6 +18,8 @@ void init_Passes(pybind11::module& module)
     namespace py = pybind11;
 
     // Analysis
+    module.def("count_operators", &count_operators, "Operators couting pass.");
+
     module.def("depth", &depth, "Compute depth pass.");
 
     // Decomposition

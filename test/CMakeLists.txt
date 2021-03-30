@@ -10,6 +10,7 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/Circuit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/Instruction.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Operators/Unitary.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Analysis/count_operators.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/euler_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/LinePlacer.cpp
