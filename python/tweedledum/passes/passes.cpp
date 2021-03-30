@@ -36,6 +36,8 @@ void init_Passes(pybind11::module& module)
     module.def("sabre_map", &sabre_map);
 
     // Optimization
+    module.def("gate_cancellation", &gate_cancellation, "Gate cancellation optimization.");
+
     module.def("linear_resynth", &linear_resynth, 
         py::arg("original"), py::arg("config") = nlohmann::json(),
         "Resynthesize linear parts of the quantum circuit.");

@@ -12,6 +12,7 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/Mapping/RePlacer/SabreRePlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Router/JitRouter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Router/SabreRouter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Optimization/gate_cancellation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Optimization/linear_resynth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Optimization/phase_folding.cpp
 )
