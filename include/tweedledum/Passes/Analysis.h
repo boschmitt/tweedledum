@@ -4,5 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "Analysis/compute_alap_layers.h"
+#include "Analysis/compute_asap_layers.h"
 #include "Analysis/count_operators.h"
 #include "Analysis/depth.h"
