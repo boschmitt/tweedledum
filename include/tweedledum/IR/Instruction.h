@@ -156,10 +156,13 @@ public:
     template<typename Fn>
     void foreach_cbit(Fn&& fn) const
     {
-        static_assert(std::is_invocable_r_v<void, Fn, Cbit> ||
+        static_assert(std::is_invocable_r_v<void, Fn, Cbit, InstRef> ||
+                      std::is_invocable_r_v<void, Fn, Cbit> ||
                       std::is_invocable_r_v<void, Fn, InstRef>);
         for (CbitConnection const& connection : cbits_conns_) {
-            if constexpr (std::is_invocable_r_v<void, Fn, Cbit>) {
+            if constexpr (std::is_invocable_r_v<void, Fn, Cbit, InstRef>) {
+                fn(connection.cbit, connection.inst_ref);
+            } else if constexpr (std::is_invocable_r_v<void, Fn, Cbit>) {
                 fn(connection.cbit);
             } else {
                 if (connection.inst_ref == InstRef::invalid()) {
@@ -173,10 +176,13 @@ public:
     template<typename Fn>
     void foreach_qubit(Fn&& fn) const
     {
-        static_assert(std::is_invocable_r_v<void, Fn, Qubit> ||
+        static_assert(std::is_invocable_r_v<void, Fn, Qubit, InstRef> ||
+                      std::is_invocable_r_v<void, Fn, Qubit> ||
                       std::is_invocable_r_v<void, Fn, InstRef>);
         for (QubitConnection const& connection : qubits_conns_) {
-            if constexpr (std::is_invocable_r_v<void, Fn, Qubit>) {
+            if constexpr (std::is_invocable_r_v<void, Fn, Qubit, InstRef>) {
+                fn(connection.qubit, connection.inst_ref);
+            } else if constexpr (std::is_invocable_r_v<void, Fn, Qubit>) {
                 fn(connection.qubit);
             } else {
                 if (connection.inst_ref == InstRef::invalid()) {
