@@ -7,8 +7,10 @@
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
+#include "tweedledum/Passes/Utility/inverse.h"
 
 #include "../check_unitary.h"
+#include "../test_circuits.h"
 
 #include <catch.hpp>
 
@@ -113,5 +115,34 @@ TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
         }
         auto optimized = gate_cancellation(circuit);
         CHECK(optimized.size() == 1);
+    }
+}
+
+TEST_CASE("Inverted circuits.", "[gate_cancellation][optimization]")
+{
+    using namespace tweedledum;
+    SECTION("Toffoli operator") {
+        Circuit circuit = toffoli();
+        std::optional<Circuit> adjoint = inverse(circuit);
+        CHECK(adjoint);
+        circuit.append(*adjoint, circuit.qubits(), circuit.cbits());
+        Circuit optimized = gate_cancellation(circuit);
+        CHECK(optimized.size() == 0u);
+    }
+    SECTION("Graph coloring init") {
+        Circuit circuit = graph_coloring_init();
+        std::optional<Circuit> adjoint = inverse(circuit);
+        CHECK(adjoint);
+        circuit.append(*adjoint, circuit.qubits(), circuit.cbits());
+        Circuit optimized = gate_cancellation(circuit);
+        CHECK(optimized.size() == 0u);
+    }
+    SECTION("IBM Contest 2019 init") {
+        Circuit circuit = ibm_contest2019_init();
+        std::optional<Circuit> adjoint = inverse(circuit);
+        CHECK(adjoint);
+        circuit.append(*adjoint, circuit.qubits(), circuit.cbits());
+        Circuit optimized = gate_cancellation(circuit);
+        CHECK(optimized.size() == 0u);
     }
 }
