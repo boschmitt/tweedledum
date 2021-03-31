@@ -26,6 +26,7 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/gate_cancellation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/phase_folding.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Simulation/simulate_classically.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Utility/inverse.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/a_star_swap_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/all_linear_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/decomp_synth.cpp

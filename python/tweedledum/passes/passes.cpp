@@ -10,7 +10,7 @@
 #include <tweedledum/Passes/Decomposition.h>
 #include <tweedledum/Passes/Optimization.h>
 #include <tweedledum/Passes/Mapping.h>
-#include <tweedledum/Passes/Utility/shallow_duplicate.h>
+#include <tweedledum/Passes/Utility.h>
 
 void init_Passes(pybind11::module& module)
 {
@@ -56,6 +56,9 @@ void init_Passes(pybind11::module& module)
     module.def("phase_folding", &phase_folding, "Phase folding optimization.");
 
     // Utility
+    module.def("inverse", &inverse,
+        "Invert (take adjoint of) a circuit.");
+
     module.def("shallow_duplicate", &shallow_duplicate,
         "Creates a new circuit with same wires as the original.");
 }
