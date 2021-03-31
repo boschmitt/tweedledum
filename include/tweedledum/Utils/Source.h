@@ -126,7 +126,7 @@ public:
 
     std::string name() const override
     {
-        return file_path_.filename();
+        return file_path_.filename().string();
     }
 
     std::filesystem::path parent_path() const override
