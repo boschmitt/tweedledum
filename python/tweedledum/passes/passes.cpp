@@ -59,6 +59,9 @@ void init_Passes(pybind11::module& module)
     module.def("inverse", &inverse,
         "Invert (take adjoint of) a circuit.");
 
+    module.def("reverse", &reverse,
+        "Reverse a circuit.");
+
     module.def("shallow_duplicate", &shallow_duplicate,
         "Creates a new circuit with same wires as the original.");
 }
