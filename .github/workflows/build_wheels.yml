@@ -63,7 +63,7 @@ jobs:
           CIBW_ARCHS_MACOS: x86_64
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
-          MACOSX_DEPLOYMENT_TARGET: '10.14'
+          MACOSX_DEPLOYMENT_TARGET: '10.15'
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v2
