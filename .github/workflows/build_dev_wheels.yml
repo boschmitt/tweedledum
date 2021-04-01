@@ -151,8 +151,10 @@ jobs:
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         env:
+          CC: cl.exe
+          CXX: cl.exe 
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *-win32
-          CIBW_ENVIRONMENT: "CC=cl.exe CXX=cl.exe TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
+          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
@@ -184,8 +186,10 @@ jobs:
       - name: Build wheel
         uses: joerick/cibuildwheel@v1.9.0
         env:
+          CC: cl.exe
+          CXX: cl.exe 
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *-win64
-          CIBW_ENVIRONMENT: "CC=cl.exe CXX=cl.exe TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
+          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
