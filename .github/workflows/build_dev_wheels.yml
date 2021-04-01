@@ -63,7 +63,7 @@ jobs:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp* *win32
           CIBW_ARCHS_MACOS: x86_64
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
-          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
+          CIBW_TEST_COMMAND: ulimit -c unlimited; sudo python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
 
       - name: Enable access to core dumps
