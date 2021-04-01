@@ -19,6 +19,10 @@ else()
     endforeach()
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(CXX_FILESYSTEM_LIBRARIES "stdc++fs")
+endif()
+
 # Options
 # =============================================================================
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
@@ -40,7 +44,7 @@ add_subdirectory(third_party)
 if(TWEEDLEDUM_PYBINDS)
     pybind11_add_module(_tweedledum MODULE)
     target_include_directories(_tweedledum PRIVATE ${PROJECT_SOURCE_DIR}/include)
-    target_link_libraries(_tweedledum PRIVATE eigen fmt::fmt-header-only mockturtle)
+    target_link_libraries(_tweedledum PRIVATE eigen fmt::fmt-header-only mockturtle ${CXX_FILESYSTEM_LIBRARIES})
     add_subdirectory(python/tweedledum)
     if(SKBUILD)
         install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
@@ -51,7 +55,7 @@ endif()
 # =============================================================================
 add_library(tweedledum OBJECT)
 target_include_directories(tweedledum PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle)
+target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle ${CXX_FILESYSTEM_LIBRARIES})
 add_subdirectory(lib)
 
 # Examples
