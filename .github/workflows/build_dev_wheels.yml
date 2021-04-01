@@ -118,7 +118,7 @@ jobs:
       - name: Build wheels
         uses: joerick/cibuildwheel@v1.9.0
         env:
-          CIBW_BUILD: cp3{6,7,8,9}*-
+          CIBW_SKIP: cp27-* cp34-* cp35-* pp*
           CIBW_ARCHS_MACOS: x86_64
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}} CC=gcc-10 CXX=g++-10 CXXFLAGS='-static-libgcc -static-libstdc++'"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
