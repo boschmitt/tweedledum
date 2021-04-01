@@ -20,6 +20,16 @@ void init_Synthesis(pybind11::module& module)
         py::arg("device"), py::arg("init_cfg"), py::arg("final_cfg"), py::arg("config") = nlohmann::json(),
         "Synthesize a quantum swap circuit.");
 
+    module.def("cx_dihedral_synth",
+        py::overload_cast<BMatrix const&, LinPhasePoly const&, nlohmann::json const&>(&cx_dihedral_synth),
+        py::arg("linear_trans"), py::arg("parities"), py::arg("config") = nlohmann::json(),
+        "Optimal synthesis of a CNOT-dihedral circuits.");
+
+    module.def("cx_dihedral_synth",
+        py::overload_cast<Circuit&, std::vector<Qubit> const&, std::vector<Cbit> const&, BMatrix const&, LinPhasePoly, nlohmann::json const&>(&cx_dihedral_synth),
+        py::arg("circuit"), py::arg("qubits"), py::arg("cbits"), py::arg("linear_trans"), py::arg("parities"), py::arg("config") = nlohmann::json(),
+        "Optimal synthesis of a CNOT-dihedral circuits.");
+
     module.def("decomp_synth",
         py::overload_cast<std::vector<uint32_t> const&>(&decomp_synth),
         "Reversible synthesis based on functional decomposition.");

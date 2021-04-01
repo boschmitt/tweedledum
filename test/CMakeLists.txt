@@ -30,6 +30,7 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Utility/inverse.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/a_star_swap_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/all_linear_synth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/cx_dihedral_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/decomp_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/diagonal_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/gray_synth.cpp

@@ -5,6 +5,7 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/xag/xag_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/a_star_swap_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/all_linear_synth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/cx_dihedral_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/decomp_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/diagonal_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gray_synth.cpp
