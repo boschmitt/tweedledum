@@ -6,6 +6,18 @@ project(tweedledum LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
+# Options
+# =============================================================================
+option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
+option(TWEEDLEDUM_PYBINDS "Build python bindings" ON)
+option(TWEEDLEDUM_TESTS "Build tests" OFF)
+option(TWEEDLEDUM_TOOLS "Build tools" OFF)
+option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
+option(TWEEDLEDUM_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
+option(TWEEDLEDUM_USE_EXTERNAL_PYBIND11 "Use an external pybind11 library" OFF)
+option(TWEEDLEDUM_ENABLE_COVERAGE "Enable coverage reporting for gcc/clang" OFF)
+option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
+
 if(MSVC)
     add_compile_options(/Wall /utf-8)
 else()
@@ -17,23 +29,14 @@ else()
             add_compile_options(-Wno-${WARNING})
         endif()
     endforeach()
+    if (TWEEDLEDUM_ENABLE_COVERAGE)
+        add_compile_options(-O0 -g --coverage -fprofile-arcs -ftest-coverage)
+    endif()
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CXX_FILESYSTEM_LIBRARIES "stdc++fs")
 endif()
-
-# Options
-# =============================================================================
-option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
-option(TWEEDLEDUM_PYBINDS "Build python bindings" ON)
-option(TWEEDLEDUM_TESTS "Build tests" OFF)
-option(TWEEDLEDUM_TOOLS "Build tools" OFF)
-option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
-option(TWEEDLEDUM_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
-option(TWEEDLEDUM_USE_EXTERNAL_PYBIND11 "Use an external pybind11 library" OFF)
-
-option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 
 # 3rd-party libraries
 # =============================================================================

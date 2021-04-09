@@ -52,3 +52,6 @@ target_include_directories(run_tests PRIVATE
 target_link_libraries(run_tests PRIVATE 
     $<TARGET_PROPERTY:tweedledum,LINK_LIBRARIES>
 )
+if (TWEEDLEDUM_ENABLE_COVERAGE)
+    target_link_libraries(run_tests PRIVATE gcov)
+endif()
