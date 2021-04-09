@@ -371,8 +371,8 @@ void cx_dihedral_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     std::vector<Cbit> const& cbits, BMatrix const& linear_trans, LinPhasePoly phase_parities,
     nlohmann::json const& config)
 {
-        assert(qubits.size() == matrix.num_rows());
-    assert(matrix.num_rows() <= 32);
+    assert(qubits.size() == linear_trans.num_rows());
+    assert(linear_trans.num_rows() <= 32);
 
     bill::solver solver;
     CXDihedralEncoder encoder(linear_trans, phase_parities, solver);
