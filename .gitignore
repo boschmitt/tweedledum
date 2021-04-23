@@ -9,8 +9,6 @@ build/
 examples/**
 !examples/CMakeLists.txt
 experiments/*/
-tools/**
-!tools/CMakeLists.txt
 
 # Bunch of python crap to ignore:
 # Byte-compiled / optimized / DLL files
