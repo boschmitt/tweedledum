@@ -1,7 +1,7 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
 # CMake build : tweedledum library
 cmake_minimum_required(VERSION 3.16)
-project(tweedledum LANGUAGES CXX)
+project(tweedledum VERSION 1.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
@@ -11,43 +11,38 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 option(TWEEDLEDUM_PYBINDS "Build python bindings" ON)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
-option(TWEEDLEDUM_TOOLS "Build tools" OFF)
-option(TWEEDLEDUM_USE_EXTERNAL_FMT "Use an external fmt library" OFF)
-option(TWEEDLEDUM_USE_EXTERNAL_JSON "Use an external JSON library" OFF)
 option(TWEEDLEDUM_USE_EXTERNAL_PYBIND11 "Use an external pybind11 library" OFF)
 option(TWEEDLEDUM_ENABLE_COVERAGE "Enable coverage reporting for gcc/clang" OFF)
 option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 
-if(MSVC)
-    add_compile_options(/Wall /utf-8)
+# Check if tweedledum is being used directly or via add_subdirectory
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR AND NOT DEFINED TWEEDLEDUM_MASTER_PROJECT)
+    set(TWEEDLEDUM_MASTER_PROJECT ON)
+    set(tweedledum_system "")
 else()
-    include(CheckCXXCompilerFlag)
-    add_compile_options(-W -Wall -Wextra)
-    foreach (WARNING unknown-pragmas gnu-anonymous-struct nested-anon-types)
-        check_cxx_compiler_flag("-Wno-${WARNING}" HAS_WNO_${WARNING})
-        if (HAS_WNO_${WARNING})
-            add_compile_options(-Wno-${WARNING})
-        endif()
-    endforeach()
-    if (TWEEDLEDUM_ENABLE_COVERAGE)
-        add_compile_options(-O0 -g --coverage -fprofile-arcs -ftest-coverage)
-    endif()
-endif()
-
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(CXX_FILESYSTEM_LIBRARIES "stdc++fs")
+    set(TWEEDLEDUM_MASTER_PROJECT OFF)
+    set(tweedledum_system SYSTEM)
 endif()
 
 # 3rd-party libraries
 # =============================================================================
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+find_package(Eigen3 3.3 REQUIRED)
+find_package(fmt 7.0.0 REQUIRED)
+find_package(nlohmann_json 3.9.0 REQUIRED)
+find_package(phmap 1.0.0 REQUIRED)
 add_subdirectory(third_party)
 
 # Python bindings
 # =============================================================================
-if(TWEEDLEDUM_PYBINDS)
+if(TWEEDLEDUM_PYBINDS AND TWEEDLEDUM_MASTER_PROJECT)
     pybind11_add_module(_tweedledum MODULE)
     target_include_directories(_tweedledum PRIVATE ${PROJECT_SOURCE_DIR}/include)
-    target_link_libraries(_tweedledum PRIVATE eigen fmt::fmt-header-only mockturtle ${CXX_FILESYSTEM_LIBRARIES})
+    target_link_libraries(_tweedledum PRIVATE
+        Eigen3::Eigen3
+        fmt::fmt-header-only
+        mockturtle
+        $<$<LINK_LANG_AND_ID:CXX,GNU>:stdc++fs>)
     add_subdirectory(python/tweedledum)
     if(SKBUILD)
         install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
@@ -56,10 +51,39 @@ endif()
 
 # Library
 # =============================================================================
-add_library(tweedledum OBJECT)
-target_include_directories(tweedledum PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(tweedledum PUBLIC eigen fmt::fmt-header-only mockturtle ${CXX_FILESYSTEM_LIBRARIES})
-add_subdirectory(lib)
+add_library(tweedledum)
+target_include_directories(tweedledum ${tweedledum_system} PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+target_link_libraries(tweedledum PUBLIC
+    Eigen3::Eigen3
+    fmt::fmt-header-only
+    mockturtle
+    nlohmann_json
+    $<$<LINK_LANG_AND_ID:CXX,GNU>:stdc++fs>)
+target_compile_options(tweedledum PRIVATE
+    # clang/gcc warnings
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+    -W -Wall -Wextra>
+    # Covarege
+    $<$<AND:$<BOOL:${TWEEDLEDUM_ENABLE_COVERAGE}>,$<CXX_COMPILER_ID:GNU>>:
+    -O0 -g --coverage -fprofile-arcs -ftest-coverage>
+    # MSVC 
+    $<$<CXX_COMPILER_ID:MSVC>:/Wall /utf-8>)
+add_subdirectory(src)
+
+# Install
+# =============================================================================
+include(GNUInstallDirs)
+install(TARGETS tweedledum 
+    EXPORT tweedledumConfig
+    ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+# install(EXPORT tweedledumConfig DESTINATION share/tweedledum/cmake)
+# export(TARGETS tweedledum mockturtle FILE tweedledumConfig.cmake)
 
 # Examples
 # =============================================================================
@@ -69,12 +93,6 @@ endif()
 
 # Tests
 # =============================================================================
-if(TWEEDLEDUM_TESTS)
+if(TWEEDLEDUM_MASTER_PROJECT AND TWEEDLEDUM_TESTS)
   add_subdirectory(test)
-endif()
-
-# Tools
-# =============================================================================
-if(TWEEDLEDUM_TOOLS)
-    add_subdirectory(tools)
 endif()
