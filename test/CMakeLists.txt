@@ -45,13 +45,8 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/BMatrix.cpp
 )
 
-add_executable(run_tests $<TARGET_OBJECTS:tweedledum> ${tweedledum_tests_files})
-target_include_directories(run_tests PRIVATE 
-    $<TARGET_PROPERTY:tweedledum,INCLUDE_DIRECTORIES>
+add_executable(run_tests ${tweedledum_tests_files})
+target_link_libraries(run_tests PUBLIC
+    tweedledum
+    $<$<AND:$<BOOL:${TWEEDLEDUM_ENABLE_COVERAGE}>,$<CXX_COMPILER_ID:GNU>>:gcov>
 )
-target_link_libraries(run_tests PRIVATE 
-    $<TARGET_PROPERTY:tweedledum,LINK_LIBRARIES>
-)
-if (TWEEDLEDUM_ENABLE_COVERAGE)
-    target_link_libraries(run_tests PRIVATE gcov)
-endif()
