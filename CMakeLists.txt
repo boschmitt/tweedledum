@@ -47,6 +47,12 @@ if(TWEEDLEDUM_PYBINDS AND TWEEDLEDUM_MASTER_PROJECT)
         fmt::fmt-header-only
         mockturtle
         $<$<LINK_LANG_AND_ID:CXX,GNU>:stdc++fs>)
+    target_compile_options(_tweedledum PRIVATE
+        # clang/gcc warnings
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+        -W -Wall -Wextra>
+        # MSVC 
+        $<$<CXX_COMPILER_ID:MSVC>:/Wall /utf-8>)
     add_subdirectory(python/tweedledum)
     if(SKBUILD)
         install(TARGETS _tweedledum LIBRARY DESTINATION tweedledum)
