@@ -18,10 +18,14 @@ option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 # Check if tweedledum is being used directly or via add_subdirectory
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR AND NOT DEFINED TWEEDLEDUM_MASTER_PROJECT)
     set(TWEEDLEDUM_MASTER_PROJECT ON)
-    set(tweedledum_system "")
 else()
     set(TWEEDLEDUM_MASTER_PROJECT OFF)
-    set(tweedledum_system SYSTEM)
+endif()
+
+if(SKBUILD)
+    set(tweedledum_exclude EXCLUDE_FROM_ALL)
+else()
+    set(tweedledum_exclude "")
 endif()
 
 # 3rd-party libraries
@@ -45,13 +49,13 @@ if(TWEEDLEDUM_PYBINDS AND TWEEDLEDUM_MASTER_PROJECT)
         $<$<LINK_LANG_AND_ID:CXX,GNU>:stdc++fs>)
     add_subdirectory(python/tweedledum)
     if(SKBUILD)
-        install(TARGETS _tweedledum LIBRARY DESTINATION python/tweedledum)
+        install(TARGETS _tweedledum LIBRARY DESTINATION tweedledum)
     endif()
 endif()
 
 # Library
 # =============================================================================
-add_library(tweedledum)
+add_library(tweedledum ${tweedledum_exclude})
 target_include_directories(tweedledum ${tweedledum_system} PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>)
@@ -75,24 +79,25 @@ add_subdirectory(src)
 # Install
 # =============================================================================
 include(GNUInstallDirs)
-install(TARGETS tweedledum 
+install(TARGETS tweedledum ${tweedledum_exclude}
     EXPORT tweedledumConfig
     ARCHIVE  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY  DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME  DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY include/ ${tweedledum_exclude}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # install(EXPORT tweedledumConfig DESTINATION share/tweedledum/cmake)
 # export(TARGETS tweedledum mockturtle FILE tweedledumConfig.cmake)
 
 # Examples
 # =============================================================================
-if(TWEEDLEDUM_EXAMPLES)
+if(TWEEDLEDUM_EXAMPLES AND NOT SKBUILD)
   add_subdirectory(examples)
 endif()
 
 # Tests
 # =============================================================================
-if(TWEEDLEDUM_MASTER_PROJECT AND TWEEDLEDUM_TESTS)
+if(TWEEDLEDUM_MASTER_PROJECT AND TWEEDLEDUM_TESTS AND NOT SKBUILD)
   add_subdirectory(tests)
 endif()
