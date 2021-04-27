@@ -42,7 +42,7 @@ find_path(nlohmann_json_INCLUDE_DIR
     PATHS
         ${PC_nlohmann_json_INCLUDE_DIRS}
         ${CMAKE_INSTALL_PREFIX}/include
-        ${PROJECT_SOURCE_DIR}/third_party
+        ${PROJECT_SOURCE_DIR}/external
     PATH_SUFFIXES 
         nlohmann
     

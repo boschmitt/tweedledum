@@ -9,7 +9,7 @@ on:
       - '**.cpp'
       - '**.h'
       - 'test/**'
-      - 'third_party/**'
+      - 'external/**'
 
 jobs:
   build-windows:
