@@ -37,7 +37,7 @@ jobs:
     - name: Run tests
       run: |
         cd build
-        ./tests.run_tests
+        ./tests/run_tests
 
     - name: Run lcov
       run: |
