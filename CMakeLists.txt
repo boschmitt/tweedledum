@@ -94,5 +94,5 @@ endif()
 # Tests
 # =============================================================================
 if(TWEEDLEDUM_MASTER_PROJECT AND TWEEDLEDUM_TESTS)
-  add_subdirectory(test)
+  add_subdirectory(tests)
 endif()

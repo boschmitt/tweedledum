@@ -8,7 +8,7 @@ on:
       - '**/CMakeLists.txt'
       - '**.cpp'
       - '**.h'
-      - 'test/**'
+      - 'tests/**'
       - 'external/**'
 
 jobs:
@@ -45,4 +45,4 @@ jobs:
     - name: Run tests
       working-directory: build
       run: |
-        ./test/run_tests
+        ./tests/run_tests

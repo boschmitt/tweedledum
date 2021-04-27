@@ -8,7 +8,7 @@ on:
       - '**/CMakeLists.txt'
       - '**.cpp'
       - '**.h'
-      - 'test/**'
+      - 'tests/**'
       - 'external/**'
 
 jobs:
@@ -39,4 +39,4 @@ jobs:
 
     - name: Run tests
       run: |
-        .\build\test\run_tests.exe
+        .\build\tests\run_tests.exe
