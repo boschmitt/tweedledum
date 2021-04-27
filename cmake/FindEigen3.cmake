@@ -42,7 +42,7 @@ find_path(Eigen3_INCLUDE_DIR
     PATHS
         ${PC_Eigen3_INCLUDE_DIRS}
         ${CMAKE_INSTALL_PREFIX}/include
-        ${PROJECT_SOURCE_DIR}/third_party
+        ${PROJECT_SOURCE_DIR}/external
     PATH_SUFFIXES 
         eigen3 eigen
 )

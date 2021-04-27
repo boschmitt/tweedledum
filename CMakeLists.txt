@@ -31,7 +31,7 @@ find_package(Eigen3 3.3 REQUIRED)
 find_package(fmt 7.0.0 REQUIRED)
 find_package(nlohmann_json 3.9.0 REQUIRED)
 find_package(phmap 1.0.0 REQUIRED)
-add_subdirectory(third_party)
+add_subdirectory(external)
 
 # Python bindings
 # =============================================================================
