@@ -8,7 +8,7 @@ on:
       - '**/CMakeLists.txt'
       - '**.cpp'
       - '**.h'
-      - 'test/**'
+      - 'tests/**'
       - 'external/**'
 
 jobs:
@@ -37,7 +37,7 @@ jobs:
     - name: Run tests
       run: |
         cd build
-        ./test/run_tests
+        ./tests.run_tests
 
     - name: Run lcov
       run: |
