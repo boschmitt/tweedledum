@@ -17,6 +17,7 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Analysis/count_operators.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/euler_decomp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/ApprxSatPlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/LinePlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/RandomPlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/SatPlacer.cpp
