@@ -4,6 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #include "tweedledum/Passes/Mapping/Router/BridgeRouter.h"
 #include "tweedledum/Operators/Extension/Bridge.h"
+#include "tweedledum/Operators/Standard/X.h"
 
 namespace tweedledum {
 
@@ -22,7 +23,7 @@ std::pair<Circuit, Mapping> BridgeRouter::run()
         if (try_add_instruction(ref, inst)) {
             return;
         }
-        assert(inst.is_a<Op::X()>() && inst.num_qubits() == 2);
+        assert(inst.is_a<Op::X>() && inst.num_qubits() == 2);
         Qubit const control = placement_.v_to_phy(inst.control());
         Qubit const target = placement_.v_to_phy(inst.target());
         mapped_->apply_operator(Op::Bridge(), {control, target});
