@@ -17,6 +17,7 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/TrivialPlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/RePlacer/JitRePlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/RePlacer/SabreRePlacer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Router/BridgeRouter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Router/JitRouter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Router/SabreRouter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/gate_cancellation.cpp
