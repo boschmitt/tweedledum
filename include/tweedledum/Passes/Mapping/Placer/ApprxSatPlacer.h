@@ -22,11 +22,12 @@ class ApprxSatPlacer {
     using Var = bill::var_type;
 
 public:
-    ApprxSatPlacer(Device const& device, Circuit const& original, Solver& solver)
+    ApprxSatPlacer(Device const& device, Circuit const& original, Solver& solver, bool use_weight)
         : device_(device)
         , original_(original)
         , solver_(solver)
-        , pairs_(original.num_qubits() * (original.num_qubits() + 1) / 2, 0u)
+        , use_weight_(use_weight)
+        , pairs_act_(original.num_qubits() * (original.num_qubits() + 1) / 2, -1)
     {}
 
     std::optional<Placement> run()
@@ -34,16 +35,21 @@ public:
         solver_.add_variables(num_v() * num_phy());
         qubits_constraints();
         std::vector<Var> act_vars;
+        std::vector<uint32_t> weight;
         original_.foreach_r_instruction([&](Instruction const& inst) {
             if (inst.num_qubits() != 2u) {
                 return;
             }
             Qubit const control = inst.control();
             Qubit const target = inst.target();
-            if (pairs_[triangle_to_vector_idx(control, target)] == 0) {
+            uint32_t const index = triangle_to_vector_idx(control, target);
+            uint32_t act_index = 0u;
+            if (pairs_act_.at(index) == -1) {
+                pairs_act_.at(index) = act_vars.size();
                 act_vars.push_back(gate_constraints(control, target));
+                weight.push_back(0u);
             }
-            ++pairs_[triangle_to_vector_idx(control, target)];
+            ++weight.at(pairs_act_.at(index));
         });
         // Initialize all activation variables
         std::vector<Lit> assumptions;
@@ -56,10 +62,7 @@ public:
             if (result.is_satisfiable()) {
                 return decode(result.model());
             } else {
-                std::vector<Lit> core = result.core();
-                auto const lit = std::max_element(core.begin(), core.end());
-                uint32_t const var = static_cast<uint32_t>(lit->variable());
-                uint32_t const index = var - (num_v() * num_phy());
+                uint32_t const index = choose_act_var(result.core(), weight);
                 assumptions.at(index).complement();
             }
         }
@@ -118,6 +121,24 @@ private:
         }
     }
 
+    uint32_t choose_act_var(std::vector<Lit> const& core, 
+        std::vector<uint32_t> const& weight)
+    {
+        auto index = [&](Lit lit) {
+            uint32_t const var = static_cast<uint32_t>(lit.variable());
+            return (var - (num_v() * num_phy()));
+        };
+        auto const lit = std::max_element(core.begin(), core.end(), 
+        [&](Lit const& a, Lit const& b) {
+            if (use_weight_) {
+                // Choose the remove the pair with least number of gates
+                return weight.at(index(a)) > weight.at(index(b));
+            }
+            return a < b;
+        });
+        return index(*lit);
+    }
+
     // Abbreviations:
     // - c_v (control, virtual qubit identifier)
     // - t_v (target, virtual qubit identifier)
@@ -160,12 +181,13 @@ private:
     Device const& device_;
     Circuit const& original_;
     Solver& solver_;
-    std::vector<uint32_t> pairs_;
+    bool use_weight_;
+    std::vector<int> pairs_act_;
 };
 
 /*! \brief Yet to be written.
  */
 std::optional<Placement> apprx_sat_place(Device const& device,
-    Circuit const& original);
+    Circuit const& original, nlohmann::json const& config = {});
 
 } // namespace tweedledum
