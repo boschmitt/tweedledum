@@ -288,22 +288,27 @@ inline std::vector<Device::Edge> Device::steiner_tree(
     // Internal data structures
     std::vector<uint32_t> vertex_cost(num_qubits());
     std::vector<uint32_t> edge_in(num_qubits(), root);
-    std::vector<uint8_t> in_tree(num_qubits(), 0);
+    std::vector<uint8_t> in_tree(num_qubits(), 0u);
+    in_tree.at(root) = 1u;
 
     auto add_path = [&](std::vector<uint32_t> const& path) {
         std::vector<uint32_t> vertices;
+        if (path.empty()) {
+            return vertices;
+        }
         // Deal with the first element:
         if (in_tree.at(path.back())) {
             return std::vector<uint32_t>(1, path.back());
         }
-        in_tree.at(*path.rbegin()) = 1;
+        in_tree.at(path.back()) = 1;
+        vertices.push_back(path.back());
         uint32_t begin = tree.size();
         for (auto it = path.rbegin() + 1; it != path.rend(); ++it) {
             tree.emplace_back(*it, *(it - 1));
-            vertices.push_back(*it);
             if (in_tree.at(*it)) {
                 break;
             }
+            vertices.push_back(*it);
             in_tree.at(*it) = 1;
         }
         std::reverse(tree.begin() + begin, tree.end());
