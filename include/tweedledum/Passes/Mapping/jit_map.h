@@ -6,6 +6,7 @@
 
 #include "../../IR/Circuit.h"
 #include "../../Target/Device.h"
+#include "../Optimization/steiner_resynth.h"
 #include "Placer/ApprxSatPlacer.h"
 #include "Placer/LinePlacer.h"
 #include "Router/JitRouter.h"
@@ -19,7 +20,11 @@ inline std::pair<Circuit, Mapping> jit_map(Device const& device,
 {
     auto placement = apprx_sat_place(device, original);
     JitRouter router(device, original, *placement);
-    return router.run();
+    auto [circuit, mapping] = router.run();
+    if (original.size() < circuit.size()) {
+        circuit = steiner_resynth(circuit, device);
+    }
+    return {circuit, mapping};
 }
 
 } // namespace tweedledum
