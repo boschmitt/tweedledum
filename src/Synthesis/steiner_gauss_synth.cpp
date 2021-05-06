@@ -18,7 +18,6 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
     for (auto col = 0u; col < matrix.cols(); ++col) {
         // Find pivot
         uint32_t pivot = inf;
-        bool crossed_diag = false;
         std::vector<AbstractGate> swap;
         std::vector<AbstractGate> cleanup_swap;
         if (matrix(col, col) == MyBool(1u)) {
@@ -41,6 +40,7 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
             assert(pivot != inf);
             auto path = device.shortest_path(pivot, col);
             uint32_t control = pivot;
+            bool crossed_diag = false;
             for (uint32_t i = 1; i < path.size(); ++i) {
                 uint32_t const target = path.at(i);
                 if (matrix(target, col) == MyBool(1u)) {
@@ -51,7 +51,7 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
                 if (control < col) {
                     crossed_diag = true;
                 }
-                above_diagonal.at(target) |= above_diagonal.at(control) || crossed_diag;
+                above_diagonal.at(target) |= above_diagonal.at(control) || (control < col);
                 control = target;
             }
             if (crossed_diag) {
@@ -59,6 +59,7 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
                 for (auto it = std::next(path.rbegin()); it != path.rend(); it++) {
                     uint32_t control = *it;
                     if (target == col) {
+                        target = control;
                         continue;
                     }
                     matrix.row(target) += matrix.row(control);
@@ -74,6 +75,7 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
                     }
                 }
             }
+            assert(matrix(col, col) == MyBool(1u));
         }
 
         // Compute steiner tree covering the 1's in column i
