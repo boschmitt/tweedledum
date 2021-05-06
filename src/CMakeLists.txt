@@ -7,6 +7,7 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/qasm.cpp
     # Passes
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/bridge_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/euler_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/parity_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/ApprxSatPlacer.cpp

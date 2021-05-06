@@ -38,6 +38,10 @@ void init_Passes(pybind11::module& module)
         py::arg("circuit"), py::arg("config") = nlohmann::json(),
         "Barrenco decomposition pass.");
 
+    module.def("bridge_decomp",
+        py::overload_cast<Device const&, Circuit const&>(&bridge_decomp),
+        "Bridge operators decomposition pass.");
+
     module.def("parity_decomp",
         py::overload_cast<Circuit const&>(&parity_decomp),
         "Parity operators decomposition pass.");

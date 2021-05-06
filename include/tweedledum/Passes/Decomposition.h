@@ -5,5 +5,6 @@
 #pragma once
 
 #include "Decomposition/barenco_decomp.h"
+#include "Decomposition/bridge_decomp.h"
 #include "Decomposition/euler_decomp.h"
 #include "Decomposition/parity_decomp.h"
