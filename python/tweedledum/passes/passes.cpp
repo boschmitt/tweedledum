@@ -47,6 +47,8 @@ void init_Passes(pybind11::module& module)
         "Parity operators decomposition pass.");
 
     // Mapping
+    module.def("bridge_map", &bridge_map);
+
     module.def("jit_map", &jit_map);
 
     module.def("sabre_map", &sabre_map);

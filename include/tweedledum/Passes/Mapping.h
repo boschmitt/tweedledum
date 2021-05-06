@@ -12,8 +12,10 @@
 #include "Mapping/RePlacer/JitRePlacer.h"
 #include "Mapping/RePlacer/SabreRePlacer.h"
 
+#include "Mapping/Router/BridgeRouter.h"
 #include "Mapping/Router/JitRouter.h"
 #include "Mapping/Router/SabreRouter.h"
 
+#include "Mapping/bridge_map.h"
 #include "Mapping/jit_map.h"
 #include "Mapping/sabre_map.h"
