@@ -5,6 +5,7 @@
 #include "tweedledum/Passes/Optimization/steiner_resynth.h"
 
 #include "tweedledum/IR/Wire.h"
+#include "tweedledum/Operators/Extension/Bridge.h"
 #include "tweedledum/Operators/Extension/Parity.h"
 #include "tweedledum/Operators/Standard/Swap.h"
 #include "tweedledum/Operators/Standard/X.h"
@@ -32,7 +33,7 @@ inline std::vector<Slice> partition_into_silces(Circuit const& original)
         if (max == slices.size()) {
             slices.emplace_back();
         }
-        if (!inst.is_one<Op::X, Op::Swap, Op::Parity>()) { 
+        if (!inst.is_one<Op::Bridge, Op::X, Op::Swap, Op::Parity>()) { 
             slices.at(max).non_linear_gates.emplace_back(ref);
             to_slice[ref] += 1;
         } else if (inst.is_a<Op::X>() && inst.num_wires() != 2u) {
