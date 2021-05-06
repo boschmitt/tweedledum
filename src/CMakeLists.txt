@@ -21,6 +21,7 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/gate_cancellation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/linear_resynth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/phase_folding.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Optimization/steiner_resynth.cpp
     # Synthesis
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/lhrs/lhrs_synth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Synthesis/xag/xag_synth.cpp
