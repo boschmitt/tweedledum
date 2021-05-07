@@ -17,7 +17,8 @@ public:
     }
 
     TruthTable(kitty::dynamic_truth_table const& tt, bool is_phase = false)
-        : truth_table_(tt), is_phase_(is_phase)
+        : truth_table_(tt)
+        , is_phase_(is_phase)
     {}
 
     kitty::dynamic_truth_table const& truth_table() const
@@ -48,4 +49,4 @@ private:
     bool const is_phase_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

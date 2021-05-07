@@ -29,4 +29,4 @@ Circuit parse_source_file(std::string_view path)
     return circuit;
 }
 
-} // namespace tweedledum
+} // namespace tweedledum::qasm

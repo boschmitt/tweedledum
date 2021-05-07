@@ -22,12 +22,16 @@ public:
         return "ext.unitary";
     }
 
-    Unitary(UMatrix const& unitary, std::optional<double> const& phase = std::nullopt)
-        : global_phase_(phase), unitary_(unitary)
+    Unitary(
+      UMatrix const& unitary, std::optional<double> const& phase = std::nullopt)
+        : global_phase_(phase)
+        , unitary_(unitary)
     {}
 
-    Unitary(UMatrix&& unitary, std::optional<double> const& phase = std::nullopt)
-        : global_phase_(phase), unitary_(unitary)
+    Unitary(
+      UMatrix&& unitary, std::optional<double> const& phase = std::nullopt)
+        : global_phase_(phase)
+        , unitary_(unitary)
     {}
 
     UMatrix const& matrix() const
@@ -45,7 +49,7 @@ public:
 
     uint32_t num_targets() const
     {
-        //FIXME: rows are guaranteed to be a power of 2, do this with a
+        // FIXME: rows are guaranteed to be a power of 2, do this with a
         // a dedicated function?
         return std::log2(unitary_.rows());
     }
@@ -70,17 +74,16 @@ private:
     UMatrix unitary_;
 
     friend bool is_approx_equal(Unitary& rhs, Unitary& lhs,
-        bool up_to_global_phase, double const rtol,
-        double const atol);
+      bool up_to_global_phase, double const rtol, double const atol);
 };
 
 // rtol : Relative tolerance
 // atol : Absolute tolerance
-// FIXME:: this function might change the unitary 
+// FIXME:: this function might change the unitary
 // (when it tries to isolate the global phase)
 inline bool is_approx_equal(Unitary& rhs, Unitary& lhs,
-    bool up_to_global_phase = false, double const rtol = 1e-05,
-    double const atol = 1e-08)
+  bool up_to_global_phase = false, double const rtol = 1e-05,
+  double const atol = 1e-08)
 {
     assert(rhs.unitary_.size() == lhs.unitary_.size());
     uint32_t const end = rhs.unitary_.size();
@@ -94,9 +97,9 @@ inline bool is_approx_equal(Unitary& rhs, Unitary& lhs,
     }
     for (uint32_t i = 0u; i < end && is_close; ++i) {
         is_close &= std::abs(r_data[i].real() - l_data[i].real())
-                    <= (atol + rtol * std::abs(l_data[i].real()));
+                 <= (atol + rtol * std::abs(l_data[i].real()));
         is_close &= std::abs(r_data[i].imag() - l_data[i].imag())
-                    <= (atol + rtol * std::abs(l_data[i].imag()));
+                 <= (atol + rtol * std::abs(l_data[i].imag()));
     }
     return is_close;
 }
@@ -130,14 +133,15 @@ public:
         case 2u:
             apply_matrix_nt<2>(optor.matrix(), qubits);
             break;
-        
+
         default:
             assert(0);
             break;
         }
     }
 
-    void apply_operator(Instruction const& inst, std::vector<uint32_t> const& qubits)
+    void apply_operator(
+      Instruction const& inst, std::vector<uint32_t> const& qubits)
     {
         auto u_matrix = inst.matrix();
         if (!u_matrix) {
@@ -158,7 +162,7 @@ public:
             // assert(0);
             apply_matrix_nt<2>(u_matrix.value(), qubits);
             break;
-        
+
         default:
             assert(0);
             break;
@@ -188,7 +192,7 @@ private:
     }
 
     std::vector<uint32_t> indicies(std::vector<uint32_t> const& qubits,
-        std::vector<uint32_t> const& qubits_sorted, uint32_t const k)
+      std::vector<uint32_t> const& qubits_sorted, uint32_t const k)
     {
         std::vector<uint32_t> result((1 << qubits.size()), 0u);
         result.at(0) = first_idx(qubits_sorted, k);
@@ -206,20 +210,25 @@ private:
     {
         uint32_t const k_end = (matrix_.size() >> 1u);
 
-        // This is implemented for a general one-qubit unitary matrix. 
+        // This is implemented for a general one-qubit unitary matrix.
         // There are ways to specialize for diagonal and anti-diagonal
         // matrices.  I will leave it to the future.
         // TODO: optmize.
         for (uint32_t k = 0u; k < k_end; ++k) {
             std::vector<uint32_t> const idx = indicies(qubits, qubits, k);
             Complex const cache = matrix_.data()[idx.at(0)];
-            matrix_.data()[idx.at(0)] = matrix.data()[0] * cache + matrix.data()[2] * matrix_.data()[idx.at(1)];
-            matrix_.data()[idx.at(1)] = matrix.data()[1] * cache + matrix.data()[3] * matrix_.data()[idx.at(1)];
+            matrix_.data()[idx.at(0)] =
+              matrix.data()[0] * cache
+              + matrix.data()[2] * matrix_.data()[idx.at(1)];
+            matrix_.data()[idx.at(1)] =
+              matrix.data()[1] * cache
+              + matrix.data()[3] * matrix_.data()[idx.at(1)];
         }
     }
 
     // Applies a general n-controlled 2x2 unitary matrix
-    void apply_matrix_nc(UMatrix const& matrix, std::vector<uint32_t> const& qubits)
+    void apply_matrix_nc(
+      UMatrix const& matrix, std::vector<uint32_t> const& qubits)
     {
         std::vector<uint32_t> qubits_sorted = qubits;
         std::sort(qubits_sorted.begin(), qubits_sorted.end());
@@ -231,15 +240,19 @@ private:
 
         auto* data_ = matrix_.data();
         for (uint32_t k = 0u; k < k_end; ++k) {
-            std::vector<uint32_t> const idx = indicies(qubits, qubits_sorted, k);
+            std::vector<uint32_t> const idx =
+              indicies(qubits, qubits_sorted, k);
             Complex const cache = data_[idx.at(p0)];
-            data_[idx.at(p0)] = matrix.data()[0] * cache + matrix.data()[2] * data_[idx.at(p1)];
-            data_[idx.at(p1)] = matrix.data()[1] * cache + matrix.data()[3] * data_[idx.at(p1)];
+            data_[idx.at(p0)] =
+              matrix.data()[0] * cache + matrix.data()[2] * data_[idx.at(p1)];
+            data_[idx.at(p1)] =
+              matrix.data()[1] * cache + matrix.data()[3] * data_[idx.at(p1)];
         }
     }
 
     template<uint32_t N>
-    void apply_matrix_nt(UMatrix const& matrix, std::vector<uint32_t> const& qubits)
+    void apply_matrix_nt(
+      UMatrix const& matrix, std::vector<uint32_t> const& qubits)
     {
         constexpr uint32_t k_dim = (1u << N);
         std::vector<uint32_t> qubits_sorted = qubits;
@@ -250,7 +263,8 @@ private:
 
         auto* data_ = matrix_.data();
         for (uint32_t k = 0u; k < k_end; ++k) {
-            std::vector<uint32_t> const idx = indicies(qubits, qubits_sorted, k);
+            std::vector<uint32_t> const idx =
+              indicies(qubits, qubits_sorted, k);
             std::array<Complex, k_dim> cache;
             for (size_t i = 0; i < k_dim; i++) {
                 cache[i] = data_[idx.at(i)];
@@ -268,4 +282,4 @@ private:
     UMatrix matrix_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

@@ -28,7 +28,7 @@ class SatSwap {
 
 public:
     SatSwap(Device const& graph, std::vector<uint32_t> const& init_cfg,
-            std::vector<uint32_t> const& final_cfg, Cnf& cnf_builder)
+      std::vector<uint32_t> const& final_cfg, Cnf& cnf_builder)
         : device_(graph)
         , init_cfg_(init_cfg)
         , init_t2v_(init_cfg.size(), 0)
@@ -56,7 +56,8 @@ public:
         initial_moment();
         // Assume initial configuration
         for (uint32_t i = 0; i < init_cfg_.size(); ++i) {
-            Lit lit(token_vertice_var(0, init_cfg_[i], i), bill::positive_polarity);
+            Lit lit(
+              token_vertice_var(0, init_cfg_[i], i), bill::positive_polarity);
             cnf_builder_.add_clause(lit);
         }
         for (uint32_t i = 0; i < min_num_moments_; ++i) {
@@ -122,8 +123,8 @@ private:
         uint32_t sum_distance = 0;
         for (uint32_t k = 0; k < init_cfg_.size(); ++k) {
             if (init_cfg_[k] != final_cfg_[k]) {
-                auto it = std::find(final_cfg_.begin(), final_cfg_.end(),
-                            init_cfg_[k]);
+                auto it =
+                  std::find(final_cfg_.begin(), final_cfg_.end(), init_cfg_[k]);
                 uint32_t idx = std::distance(final_cfg_.begin(), it);
                 uint32_t dist = device_.distance(k, idx);
                 sum_distance += dist;
@@ -183,12 +184,14 @@ private:
         std::vector<Var> variables;
         for (uint32_t token = 0; token < num_vertices(); ++token) {
             for (uint32_t vertice = 0; vertice < num_vertices(); ++vertice) {
-                if (device_.distance(vertice, init_t2v_[token]) <= (num_moments_ + 1)) {
+                if (device_.distance(vertice, init_t2v_[token])
+                    <= (num_moments_ + 1)) {
                     variables.emplace_back(cnf_builder_.add_variable());
                     is_activation_.emplace_back(0);
                     continue;
                 }
-                cnf_builder_.add_clause(Lit(cnf_builder_.add_variable(), bill::negative_polarity));
+                cnf_builder_.add_clause(
+                  Lit(cnf_builder_.add_variable(), bill::negative_polarity));
                 is_activation_.emplace_back(1);
             }
             bill::at_least_one(variables, cnf_builder_);
@@ -199,8 +202,10 @@ private:
         // Make sure that each vertice is assign at only one token
         for (uint32_t vertice = 0; vertice < num_vertices(); ++vertice) {
             for (uint32_t token = 0; token < num_vertices(); ++token) {
-                if (device_.distance(vertice, init_t2v_[token]) <= (num_moments_ + 1)) {
-                    variables.emplace_back(token_vertice_var(num_moments_, token, vertice));
+                if (device_.distance(vertice, init_t2v_[token])
+                    <= (num_moments_ + 1)) {
+                    variables.emplace_back(
+                      token_vertice_var(num_moments_, token, vertice));
                 }
             }
             bill::at_least_one(variables, cnf_builder_);
@@ -225,7 +230,7 @@ private:
         }
         if (opt_num_swaps_) {
             at_most_one_pairwise(variables, cnf_builder_);
-            if(num_moments_ > 1) {
+            if (num_moments_ > 1) {
                 symmetry_break(num_moments_ - 2, num_moments_ - 1);
             }
         }
@@ -240,8 +245,10 @@ private:
         std::vector<Lit> clause;
         for (uint32_t vertice = 0; vertice < num_vertices(); ++vertice) {
             for (uint32_t token = 0; token < num_vertices(); ++token) {
-                Var prev_var = token_vertice_var(num_moments_ - 1, token, vertice);
-                Var current_var = token_vertice_var(num_moments_, token, vertice);
+                Var prev_var =
+                  token_vertice_var(num_moments_ - 1, token, vertice);
+                Var current_var =
+                  token_vertice_var(num_moments_, token, vertice);
                 if (is_activation_[current_var]) {
                     continue;
                 }
@@ -258,23 +265,26 @@ private:
         // *) Condition 2:
         for (uint32_t vertice = 0; vertice < device_.num_qubits(); ++vertice) {
             for (uint32_t token = 0; token < device_.num_qubits(); ++token) {
-                Var prev_var = token_vertice_var(num_moments_ - 1, token, vertice);
-                Var current_var = token_vertice_var(num_moments_, token, vertice);
+                Var prev_var =
+                  token_vertice_var(num_moments_ - 1, token, vertice);
+                Var current_var =
+                  token_vertice_var(num_moments_, token, vertice);
                 std::vector<Var> edge_vars;
                 std::vector<Lit> edge_lits;
                 std::vector<Lit> token_lits;
                 for (uint32_t edge : vertice_edges_map_[vertice]) {
                     edge_vars.emplace_back(swap_var(num_moments_ - 1, edge));
-                    edge_lits.emplace_back(edge_vars.back(), bill::positive_polarity);
+                    edge_lits.emplace_back(
+                      edge_vars.back(), bill::positive_polarity);
                     auto [u, v] = device_.edge(edge);
                     if (u != vertice) {
                         token_lits.emplace_back(
-                            token_vertice_var(num_moments_ - 1, token, u),
-                            bill::positive_polarity);
+                          token_vertice_var(num_moments_ - 1, token, u),
+                          bill::positive_polarity);
                     } else {
                         token_lits.emplace_back(
-                            token_vertice_var(num_moments_ - 1, token, v),
-                            bill::positive_polarity);
+                          token_vertice_var(num_moments_ - 1, token, v),
+                          bill::positive_polarity);
                     }
                 }
                 if (!opt_num_swaps_) {
@@ -313,8 +323,10 @@ private:
                 if (u_i == u_j || u_i == v_j || v_i == u_j || v_i == v_j) {
                     continue;
                 }
-                clause.emplace_back(swap_var(prev_moment, j), bill::negative_polarity);
-                clause.emplace_back(swap_var(current_moment, j), bill::negative_polarity);
+                clause.emplace_back(
+                  swap_var(prev_moment, j), bill::negative_polarity);
+                clause.emplace_back(
+                  swap_var(current_moment, j), bill::negative_polarity);
                 cnf_builder_.add_clause(clause);
                 clause.clear();
             }
@@ -322,9 +334,9 @@ private:
     }
 
     Device const& device_;
-    std::vector<uint32_t> init_cfg_;   // vertice -> token
-    std::vector<uint32_t> init_t2v_;   // vertice <- token
-    std::vector<uint32_t> final_cfg_;  // vertice -> token
+    std::vector<uint32_t> init_cfg_; // vertice -> token
+    std::vector<uint32_t> init_t2v_; // vertice <- token
+    std::vector<uint32_t> final_cfg_; // vertice -> token
     uint32_t min_num_moments_;
 
     // Encoded problem
@@ -339,12 +351,11 @@ private:
     std::vector<std::vector<uint32_t>> vertice_edges_map_;
 };
 
-}
+} // namespace
 
-Circuit sat_swap_synth(Device const& device, 
-    std::vector<uint32_t> const& init_cfg,
-    std::vector<uint32_t> const& final_cfg,
-    nlohmann::json const& config = {})
+Circuit sat_swap_synth(Device const& device,
+  std::vector<uint32_t> const& init_cfg, std::vector<uint32_t> const& final_cfg,
+  nlohmann::json const& config = {})
 {
     using Swap = std::pair<uint32_t, uint32_t>;
     std::vector<Swap> swaps;

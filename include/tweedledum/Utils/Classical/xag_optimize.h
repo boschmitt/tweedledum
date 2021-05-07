@@ -17,15 +17,14 @@
 // It's a bit annoying that mockturtle don't default flows
 
 namespace mockturtle {
-    template<class Ntk>
-struct free_xor_cost
-{
-  uint32_t operator()( Ntk const& ntk, node<Ntk> const& n ) const
-  {
-    return ntk.is_xor( n ) ? 0 : 1;
-  }
+template<class Ntk>
+struct free_xor_cost {
+    uint32_t operator()(Ntk const& ntk, node<Ntk> const& n) const
+    {
+        return ntk.is_xor(n) ? 0 : 1;
+    }
 };
-}
+} // namespace mockturtle
 
 namespace tweedledum {
 
@@ -52,7 +51,8 @@ inline void xag_optimize(mockturtle::xag_network& xag)
     // refactoring(xag, bi_resyn);
     xag = cleanup_dangling(xag);
 
-    cut_rewriting_with_compatibility_graph(xag, resyn, cut_rwrt_cfg, nullptr, mc_cost<xag_network>());
+    cut_rewriting_with_compatibility_graph(
+      xag, resyn, cut_rwrt_cfg, nullptr, mc_cost<xag_network>());
     xag = cleanup_dangling(xag);
 
     xag = xag_constant_fanin_optimization(xag);

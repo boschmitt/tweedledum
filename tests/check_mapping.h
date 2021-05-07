@@ -6,20 +6,21 @@
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/Operators/Standard/Swap.h"
-#include "tweedledum/Target/Mapping.h"
 #include "tweedledum/Passes/Mapping/Placer/TrivialPlacer.h"
+#include "tweedledum/Target/Mapping.h"
 
 using namespace tweedledum;
 
 namespace {
-    using Sum = std::vector<uint32_t>;
+using Sum = std::vector<uint32_t>;
 
 // Fake pathsums can be employed to verify mappings.  Assuming that the mapping
 // do not screw-up adding single qubit gates, we can safely ignore them and
 // verify if the set of output path sums of the original circuit mataches the
 // set of output path sums of the mapped circuit.
 //
-std::vector<Sum> fake_pathsums(Circuit const& circuit, Placement const& placement)
+std::vector<Sum> fake_pathsums(
+  Circuit const& circuit, Placement const& placement)
 {
     std::vector<Sum> fake_pathsum;
     std::vector<Qubit> const& phy_to_v = placement.phy_to_v();
@@ -39,17 +40,16 @@ std::vector<Sum> fake_pathsums(Circuit const& circuit, Placement const& placemen
         Qubit const c = inst.control();
         std::vector<uint32_t> result;
         std::set_symmetric_difference(fake_pathsum.at(c).begin(),
-                                      fake_pathsum.at(c).end(),
-                                      fake_pathsum.at(t).begin(),
-                                      fake_pathsum.at(t).end(),
-                                      std::back_inserter(result));
+          fake_pathsum.at(c).end(), fake_pathsum.at(t).begin(),
+          fake_pathsum.at(t).end(), std::back_inserter(result));
         fake_pathsum.at(t) = result;
     });
     return fake_pathsum;
 }
 } // namespace
 
-/*! \brief Verify if a circuit was correctly mapped (under assumptions, see details).
+/*! \brief Verify if a circuit was correctly mapped (under assumptions, see
+ * details).
  *
  * This method uses a trick to verify if a circuit has been correctly mapped.
  * It will consider all two-qubit gates that are not a SWAP to be CX and ignore
@@ -65,12 +65,12 @@ std::vector<Sum> fake_pathsums(Circuit const& circuit, Placement const& placemen
  * \param[in] mapped the mapped version of the orignal circuit.
  * \returns true if the circuit is correctly mapped under the assumptions.
  */
-inline bool check_mapping(Device const& device, Circuit const& original, 
-    Circuit const& mapped, Mapping const& mapping)
+inline bool check_mapping(Device const& device, Circuit const& original,
+  Circuit const& mapped, Mapping const& mapping)
 {
     auto trivial_placement = trivial_place(device, original);
     auto original_pathsums = fake_pathsums(original, *trivial_placement);
     auto mapped_pathsums = fake_pathsums(mapped, mapping.init_placement);
     return std::is_permutation(original_pathsums.begin(),
-        original_pathsums.end(), mapped_pathsums.begin());
+      original_pathsums.end(), mapped_pathsums.begin());
 }

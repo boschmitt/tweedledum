@@ -15,6 +15,7 @@ namespace tweedledum::Op {
 // Pauli-Z operator
 class Z {
     constexpr static std::array<Complex, 4> mat_ = {1., 0., 0., -1.};
+
 public:
     static constexpr std::string_view kind()
     {
@@ -26,7 +27,7 @@ public:
         return Z();
     }
 
-    static double angle() 
+    static double angle()
     {
         return numbers::pi;
     }
@@ -37,4 +38,4 @@ public:
     }
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

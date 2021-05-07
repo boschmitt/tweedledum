@@ -13,8 +13,8 @@
 
 namespace tweedledum {
 
-inline std::pair<Circuit, Mapping> bridge_map(Device const& device,
-    Circuit const& original)
+inline std::pair<Circuit, Mapping> bridge_map(
+  Device const& device, Circuit const& original)
 {
     auto placement = apprx_sat_place(device, original);
     BridgeRouter router(device, original, *placement);

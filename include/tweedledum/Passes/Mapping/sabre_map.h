@@ -13,13 +13,13 @@
 #include "RePlacer/SabreRePlacer.h"
 #include "Router/SabreRouter.h"
 
-#include <utility>
 #include <string_view>
+#include <utility>
 
 namespace tweedledum {
 
-inline std::pair<Circuit, Mapping> sabre_map(Device const& device,
-    Circuit const& original)
+inline std::pair<Circuit, Mapping> sabre_map(
+  Device const& device, Circuit const& original)
 {
     auto placement = random_place(device, original);
     sabre_re_place(device, original, *placement);

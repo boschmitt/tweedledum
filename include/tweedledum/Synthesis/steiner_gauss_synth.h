@@ -14,18 +14,18 @@
 // This implementation is based on:
 //
 // Kissinger, Aleks, and Arianne Meijer-van de Griend. "CNOT circuit extraction
-// for topologically-constrained quantum memories." 
+// for topologically-constrained quantum memories."
 // arXiv preprint arXiv:1904.00633 (2019).
 //
-// I also used staq's (https://github.com/softwareQinc/staq/) trick to deal 
+// I also used staq's (https://github.com/softwareQinc/staq/) trick to deal
 // with 1's to the left of the diagonal
 //
 namespace tweedledum {
 
 void steiner_gauss_synth(Circuit& circuit, Device const& device,
-    BMatrix const& matrix, nlohmann::json const& config = {});
+  BMatrix const& matrix, nlohmann::json const& config = {});
 
 Circuit steiner_gauss_synth(Device const& device, BMatrix const& matrix,
-    nlohmann::json const& config = {});
+  nlohmann::json const& config = {});
 
 } // namespace tweedledum

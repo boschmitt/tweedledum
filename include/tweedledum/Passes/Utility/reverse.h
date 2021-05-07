@@ -12,9 +12,8 @@ namespace tweedledum {
 inline Circuit reverse(Circuit const& original)
 {
     Circuit reversed = shallow_duplicate(original);
-    original.foreach_r_instruction([&](Instruction const& inst) {
-        reversed.apply_operator(inst);
-    });
+    original.foreach_r_instruction(
+      [&](Instruction const& inst) { reversed.apply_operator(inst); });
     return reversed;
 }
 

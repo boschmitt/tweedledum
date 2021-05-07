@@ -4,10 +4,10 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "tweedledum/IR/Circuit.h"
-#include "tweedledum/Utils/SourceManager.h"
 #include "PPLexer.h"
 #include "Token.h"
+#include "tweedledum/IR/Circuit.h"
+#include "tweedledum/Utils/SourceManager.h"
 
 #include <memory>
 
@@ -18,7 +18,8 @@ namespace tweedledum::qasm {
 class Parser {
 public:
     Parser(SourceManager& source_manager)
-        : source_manager_(source_manager), pp_lexer_(source_manager_)
+        : source_manager_(source_manager)
+        , pp_lexer_(source_manager_)
     {}
 
     bool parse(Circuit& circuit);
@@ -63,8 +64,7 @@ private:
     void emit_error(std::string_view message) const
     {
         fmt::print("[error] {} {}\n",
-            source_manager_.location_str(current_token_.location()),
-            message);
+          source_manager_.location_str(current_token_.location()), message);
     }
 
     double consume_parameter()

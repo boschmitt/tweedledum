@@ -18,7 +18,8 @@ public:
         return "ising.rxx";
     }
 
-    Rxx(double angle) : angle_(angle)
+    Rxx(double angle)
+        : angle_(angle)
     {}
 
     Rxx adjoint() const
@@ -29,11 +30,13 @@ public:
     UMatrix4 const matrix() const
     {
         Complex const a = std::cos(angle_);
-        Complex const b = {0. -std::sin(angle_)};
+        Complex const b = {0. - std::sin(angle_)};
+        // clang-format off
         return (UMatrix4() << a, 0 ,0, b,
                               0, a, b, 0,
                               0, b, a, 0,
                               b, 0, 0, a).finished();
+        // clang-format on
     }
 
     uint32_t num_targets() const
@@ -50,4 +53,4 @@ private:
     double const angle_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

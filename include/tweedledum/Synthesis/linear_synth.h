@@ -31,7 +31,7 @@
 //    Synthesize an arbitrary linear reversible circuit on N qubits using as
 //    few CX gates as possible.
 //
-// This problem can be mapped to the problem of row reducing an N × N binary 
+// This problem can be mapped to the problem of row reducing an N × N binary
 // matrix.  Patel et al. presented an algorithm that is asymptotically optimal
 // up to a multiplicative constant. Their algorithm can be understood as a
 // matrix decomposition algorithm that yields an asymptotically efficient
@@ -45,16 +45,16 @@ namespace tweedledum {
  * passed as a parameter and can potentially already contain some gates.  The
  * parameter ``qubits`` provides a qubit mapping to the existing qubits in the
  * circuit.
- * 
- * \param[inout] circuit A circuit in which the linear transformation will be 
+ *
+ * \param[inout] circuit A circuit in which the linear transformation will be
  * synthesized on.
  * \param[in] qubits The qubits that will be used.
  * \param[in] cbits The cbits that will be used.
  * \param[in] matrix An N x N binary matrix.
  */
 void linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, BMatrix const& matrix,
-    nlohmann::json const& config = {});
+  std::vector<Cbit> const& cbits, BMatrix const& matrix,
+  nlohmann::json const& config = {});
 
 /*! \brief Synthesis of linear reversible circuits (CNOT synthesis).
  *

@@ -8,8 +8,8 @@ namespace tweedledum {
 
 /*! \brief Yet to be written.
  */
-std::optional<Placement> random_place(Device const& device,
-    Circuit const& original)
+std::optional<Placement> random_place(
+  Device const& device, Circuit const& original)
 {
     RandomPlacer placer(device, original);
     return placer.run();

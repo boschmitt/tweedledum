@@ -13,7 +13,8 @@
 TEST_CASE("Trivial cases for unitary builder", "[operators]")
 {
     using namespace tweedledum;
-    SECTION("Rxx") {
+    SECTION("Rxx")
+    {
         Op::Rxx rxx(numbers::pi);
         Op::Unitary expected(rxx.matrix());
 
@@ -23,7 +24,8 @@ TEST_CASE("Trivial cases for unitary builder", "[operators]")
 
         CHECK(is_approx_equal(expected, built));
     }
-    SECTION("Ryy") {
+    SECTION("Ryy")
+    {
         Op::Ryy ryy(numbers::pi);
         Op::Unitary expected(ryy.matrix());
 
@@ -33,7 +35,8 @@ TEST_CASE("Trivial cases for unitary builder", "[operators]")
 
         CHECK(is_approx_equal(expected, built));
     }
-    SECTION("Rzz") {
+    SECTION("Rzz")
+    {
         Op::Rzz rzz(numbers::pi);
         Op::Unitary expected(rzz.matrix());
 

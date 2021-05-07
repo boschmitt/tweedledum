@@ -2,8 +2,8 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Synthesis/pprm_synth.h"
+#include "tweedledum/Operators/Standard.h"
 
 #include <cassert>
 
@@ -27,8 +27,8 @@ struct Config {
 };
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
-    Config config)
+  std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+  Config config)
 {
     std::vector<Qubit> qs;
     qs.reserve(qubits.size());
@@ -60,11 +60,11 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     }
 }
 
-}
+} // namespace
 
 void pprm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
-    nlohmann::json const& config)
+  std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+  nlohmann::json const& config)
 {
     Config cfg(config);
     assert(cfg.phase_esop ? qubits.size() == function.num_vars()
@@ -72,8 +72,8 @@ void pprm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     synthesize(circuit, qubits, cbits, function, cfg);
 }
 
-Circuit pprm_synth(kitty::dynamic_truth_table const& function,
-    nlohmann::json const& config)
+Circuit pprm_synth(
+  kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     Circuit circuit;
     Config cfg(config);

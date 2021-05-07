@@ -10,10 +10,10 @@
 
 // The adders implemented here are based on the following papers:
 //
-// Cuccaro, Steven A., et al. "A new quantum ripple-carry addition circuit." 
+// Cuccaro, Steven A., et al. "A new quantum ripple-carry addition circuit."
 // arXiv preprint quant-ph/0410184 (2004).
 //
-// Takahashi, Yasuhiro, and Noboru Kunihiro. "A fast quantum circuit for 
+// Takahashi, Yasuhiro, and Noboru Kunihiro. "A fast quantum circuit for
 // addition with few qubits." Quantum Information & Computation 8.6 (2008):
 // 636-649.
 //
@@ -24,7 +24,7 @@ namespace deprecated {
 // This is a literal translation of the algorithm given in Figure 5 of the
 // Cuccaro et al. paper.
 inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
-    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
+  std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -56,7 +56,7 @@ inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
 
     circuit.apply_operator(Op::X(), {a[n - 3], b[n - 2], a[n - 2]});
 
-    for (uint32_t i = n - 2; i --> 2;) {
+    for (uint32_t i = n - 2; i-- > 2;) {
         circuit.apply_operator(Op::X(), {a[i - 1], b[i], a[i]});
         circuit.apply_operator(Op::X(), {a[i + 2], a[i + 1]});
         circuit.apply_operator(Op::X(), {b[i + 1]});
@@ -78,7 +78,7 @@ inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
 // Cuccaro et al. paper.  The only difference here is that the inversters are
 // absorbed into the the controls of the Toffoli gates.
 inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
-    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
+  std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -106,7 +106,7 @@ inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
 
     circuit.apply_operator(Op::X(), {a[n - 3], !b[n - 2], a[n - 2]});
 
-    for (uint32_t i = n - 2; i --> 2;) {
+    for (uint32_t i = n - 2; i-- > 2;) {
         circuit.apply_operator(Op::X(), {a[i - 1], !b[i], a[i]});
         circuit.apply_operator(Op::X(), {a[i + 2], a[i + 1]});
     }
@@ -122,7 +122,7 @@ inline void carry_ripple_adder_inplace_cdkm(Circuit& circuit,
 
 // This is an implementation based on Figure 4 of the Cuccaro et al. paper.
 inline void carry_ripple_adder_inplace_cdkm_v1(Circuit& circuit,
-    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
+  std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -152,7 +152,7 @@ inline void carry_ripple_adder_inplace_cdkm_v1(Circuit& circuit,
 
 // Ripple-Carry approach with depth O(n)
 inline void carry_ripple_adder_inplace_ttk(Circuit& circuit,
-    std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit carry)
+  std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit carry)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -163,7 +163,7 @@ inline void carry_ripple_adder_inplace_ttk(Circuit& circuit,
         circuit.apply_operator(Op::X(), {a[i], b[i]});
     }
     // Step 2
-    for (uint32_t i = n; i --> 1;) {
+    for (uint32_t i = n; i-- > 1;) {
         circuit.apply_operator(Op::X(), {a[i], a[i + 1]});
     }
     // Step 3
@@ -171,7 +171,7 @@ inline void carry_ripple_adder_inplace_ttk(Circuit& circuit,
         circuit.apply_operator(Op::X(), {a[i], b[i], a[i + 1]});
     }
     // Step 4
-    for (uint32_t i = n; i --> 1;) {
+    for (uint32_t i = n; i-- > 1;) {
         circuit.apply_operator(Op::X(), {a[i], b[i]});
         circuit.apply_operator(Op::X(), {a[i - 1], b[i - 1], a[i]});
     }
@@ -187,7 +187,7 @@ inline void carry_ripple_adder_inplace_ttk(Circuit& circuit,
 
 // Generic function that takes the adder I think is best (:
 inline void carry_ripple_adder_inplace(Circuit& circuit,
-    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
+  std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
 {
     carry_ripple_adder_inplace_ttk(circuit, a, b, carry);
 }

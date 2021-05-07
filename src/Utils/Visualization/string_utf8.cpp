@@ -2,9 +2,9 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include "tweedledum/Utils/Visualization/string_utf8.h"
 #include "tweedledum/Operators/Standard/Measure.h"
 #include "tweedledum/Operators/Standard/Swap.h"
-#include "tweedledum/Utils/Visualization/string_utf8.h"
 
 #include <algorithm>
 #include <codecvt>
@@ -14,7 +14,7 @@
 namespace tweedledum {
 
 inline void merge_chars(char32_t& c0, char32_t c1)
-{ 
+{
     if (c0 == U' ') {
         c0 = c1;
         return;
@@ -26,11 +26,11 @@ inline void merge_chars(char32_t& c0, char32_t c1)
         case U'┼':
         case U'╪':
             return;
-                    
+
         case U'─':
             c0 = U'┼';
             return;
-                    
+
         case U'═':
             c0 = U'╪';
             return;
@@ -46,7 +46,7 @@ inline void merge_chars(char32_t& c0, char32_t c1)
         case U'─':
             c0 = U'╫';
             return;
-                    
+
         case U'═':
             c0 = U'╬';
             return;
@@ -57,7 +57,7 @@ inline void merge_chars(char32_t& c0, char32_t c1)
         }
     }
     if (c0 > c1) {
-        std::swap (c0, c1);
+        std::swap(c0, c1);
     }
     if (c0 == U'─') {
         switch (c1) {
@@ -86,7 +86,8 @@ inline void merge_chars(char32_t& c0, char32_t c1)
 
 class Diagram {
 public:
-    enum class Style : uint8_t {
+    enum class Style : uint8_t
+    {
         NotCompact,
         Compact,
     };
@@ -97,7 +98,7 @@ public:
             : uid_(uid)
             , is_complemented_(is_complemented)
         {}
-        
+
         uint32_t is_complemented() const
         {
             return is_complemented_;
@@ -115,9 +116,10 @@ public:
 
     class Operator {
     public:
-        Operator(std::vector<Wire> const& wires, uint32_t num_targets, 
-            uint32_t num_controls)
-            : wires_(wires), num_targets_(num_targets)
+        Operator(std::vector<Wire> const& wires, uint32_t num_targets,
+          uint32_t num_controls)
+            : wires_(wires)
+            , num_targets_(num_targets)
             , num_controls_(num_controls)
         {}
 
@@ -151,17 +153,18 @@ public:
         uint32_t right_col_;
     };
 
-    Diagram(uint32_t num_qubits, uint32_t num_cbits, 
-        bool inverted_qubits = false, Style style = Style::Compact)
-        : style_(style), inverted_qubits_(inverted_qubits)
+    Diagram(uint32_t num_qubits, uint32_t num_cbits,
+      bool inverted_qubits = false, Style style = Style::Compact)
+        : style_(style)
+        , inverted_qubits_(inverted_qubits)
         , num_qubits_(num_qubits)
         , num_cbits_(style_ == Style::NotCompact ? num_cbits : (num_cbits > 1))
         , height_((2 * (num_qubits_ + num_cbits_) + 1))
-    { }
+    {}
 
     uint32_t num_wires() const
     {
-       return num_qubits_ + (num_cbits_ > 0);
+        return num_qubits_ + (num_cbits_ > 0);
     }
 
     uint32_t num_qubits() const
@@ -190,8 +193,8 @@ public:
 
     Wire to_dwire(Qubit qubit) const
     {
-        uint32_t const uid = inverted_qubits_ ? 
-                                qubit.uid() : (num_qubits_ - 1) - qubit.uid();
+        uint32_t const uid =
+          inverted_qubits_ ? qubit.uid() : (num_qubits_ - 1) - qubit.uid();
         return Wire(uid, (qubit.polarity() == Qubit::Polarity::negative));
     }
 
@@ -238,12 +241,13 @@ private:
 
 class Box : public Diagram::Operator {
 public:
-    using Wire =  Diagram::Wire;
+    using Wire = Diagram::Wire;
 
-    Box(std::string_view label, std::vector<Wire> const& dwires, 
-        uint32_t num_targets, uint32_t num_controls)
-        : Operator(dwires, num_targets, num_controls), label(label)
-    { }
+    Box(std::string_view label, std::vector<Wire> const& dwires,
+      uint32_t num_targets, uint32_t num_controls)
+        : Operator(dwires, num_targets, num_controls)
+        , label(label)
+    {}
 
     virtual uint32_t width() const override
     {
@@ -253,7 +257,7 @@ public:
     virtual void draw(Diagram& diagram) override
     {
         auto const [min, max] =
-            std::minmax_element(wires_.begin(), wires_.end());
+          std::minmax_element(wires_.begin(), wires_.end());
         set_vertical_positions(diagram, *min, *max);
         draw_box(diagram);
         draw_targets(diagram);
@@ -263,7 +267,7 @@ public:
     }
 
 protected:
-    void set_vertical_positions(Diagram const& diagram, Wire top, Wire bot) 
+    void set_vertical_positions(Diagram const& diagram, Wire top, Wire bot)
     {
         box_top = diagram.to_row(top) - 1u;
         box_bot = diagram.to_row(bot) + 1u;
@@ -294,12 +298,12 @@ protected:
 
     void draw_targets(Diagram& diagram) const
     {
-        std::for_each(wires_.begin(), wires_.begin() + num_targets(),
-        [&](Wire wire) {
-            uint32_t const row = diagram.to_row(wire);
-            diagram.at(row, left_col_) = U'┤';
-            diagram.at(row, right_col_) = U'├';
-        });
+        std::for_each(
+          wires_.begin(), wires_.begin() + num_targets(), [&](Wire wire) {
+              uint32_t const row = diagram.to_row(wire);
+              diagram.at(row, left_col_) = U'┤';
+              diagram.at(row, right_col_) = U'├';
+          });
     }
 
     virtual void draw_controls(Diagram& diagram) const
@@ -309,7 +313,8 @@ protected:
         std::for_each(begin, end, [&](Wire wire) {
             uint32_t const row = diagram.to_row(wire);
             diagram.at(row, left_col_) = U'┤';
-            diagram.at(row, left_col_ + 1) = wire.is_complemented() ? U'◯' : U'●';
+            diagram.at(row, left_col_ + 1) =
+              wire.is_complemented() ? U'◯' : U'●';
             diagram.at(row, right_col_) = U'├';
         });
     }
@@ -318,26 +323,25 @@ protected:
     {
         uint32_t const mid_col = (left_col_ + right_col_) / 2;
         uint32_t const begin = num_targets() + num_controls();
-        std::for_each(wires_.begin() + begin, wires_.end(),
-        [&](Wire wire) {
+        std::for_each(wires_.begin() + begin, wires_.end(), [&](Wire wire) {
             std::u32string const wire_label =
-                fmt::format(U"{:>2}", wire - diagram.num_qubits());
+              fmt::format(U"{:>2}", wire - diagram.num_qubits());
             uint32_t const row = diagram.to_row(wire);
             diagram.at(row, mid_col) = wire.is_complemented() ? U'◯' : U'●';
             for (uint32_t i = box_bot + 1; i < row; ++i) {
                 merge_chars(diagram.at(i, mid_col), U'║');
             }
             diagram.at(box_bot, mid_col) = U'╥';
-            std::copy(wire_label.begin(), wire_label.end(), 
-                      diagram.row(row + 1).begin() + (mid_col - 1));
+            std::copy(wire_label.begin(), wire_label.end(),
+              diagram.row(row + 1).begin() + (mid_col - 1));
         });
     }
 
     virtual void draw_label(Diagram& diagram) const
     {
         uint32_t const label_start = left_col_ + 1 + (num_controls() > 0);
-        std::copy(label.begin(), label.end(), 
-                  diagram.row(box_mid).begin() + label_start);
+        std::copy(label.begin(), label.end(),
+          diagram.row(box_mid).begin() + label_start);
     }
 
     uint32_t box_top;
@@ -348,10 +352,10 @@ protected:
 
 class ControlledBox : public Box {
 public:
-    ControlledBox(std::string_view label, std::vector<Wire> const& dwires, 
-        uint32_t num_targets, uint32_t num_controls) 
+    ControlledBox(std::string_view label, std::vector<Wire> const& dwires,
+      uint32_t num_targets, uint32_t num_controls)
         : Box(label, dwires, num_targets, num_controls)
-    { }
+    {}
 
     virtual uint32_t width() const override
     {
@@ -361,7 +365,7 @@ public:
     virtual void draw(Diagram& diagram) override
     {
         auto const [min, max] =
-            std::minmax_element(wires_.begin(), wires_.begin() + num_targets());
+          std::minmax_element(wires_.begin(), wires_.begin() + num_targets());
         set_vertical_positions(diagram, *min, *max);
         draw_box(diagram);
         draw_targets(diagram);
@@ -396,15 +400,15 @@ private:
     virtual void draw_label(Diagram& diagram) const override
     {
         std::copy(label.begin(), label.end(),
-                  diagram.row(box_mid).begin() + left_col_ + 1);
+          diagram.row(box_mid).begin() + left_col_ + 1);
     }
 };
 
 class MeasureBox : public ControlledBox {
 public:
-    MeasureBox(std::vector<Wire> const& dwires) 
+    MeasureBox(std::vector<Wire> const& dwires)
         : ControlledBox("m", dwires, 1u, dwires.size() - 2)
-    { }
+    {}
 
 private:
     virtual void draw_cbits(Diagram& diagram) const
@@ -417,14 +421,14 @@ private:
         }
         diagram.at(row, left_col_ + 1) = U'V';
         std::u32string const wire_label = fmt::format(U"{:>2}", wires_.back());
-        std::copy(wire_label.begin(), wire_label.end(), 
-                  diagram.row(row + 1).begin() + (mid_col - 1));
+        std::copy(wire_label.begin(), wire_label.end(),
+          diagram.row(row + 1).begin() + (mid_col - 1));
     }
 };
 
 class DiagramSwap : public Diagram::Operator {
 public:
-    using Wire =  Diagram::Wire;
+    using Wire = Diagram::Wire;
 
     DiagramSwap(std::vector<Wire> const& dwires, uint32_t num_controls)
         : Operator(dwires, 2u, num_controls)
@@ -496,9 +500,8 @@ std::string to_string_utf8(Circuit const& circuit, uint32_t const max_rows)
     std::vector<int> wire_layer(diagram.num_wires(), -1);
     circuit.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         std::vector<Diagram::Wire> wires;
-        inst.foreach_target([&](Qubit target) {
-            wires.push_back(diagram.to_dwire(target));
-        });
+        inst.foreach_target(
+          [&](Qubit target) { wires.push_back(diagram.to_dwire(target)); });
         std::sort(wires.begin(), wires.end());
         uint32_t const min_target = wires.front();
         uint32_t const max_target = wires.back();
@@ -515,25 +518,27 @@ std::string to_string_utf8(Circuit const& circuit, uint32_t const max_rows)
             max_dwire = std::max(static_cast<uint32_t>(control), max_dwire);
         });
         if (inst.num_cbits() > 0) {
-            inst.foreach_cbit([&](Cbit cbit) {
-                wires.push_back( diagram.to_dwire(cbit));
-            });
+            inst.foreach_cbit(
+              [&](Cbit cbit) { wires.push_back(diagram.to_dwire(cbit)); });
             max_dwire = wire_layer.size() - 1;
         }
         uint32_t padding = 1;
         std::string_view name = inst.name();
-        std::string label = fmt::format("{: ^{}}", name, name.size() + (2 * padding));
+        std::string label =
+          fmt::format("{: ^{}}", name, name.size() + (2 * padding));
         std::unique_ptr<Diagram::Operator> shape = nullptr;
         if (overlap) {
-            shape = std::make_unique<Box>(label, wires, inst.num_targets(), inst.num_controls());
+            shape = std::make_unique<Box>(
+              label, wires, inst.num_targets(), inst.num_controls());
         } else if (inst.is_a<Op::Swap>()) {
             shape = std::make_unique<DiagramSwap>(wires, inst.num_controls());
         } else if (inst.is_a<Op::Measure>()) {
             shape = std::make_unique<MeasureBox>(wires);
         } else {
-            shape = std::make_unique<ControlledBox>(label, wires, inst.num_targets(), inst.num_controls());
+            shape = std::make_unique<ControlledBox>(
+              label, wires, inst.num_targets(), inst.num_controls());
         }
-        
+
         int layer = -1;
         for (uint32_t i = min_dwire; i <= max_dwire; ++i) {
             layer = std::max(layer, wire_layer.at(i));
@@ -558,7 +563,8 @@ std::string to_string_utf8(Circuit const& circuit, uint32_t const max_rows)
     for (uint32_t layer = 0u; layer < layers.size(); ++layer) {
         for (InstRef const ref : layers.at(layer)) {
             auto& box = boxes.at(ref);
-            box->set_cols(curr_width + (layer_width.at(layer) - box->width())/2u);
+            box->set_cols(
+              curr_width + (layer_width.at(layer) - box->width()) / 2u);
         }
         if ((acc_width + layer_width.at(layer)) >= (max_rows - 1)) {
             cutting_point.push_back(curr_width);

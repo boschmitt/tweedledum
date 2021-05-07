@@ -15,7 +15,8 @@
 
 namespace tweedledum {
 
-inline std::vector<kitty::dynamic_truth_table> xag_simulate(mockturtle::xag_network const& xag)
+inline std::vector<kitty::dynamic_truth_table> xag_simulate(
+  mockturtle::xag_network const& xag)
 {
     using namespace mockturtle;
     using TruthTable = kitty::dynamic_truth_table;
@@ -24,7 +25,8 @@ inline std::vector<kitty::dynamic_truth_table> xag_simulate(mockturtle::xag_netw
     return results;
 }
 
-inline std::vector<bool> xag_simulate(mockturtle::xag_network const& xag, std::vector<bool> const& pattern)
+inline std::vector<bool> xag_simulate(
+  mockturtle::xag_network const& xag, std::vector<bool> const& pattern)
 {
     using namespace mockturtle;
     using Simulator = default_simulator<bool>;

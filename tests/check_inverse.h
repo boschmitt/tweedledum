@@ -10,15 +10,15 @@
 
 using namespace tweedledum;
 
-inline bool check_inverse(Circuit const& left, Circuit const& right,
-    double const atol = 1e-08)
+inline bool check_inverse(
+  Circuit const& left, Circuit const& right, double const atol = 1e-08)
 {
     Op::UnitaryBuilder left_unitary(left.num_qubits(), left.global_phase());
     left.foreach_instruction([&](Instruction const& inst) {
         left_unitary.apply_operator(inst, inst.qubits());
     });
     Op::Unitary u_left = left_unitary.finished();
- 
+
     Op::UnitaryBuilder right_unitary(right.num_qubits(), right.global_phase());
     right.foreach_instruction([&](Instruction const& inst) {
         right_unitary.apply_operator(inst, inst.qubits());

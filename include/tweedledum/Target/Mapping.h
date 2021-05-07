@@ -18,7 +18,8 @@ struct Mapping {
     Placement placement;
 
     Mapping(Placement const& init_placement)
-        : init_placement(init_placement), placement(init_placement)
+        : init_placement(init_placement)
+        , placement(init_placement)
     {}
 };
 

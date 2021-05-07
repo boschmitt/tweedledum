@@ -15,12 +15,15 @@ namespace tweedledum {
 
 class JitRePlacer {
 public:
-    JitRePlacer(Device const& device, Circuit const& original, 
-        Placement& placement)
-        : device_(device), original_(original), placement_(placement)
+    JitRePlacer(
+      Device const& device, Circuit const& original, Placement& placement)
+        : device_(device)
+        , original_(original)
+        , placement_(placement)
         , visited_(original_.size(), 0u)
         , involved_phy_(device_.num_qubits(), 0u)
-        , phy_decay_(device_.num_qubits(), 1.0), num_swaps_(0u)
+        , phy_decay_(device_.num_qubits(), 1.0)
+        , num_swaps_(0u)
     {
         extended_layer_.reserve(e_set_size_);
     }
@@ -72,7 +75,7 @@ private:
     Circuit const& original_;
     Circuit const* current_;
     Placement& placement_;
-    
+
     std::vector<uint32_t> visited_;
 
     // Sabre internals
@@ -81,7 +84,7 @@ private:
     std::vector<uint32_t> involved_phy_;
     std::vector<float> phy_decay_;
     uint32_t num_swaps_;
-    
+
     // Sabre configuration
     uint32_t e_set_size_ = 20;
     float e_weight_ = 0.5;
@@ -92,7 +95,7 @@ private:
 
 /*! \brief Yet to be written.
  */
-void jit_re_place(Device const& device, Circuit const& original,
-    Placement& placement);
+void jit_re_place(
+  Device const& device, Circuit const& original, Placement& placement);
 
 } // namespace tweedledum

@@ -15,12 +15,14 @@ TEST_CASE("SatPlacer test cases", "[SatPlacer][mapping]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    SECTION("Empty circuit") {
+    SECTION("Empty circuit")
+    {
         Device device = Device::path(circuit.num_qubits());
         auto placement = sat_place(device, circuit);
         CHECK_FALSE(placement);
     }
-    SECTION("Circuit with no instructions") {
+    SECTION("Circuit with no instructions")
+    {
         circuit.create_qubit();
         circuit.create_cbit();
         circuit.create_qubit();
@@ -31,7 +33,8 @@ TEST_CASE("SatPlacer test cases", "[SatPlacer][mapping]")
         auto placement = sat_place(device, circuit);
         CHECK(placement);
     }
-    SECTION("Simple circuit (SAT)") {
+    SECTION("Simple circuit (SAT)")
+    {
         Qubit q0 = circuit.create_qubit();
         circuit.create_cbit();
         Qubit q1 = circuit.create_qubit();
@@ -46,7 +49,8 @@ TEST_CASE("SatPlacer test cases", "[SatPlacer][mapping]")
         auto placement = sat_place(device, circuit);
         CHECK(placement);
     }
-    SECTION("Simple circuit (UNSAT)") {
+    SECTION("Simple circuit (UNSAT)")
+    {
         Qubit q0 = circuit.create_qubit();
         circuit.create_cbit();
         Qubit q1 = circuit.create_qubit();

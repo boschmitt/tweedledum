@@ -21,36 +21,30 @@ Circuit gate_cancellation(Circuit const& original)
         inst.foreach_qubit([&](Qubit const qubit) {
             all_equal = (temp == qubit_last.at(qubit));
         });
-        inst.foreach_cbit([&](Cbit const cbit) {
-            all_equal = (temp == cbit_last.at(cbit));
-        });
+        inst.foreach_cbit(
+          [&](Cbit const cbit) { all_equal = (temp == cbit_last.at(cbit)); });
         if (!all_equal || temp == InstRef::invalid()) {
-            inst.foreach_qubit([&](Qubit const qubit) {
-                qubit_last.at(qubit) = ref;
-            });
-            inst.foreach_cbit([&](Cbit const cbit) {
-                cbit_last.at(cbit) = ref;
-            });
+            inst.foreach_qubit(
+              [&](Qubit const qubit) { qubit_last.at(qubit) = ref; });
+            inst.foreach_cbit(
+              [&](Cbit const cbit) { cbit_last.at(cbit) = ref; });
             return;
         }
         Instruction const& other = original.instruction(temp);
         if (!inst.is_adjoint(other)) {
-            inst.foreach_qubit([&](Qubit const qubit) {
-                qubit_last.at(qubit) = ref;
-            });
-            inst.foreach_cbit([&](Cbit const cbit) {
-                cbit_last.at(cbit) = ref;
-            });
+            inst.foreach_qubit(
+              [&](Qubit const qubit) { qubit_last.at(qubit) = ref; });
+            inst.foreach_cbit(
+              [&](Cbit const cbit) { cbit_last.at(cbit) = ref; });
             return;
         }
         to_remove.at(temp) = 1u;
         to_remove.at(ref) = 1u;
         other.foreach_qubit([&](Qubit const qubit, InstRef child) {
-           qubit_last.at(qubit) = child;
+            qubit_last.at(qubit) = child;
         });
-        other.foreach_cbit([&](Cbit const cbit, InstRef child) {
-           cbit_last.at(cbit) = child;
-        });
+        other.foreach_cbit(
+          [&](Cbit const cbit, InstRef child) { cbit_last.at(cbit) = child; });
     });
 
     // Remove marked gates:

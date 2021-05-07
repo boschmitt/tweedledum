@@ -18,7 +18,8 @@ public:
         return "ising.rzz";
     }
 
-    Rzz(double angle) : angle_(angle)
+    Rzz(double angle)
+        : angle_(angle)
     {}
 
     Rzz adjoint() const
@@ -30,10 +31,12 @@ public:
     {
         Complex const p = std::exp(Complex(0., angle_ / 2));
         Complex const n = std::exp(Complex(0., -angle_ / 2));
+        // clang-format off
         return (UMatrix4() << p, 0, 0, 0,
                               0, n, 0, 0,
                               0, 0, n, 0,
                               0, 0, 0, p).finished();
+        // clang-format on
     }
 
     uint32_t num_targets() const
@@ -50,4 +53,4 @@ private:
     double const angle_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

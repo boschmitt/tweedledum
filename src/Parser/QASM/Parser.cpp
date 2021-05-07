@@ -2,9 +2,9 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Operators/Standard.h"
 #include "Parser.h"
 #include "Token.h"
+#include "tweedledum/Operators/Standard.h"
 
 #include <memory>
 
@@ -102,7 +102,7 @@ void Parser::parse_gate_statement(Circuit& circuit)
         circuit.apply_operator(Op::X(), qubits);
     } else if (name == "h") {
         circuit.apply_operator(Op::H(), qubits);
-    } else if (name == "t" ) {
+    } else if (name == "t") {
         circuit.apply_operator(Op::T(), qubits);
     } else if (name == "tdg") {
         circuit.apply_operator(Op::Tdg(), qubits);
@@ -182,7 +182,7 @@ void Parser::parse_u(Circuit& circuit)
     expect_and_consume_token(Token::Kinds::comma);
     double phi = consume_parameter();
     expect_and_consume_token(Token::Kinds::comma);
-    double lambda= consume_parameter();
+    double lambda = consume_parameter();
     expect_and_consume_token(Token::Kinds::r_paren);
     Qubit target = parse_argument();
     expect_and_consume_token(Token::Kinds::semicolon);

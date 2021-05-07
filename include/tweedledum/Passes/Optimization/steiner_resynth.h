@@ -12,6 +12,6 @@
 namespace tweedledum {
 
 Circuit steiner_resynth(Circuit const& original, Device const& device,
-    nlohmann::json const& config = {});
+  nlohmann::json const& config = {});
 
 } // namespace tweedledum

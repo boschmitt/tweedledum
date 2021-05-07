@@ -4,10 +4,10 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "tweedledum/Utils/Source.h"
-#include "tweedledum/Utils/SourceManager.h"
 #include "Lexer.h"
 #include "Token.h"
+#include "tweedledum/Utils/Source.h"
+#include "tweedledum/Utils/SourceManager.h"
 
 #include <filesystem>
 #include <fmt/format.h>
@@ -25,7 +25,8 @@ namespace tweedledum::qasm {
 class PPLexer {
 public:
     PPLexer(SourceManager& source_manager)
-        : source_manager_(source_manager), current_lexer_(nullptr)
+        : source_manager_(source_manager)
+        , current_lexer_(nullptr)
     {
         Source const* source = source_manager_.main_source();
         if (source != nullptr) {

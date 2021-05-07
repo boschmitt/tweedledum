@@ -18,13 +18,13 @@ namespace tweedledum {
 class Source {
 public:
     static std::unique_ptr<Source> create(
-        std::string_view content, uint32_t const offset)
+      std::string_view content, uint32_t const offset)
     {
         return std::unique_ptr<Source>(new Source(content, offset));
     }
 
     static std::unique_ptr<Source> create(
-        std::string&& content, uint32_t const offset)
+      std::string&& content, uint32_t const offset)
     {
         return std::unique_ptr<Source>(new Source(content, offset));
     }
@@ -82,11 +82,13 @@ public:
 
 protected:
     Source(std::string_view content, uint32_t const offset)
-        : content_(content), offset_(offset)
+        : content_(content)
+        , offset_(offset)
     {}
 
     Source(std::string&& content, uint32_t const offset)
-        : content_(content), offset_(offset)
+        : content_(content)
+        , offset_(offset)
     {}
 
 private:
@@ -114,12 +116,12 @@ private:
 class File final : public Source {
 public:
     static std::unique_ptr<File> open(
-        std::filesystem::path const& file_path, uint32_t const offset)
+      std::filesystem::path const& file_path, uint32_t const offset)
     {
         std::optional<std::string> content = load_content(file_path);
         if (content) {
-            return std::unique_ptr<File>(new File(
-                file_path, std::move(content.value()), offset));
+            return std::unique_ptr<File>(
+              new File(file_path, std::move(content.value()), offset));
         }
         return nullptr;
     }
@@ -136,8 +138,9 @@ public:
 
 private:
     File(std::filesystem::path const& file_path, std::string&& content,
-        uint32_t const offset)
-        : Source(content, offset), file_path_(file_path)
+      uint32_t const offset)
+        : Source(content, offset)
+        , file_path_(file_path)
     {}
 
     // Delete copy-constructor
@@ -145,7 +148,7 @@ private:
     File& operator=(const File&) = delete;
 
     static std::optional<std::string> load_content(
-        std::filesystem::path const& file_path)
+      std::filesystem::path const& file_path)
     {
         std::string content;
         std::ifstream input_file(file_path);

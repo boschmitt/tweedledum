@@ -23,7 +23,7 @@ namespace tweedledum {
 template<class WordType = uint32_t>
 class DynamicBitset {
     static_assert(std::is_unsigned<WordType>::value,
-        "WordType is not an unsigned integral type");
+      "WordType is not an unsigned integral type");
     using container_type = std::vector<WordType>;
 
 public:
@@ -31,8 +31,8 @@ public:
     using size_type = std::size_t;
     using block_width_type = typename container_type::size_type;
 
-    static constexpr block_width_type block_width
-        = std::numeric_limits<block_type>::digits;
+    static constexpr block_width_type block_width =
+      std::numeric_limits<block_type>::digits;
     static constexpr size_type npos = static_cast<size_type>(-1);
 
     using const_reference = bool;
@@ -40,8 +40,8 @@ public:
         friend class DynamicBitset<block_type>;
 
         reference(block_type& block, block_width_type position)
-            : block_(block), mask_((assert(position < block_width),
-                                 block_type(1) << position))
+            : block_(block)
+            , mask_((assert(position < block_width), block_type(1) << position))
         {}
 
         void operator&();
@@ -115,9 +115,11 @@ public:
     class iterator {
         friend class DynamicBitset<block_type>;
 
-        iterator(typename container_type::iterator block, block_width_type position)
-            : current_block_(block), position_((assert(position < block_width), position))
-        { }
+        iterator(
+          typename container_type::iterator block, block_width_type position)
+            : current_block_(block)
+            , position_((assert(position < block_width), position))
+        {}
 
     public:
         // Iterator traits, previously from std::iterator.
@@ -175,13 +177,13 @@ public:
         constexpr bool operator==(const iterator& rhs)
         {
             return current_block_ == rhs.current_block_
-                   && position_ == rhs.position_;
+                && position_ == rhs.position_;
         }
 
         constexpr bool operator!=(const iterator& rhs)
         {
             return current_block_ != rhs.current_block_
-                   || position_ != rhs.position_;
+                || position_ != rhs.position_;
         }
 
     private:
@@ -194,25 +196,28 @@ public:
 
     template<typename ValueType>
     DynamicBitset(size_type num_bits, ValueType value)
-        : num_bits_(0), bits_()
+        : num_bits_(0)
+        , bits_()
     {
         init_from_value(num_bits, value);
     }
 
     DynamicBitset(size_type num_bits, bool value = false)
-        : num_bits_(num_bits), bits_(calculate_num_blocks(num_bits),
-                                   value ? ~block_type(0) : block_type(0))
+        : num_bits_(num_bits)
+        , bits_(calculate_num_blocks(num_bits),
+            value ? ~block_type(0) : block_type(0))
     {
         zero_unused_bits();
     }
 
     DynamicBitset(DynamicBitset const& other)
-        : num_bits_(other.num_bits_), bits_(other.bits_)
+        : num_bits_(other.num_bits_)
+        , bits_(other.bits_)
     {}
 
     DynamicBitset(DynamicBitset&& other)
-        : num_bits_(std::move(other.num_bits_)),
-          bits_(std::move(other.bits_))
+        : num_bits_(std::move(other.num_bits_))
+        , bits_(std::move(other.bits_))
     {
         assert((other.bits_ = container_type()).empty());
         other.num_bits_ = 0;
@@ -267,8 +272,7 @@ public:
 #pragma region Bit operations
     DynamicBitset& set() noexcept
     {
-        std::fill(
-            bits_.begin(), bits_.end(), static_cast<block_type>(~0));
+        std::fill(bits_.begin(), bits_.end(), static_cast<block_type>(~0));
         zero_unused_bits();
         return *this;
     }
@@ -343,8 +347,7 @@ public:
 
     reference operator[](size_type position)
     {
-        return reference(
-            bits_[block_index(position)], bit_index(position));
+        return reference(bits_[block_index(position)], bit_index(position));
     }
 
     bool test(size_type position) const
@@ -369,8 +372,7 @@ public:
         if (extra_bits == 0) {
             return bits_.back() == all_ones;
         } else {
-            const block_type mask
-                = (block_type(1) << extra_bits) - 1;
+            const block_type mask = (block_type(1) << extra_bits) - 1;
             if (bits_.back() != mask) {
                 return false;
             }
@@ -455,15 +457,17 @@ private:
     constexpr size_type calculate_num_blocks(size_type num_bits) const
     {
         return num_bits / block_width
-               + static_cast<size_type>(num_bits % block_width != 0);
+             + static_cast<size_type>(num_bits % block_width != 0);
     }
 
     template<typename ValueType>
     void init_from_value(size_type num_bits, ValueType value)
     {
-        static_assert(std::is_integral<ValueType>::value, "Integral type required.");
+        static_assert(
+          std::is_integral<ValueType>::value, "Integral type required.");
         assert(bits_.size() == 0);
-        static constexpr size_type value_width = std::numeric_limits<ValueType>::digits;
+        static constexpr size_type value_width =
+          std::numeric_limits<ValueType>::digits;
         bits_.resize(calculate_num_blocks(num_bits));
         num_bits_ = num_bits;
 

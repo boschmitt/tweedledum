@@ -11,9 +11,8 @@ namespace tweedledum {
 std::pair<Circuit, Mapping> BridgeRouter::run()
 {
     Circuit mapped;
-    original_.foreach_cbit([&](std::string_view name) {
-        mapped.create_cbit(name);
-    });
+    original_.foreach_cbit(
+      [&](std::string_view name) { mapped.create_cbit(name); });
     for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
         mapped.create_qubit();
     }
@@ -45,7 +44,8 @@ std::pair<Circuit, Mapping> BridgeRouter::run()
     return {mapped, mapping};
 }
 
-std::vector<Qubit> BridgeRouter::find_unmapped(std::vector<Qubit> const& map) const
+std::vector<Qubit> BridgeRouter::find_unmapped(
+  std::vector<Qubit> const& map) const
 {
     std::vector<Qubit> unmapped;
     for (uint32_t i = 0; i < map.size(); ++i) {
@@ -121,9 +121,8 @@ void BridgeRouter::add_delayed(Qubit const v)
 void BridgeRouter::add_instruction(Instruction const& inst)
 {
     std::vector<Qubit> phys;
-    inst.foreach_qubit([&](Qubit v) {
-        phys.push_back(placement_.v_to_phy(v));
-    });
+    inst.foreach_qubit(
+      [&](Qubit v) { phys.push_back(placement_.v_to_phy(v)); });
     mapped_->apply_operator(inst, phys, inst.cbits());
 }
 
@@ -132,9 +131,7 @@ bool BridgeRouter::try_add_instruction(InstRef ref, Instruction const& inst)
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
     // Transform the wires to a new
     SmallVector<Qubit, 2> qubits;
-    inst.foreach_qubit([&](Qubit qubit ) {
-        qubits.push_back(qubit);
-    });
+    inst.foreach_qubit([&](Qubit qubit) { qubits.push_back(qubit); });
 
     Qubit phy0 = placement_.v_to_phy(qubits[0]);
     if (inst.num_qubits() == 1) {

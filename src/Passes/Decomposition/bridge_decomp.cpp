@@ -12,28 +12,35 @@ namespace tweedledum {
 
 namespace {
 
-inline bool decompose(Device const& device, Circuit& circuit, Instruction const& inst)
+inline bool decompose(
+  Device const& device, Circuit& circuit, Instruction const& inst)
 {
-    std::vector<uint32_t> const path = device.shortest_path(inst.control(), inst.target());
+    std::vector<uint32_t> const path =
+      device.shortest_path(inst.control(), inst.target());
     assert(path.size() >= 3u);
     for (uint32_t i = 1; i < path.size() - 1; ++i) {
-        circuit.apply_operator(Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
+        circuit.apply_operator(
+          Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
     }
-    for (uint32_t i = path.size() - 2; i --> 1;) {
-        circuit.apply_operator(Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
+    for (uint32_t i = path.size() - 2; i-- > 1;) {
+        circuit.apply_operator(
+          Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
     }
     for (uint32_t i = 0; i < path.size() - 1; ++i) {
-        circuit.apply_operator(Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
+        circuit.apply_operator(
+          Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
     }
-    for (uint32_t i = path.size() - 2; i --> 0;) {
-        circuit.apply_operator(Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
+    for (uint32_t i = path.size() - 2; i-- > 0;) {
+        circuit.apply_operator(
+          Op::X(), {Qubit(path.at(i)), Qubit(path.at(i + 1))});
     }
     return true;
 }
 
-}
+} // namespace
 
-void bridge_decomp(Device const& device, Circuit& circuit, Instruction const& inst)
+void bridge_decomp(
+  Device const& device, Circuit& circuit, Instruction const& inst)
 {
     decompose(device, circuit, inst);
 }

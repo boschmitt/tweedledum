@@ -14,12 +14,14 @@ TEST_CASE("TrivialPlacer test cases", "[TrivialPlacer][mapping]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    SECTION("Empty circuit") {
+    SECTION("Empty circuit")
+    {
         Device device = Device::path(circuit.num_qubits());
         auto placement = trivial_place(device, circuit);
         CHECK(placement);
     }
-    SECTION("Simple circuit") {
+    SECTION("Simple circuit")
+    {
         circuit.create_qubit();
         circuit.create_cbit();
         circuit.create_qubit();

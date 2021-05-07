@@ -15,9 +15,10 @@ class WireStorage;
 
 class Qubit {
 public:
-    enum Polarity : uint32_t {
-        positive = 0u, 
-        negative = 1u 
+    enum Polarity : uint32_t
+    {
+        positive = 0u,
+        negative = 1u
     };
 
     // Return the sentinel value
@@ -27,7 +28,8 @@ public:
     }
 
     constexpr Qubit(uint32_t uid, Polarity polarity = Polarity::positive)
-        : uid_(uid), polarity_(static_cast<uint32_t>(polarity))
+        : uid_(uid)
+        , polarity_(static_cast<uint32_t>(polarity))
     {}
 
     constexpr Qubit(Qubit const& other) = default;

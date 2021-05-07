@@ -4,9 +4,9 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "tweedledum/Passes/Simulation/simulate_classically.h"
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
+#include "tweedledum/Passes/Simulation/simulate_classically.h"
 #include "tweedledum/Utils/DynamicBitset.h"
 
 #include <catch.hpp>
@@ -15,8 +15,8 @@
 
 using namespace tweedledum;
 
-inline bool check_permutation(Circuit const& circuit,
-    std::vector<uint32_t> const& permutation)
+inline bool check_permutation(
+  Circuit const& circuit, std::vector<uint32_t> const& permutation)
 {
     uint32_t const num_bits = circuit.num_qubits();
     assert(permutation.size() == (1u << num_bits));

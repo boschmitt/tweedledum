@@ -16,12 +16,13 @@ class Tdg;
 
 // T operator.
 //
-// The operator induces a π/4 phase.  It is also known as the π/8 gate (because 
+// The operator induces a π/4 phase.  It is also known as the π/8 gate (because
 // of how the RZ(\pi/4) matrix looks like).  This is a non-Clifford gate and a
 // fourth-root of Pauli-Z.
 class T {
-    constexpr static std::array<Complex, 4> mat_ =
-        {1., 0., 0., {numbers::inv_sqrt2, numbers::inv_sqrt2}};
+    constexpr static std::array<Complex, 4> mat_ = {
+      1., 0., 0., {numbers::inv_sqrt2, numbers::inv_sqrt2}};
+
 public:
     static constexpr std::string_view kind()
     {
@@ -30,7 +31,7 @@ public:
 
     static inline Tdg adjoint();
 
-    static double angle() 
+    static double angle()
     {
         return numbers::pi_div_4;
     }
@@ -43,11 +44,12 @@ public:
 
 // T dagger operator.
 //
-// The operator induces a -π/4 phase.  This is a non-Clifford gate and a 
+// The operator induces a -π/4 phase.  This is a non-Clifford gate and a
 // fourth-root of Pauli-Z.
 class Tdg {
-    constexpr static std::array<Complex, 4> mat_ =
-        {1., 0., 0., {numbers::inv_sqrt2, -numbers::inv_sqrt2}};
+    constexpr static std::array<Complex, 4> mat_ = {
+      1., 0., 0., {numbers::inv_sqrt2, -numbers::inv_sqrt2}};
+
 public:
     static constexpr std::string_view kind()
     {
@@ -59,7 +61,7 @@ public:
         return T();
     }
 
-    static double angle() 
+    static double angle()
     {
         return -numbers::pi_div_4;
     }
@@ -75,4 +77,4 @@ Tdg T::adjoint()
     return Tdg();
 }
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

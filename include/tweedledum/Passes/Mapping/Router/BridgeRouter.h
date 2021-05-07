@@ -7,16 +7,18 @@
 #include "../../../IR/Circuit.h"
 #include "../../../IR/Qubit.h"
 #include "../../../Target/Device.h"
-#include "../../../Target/Placement.h"
 #include "../../../Target/Mapping.h"
+#include "../../../Target/Placement.h"
 
 namespace tweedledum {
 
 class BridgeRouter {
 public:
-    BridgeRouter(Device const& device, Circuit const& original,
-        Placement const& placement)
-        : device_(device), original_(original), placement_(placement)
+    BridgeRouter(
+      Device const& device, Circuit const& original, Placement const& placement)
+        : device_(device)
+        , original_(original)
+        , placement_(placement)
         , delayed_(device_.num_qubits())
     {}
 

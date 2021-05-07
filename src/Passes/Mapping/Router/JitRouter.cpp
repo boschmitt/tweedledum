@@ -10,9 +10,8 @@ namespace tweedledum {
 std::pair<Circuit, Mapping> JitRouter::run()
 {
     Circuit mapped;
-    original_.foreach_cbit([&](std::string_view name) {
-        mapped.create_cbit(name);
-    });
+    original_.foreach_cbit(
+      [&](std::string_view name) { mapped.create_cbit(name); });
     for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
         mapped.create_qubit();
     }
@@ -56,7 +55,7 @@ std::pair<Circuit, Mapping> JitRouter::run()
     }
     Circuit const result = reverse(mapped);
     Mapping mapping(placement_);
-    result.foreach_instruction([&](Instruction const& inst) { 
+    result.foreach_instruction([&](Instruction const& inst) {
         if (inst.is_one<Op::Swap>()) {
             Qubit const t0 = inst.target(0u);
             Qubit const t1 = inst.target(1u);
@@ -73,19 +72,20 @@ bool JitRouter::add_front_layer()
     for (InstRef ref : front_layer_) {
         Instruction const& inst = original_.instruction(ref);
         if (try_add_instruction(ref, inst) == false) {
-                new_front_layer.push_back(ref);
-                auto const qubits = inst.qubits();
-                involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
-                involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
-                continue;
+            new_front_layer.push_back(ref);
+            auto const qubits = inst.qubits();
+            involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
+            involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
+            continue;
         }
         added_at_least_one = true;
-        original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-            visited_.at(cref) += 1;
-            if (visited_.at(cref) == child.num_wires()) {
-                new_front_layer.push_back(cref);
-            }
-        });
+        original_.foreach_child(
+          ref, [&](InstRef cref, Instruction const& child) {
+              visited_.at(cref) += 1;
+              if (visited_.at(cref) == child.num_wires()) {
+                  new_front_layer.push_back(cref);
+              }
+          });
     }
     front_layer_ = std::move(new_front_layer);
     return added_at_least_one;
@@ -99,16 +99,17 @@ void JitRouter::select_extended_layer()
     while (!tmp_layer.empty()) {
         std::vector<InstRef> new_tmp_layer;
         for (InstRef const ref : tmp_layer) {
-            original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-                visited_.at(cref) += 1;
-                incremented.push_back(cref);
-                if (visited_.at(cref) == child.num_wires()) {
-                    new_tmp_layer.push_back(cref);
-                    if (child.num_qubits() == 2u) {
-                        extended_layer_.emplace_back(cref);
-                    }
-                }
-            });
+            original_.foreach_child(
+              ref, [&](InstRef cref, Instruction const& child) {
+                  visited_.at(cref) += 1;
+                  incremented.push_back(cref);
+                  if (visited_.at(cref) == child.num_wires()) {
+                      new_tmp_layer.push_back(cref);
+                      if (child.num_qubits() == 2u) {
+                          extended_layer_.emplace_back(cref);
+                      }
+                  }
+              });
             if (extended_layer_.size() >= e_set_size_) {
                 goto undo_increment;
             }
@@ -184,7 +185,7 @@ void JitRouter::place_one_v(Qubit v0, Qubit v1)
     add_delayed(v0);
 }
 
-//FIXME: need take care of wires
+// FIXME: need take care of wires
 void JitRouter::add_delayed(Qubit const v)
 {
     assert(v < delayed_.size());
@@ -198,9 +199,8 @@ void JitRouter::add_delayed(Qubit const v)
 void JitRouter::add_instruction(Instruction const& inst)
 {
     std::vector<Qubit> phys;
-    inst.foreach_qubit([&](Qubit v) {
-        phys.push_back(placement_.v_to_phy(v));
-    });
+    inst.foreach_qubit(
+      [&](Qubit v) { phys.push_back(placement_.v_to_phy(v)); });
     mapped_->apply_operator(inst, phys, inst.cbits());
 }
 
@@ -209,9 +209,7 @@ bool JitRouter::try_add_instruction(InstRef ref, Instruction const& inst)
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
     // Transform the wires to a new
     SmallVector<Qubit, 2> qubits;
-    inst.foreach_qubit([&](Qubit ref) {
-        qubits.push_back(ref);
-    });
+    inst.foreach_qubit([&](Qubit ref) { qubits.push_back(ref); });
 
     Qubit phy0 = placement_.v_to_phy(qubits[0]);
     if (inst.num_qubits() == 1) {
@@ -272,7 +270,8 @@ JitRouter::Swap JitRouter::find_swap()
             v_to_phy.at(v1) = phy0;
         }
         double swap_cost = compute_cost(v_to_phy, front_layer_);
-        double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
+        double const max_decay =
+          std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 
         if (!extended_layer_.empty()) {
             double const f_cost = swap_cost / front_layer_.size();
@@ -293,7 +292,8 @@ JitRouter::Swap JitRouter::find_swap()
     return swap_candidates.at(min);
 }
 
-double JitRouter::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
+double JitRouter::compute_cost(
+  std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {

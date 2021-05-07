@@ -7,19 +7,19 @@
 #include "tweedledum/Synthesis/all_linear_synth.h"
 #include "tweedledum/Synthesis/gray_synth.h"
 #ifdef _MSC_VER
-#include "tweedledum/Utils/Intrinsics.h"
+    #include "tweedledum/Utils/Intrinsics.h"
 #endif
 
 namespace tweedledum {
 
 namespace {
 
-inline std::vector<double> fix_angles(std::vector<Qubit>& qubits,
-    std::vector<double> const& angles)
+inline std::vector<double> fix_angles(
+  std::vector<Qubit>& qubits, std::vector<double> const& angles)
 {
     std::vector<double> new_angles;
     std::transform(angles.begin(), angles.end(), std::back_inserter(new_angles),
-        [](double a) { return -a; });
+      [](double a) { return -a; });
     return new_angles;
 }
 
@@ -37,11 +37,11 @@ inline void fast_hadamard_transform(std::vector<double>& angles)
     }
 }
 
-}
+} // namespace
 
 void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
-    std::vector<Cbit> const& cbits, std::vector<double> const& angles,
-    nlohmann::json const& config)
+  std::vector<Cbit> const& cbits, std::vector<double> const& angles,
+  nlohmann::json const& config)
 {
     // Number of angles + 1 needs to be a power of two!
     assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));
@@ -62,13 +62,14 @@ void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
     if (phase_parities.size() == new_angles.size() - 1) {
         all_linear_synth(circuit, qubits, cbits, phase_parities);
     } else {
-        gray_synth(circuit, qubits, cbits, BMatrix::Identity(qubits.size(),
-            qubits.size()), phase_parities, config);
+        gray_synth(circuit, qubits, cbits,
+          BMatrix::Identity(qubits.size(), qubits.size()), phase_parities,
+          config);
     }
 }
 
-Circuit diagonal_synth(std::vector<double> const& angles,
-    nlohmann::json const& config)
+Circuit diagonal_synth(
+  std::vector<double> const& angles, nlohmann::json const& config)
 {
     // Number of angles + 1 needs to be a power of two!
     assert(!angles.empty() && !(angles.size() & (angles.size() - 1)));

@@ -43,4 +43,4 @@ private:
     mockturtle::xag_network const logic_network_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

@@ -20,7 +20,8 @@ TEST_CASE("ApprxSatPlacer test cases", "[ApprxSatPlacer][mapping]")
     //     auto placement = apprx_sat_place(device, circuit);
     //     CHECK_FALSE(placement);
     // }
-    SECTION("Circuit with no instructions") {
+    SECTION("Circuit with no instructions")
+    {
         circuit.create_qubit();
         circuit.create_cbit();
         circuit.create_qubit();
@@ -31,7 +32,8 @@ TEST_CASE("ApprxSatPlacer test cases", "[ApprxSatPlacer][mapping]")
         auto placement = apprx_sat_place(device, circuit);
         CHECK(placement);
     }
-    SECTION("Simple circuit (SAT)") {
+    SECTION("Simple circuit (SAT)")
+    {
         Qubit q0 = circuit.create_qubit();
         circuit.create_cbit();
         Qubit q1 = circuit.create_qubit();
@@ -46,7 +48,8 @@ TEST_CASE("ApprxSatPlacer test cases", "[ApprxSatPlacer][mapping]")
         auto placement = apprx_sat_place(device, circuit);
         CHECK(placement);
     }
-    SECTION("Simple circuit (UNSAT)") {
+    SECTION("Simple circuit (UNSAT)")
+    {
         Qubit q0 = circuit.create_qubit();
         circuit.create_cbit();
         Qubit q1 = circuit.create_qubit();

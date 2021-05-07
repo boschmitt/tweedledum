@@ -14,10 +14,10 @@
 namespace tweedledum {
 
 void xag_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
-    nlohmann::json const& config = {});
+  std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
+  nlohmann::json const& config = {});
 
-Circuit xag_synth(mockturtle::xag_network const& xag,
-   nlohmann::json const& config = {});
+Circuit xag_synth(
+  mockturtle::xag_network const& xag, nlohmann::json const& config = {});
 
 } // namespace tweedledum

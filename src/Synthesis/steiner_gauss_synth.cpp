@@ -24,11 +24,11 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
             pivot = col;
         } else {
             // If the diagonal is not one, we need to look for a pivot, i.e, a
-            // row with an one, and move it to the diagonal.  Of course that we 
-            // just don't take any pivot, we look for the one closer to the 
+            // row with an one, and move it to the diagonal.  Of course that we
+            // just don't take any pivot, we look for the one closer to the
             // diagonal.
             uint32_t min_dist = inf;
-            for (auto row = col + 1; row < matrix.rows(); ++row){
+            for (auto row = col + 1; row < matrix.rows(); ++row) {
                 if (matrix(row, col) == MyBool(0u)) {
                     continue;
                 }
@@ -51,12 +51,14 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
                 if (control < col) {
                     crossed_diag = true;
                 }
-                above_diagonal.at(target) |= above_diagonal.at(control) || (control < col);
+                above_diagonal.at(target) |=
+                  above_diagonal.at(control) || (control < col);
                 control = target;
             }
             if (crossed_diag) {
                 uint32_t target = col;
-                for (auto it = std::next(path.rbegin()); it != path.rend(); it++) {
+                for (auto it = std::next(path.rbegin()); it != path.rend();
+                     it++) {
                     uint32_t control = *it;
                     if (target == col) {
                         target = control;
@@ -64,7 +66,8 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
                     }
                     matrix.row(target) += matrix.row(control);
                     swap.emplace_back(control, target);
-                    above_diagonal.at(target) |= above_diagonal.at(control) | (control < col);
+                    above_diagonal.at(target) |=
+                      above_diagonal.at(control) | (control < col);
                     target = control;
                 }
                 for (auto it = swap.rbegin(); it != swap.rend(); it++) {
@@ -101,15 +104,17 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
             }
             matrix.row(target) += matrix.row(control);
             compute.emplace_back(control, target);
-            above_diagonal.at(target) |= above_diagonal.at(control) | (control < pivot);
+            above_diagonal.at(target) |=
+              above_diagonal.at(control) | (control < pivot);
         }
 
         // Empty all 1's from column i in the Steiner tree
         for (auto it = s_tree.rbegin(); it != s_tree.rend(); it++) {
             auto const [control, target] = *it;
             matrix.row(target) += matrix.row(control);
-            compute.emplace_back(control, target); 
-            above_diagonal.at(target) |= above_diagonal.at(control) | (control < pivot);
+            compute.emplace_back(control, target);
+            above_diagonal.at(target) |=
+              above_diagonal.at(control) | (control < pivot);
         }
 
         // For each node that has an above diagonal dependency,
@@ -124,7 +129,8 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
         }
 
         std::copy(swap.begin(), swap.end(), std::back_inserter(gates));
-        std::copy(cleanup_swap.begin(), cleanup_swap.end(), std::back_inserter(gates));
+        std::copy(
+          cleanup_swap.begin(), cleanup_swap.end(), std::back_inserter(gates));
         std::copy(compute.begin(), compute.end(), std::back_inserter(gates));
         std::copy(cleanup.begin(), cleanup.end(), std::back_inserter(gates));
     }
@@ -136,10 +142,10 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
     }
 }
 
-}
+} // namespace
 
 void steiner_gauss_synth(Circuit& circuit, Device const& device,
-    BMatrix const& matrix, nlohmann::json const& config)
+  BMatrix const& matrix, nlohmann::json const& config)
 {
     assert(matrix.rows() == matrix.cols());
     assert(matrix.rows() == circuit.num_qubits());
@@ -147,8 +153,8 @@ void steiner_gauss_synth(Circuit& circuit, Device const& device,
     synthesize(circuit, device, matrix);
 }
 
-Circuit steiner_gauss_synth(Device const& device, BMatrix const& matrix,
-    nlohmann::json const& config)
+Circuit steiner_gauss_synth(
+  Device const& device, BMatrix const& matrix, nlohmann::json const& config)
 {
     Circuit circuit;
     uint32_t const num_qubits = device.num_qubits();

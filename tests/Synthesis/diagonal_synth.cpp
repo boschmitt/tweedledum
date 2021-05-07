@@ -19,11 +19,12 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
 {
     using namespace tweedledum;
     nlohmann::json config;
-    SECTION("Double-control Z = CCZ") {
+    SECTION("Double-control Z = CCZ")
+    {
         std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
         std::vector<double> angles(7, 0.0);
         angles.push_back(numbers::pi);
-        do { 
+        do {
             Circuit expected;
             expected.create_qubit();
             expected.create_qubit();
@@ -36,14 +37,15 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
             synthesized.create_qubit();
             diagonal_synth(synthesized, qubits, {}, angles, config);
             CHECK(check_unitary(expected, synthesized));
-        } while(std::next_permutation(qubits.begin(), qubits.end()));
+        } while (std::next_permutation(qubits.begin(), qubits.end()));
     }
-    SECTION("Double-control Rx ~ CCX") {
+    SECTION("Double-control Rx ~ CCX")
+    {
         std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
         std::vector<double> angles(6, 0.0);
         angles.push_back(-numbers::pi_div_2);
         angles.push_back(numbers::pi_div_2);
-        do { 
+        do {
             Circuit expected;
             expected.create_qubit();
             expected.create_qubit();
@@ -58,14 +60,15 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
             diagonal_synth(synthesized, qubits, {}, angles, config);
             synthesized.apply_operator(Op::H(), {qubits.back()});
             CHECK(check_unitary(expected, synthesized));
-        } while(std::next_permutation(qubits.begin(), qubits.end()));
+        } while (std::next_permutation(qubits.begin(), qubits.end()));
     }
-    SECTION("Double-control Rx (with first negative control) ~ CCX") {
+    SECTION("Double-control Rx (with first negative control) ~ CCX")
+    {
         std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
         std::vector<double> angles(6, 0.0);
         angles.push_back(-numbers::pi_div_2);
         angles.push_back(numbers::pi_div_2);
-        do { 
+        do {
             std::vector<Qubit> qs = {!qubits[0], qubits[1], qubits[2]};
             Circuit expected;
             expected.create_qubit();
@@ -81,14 +84,15 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
             diagonal_synth(synthesized, qs, {}, angles, config);
             synthesized.apply_operator(Op::H(), {qubits.back()});
             CHECK(check_unitary(expected, synthesized));
-        } while(std::next_permutation(qubits.begin(), qubits.end()));
+        } while (std::next_permutation(qubits.begin(), qubits.end()));
     }
-    SECTION("Double-control Rx (with second negative control) ~ CCX") {
+    SECTION("Double-control Rx (with second negative control) ~ CCX")
+    {
         std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
         std::vector<double> angles(6, 0.0);
         angles.push_back(-numbers::pi_div_2);
         angles.push_back(numbers::pi_div_2);
-        do { 
+        do {
             std::vector<Qubit> qs = {qubits[0], !qubits[1], qubits[2]};
             Circuit expected;
             expected.create_qubit();
@@ -104,9 +108,10 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
             diagonal_synth(synthesized, qs, {}, angles, config);
             synthesized.apply_operator(Op::H(), {qubits.back()});
             CHECK(check_unitary(expected, synthesized));
-        } while(std::next_permutation(qubits.begin(), qubits.end()));
+        } while (std::next_permutation(qubits.begin(), qubits.end()));
     }
-    SECTION("Double-control Rx (two negative controls) ~ CCX") {
+    SECTION("Double-control Rx (two negative controls) ~ CCX")
+    {
         std::vector<Qubit> qubits = {Qubit(0), Qubit(1), Qubit(2)};
         std::vector<double> angles(6, 0.0);
         angles.push_back(-numbers::pi_div_2);
@@ -127,6 +132,6 @@ TEST_CASE("Trivial cases for diagonal_synth", "[diagonal_synth][synth]")
             diagonal_synth(synthesized, qs, {}, angles, config);
             synthesized.apply_operator(Op::H(), {qubits.back()});
             CHECK(check_unitary(expected, synthesized));
-        } while(std::next_permutation(qubits.begin(), qubits.end()));
+        } while (std::next_permutation(qubits.begin(), qubits.end()));
     }
 }

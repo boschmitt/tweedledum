@@ -10,7 +10,8 @@
 
 namespace tweedledum {
 
-std::string to_string_utf8(Circuit const& circuit, uint32_t const max_rows = 80u);
+std::string to_string_utf8(
+  Circuit const& circuit, uint32_t const max_rows = 80u);
 
 void print(Circuit const& circuit, uint32_t const max_rows = 80u);
 

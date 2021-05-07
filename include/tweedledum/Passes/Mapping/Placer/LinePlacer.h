@@ -18,7 +18,8 @@ public:
     LinePlacer(Device const& device, Circuit const& original)
         : device_(device)
         , original_(original)
-        , v_degree_(num_v(), 0u), phy_degree_(num_phy(), 0u)
+        , v_degree_(num_v(), 0u)
+        , phy_degree_(num_phy(), 0u)
         , timeframes_(1u)
     {}
 
@@ -69,7 +70,7 @@ private:
 
 /*! \brief Yet to be written.
  */
-std::optional<Placement> line_place(Device const& device,
-    Circuit const& original);
+std::optional<Placement> line_place(
+  Device const& device, Circuit const& original);
 
 } // namespace tweedledum

@@ -21,7 +21,8 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
     Circuit circuit;
     Qubit const q0 = circuit.create_qubit();
     Qubit const q1 = circuit.create_qubit();
-    SECTION("Single qubit operators") {
+    SECTION("Single qubit operators")
+    {
         circuit.apply_operator(Op::H(), {q0});
         circuit.apply_operator(Op::H(), {q0});
         circuit.apply_operator(Op::H(), {q1});
@@ -31,14 +32,16 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
         CHECK(optimized.size() == 1);
         CHECK(check_unitary(circuit, optimized));
     }
-    SECTION("Two qubit X operator (0)") {
+    SECTION("Two qubit X operator (0)")
+    {
         circuit.apply_operator(Op::X(), {q0, q1});
         circuit.apply_operator(Op::X(), {q1, q0});
         auto optimized = gate_cancellation(circuit);
         CHECK(optimized.size() == 2);
         CHECK(check_unitary(circuit, optimized));
     }
-    SECTION("Two qubit X operator (1)") {
+    SECTION("Two qubit X operator (1)")
+    {
         circuit.apply_operator(Op::X(), {q0, q1});
         circuit.apply_operator(Op::X(), {q0, q1});
         circuit.apply_operator(Op::X(), {q1, q0});
@@ -46,7 +49,8 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
         CHECK(optimized.size() == 1);
         CHECK(check_unitary(circuit, optimized));
     }
-    SECTION("Two qubit X operator (2)") {
+    SECTION("Two qubit X operator (2)")
+    {
         Qubit const q2 = circuit.create_qubit();
         circuit.apply_operator(Op::X(), {q0, q2});
         circuit.apply_operator(Op::X(), {q1, q0});
@@ -58,12 +62,13 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
     }
 }
 
-TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)", 
-    "[gate_cancellation][optimization]", Op::H, Op::X, Op::Y, Op::Z)
+TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)",
+  "[gate_cancellation][optimization]", Op::H, Op::X, Op::Y, Op::Z)
 {
     Circuit circuit;
     Qubit const q0 = circuit.create_qubit();
-    SECTION("One qubit") {
+    SECTION("One qubit")
+    {
         for (uint32_t i = 0u; i < 1024u; ++i) {
             circuit.apply_operator(TestType(), {q0});
         }
@@ -71,7 +76,8 @@ TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)",
         CHECK(optimized.size() == 0);
     }
     Qubit const q1 = circuit.create_qubit();
-    SECTION("Controlled") {
+    SECTION("Controlled")
+    {
         for (uint32_t i = 0u; i < 1024u; ++i) {
             circuit.apply_operator(TestType(), {q1, q0});
         }
@@ -79,7 +85,8 @@ TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)",
         CHECK(optimized.size() == 0);
     }
     Qubit const q2 = circuit.create_qubit();
-    SECTION("Multiple controls") {
+    SECTION("Multiple controls")
+    {
         for (uint32_t i = 0u; i < 1024u; ++i) {
             circuit.apply_operator(TestType(), {q1, q2, q0});
         }
@@ -88,12 +95,13 @@ TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)",
     }
 }
 
-TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)", 
-    "[gate_cancellation][optimization]", Op::H, Op::X, Op::Y, Op::Z)
+TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
+  "[gate_cancellation][optimization]", Op::H, Op::X, Op::Y, Op::Z)
 {
     Circuit circuit;
     Qubit const q0 = circuit.create_qubit();
-    SECTION("One qubit") {
+    SECTION("One qubit")
+    {
         for (uint32_t i = 0u; i < 1023u; ++i) {
             circuit.apply_operator(TestType(), {q0});
         }
@@ -101,7 +109,8 @@ TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
         CHECK(optimized.size() == 1);
     }
     Qubit const q1 = circuit.create_qubit();
-    SECTION("Controlled") {
+    SECTION("Controlled")
+    {
         for (uint32_t i = 0u; i < 1023; ++i) {
             circuit.apply_operator(TestType(), {q1, q0});
         }
@@ -109,7 +118,8 @@ TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
         CHECK(optimized.size() == 1);
     }
     Qubit const q2 = circuit.create_qubit();
-    SECTION("Multiple controls") {
+    SECTION("Multiple controls")
+    {
         for (uint32_t i = 0u; i < 1023u; ++i) {
             circuit.apply_operator(TestType(), {q1, q2, q0});
         }
@@ -121,7 +131,8 @@ TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
 TEST_CASE("Inverted circuits.", "[gate_cancellation][optimization]")
 {
     using namespace tweedledum;
-    SECTION("Toffoli operator") {
+    SECTION("Toffoli operator")
+    {
         Circuit circuit = toffoli();
         std::optional<Circuit> adjoint = inverse(circuit);
         CHECK(adjoint);
@@ -129,7 +140,8 @@ TEST_CASE("Inverted circuits.", "[gate_cancellation][optimization]")
         Circuit optimized = gate_cancellation(circuit);
         CHECK(optimized.size() == 0u);
     }
-    SECTION("Graph coloring init") {
+    SECTION("Graph coloring init")
+    {
         Circuit circuit = graph_coloring_init();
         std::optional<Circuit> adjoint = inverse(circuit);
         CHECK(adjoint);
@@ -137,7 +149,8 @@ TEST_CASE("Inverted circuits.", "[gate_cancellation][optimization]")
         Circuit optimized = gate_cancellation(circuit);
         CHECK(optimized.size() == 0u);
     }
-    SECTION("IBM Contest 2019 init") {
+    SECTION("IBM Contest 2019 init")
+    {
         Circuit circuit = ibm_contest2019_init();
         std::optional<Circuit> adjoint = inverse(circuit);
         CHECK(adjoint);

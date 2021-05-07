@@ -12,13 +12,14 @@
 
 namespace tweedledum::Op {
 
-// This operator only makes sense when dealing with mapped circuits.  
+// This operator only makes sense when dealing with mapped circuits.
 // A `Bridge` operator is basically a fancy `X`.  Functionally they behave
 // in the exact same way.  However, Bridge does not requires its qubits to
-// be connected, because its decomposition should take into account the 
+// be connected, because its decomposition should take into account the
 // device coupling constraints.
 class Bridge {
     constexpr static std::array<Complex, 4> mat_ = {0., 1., 1., 0.};
+
 public:
     static constexpr std::string_view kind()
     {
@@ -30,7 +31,7 @@ public:
         return Bridge();
     }
 
-    static double angle() 
+    static double angle()
     {
         return numbers::pi;
     }
@@ -41,4 +42,4 @@ public:
     }
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

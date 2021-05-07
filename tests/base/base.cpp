@@ -8,8 +8,8 @@
 
 #include "../check_unitary.h"
 
-#include <cmath>
 #include <catch.hpp>
+#include <cmath>
 
 TEST_CASE("Toffoli gate", "[base]")
 {
@@ -21,7 +21,8 @@ TEST_CASE("Toffoli gate", "[base]")
     Qubit q2 = high_level.create_qubit();
     high_level.apply_operator(Op::X(), {q0, q1, q2});
 
-    SECTION("Identified Phases") {
+    SECTION("Identified Phases")
+    {
         Circuit decomposed;
         decomposed.create_qubit();
         decomposed.create_qubit();
@@ -43,7 +44,8 @@ TEST_CASE("Toffoli gate", "[base]")
         decomposed.apply_operator(Op::H(), {q2});
         CHECK(check_unitary(high_level, decomposed));
     }
-    SECTION("Generic phase gates with numeric angles") {
+    SECTION("Generic phase gates with numeric angles")
+    {
         Circuit decomposed;
         decomposed.create_qubit();
         decomposed.create_qubit();

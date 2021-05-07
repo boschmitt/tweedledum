@@ -14,7 +14,9 @@ namespace tweedledum::Op {
 
 // Pauli-Y operator
 class Y {
-    constexpr static std::array<Complex, 4> mat_ = {0., {0., 1.}, {0., -1.}, 0.};
+    constexpr static std::array<Complex, 4> mat_ = {
+      0., {0., 1.}, {0., -1.}, 0.};
+
 public:
     static constexpr std::string_view kind()
     {
@@ -26,7 +28,7 @@ public:
         return Y();
     }
 
-    static double angle() 
+    static double angle()
     {
         return numbers::pi;
     }
@@ -37,4 +39,4 @@ public:
     }
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

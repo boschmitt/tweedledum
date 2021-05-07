@@ -40,19 +40,20 @@ bool SabreRePlacer::add_front_layer()
     for (InstRef ref : front_layer_) {
         Instruction const& inst = current_->instruction(ref);
         if (add_instruction(inst) == false) {
-                new_front_layer.push_back(ref);
-                auto const qubits = inst.qubits();
-                involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
-                involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
-                continue;
+            new_front_layer.push_back(ref);
+            auto const qubits = inst.qubits();
+            involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
+            involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
+            continue;
         }
         added_at_least_one = true;
-        current_->foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-            visited_.at(cref) += 1;
-            if (visited_.at(cref) == child.num_wires()) {
-                new_front_layer.push_back(cref);
-            }
-        });
+        current_->foreach_child(
+          ref, [&](InstRef cref, Instruction const& child) {
+              visited_.at(cref) += 1;
+              if (visited_.at(cref) == child.num_wires()) {
+                  new_front_layer.push_back(cref);
+              }
+          });
     }
     front_layer_ = std::move(new_front_layer);
     return added_at_least_one;
@@ -66,16 +67,17 @@ void SabreRePlacer::select_extended_layer()
     while (!tmp_layer.empty()) {
         std::vector<InstRef> new_tmp_layer;
         for (InstRef const ref : tmp_layer) {
-            current_->foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-                visited_.at(cref) += 1;
-                incremented.push_back(cref);
-                if (visited_.at(cref) == child.num_wires()) {
-                    new_tmp_layer.push_back(cref);
-                    if (child.num_qubits() == 2u) {
-                        extended_layer_.emplace_back(cref);
-                    }
-                }
-            });
+            current_->foreach_child(
+              ref, [&](InstRef cref, Instruction const& child) {
+                  visited_.at(cref) += 1;
+                  incremented.push_back(cref);
+                  if (visited_.at(cref) == child.num_wires()) {
+                      new_tmp_layer.push_back(cref);
+                      if (child.num_qubits() == 2u) {
+                          extended_layer_.emplace_back(cref);
+                      }
+                  }
+              });
             if (extended_layer_.size() >= e_set_size_) {
                 goto undo_increment;
             }
@@ -93,9 +95,8 @@ bool SabreRePlacer::add_instruction(Instruction const& inst)
     assert(inst.num_qubits() && inst.num_qubits() <= 2u);
     // Transform the wires to a new
     SmallVector<Qubit, 2> qubits;
-    inst.foreach_qubit([&](Qubit ref) {
-        qubits.push_back(placement_.v_to_phy(ref));
-    });
+    inst.foreach_qubit(
+      [&](Qubit ref) { qubits.push_back(placement_.v_to_phy(ref)); });
 
     if (inst.num_qubits() == 1) {
         return true;
@@ -141,7 +142,7 @@ SabreRePlacer::Swap SabreRePlacer::find_swap()
         }
         double swap_cost = compute_cost(v_to_phy, front_layer_);
         double const max_decay =
-            std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
+          std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 
         if (!extended_layer_.empty()) {
             double const f_cost = swap_cost / front_layer_.size();
@@ -162,8 +163,8 @@ SabreRePlacer::Swap SabreRePlacer::find_swap()
     return swap_candidates.at(min);
 }
 
-double SabreRePlacer::compute_cost(std::vector<Qubit> const& v_to_phy,
-    std::vector<InstRef> const& layer)
+double SabreRePlacer::compute_cost(
+  std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
@@ -177,8 +178,8 @@ double SabreRePlacer::compute_cost(std::vector<Qubit> const& v_to_phy,
 
 /*! \brief Yet to be written.
  */
-void sabre_re_place(Device const& device, Circuit const& original,
-    Placement& placement)
+void sabre_re_place(
+  Device const& device, Circuit const& original, Placement& placement)
 {
     SabreRePlacer re_placer(device, original, placement);
     re_placer.run();

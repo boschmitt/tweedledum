@@ -15,9 +15,11 @@ namespace tweedledum {
 
 class SabreRePlacer {
 public:
-    SabreRePlacer(Device const& device, Circuit const& original,
-        Placement& placement)
-        : device_(device), original_(original), placement_(placement)
+    SabreRePlacer(
+      Device const& device, Circuit const& original, Placement& placement)
+        : device_(device)
+        , original_(original)
+        , placement_(placement)
         , visited_(original.size(), 0u)
         , involved_phy_(device_.num_qubits(), 0u)
         , phy_decay_(device_.num_qubits(), 1.0)
@@ -71,7 +73,7 @@ private:
     std::vector<InstRef> extended_layer_;
     std::vector<uint32_t> involved_phy_;
     std::vector<float> phy_decay_;
-    
+
     // Sabre configuration
     uint32_t e_set_size_ = 20;
     float e_weight_ = 0.5;
@@ -82,7 +84,7 @@ private:
 
 /*! \brief Yet to be written.
  */
-void sabre_re_place(Device const& device, Circuit const& original,
-    Placement& placement);
+void sabre_re_place(
+  Device const& device, Circuit const& original, Placement& placement);
 
 } // namespace tweedledum

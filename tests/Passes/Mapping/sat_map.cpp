@@ -15,7 +15,8 @@ TEST_CASE("sat_map test cases", "[sat_map][mapping]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    SECTION("Empty circuit") {
+    SECTION("Empty circuit")
+    {
         Device device = Device::path(circuit.num_qubits());
         auto mapped = sat_map(circuit, device);
         CHECK(mapped.size() == 0u);
@@ -24,7 +25,8 @@ TEST_CASE("sat_map test cases", "[sat_map][mapping]")
         CHECK(mapped.num_cbits() == 0u);
         // CHECK(mapped.num_operations() == 0u);
     }
-    SECTION("Circuit with no instructions") {
+    SECTION("Circuit with no instructions")
+    {
         circuit.create_qubit();
         circuit.create_cbit();
         circuit.create_qubit();
@@ -39,7 +41,8 @@ TEST_CASE("sat_map test cases", "[sat_map][mapping]")
         CHECK(mapped.num_cbits() == circuit.num_cbits());
         // CHECK(mapped.num_operations() == 0u);
     }
-    SECTION("Simple circuit (SAT)") {
+    SECTION("Simple circuit (SAT)")
+    {
         Qubit q0 = circuit.create_qubit();
         circuit.create_cbit();
         Qubit q1 = circuit.create_qubit();
@@ -54,7 +57,8 @@ TEST_CASE("sat_map test cases", "[sat_map][mapping]")
         auto mapped = sat_map(circuit, device);
         CHECK(mapped.size() == circuit.size());
     }
-    SECTION("Simple circuit (UNSAT)") {
+    SECTION("Simple circuit (UNSAT)")
+    {
         Qubit q0 = circuit.create_qubit();
         circuit.create_cbit();
         Qubit q1 = circuit.create_qubit();

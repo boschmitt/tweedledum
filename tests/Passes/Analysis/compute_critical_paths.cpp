@@ -16,7 +16,8 @@ TEST_CASE("Compute critical path(s)", "[compute_critical_paths][analysis]")
     using namespace tweedledum;
     Circuit circuit;
     Qubit q0 = circuit.create_qubit();
-    SECTION("One qubit") {
+    SECTION("One qubit")
+    {
         circuit.apply_operator(Op::X(), {q0});
         circuit.apply_operator(Op::X(), {q0});
         circuit.apply_operator(Op::X(), {q0});
@@ -27,7 +28,8 @@ TEST_CASE("Compute critical path(s)", "[compute_critical_paths][analysis]")
         CHECK(paths.at(0) == expected);
     }
     Qubit q1 = circuit.create_qubit();
-    SECTION("Two qubits (0)") {
+    SECTION("Two qubits (0)")
+    {
         circuit.apply_operator(Op::X(), {q0});
         circuit.apply_operator(Op::X(), {q1});
         circuit.apply_operator(Op::X(), {q0});
@@ -43,7 +45,8 @@ TEST_CASE("Compute critical path(s)", "[compute_critical_paths][analysis]")
         CHECK(paths.at(0) == expected_0);
         CHECK(paths.at(1) == expected_1);
     }
-    SECTION("Two qubits (1)") {
+    SECTION("Two qubits (1)")
+    {
         circuit.apply_operator(Op::X(), {q0});
         circuit.apply_operator(Op::X(), {q1, q0});
         circuit.apply_operator(Op::X(), {q0});
@@ -51,8 +54,8 @@ TEST_CASE("Compute critical path(s)", "[compute_critical_paths][analysis]")
         circuit.apply_operator(Op::X(), {q1});
         circuit.apply_operator(Op::X(), {q1});
         auto paths = compute_critical_paths(circuit);
-        std::vector<InstRef> expected = {InstRef(0), InstRef(1), InstRef(3),
-                                         InstRef(4), InstRef(5)};
+        std::vector<InstRef> expected = {
+          InstRef(0), InstRef(1), InstRef(3), InstRef(4), InstRef(5)};
         CHECK(paths.size() == 1u);
         CHECK(paths.at(0).size() == 5u);
         CHECK(paths.at(0) == expected);

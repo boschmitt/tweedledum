@@ -14,12 +14,14 @@ TEST_CASE("LinePlacer test cases", "[LinePlacer][mapping]")
 {
     using namespace tweedledum;
     Circuit circuit;
-    SECTION("Empty circuit") {
+    SECTION("Empty circuit")
+    {
         Device device = Device::path(circuit.num_qubits());
         auto placement = line_place(device, circuit);
         CHECK(placement);
     }
-    SECTION("Simple circuit") {
+    SECTION("Simple circuit")
+    {
         circuit.create_qubit();
         circuit.create_cbit();
         circuit.create_qubit();

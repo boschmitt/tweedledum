@@ -13,13 +13,13 @@
 
 namespace tweedledum {
 
-void barenco_decomp(Circuit& circuit, Instruction const& inst,
-    nlohmann::json const& config = {});
+void barenco_decomp(
+  Circuit& circuit, Instruction const& inst, nlohmann::json const& config = {});
 
-void barenco_decomp(Circuit& circuit, Circuit const& original,
-    nlohmann::json const& config = {});
+void barenco_decomp(
+  Circuit& circuit, Circuit const& original, nlohmann::json const& config = {});
 
-Circuit barenco_decomp(Circuit const& original, 
-    nlohmann::json const& config = {});
+Circuit barenco_decomp(
+  Circuit const& original, nlohmann::json const& config = {});
 
 } // namespace tweedledum

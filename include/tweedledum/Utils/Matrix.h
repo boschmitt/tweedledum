@@ -4,13 +4,13 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include <complex>
 #include <Eigen/Dense>
+#include <complex>
 #include <iostream>
 
 namespace tweedledum {
 
-// Since Eigen has not concept of Boolean matrix with XOR, I'm implementing 
+// Since Eigen has not concept of Boolean matrix with XOR, I'm implementing
 // my own Boolean type where "+" is a XOR.  It's kind of a hack, but well...
 class MyBool {
 public:
@@ -38,7 +38,7 @@ public:
     MyBool operator+(MyBool const other) const
     {
         return other.value_ ^ value_;
-    } 
+    }
 
     MyBool operator+=(MyBool const other)
     {
@@ -60,7 +60,7 @@ private:
 inline std::ostream& operator<<(std::ostream& os, MyBool const& value)
 {
     os << value.value_;
-    return os; 
+    return os;
 }
 
 } // namespace tweedledum
@@ -72,7 +72,8 @@ struct NumTraits<tweedledum::MyBool> {
     typedef int Real;
     typedef tweedledum::MyBool Nested;
     typedef uint32_t Literal;
-    enum {
+    enum
+    {
         IsComplex = 0,
         IsInteger = 1,
         IsSigned = 0,
@@ -82,9 +83,18 @@ struct NumTraits<tweedledum::MyBool> {
         MulCost = 2
     };
     // Maybe 1? (I'm not sure)
-    static Real epsilon() { return 0; }
-    static Real digits10() { return 1; }
-    static Real dummy_precision() { return 0; }
+    static Real epsilon()
+    {
+        return 0;
+    }
+    static Real digits10()
+    {
+        return 1;
+    }
+    static Real dummy_precision()
+    {
+        return 0;
+    }
 };
 
 } // namespace Eigen

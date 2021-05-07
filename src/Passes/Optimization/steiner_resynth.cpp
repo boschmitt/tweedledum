@@ -26,14 +26,13 @@ inline std::vector<Slice> partition_into_silces(Circuit const& original)
     std::vector<Slice> slices;
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t max = 0;
-        inst.foreach_qubit([&](InstRef child) {
-            max = std::max(max, to_slice[child]);
-        });
+        inst.foreach_qubit(
+          [&](InstRef child) { max = std::max(max, to_slice[child]); });
         to_slice[ref] = max;
         if (max == slices.size()) {
             slices.emplace_back();
         }
-        if (!inst.is_one<Op::Bridge, Op::X, Op::Swap, Op::Parity>()) { 
+        if (!inst.is_one<Op::Bridge, Op::X, Op::Swap, Op::Parity>()) {
             slices.at(max).non_linear_gates.emplace_back(ref);
             to_slice[ref] += 1;
         } else if (inst.is_a<Op::X>() && inst.num_wires() != 2u) {
@@ -47,11 +46,12 @@ inline std::vector<Slice> partition_into_silces(Circuit const& original)
 }
 
 inline void resynth_slice(Circuit const& original, Device const& device,
-    Slice const& slice, Circuit& result, nlohmann::json const& config)
+  Slice const& slice, Circuit& result, nlohmann::json const& config)
 {
     if (!slice.linear_gates.empty()) {
         // Create matrix
-        BMatrix matrix = BMatrix::Identity(original.num_qubits(), original.num_qubits());
+        BMatrix matrix =
+          BMatrix::Identity(original.num_qubits(), original.num_qubits());
         uint32_t num_cnot = 0u;
         for (InstRef index : slice.linear_gates) {
             Instruction const& inst = original.instruction(index);
@@ -85,10 +85,10 @@ inline void resynth_slice(Circuit const& original, Device const& device,
     }
 }
 
-}
+} // namespace
 
-Circuit steiner_resynth(Circuit const& original, Device const& device, 
-    nlohmann::json const& config)
+Circuit steiner_resynth(
+  Circuit const& original, Device const& device, nlohmann::json const& config)
 {
     Circuit result = shallow_duplicate(original);
     auto slices = partition_into_silces(original);

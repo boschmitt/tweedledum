@@ -2,9 +2,9 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include "tweedledum/Synthesis/pkrm_synth.h"
 #include "tweedledum/Operators/Extension/TruthTable.h"
 #include "tweedledum/Operators/Standard.h"
-#include "tweedledum/Synthesis/pkrm_synth.h"
 #include "tweedledum/Utils/Classical/xag_simulate.h"
 
 #include <algorithm>
@@ -32,8 +32,8 @@ struct Config {
 };
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
-    Config const& config)
+  std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+  Config const& config)
 {
     Qubit const target = qubits.back();
     for (auto const& cube : kitty::esop_from_optimum_pkrm(function)) {
@@ -47,8 +47,7 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
             qs.push_back((bits & 1) ? qubits.at(v) : !qubits.at(v));
         }
         if (config.phase_esop) {
-            auto it = std::find_if(qs.rbegin(), qs.rend(), 
-            [](Qubit qubit) {
+            auto it = std::find_if(qs.rbegin(), qs.rend(), [](Qubit qubit) {
                 return qubit.polarity() == Qubit::Polarity::positive;
             });
             if (it == qs.rend()) {
@@ -66,11 +65,11 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     }
 }
 
-}
+} // namespace
 
 void pkrm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-     std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
-     nlohmann::json const& config)
+  std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+  nlohmann::json const& config)
 {
     Config cfg(config);
     assert(cfg.phase_esop ? qubits.size() == function.num_vars()
@@ -78,8 +77,8 @@ void pkrm_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     synthesize(circuit, qubits, cbits, function, cfg);
 }
 
-Circuit pkrm_synth(kitty::dynamic_truth_table const& function,
-    nlohmann::json const& config)
+Circuit pkrm_synth(
+  kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     Circuit circuit;
     Config cfg(config);
@@ -115,7 +114,8 @@ Circuit pkrm_synth(kitty::dynamic_truth_table const& function,
 //     }
 // }
 
-// Circuit pkrm_synth(mockturtle::xag_network const& xag, nlohmann::json const& config)
+// Circuit pkrm_synth(mockturtle::xag_network const& xag, nlohmann::json const&
+// config)
 // {
 //     if (xag.num_pis() <= 16u && xag.num_pos() == 1) {
 //         auto tts = xag_simulate(xag);

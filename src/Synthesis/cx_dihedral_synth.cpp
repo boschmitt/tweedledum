@@ -2,8 +2,8 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Synthesis/cx_dihedral_synth.h"
+#include "tweedledum/Operators/Standard.h"
 
 #include <bill/sat/cardinality.hpp>
 #include <bill/sat/solver.hpp>
@@ -14,7 +14,8 @@ namespace tweedledum {
 namespace {
 
 // TODO:
-//  - Investigate lower bound!, this woudl allow me to encode a bunch o moments in first go
+//  - Investigate lower bound!, this woudl allow me to encode a bunch o moments
+//  in first go
 //  -
 template<typename Solver>
 class CXDihedralEncoder {
@@ -23,16 +24,17 @@ class CXDihedralEncoder {
     using Var = bill::var_type;
 
 public:
-    CXDihedralEncoder(BMatrix const& linear_trans, LinPhasePoly const& phase_parities, Solver& solver)
-    : transform_(linear_trans)
-    , phase_parities_(phase_parities)
-    , use_symmetry_break_(true)
-    , num_terms_(phase_parities.size())
-    , num_moments_(0)
-    , offset_((num_qubits() * num_qubits()) + num_terms() + (num_terms() * num_qubits()) + (2 * num_qubits()))
-    , solver_(solver)
-    { 
-    }
+    CXDihedralEncoder(BMatrix const& linear_trans,
+      LinPhasePoly const& phase_parities, Solver& solver)
+        : transform_(linear_trans)
+        , phase_parities_(phase_parities)
+        , use_symmetry_break_(true)
+        , num_terms_(phase_parities.size())
+        , num_moments_(0)
+        , offset_((num_qubits() * num_qubits()) + num_terms()
+                  + (num_terms() * num_qubits()) + (2 * num_qubits()))
+        , solver_(solver)
+    {}
 
     void encode()
     {
@@ -41,7 +43,8 @@ public:
         // Encode initial states
         for (uint32_t row = 0u; row < transform_.rows(); ++row) {
             for (uint32_t column = 0u; column < transform_.cols(); ++column) {
-                const auto polarity = (row == column) ? bill::positive_polarity : bill::negative_polarity;
+                const auto polarity = (row == column) ? bill::positive_polarity
+                                                      : bill::negative_polarity;
                 Lit lit(matrix_var(0, row, column), polarity);
                 solver_.add_clause(lit);
             }
@@ -56,14 +59,18 @@ public:
     std::vector<Lit> encode_assumptions() const
     {
         std::vector<Lit> assumptions;
-        for (uint32_t row = 0u; row < num_qubits(); ++row ) {
+        for (uint32_t row = 0u; row < num_qubits(); ++row) {
             for (uint32_t column = 0u; column < num_qubits(); ++column) {
-                const auto polarity = transform_(row, column) ? bill::positive_polarity : bill::negative_polarity;
-                assumptions.emplace_back(matrix_var(num_moments_ - 1, row, column), polarity);
+                const auto polarity = transform_(row, column)
+                                      ? bill::positive_polarity
+                                      : bill::negative_polarity;
+                assumptions.emplace_back(
+                  matrix_var(num_moments_ - 1, row, column), polarity);
             }
         }
         for (uint32_t term_id = 0u; term_id < num_terms(); ++term_id) {
-            assumptions.emplace_back(parity_term_var(num_moments_ - 1, term_id), bill::positive_polarity);
+            assumptions.emplace_back(parity_term_var(num_moments_ - 1, term_id),
+              bill::positive_polarity);
         }
         return assumptions;
     }
@@ -83,8 +90,9 @@ public:
         encode_parity_terms(num_moments_);
         ++num_moments_;
     }
-    
-    void decode(Circuit& circuit, std::vector<Qubit> const& qubits, std::vector<LBool> const& model)
+
+    void decode(Circuit& circuit, std::vector<Qubit> const& qubits,
+      std::vector<LBool> const& model)
     {
         std::vector<uint32_t> qubits_states;
         for (uint32_t i = 0u; i < num_qubits(); ++i) {
@@ -106,9 +114,11 @@ public:
                     assert(model.at(control_var(moment, row)) == LBool::false_);
                 }
             }
-            circuit.apply_operator(Op::X(), {qubits.at(control), qubits.at(target)});
+            circuit.apply_operator(
+              Op::X(), {qubits.at(control), qubits.at(target)});
             qubits_states[target] ^= qubits_states[control];
-            double rotation = phase_parities_.extract_phase(qubits_states[target]);
+            double rotation =
+              phase_parities_.extract_phase(qubits_states[target]);
             if (rotation != 0.0) {
                 circuit.apply_operator(Op::P(rotation), {qubits.at(target)});
             }
@@ -143,18 +153,27 @@ private:
             (void) _;
             for (uint32_t row = 0u; row < num_qubits(); ++row) {
                 for (uint32_t column = 0u; column < num_qubits(); ++column) {
-                    const auto polarity = (term >> column) & 1 ? bill::positive_polarity : bill::negative_polarity;
-                    matrix_lits.emplace_back(matrix_var(moment, row, column), polarity);
+                    const auto polarity = (term >> column) & 1
+                                          ? bill::positive_polarity
+                                          : bill::negative_polarity;
+                    matrix_lits.emplace_back(
+                      matrix_var(moment, row, column), polarity);
                 }
-                encode_and(matrix_lits, parity_term_row_var(moment, term_id, row));
-                term_lits.emplace_back(parity_term_row_var(moment, term_id, row), bill::positive_polarity);
+                encode_and(
+                  matrix_lits, parity_term_row_var(moment, term_id, row));
+                term_lits.emplace_back(
+                  parity_term_row_var(moment, term_id, row),
+                  bill::positive_polarity);
                 matrix_lits.clear();
             }
             if (moment > 0) {
                 std::vector<Lit> clause;
-                term_lits.emplace_back(parity_term_var(moment - 1, term_id), bill::positive_polarity);
-                clause.emplace_back(parity_term_var(moment - 1, term_id), bill::negative_polarity);
-                clause.emplace_back(parity_term_var(moment, term_id), bill::positive_polarity);
+                term_lits.emplace_back(parity_term_var(moment - 1, term_id),
+                  bill::positive_polarity);
+                clause.emplace_back(parity_term_var(moment - 1, term_id),
+                  bill::negative_polarity);
+                clause.emplace_back(
+                  parity_term_var(moment, term_id), bill::positive_polarity);
                 solver_.add_clause(clause);
             }
             encode_or(term_lits, parity_term_var(moment, term_id));
@@ -175,9 +194,10 @@ private:
             control.emplace_back(control_var(moment, row));
             target.emplace_back(target_var(moment, row));
         }
-        // fmt::print("Control vars: {}\n", fmt::join(control.begin(), control.end(), ","));
-        // fmt::print("Target vars: {}\n", fmt::join(target.begin(), target.end(), ","));
-        // fmt::print("Number of vars: {}\n", solver_.num_variables());
+        // fmt::print("Control vars: {}\n", fmt::join(control.begin(),
+        // control.end(), ",")); fmt::print("Target vars: {}\n",
+        // fmt::join(target.begin(), target.end(), ",")); fmt::print("Number of
+        // vars: {}\n", solver_.num_variables());
         bill::at_least_one(control, solver_);
         bill::at_most_one_pairwise(control, solver_);
         bill::at_least_one(target, solver_);
@@ -185,8 +205,10 @@ private:
 
         std::vector<Lit> clause;
         for (uint32_t row = 0u; row < num_qubits(); ++row) {
-            clause.emplace_back(control_var(moment, row), bill::negative_polarity);
-            clause.emplace_back(target_var(moment, row), bill::negative_polarity);
+            clause.emplace_back(
+              control_var(moment, row), bill::negative_polarity);
+            clause.emplace_back(
+              target_var(moment, row), bill::negative_polarity);
             solver_.add_clause(clause);
             clause.clear();
         }
@@ -200,13 +222,18 @@ private:
         std::vector<Lit> clause;
         for (uint32_t row = 0u; row < num_qubits(); ++row) {
             for (uint32_t column = 0u; column < num_qubits(); ++column) {
-                clause.emplace_back(target_var(moment - 1, row), bill::positive_polarity);
-                clause.emplace_back(matrix_var(moment - 1, row, column), bill::negative_polarity);
-                clause.emplace_back(matrix_var(moment, row, column), bill::positive_polarity);
+                clause.emplace_back(
+                  target_var(moment - 1, row), bill::positive_polarity);
+                clause.emplace_back(
+                  matrix_var(moment - 1, row, column), bill::negative_polarity);
+                clause.emplace_back(
+                  matrix_var(moment, row, column), bill::positive_polarity);
                 solver_.add_clause(clause);
 
-                clause.at(1) = Lit(matrix_var(moment - 1, row, column), bill::positive_polarity);
-                clause.at(2) = Lit(matrix_var(moment, row, column), bill::negative_polarity);
+                clause.at(1) = Lit(
+                  matrix_var(moment - 1, row, column), bill::positive_polarity);
+                clause.at(2) =
+                  Lit(matrix_var(moment, row, column), bill::negative_polarity);
                 solver_.add_clause(clause);
 
                 encode_more_dependencies(moment, row, column);
@@ -215,19 +242,25 @@ private:
         }
     }
 
-    void encode_more_dependencies(uint32_t moment, uint32_t row, uint32_t column)
+    void encode_more_dependencies(
+      uint32_t moment, uint32_t row, uint32_t column)
     {
         for (uint32_t other_row = 0u; other_row < num_qubits(); ++other_row) {
             if (other_row == row) {
                 continue;
             }
             std::vector<Lit> clause;
-            clause.emplace_back(target_var(moment - 1, row), bill::negative_polarity);
-            clause.emplace_back(control_var(moment - 1, other_row), bill::negative_polarity);
+            clause.emplace_back(
+              target_var(moment - 1, row), bill::negative_polarity);
+            clause.emplace_back(
+              control_var(moment - 1, other_row), bill::negative_polarity);
 
-            clause.emplace_back(matrix_var(moment - 1, row, column), bill::negative_polarity);
-            clause.emplace_back(matrix_var(moment - 1, other_row, column), bill::negative_polarity);
-            clause.emplace_back(matrix_var(moment, row, column), bill::negative_polarity);
+            clause.emplace_back(
+              matrix_var(moment - 1, row, column), bill::negative_polarity);
+            clause.emplace_back(matrix_var(moment - 1, other_row, column),
+              bill::negative_polarity);
+            clause.emplace_back(
+              matrix_var(moment, row, column), bill::negative_polarity);
             solver_.add_clause(clause);
 
             clause.at(3).complement();
@@ -250,7 +283,8 @@ private:
         /* there cannot be a row with all zeroes */
         for (uint32_t row = 0u; row < num_qubits(); ++row) {
             for (uint32_t column = 0u; column < num_qubits(); ++column) {
-                clause.emplace_back(matrix_var(moment, row, column), bill::positive_polarity);
+                clause.emplace_back(
+                  matrix_var(moment, row, column), bill::positive_polarity);
             }
             solver_.add_clause(clause);
         }
@@ -259,7 +293,8 @@ private:
         /* there cannot be a column with all zeroes */
         for (uint32_t column = 0u; column < num_qubits(); ++column) {
             for (uint32_t row = 0u; row < num_qubits(); ++row) {
-                clause.emplace_back(matrix_var(moment, row, column), bill::positive_polarity);
+                clause.emplace_back(
+                  matrix_var(moment, row, column), bill::positive_polarity);
             }
             solver_.add_clause(clause);
         }
@@ -279,10 +314,14 @@ private:
                     if (control0 == target1) {
                         continue;
                     }
-                    clause.emplace_back(control_var(moment - 1, control0), bill::negative_polarity);
-                    clause.emplace_back(control_var(moment, control0), bill::negative_polarity);
-                    clause.emplace_back(target_var(moment - 1, target0), bill::negative_polarity);
-                    clause.emplace_back(target_var(moment, target1), bill::negative_polarity);
+                    clause.emplace_back(control_var(moment - 1, control0),
+                      bill::negative_polarity);
+                    clause.emplace_back(
+                      control_var(moment, control0), bill::negative_polarity);
+                    clause.emplace_back(
+                      target_var(moment - 1, target0), bill::negative_polarity);
+                    clause.emplace_back(
+                      target_var(moment, target1), bill::negative_polarity);
                     solver_.add_clause(clause);
                     clause.clear();
                 }
@@ -333,21 +372,24 @@ private:
 
     Var parity_term_row_var(uint32_t moment, uint32_t id, uint32_t row) const
     {
-        Var var =  (moment * offset_) + (num_qubits() * num_qubits()) + num_terms() + (id * num_qubits()) + row;
+        Var var = (moment * offset_) + (num_qubits() * num_qubits())
+                + num_terms() + (id * num_qubits()) + row;
         assert(var < Var(solver_.num_variables()));
         return var;
     }
 
     Var control_var(uint32_t moment, uint32_t row) const
     {
-        Var var =  moment * offset_ + (num_qubits() * num_qubits()) + num_terms() + (num_terms() * num_qubits()) + row;
+        Var var = moment * offset_ + (num_qubits() * num_qubits()) + num_terms()
+                + (num_terms() * num_qubits()) + row;
         assert(var < Var(solver_.num_variables()));
         return var;
     }
 
     Var target_var(uint32_t moment, uint32_t row) const
     {
-        Var var =  moment * offset_ + (num_qubits() * num_qubits()) + num_terms() + (num_terms() * num_qubits()) + num_qubits() + row;
+        Var var = moment * offset_ + (num_qubits() * num_qubits()) + num_terms()
+                + (num_terms() * num_qubits()) + num_qubits() + row;
         assert(var < Var(solver_.num_variables()));
         return var;
     }
@@ -365,11 +407,11 @@ private:
     Solver& solver_;
 };
 
-}
+} // namespace
 
-void cx_dihedral_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
-    std::vector<Cbit> const& cbits, BMatrix const& linear_trans, LinPhasePoly phase_parities,
-    nlohmann::json const& config)
+void cx_dihedral_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+  std::vector<Cbit> const& cbits, BMatrix const& linear_trans,
+  LinPhasePoly phase_parities, nlohmann::json const& config)
 {
     assert(qubits.size() == linear_trans.rows());
     assert(linear_trans.rows() <= 32);
@@ -390,7 +432,7 @@ void cx_dihedral_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
 }
 
 Circuit cx_dihedral_synth(BMatrix const& linear_trans,
-    LinPhasePoly const& phase_parities, nlohmann::json const& config)
+  LinPhasePoly const& phase_parities, nlohmann::json const& config)
 {
     Circuit circuit;
     std::vector<Qubit> qubits;
@@ -398,7 +440,8 @@ Circuit cx_dihedral_synth(BMatrix const& linear_trans,
     for (uint32_t i = 0u; i < linear_trans.rows(); ++i) {
         qubits.emplace_back(circuit.create_qubit());
     }
-    cx_dihedral_synth(circuit, qubits, {}, linear_trans, phase_parities, config);
+    cx_dihedral_synth(
+      circuit, qubits, {}, linear_trans, phase_parities, config);
     return circuit;
 }
 

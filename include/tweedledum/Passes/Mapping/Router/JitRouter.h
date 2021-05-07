@@ -8,17 +8,19 @@
 #include "../../../IR/Qubit.h"
 #include "../../../Operators/Reversible.h"
 #include "../../../Target/Device.h"
-#include "../../../Target/Placement.h"
 #include "../../../Target/Mapping.h"
+#include "../../../Target/Placement.h"
 #include "../../Utility/reverse.h"
 
 namespace tweedledum {
 
 class JitRouter {
 public:
-    JitRouter(Device const& device, Circuit const& original,
-        Placement const& placement)
-        : device_(device), original_(original), placement_(placement)
+    JitRouter(
+      Device const& device, Circuit const& original, Placement const& placement)
+        : device_(device)
+        , original_(original)
+        , placement_(placement)
         , visited_(original_.size(), 0u)
         , involved_phy_(device_.num_qubits(), 0u)
         , phy_decay_(device_.num_qubits(), 1.0)
@@ -66,7 +68,7 @@ private:
     std::vector<uint32_t> involved_phy_;
     std::vector<float> phy_decay_;
     std::vector<std::vector<InstRef>> delayed_;
-    
+
     // Sabre configuration
     uint32_t e_set_size_ = 20;
     float e_weight_ = 0.5;

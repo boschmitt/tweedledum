@@ -4,9 +4,9 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "tweedledum/Passes/Simulation/simulate_classically.h"
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
+#include "tweedledum/Passes/Simulation/simulate_classically.h"
 #include "tweedledum/Utils/DynamicBitset.h"
 
 #include <catch.hpp>

@@ -20,12 +20,10 @@ namespace tweedledum {
 inline Circuit shallow_duplicate(Circuit const& original)
 {
     Circuit duplicate;
-    original.foreach_cbit([&](std::string_view name) {
-        duplicate.create_cbit(name);
-    });
-    original.foreach_qubit([&](std::string_view name) {
-        duplicate.create_qubit(name);
-    });
+    original.foreach_cbit(
+      [&](std::string_view name) { duplicate.create_cbit(name); });
+    original.foreach_qubit(
+      [&](std::string_view name) { duplicate.create_qubit(name); });
     return duplicate;
 }
 

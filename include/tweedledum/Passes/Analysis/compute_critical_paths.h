@@ -15,7 +15,7 @@
 namespace tweedledum {
 
 inline std::vector<std::vector<InstRef>> compute_critical_paths(
-    Circuit const& circuit)
+  Circuit const& circuit)
 {
     using Path = std::vector<InstRef>;
     std::vector<uint32_t> const alap_layer = compute_alap_layers(circuit);
@@ -31,7 +31,8 @@ inline std::vector<std::vector<InstRef>> compute_critical_paths(
         uint32_t current = 0u;
         do {
             circuit.foreach_child(path.at(current), [&](InstRef child) {
-                if (added.at(child) || alap_layer.at(child) != asap_layer.at(child)) {
+                if (added.at(child)
+                    || alap_layer.at(child) != asap_layer.at(child)) {
                     return;
                 }
                 path.push_back(child);

@@ -22,7 +22,7 @@ TEST_CASE("Trivial cases for spectrum_synth", "[spectrum_synth][synth]")
 
     Circuit synthesized = spectrum_synth(tt, config);
     CHECK(synthesized.num_qubits() == 3u);
-    
+
     Circuit expected;
     Qubit q0 = expected.create_qubit();
     Qubit q1 = expected.create_qubit();

@@ -2,10 +2,10 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Operators/Reversible.h"
 #include "tweedledum/Synthesis/decomp_synth.h"
+#include "tweedledum/Operators/Reversible.h"
 #ifdef _MSC_VER
-#include "tweedledum/Utils/Intrinsics.h"
+    #include "tweedledum/Utils/Intrinsics.h"
 #endif
 
 #include <kitty/kitty.hpp>
@@ -19,12 +19,12 @@
 // In decomposition-based synthesis the reversible function is recursively
 // decomposed into simpler functions based on the Young subgroup decomposition:
 //
-//     Given a wire Wi, every reversible function f can be decomposed into three 
+//     Given a wire Wi, every reversible function f can be decomposed into three
 //     functions f = g1 o f' o g2, where g1 and g2 can be realized with a
 //     truth table gate on Wi and f' is a reversible function that does not
 //     change in Wi.
 //
-// Based on this decomposition, this synthesis algorithms determine the gates 
+// Based on this decomposition, this synthesis algorithms determine the gates
 // for g1 and g2 and then recur on f'.
 //
 namespace tweedledum {
@@ -82,7 +82,7 @@ inline auto decompose(std::vector<uint32_t>& perm, uint32_t var)
 }
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, std::vector<uint32_t> perm)
+  std::vector<Cbit> const& cbits, std::vector<uint32_t> perm)
 {
     std::vector<kitty::dynamic_truth_table> truth_tables;
     truth_tables.reserve(qubits.size() * 2);
@@ -108,8 +108,8 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
             }
             left_tt = kitty::shrink_to(left_tt, left_qubits.size());
             left_qubits.push_back(qubits.at(i));
-            pos = gates.emplace(pos, truth_tables.size() - 2,
-                std::move(left_qubits));
+            pos = gates.emplace(
+              pos, truth_tables.size() - 2, std::move(left_qubits));
             ++pos;
         }
         if (!kitty::is_const0(right_tt)) {
@@ -119,20 +119,20 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
             }
             right_tt = kitty::shrink_to(right_tt, right_qubits.size());
             right_qubits.push_back(qubits.at(i));
-            pos = gates.emplace(pos, truth_tables.size() - 1,
-                std::move(right_qubits));
+            pos = gates.emplace(
+              pos, truth_tables.size() - 1, std::move(right_qubits));
         }
     }
     for (auto const& [tt_idx, qubits] : gates) {
-        circuit.apply_operator(Op::TruthTable(truth_tables.at(tt_idx)), qubits,
-            cbits);
+        circuit.apply_operator(
+          Op::TruthTable(truth_tables.at(tt_idx)), qubits, cbits);
     }
 }
 
-}
+} // namespace
 
-void decomp_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
-    std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm)
+void decomp_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+  std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm)
 {
     assert(!perm.empty() && !(perm.size() & (perm.size() - 1)));
     synthesize(circuit, qubits, cbits, perm);

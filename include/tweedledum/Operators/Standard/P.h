@@ -17,7 +17,8 @@ public:
         return "std.p";
     }
 
-    P(double angle) : angle_(angle)
+    P(double angle)
+        : angle_(angle)
     {}
 
     P adjoint() const
@@ -33,8 +34,10 @@ public:
     UMatrix2 const matrix() const
     {
         Complex const a = std::exp(Complex(0., angle_));
+        // clang-format off
         return (UMatrix2() << 1., 0.,
                               0., a).finished();
+        // clang-format on
     }
 
     bool operator==(P const& other) const
@@ -46,4 +49,4 @@ private:
     double const angle_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

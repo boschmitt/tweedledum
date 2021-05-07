@@ -45,4 +45,3 @@ TEST_CASE("Adder", "[adder][generators]")
     carry_ripple_adder_inplace(circuit, a_qubits, b_qubits, carry);
     CHECK(validate_adder(circuit, n));
 }
-

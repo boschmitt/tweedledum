@@ -20,7 +20,7 @@ bool validate_lt(tweedledum::Circuit const& circuit, uint32_t n)
         for (uint32_t b = 0; b < (1u << n); ++b) {
             DynamicBitset<uint8_t> input(n_qubits, (b << n) + a);
             DynamicBitset<uint8_t> expected(n_qubits, (b << n) + a);
-            expected[2*n] = (a < b);
+            expected[2 * n] = (a < b);
             auto sim_pattern = simulate_classically(circuit, input);
             is_valid &= (sim_pattern == expected);
         }
@@ -35,4 +35,3 @@ TEST_CASE("Less than (<)", "[lt][generators]")
     Circuit circuit = less_than(n);
     CHECK(validate_lt(circuit, n));
 }
-

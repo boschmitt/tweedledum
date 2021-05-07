@@ -12,8 +12,10 @@ namespace tweedledum {
 class BaseStrategy {
 protected:
     using Node = typename mockturtle::klut_network::node;
+
 public:
-    enum class Action : uint8_t {
+    enum class Action : uint8_t
+    {
         compute,
         cleanup,
     };
@@ -21,7 +23,10 @@ public:
     struct Step {
         Action action;
         Node node;
-        Step(Action a, Node n) : action(a), node(n) {}
+        Step(Action a, Node n)
+            : action(a)
+            , node(n)
+        {}
     };
 
     virtual ~BaseStrategy() = default;
