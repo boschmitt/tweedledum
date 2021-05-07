@@ -20,22 +20,31 @@ public:
     public:
         using Ref = uint32_t;
         Node()
-            : begin_fanin1_(0), begin_fanin01_(0), level_(0), last_level_(0),
-                num_ref_(0)
+            : begin_fanin1_(0)
+            , begin_fanin01_(0)
+            , level_(0)
+            , last_level_(0)
+            , num_ref_(0)
         {}
 
         Node(std::vector<Ref> const& fanin)
-            : fanin_(fanin), begin_fanin1_(fanin.size()),
-                begin_fanin01_(fanin.size()),
-                level_(std::numeric_limits<uint32_t>::max()), last_level_(0), num_ref_(0)
+            : fanin_(fanin)
+            , begin_fanin1_(fanin.size())
+            , begin_fanin01_(fanin.size())
+            , level_(std::numeric_limits<uint32_t>::max())
+            , last_level_(0)
+            , num_ref_(0)
         {}
 
         Node(std::vector<Ref> const& fanin, uint32_t begin_fanin1,
-            uint32_t begin_fanin01,
-            std::array<bool, 2> const& is_negated)
-            : fanin_(fanin), begin_fanin1_(begin_fanin1),
-                begin_fanin01_(begin_fanin01), is_negated_(is_negated),
-                level_(std::numeric_limits<uint32_t>::max()), last_level_(0),num_ref_(0)
+          uint32_t begin_fanin01, std::array<bool, 2> const& is_negated)
+            : fanin_(fanin)
+            , begin_fanin1_(begin_fanin1)
+            , begin_fanin01_(begin_fanin01)
+            , is_negated_(is_negated)
+            , level_(std::numeric_limits<uint32_t>::max())
+            , last_level_(0)
+            , num_ref_(0)
         {}
 
         uint32_t level() const
@@ -180,7 +189,8 @@ public:
     using OutputRef = std::pair<uint32_t, bool>;
 
     HighLevelXAG()
-        : num_inputs_(0), num_levels_(0)
+        : num_inputs_(0)
+        , num_levels_(0)
     {
         nodes_.reserve(1024);
         // Create the constant node
@@ -285,7 +295,8 @@ class HighLevelXAGBuilder {
 
 public:
     HighLevelXAGBuilder(xag_network const& xag)
-        : xag_(xag), node_ltfi_(xag)
+        : xag_(xag)
+        , node_ltfi_(xag)
     {
         compute_ltfi();
     }
@@ -302,19 +313,18 @@ private:
     NodeRef create_pi(HighLevelXAG& hl_xag);
     void create_po(HighLevelXAG& hl_xag, NodeRef node_ref, bool is_negated);
     NodeRef create_parity(
-        HighLevelXAG& hl_xag, std::vector<NodeRef> const& fanin, uint32_t level);
+      HighLevelXAG& hl_xag, std::vector<NodeRef> const& fanin, uint32_t level);
     NodeRef create_parity(HighLevelXAG& hl_xag, std::vector<uint32_t>& fanin0,
-        std::vector<uint32_t> const& fanin1,
-        std::vector<uint32_t> const& fanin01,
-        std::array<bool, 2> const& is_negated, uint32_t level);
+      std::vector<uint32_t> const& fanin1, std::vector<uint32_t> const& fanin01,
+      std::array<bool, 2> const& is_negated, uint32_t level);
 
     NodeRef to_node_ref(xag_signal signal) const;
 
     NodeRef handle_xor(
-        HighLevelXAG& hl_xag, xag_ltfi const& ltfi0, xag_ltfi const& ltfi1);
+      HighLevelXAG& hl_xag, xag_ltfi const& ltfi0, xag_ltfi const& ltfi1);
 
     NodeRef handle_and(HighLevelXAG& hl_xag, xag_ltfi const& ltfi0,
-        xag_ltfi const& ltfi1, std::array<bool, 2> is_negated);
+      xag_ltfi const& ltfi1, std::array<bool, 2> is_negated);
 
     xag_network const& xag_;
     ltfi_map node_ltfi_;
@@ -346,10 +356,9 @@ void HighLevelXAGBuilder::compute_ltfi()
     // Compute the LTFI for all the gates
     xag_.foreach_gate([&](xag_node const& node) {
         std::array<xag_ltfi const*, 2> fanin_ltfi;
-        xag_.foreach_fanin(
-            node, [&](xag_signal const signal, uint32_t i) {
-                fanin_ltfi.at(i) = &(node_ltfi_[signal]);
-            });
+        xag_.foreach_fanin(node, [&](xag_signal const signal, uint32_t i) {
+            fanin_ltfi.at(i) = &(node_ltfi_[signal]);
+        });
         // If this node is a AND gate or a XOR which drives an output,
         // then its LTFI is just itself
         if (xag_.is_and(node) || xag_.value(node)) {
@@ -358,9 +367,8 @@ void HighLevelXAGBuilder::compute_ltfi()
         }
         // The node is an internal XOR
         std::set_symmetric_difference(fanin_ltfi.at(0)->cbegin(),
-            fanin_ltfi.at(0)->cend(), fanin_ltfi.at(1)->cbegin(),
-            fanin_ltfi.at(1)->cend(),
-            std::back_inserter(node_ltfi_[node]));
+          fanin_ltfi.at(0)->cend(), fanin_ltfi.at(1)->cbegin(),
+          fanin_ltfi.at(1)->cend(), std::back_inserter(node_ltfi_[node]));
         // Make sure the LTFI is not empty!
         assert(node_ltfi_[node].size());
     });
@@ -379,13 +387,14 @@ HighLevelXAG::NodeRef HighLevelXAGBuilder::create_pi(HighLevelXAG& hl_xag)
     return hl_xag.nodes_.size() - 1;
 }
 
-void HighLevelXAGBuilder::create_po(HighLevelXAG& hl_xag, NodeRef node_ref, bool is_negated)
+void HighLevelXAGBuilder::create_po(
+  HighLevelXAG& hl_xag, NodeRef node_ref, bool is_negated)
 {
     hl_xag.outputs_.emplace_back(node_ref, is_negated);
 }
 
 HighLevelXAG::NodeRef HighLevelXAGBuilder::create_parity(
-    HighLevelXAG& hl_xag, std::vector<NodeRef> const& fanin, uint32_t level)
+  HighLevelXAG& hl_xag, std::vector<NodeRef> const& fanin, uint32_t level)
 {
     hl_xag.nodes_.emplace_back(fanin);
     asap_level_.emplace_back(level);
@@ -393,9 +402,9 @@ HighLevelXAG::NodeRef HighLevelXAGBuilder::create_parity(
 }
 
 HighLevelXAG::NodeRef HighLevelXAGBuilder::create_parity(HighLevelXAG& hl_xag,
-    std::vector<uint32_t>& fanin0, std::vector<uint32_t> const& fanin1,
-    std::vector<uint32_t> const& fanin01, std::array<bool, 2> const& is_negated,
-    uint32_t level)
+  std::vector<uint32_t>& fanin0, std::vector<uint32_t> const& fanin1,
+  std::vector<uint32_t> const& fanin01, std::array<bool, 2> const& is_negated,
+  uint32_t level)
 {
     assert(fanin0.size() && (fanin01.size() || fanin1.size()));
     uint32_t begin1 = fanin0.size();
@@ -413,7 +422,7 @@ uint32_t HighLevelXAGBuilder::to_node_ref(xag_signal signal) const
 }
 
 uint32_t HighLevelXAGBuilder::handle_xor(
-    HighLevelXAG& hl_xag, xag_ltfi const& ltfi0, xag_ltfi const& ltfi1)
+  HighLevelXAG& hl_xag, xag_ltfi const& ltfi0, xag_ltfi const& ltfi1)
 {
     std::vector<uint32_t> fanin;
     auto first0 = ltfi0.cbegin();
@@ -462,8 +471,8 @@ handle_xor_end:
     return create_parity(hl_xag, fanin, ++level);
 }
 
-uint32_t HighLevelXAGBuilder::handle_and(HighLevelXAG& hl_xag, xag_ltfi const& ltfi0,
-    xag_ltfi const& ltfi1, std::array<bool, 2> is_negated)
+uint32_t HighLevelXAGBuilder::handle_and(HighLevelXAG& hl_xag,
+  xag_ltfi const& ltfi0, xag_ltfi const& ltfi1, std::array<bool, 2> is_negated)
 {
     std::vector<uint32_t> fanin0;
     std::vector<uint32_t> fanin1;
@@ -500,7 +509,8 @@ uint32_t HighLevelXAGBuilder::handle_and(HighLevelXAG& hl_xag, xag_ltfi const& l
         fanin_ref = to_node_ref(*first0);
         fanin0.emplace_back(fanin_ref);
         hl_xag.reference(fanin_ref, 2);
-        level = std::max(level, asap_level_.at(fanin_ref));;
+        level = std::max(level, asap_level_.at(fanin_ref));
+        ;
         ++first0;
     }
     while (first1 != last1) {
@@ -512,7 +522,8 @@ uint32_t HighLevelXAGBuilder::handle_and(HighLevelXAG& hl_xag, xag_ltfi const& l
     }
     if (fanin0.size() < fanin1.size()) {
         std::swap(is_negated[0], is_negated[1]);
-        return create_parity(hl_xag, fanin1, fanin0, fanin01, is_negated, ++level);
+        return create_parity(
+          hl_xag, fanin1, fanin0, fanin01, is_negated, ++level);
     }
     return create_parity(hl_xag, fanin0, fanin1, fanin01, is_negated, ++level);
 }
@@ -533,22 +544,22 @@ HighLevelXAG HighLevelXAGBuilder::operator()()
         }
         std::array<xag_ltfi const*, 2> fanin_ltfi;
         std::array<bool, 2> is_negated;
-        xag_.foreach_fanin(
-            node, [&](xag_signal const signal, uint32_t i) {
-                fanin_ltfi.at(i) = &(node_ltfi_[signal]);
-                is_negated.at(i) = xag_.is_complemented(signal);
-            });
+        xag_.foreach_fanin(node, [&](xag_signal const signal, uint32_t i) {
+            fanin_ltfi.at(i) = &(node_ltfi_[signal]);
+            is_negated.at(i) = xag_.is_complemented(signal);
+        });
         if (xag_.is_xor(node)) {
-            uint32_t ref = handle_xor(
-                hl_xag, *fanin_ltfi.at(0), *fanin_ltfi.at(1));
+            uint32_t ref =
+              handle_xor(hl_xag, *fanin_ltfi.at(0), *fanin_ltfi.at(1));
             xag_.set_value(node, ref);
             return;
         }
-        uint32_t ref = handle_and(
-            hl_xag, *fanin_ltfi.at(0), *fanin_ltfi.at(1), is_negated);
+        uint32_t ref =
+          handle_and(hl_xag, *fanin_ltfi.at(0), *fanin_ltfi.at(1), is_negated);
         xag_.set_value(node, ref);
     });
-    uint32_t max_level = *std::max_element(asap_level_.begin(), asap_level_.end());
+    uint32_t max_level =
+      *std::max_element(asap_level_.begin(), asap_level_.end());
     // Create pointers to outputs and set the level of all nodes
     xag_.foreach_po([&](xag_signal const& signal) {
         uint32_t node_ref = to_node_ref(signal);
@@ -557,16 +568,16 @@ HighLevelXAG HighLevelXAGBuilder::operator()()
         node.level(max_level);
         node.last_level(max_level);
     });
-    std::for_each(hl_xag.rbegin(), hl_xag.rend(),
-    [&](HighLevelXAG::Node& node) {
-        uint32_t level = node.level() - 1;
-        for (NodeRef input_ref : node) {
-            HighLevelXAG::Node& input = hl_xag.get_node(input_ref);
-            input.level(std::min(level, input.level()));
-            input.last_level(std::max(node.level(), input.last_level()));
-        }
-    });
-    hl_xag.num_levels_ = max_level + 1; // +1 to account for the 0th level 
+    std::for_each(
+      hl_xag.rbegin(), hl_xag.rend(), [&](HighLevelXAG::Node& node) {
+          uint32_t level = node.level() - 1;
+          for (NodeRef input_ref : node) {
+              HighLevelXAG::Node& input = hl_xag.get_node(input_ref);
+              input.level(std::min(level, input.level()));
+              input.last_level(std::max(node.level(), input.last_level()));
+          }
+      });
+    hl_xag.num_levels_ = max_level + 1; // +1 to account for the 0th level
     return hl_xag;
 }
 

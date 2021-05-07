@@ -16,10 +16,11 @@ class Sdg;
 
 // S operator.
 //
-// The operator induces a π/2 phase. This is a Clifford gate and a square-root 
+// The operator induces a π/2 phase. This is a Clifford gate and a square-root
 // of Pauli-Z.
 class S {
     constexpr static std::array<Complex, 4> mat_ = {1., 0., 0., {0., 1.}};
+
 public:
     static constexpr std::string_view kind()
     {
@@ -28,7 +29,7 @@ public:
 
     static inline Sdg adjoint();
 
-    static double angle() 
+    static double angle()
     {
         return numbers::pi_div_2;
     }
@@ -41,6 +42,7 @@ public:
 
 class Sdg {
     constexpr static std::array<Complex, 4> mat_ = {1., 0., 0., {0., -1.}};
+
 public:
     static constexpr std::string_view kind()
     {
@@ -52,7 +54,7 @@ public:
         return S();
     }
 
-    static double angle() 
+    static double angle()
     {
         return -numbers::pi_div_2;
     }
@@ -68,4 +70,4 @@ Sdg S::adjoint()
     return Sdg();
 }
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

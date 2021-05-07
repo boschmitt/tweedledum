@@ -2,8 +2,8 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Synthesis/gray_synth.h"
+#include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Synthesis/linear_synth.h"
 
 #include <vector>
@@ -20,8 +20,10 @@ struct State {
     uint32_t qubit;
 
     State(std::vector<uint32_t> const& sel_cols,
-        std::vector<uint32_t> const& rem_rows, uint32_t qubit)
-        : sel_cols(sel_cols), rem_rows(rem_rows), qubit(qubit)
+      std::vector<uint32_t> const& rem_rows, uint32_t qubit)
+        : sel_cols(sel_cols)
+        , rem_rows(rem_rows)
+        , qubit(qubit)
     {}
 };
 
@@ -103,27 +105,27 @@ inline GateList synthesize(std::vector<Qubit> const& qubits, BMatrix& matrix)
         std::remove(state.rem_rows.begin(), state.rem_rows.end(), sel_row);
         state.rem_rows.pop_back();
         if (!cofactor1.empty()) {
-            state_stack.emplace_back(std::move(cofactor1),
-                state.rem_rows,
-                (state.qubit == num_qubits) ? sel_row : state.qubit);
+            state_stack.emplace_back(std::move(cofactor1), state.rem_rows,
+              (state.qubit == num_qubits) ? sel_row : state.qubit);
         }
         if (!cofactor0.empty()) {
             state_stack.emplace_back(
-                std::move(cofactor0), state.rem_rows, state.qubit);
+              std::move(cofactor0), state.rem_rows, state.qubit);
         }
     }
     return gates;
 }
-}
+} // namespace
 
-void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
-    std::vector<Cbit> const& cbits, BMatrix linear_trans, LinPhasePoly phase_parities,
-    nlohmann::json const& config)
+void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+  std::vector<Cbit> const& cbits, BMatrix linear_trans,
+  LinPhasePoly phase_parities, nlohmann::json const& config)
 {
     if (phase_parities.size() == 0) {
         return;
     }
-    BMatrix parities_matrix = BMatrix::Zero(qubits.size(), phase_parities.size());
+    BMatrix parities_matrix =
+      BMatrix::Zero(qubits.size(), phase_parities.size());
     uint32_t col = 0;
     for (auto const& [parity, angle] : phase_parities) {
         for (uint32_t lit : parity) {
@@ -134,8 +136,8 @@ void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
 
     auto gates = synthesize(qubits, parities_matrix);
     // Initialize the parity of each qubit state
-    // Applying phase gate to phase_parities that consisting of just one variable
-    // i is the index of the target
+    // Applying phase gate to phase_parities that consisting of just one
+    // variable i is the index of the target
     std::vector<uint32_t> qubits_states(circuit.num_qubits(), 0);
     for (uint32_t i = 0u; i < circuit.num_qubits(); ++i) {
         qubits_states.at(i) = (1u << i);
@@ -146,8 +148,8 @@ void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     }
     // Effectively create the circuit
     for (auto const& [control, target] : gates) {
-        circuit.apply_operator(Op::X(), {qubits.at(control), qubits.at(target)},
-            cbits);
+        circuit.apply_operator(
+          Op::X(), {qubits.at(control), qubits.at(target)}, cbits);
         qubits_states.at(target) ^= qubits_states.at(control);
         linear_trans.row(target) += linear_trans.row(control);
         auto angle = phase_parities.extract_phase(qubits_states.at(target));
@@ -166,7 +168,7 @@ void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
 }
 
 Circuit gray_synth(uint32_t num_qubits, LinPhasePoly const& phase_parities,
-    nlohmann::json const& config)
+  nlohmann::json const& config)
 {
     Circuit circuit;
     std::vector<Qubit> qubits;

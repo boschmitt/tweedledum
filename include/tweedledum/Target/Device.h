@@ -4,13 +4,13 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include <Eigen/Dense>
 #include <algorithm>
 #include <cstdint>
-#include <Eigen/Dense>
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace tweedledum {
 
@@ -75,7 +75,9 @@ public:
     static Device from_file(std::string const& filename);
 
     Device(uint32_t const num_qubits, std::string_view name = {})
-        : name_(name), neighbors_(num_qubits), dist_matrix_()
+        : name_(name)
+        , neighbors_(num_qubits)
+        , dist_matrix_()
     {}
 
 #pragma region Qubits
@@ -126,19 +128,19 @@ public:
     }
 
     /*! \brief Get a shortest path between two qubits
-    *
-    * Paths are computed once and cached.  Since I assume a undirected graph,
-    * I can save some space by only storing the path between `begin` to `end`,
-    * where `begin` < `end`.  If we are interested in the other direction, i.e,
-    * `begin` > `end` we just need to reverse the stored path.
-    * 
-    * TODO: When considering the fidelity of qubits the cost of (u, v) might be
-    * different than the cost of (v, u). (distance changes too!!)
-    * 
-    * \param[in] begin The starting qubit
-    * \param[in] end The ending qubit
-    * \return A shortest path between represented as a vector of qubits
-    */
+     *
+     * Paths are computed once and cached.  Since I assume a undirected graph,
+     * I can save some space by only storing the path between `begin` to `end`,
+     * where `begin` < `end`.  If we are interested in the other direction, i.e,
+     * `begin` > `end` we just need to reverse the stored path.
+     *
+     * TODO: When considering the fidelity of qubits the cost of (u, v) might be
+     * different than the cost of (v, u). (distance changes too!!)
+     *
+     * \param[in] begin The starting qubit
+     * \param[in] end The ending qubit
+     * \return A shortest path between represented as a vector of qubits
+     */
     std::vector<uint32_t> shortest_path(uint32_t begin, uint32_t end) const
     {
         assert(begin < num_qubits() && end < num_qubits());
@@ -157,11 +159,11 @@ public:
     }
 
     /*! \brief Get the distance of a shortest path between two qubits
-    * 
-    * \param[in] begin The starting qubit
-    * \param[in] end The ending qubit
-    * \return The length of a shortest path between the qubits
-    */
+     *
+     * \param[in] begin The starting qubit
+     * \param[in] end The ending qubit
+     * \return The length of a shortest path between the qubits
+     */
     uint32_t distance(uint32_t begin, uint32_t end) const
     {
         assert(begin < num_qubits() && end < num_qubits());
@@ -175,7 +177,8 @@ public:
         return shortest_path_.at(idx).size() - 1;
     }
 
-    std::vector<Device::Edge> steiner_tree(std::vector<uint32_t> terminals, uint32_t root) const;
+    std::vector<Device::Edge> steiner_tree(
+      std::vector<uint32_t> terminals, uint32_t root) const;
 
     /*! \brief Add an _undirected_ edge between two qubits */
     void add_edge(uint32_t const v, uint32_t const u)
@@ -217,7 +220,7 @@ inline void Device::compute_shortest_paths() const
     for (uint32_t i = 0; i < num_qubits(); i++) {
         for (uint32_t j = 0; j < num_qubits(); j++) {
             if (i == j) {
-                dist(i ,j) = 0;
+                dist(i, j) = 0;
                 shortest_paths(i, j) = j;
             } else if (are_connected(i, j)) {
                 dist(i, j) = 1;
@@ -259,11 +262,11 @@ inline void Device::compute_shortest_paths() const
  * Given a set of terminal nodes and a root node in the coupling graph,
  * attempts to find a minimal weight set of edges connecting the root to
  * each terminal.
- * 
+ *
  * Steiner Tree problem is NP-Hard.  Bellow is one simple approximate algorithm
  * based on Shortest Path. (Usually computing all shortest paths is considered
  * a disadvantage, but in this class I do compute them for other things.)
- * 
+ *
  * Outline:
  *   1. Start with a subtree T consisting of one given terminal vertex
  *   2. While T does not span all terminals
@@ -271,13 +274,13 @@ inline void Device::compute_shortest_paths() const
  *        b) Add to T the shortest path that connects x with T.
  *
  * The algorithm is (2-2/n) approximate
- * 
+ *
  * \param[in] terminals A vector of terminal qubits to be connected
  * \param[in] root A root for the Steiner tree
  * \return A spanning tree represented as a vector of edges
  */
 inline std::vector<Device::Edge> Device::steiner_tree(
-    std::vector<uint32_t> terminals, uint32_t root) const
+  std::vector<uint32_t> terminals, uint32_t root) const
 {
     if (terminals.empty()) {
         return {};

@@ -18,7 +18,8 @@ public:
         return "ising.ryy";
     }
 
-    Ryy(double angle) : angle_(angle)
+    Ryy(double angle)
+        : angle_(angle)
     {}
 
     Ryy adjoint() const
@@ -31,10 +32,12 @@ public:
         Complex const a = std::cos(angle_);
         Complex const b{0., std::sin(angle_)};
 
+        // clang-format off
         return (UMatrix4() << a,  0,  0, b,
                               0,  a, -b, 0,
                               0, -b,  a, 0,
                               b,  0,  0, a).finished();
+        // clang-format on
     }
 
     uint32_t num_targets() const
@@ -51,4 +54,4 @@ private:
     double const angle_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

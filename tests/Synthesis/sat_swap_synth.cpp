@@ -21,7 +21,8 @@ TEST_CASE("Synthesis of swapping networks using SAT", "[sat_swap_synth][synth]")
     Qubit q0 = expected.create_qubit();
     Qubit q1 = expected.create_qubit();
     Qubit q2 = expected.create_qubit();
-    SECTION("Swap (q0 , q2)") {
+    SECTION("Swap (q0 , q2)")
+    {
         expected.apply_operator(Op::Swap(), {q0, q2});
         std::vector<uint32_t> init_cfg = {0, 1, 2};
         std::vector<uint32_t> final_cfg = {2, 1, 0};

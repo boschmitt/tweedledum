@@ -4,6 +4,4 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-namespace tweedledum::Op {
-
-} // namespace tweedledum
+namespace tweedledum::Op {} // namespace tweedledum::Op

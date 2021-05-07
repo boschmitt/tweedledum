@@ -20,7 +20,7 @@ inline bool decompose(Circuit& circuit, Instruction const& inst)
     return true;
 }
 
-}
+} // namespace
 
 void parity_decomp(Circuit& circuit, Instruction const& inst)
 {

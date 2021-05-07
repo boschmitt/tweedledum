@@ -9,7 +9,6 @@
 
 namespace tweedledum {
 
-
 Circuit phase_folding(Circuit const& original)
 {
     using ESOP = std::vector<uint32_t>;
@@ -18,9 +17,8 @@ Circuit phase_folding(Circuit const& original)
     std::vector<ESOP> qubit_pathsum;
     std::vector<uint8_t> skipped(original.size(), 0);
 
-    original.foreach_cbit([&](std::string_view name) {
-        optimized.create_cbit(name);
-    });
+    original.foreach_cbit(
+      [&](std::string_view name) { optimized.create_cbit(name); });
     original.foreach_qubit([&](std::string_view name) {
         optimized.create_qubit(name);
         qubit_pathsum.emplace_back(1u, (num_path_vars++ << 1));
@@ -53,8 +51,8 @@ Circuit phase_folding(Circuit const& original)
             uint32_t c = inst.control();
             std::vector<uint32_t> esop;
             std::set_symmetric_difference(qubit_pathsum.at(c).begin(),
-                qubit_pathsum.at(c).end(), qubit_pathsum.at(t).begin(),
-                qubit_pathsum.at(t).end(), std::back_inserter(esop));
+              qubit_pathsum.at(c).end(), qubit_pathsum.at(t).begin(),
+              qubit_pathsum.at(t).end(), std::back_inserter(esop));
             qubit_pathsum.at(t) = esop;
             return;
         }
@@ -66,7 +64,7 @@ Circuit phase_folding(Circuit const& original)
     new_vars_end:
         skipped.at(ref) = 1u;
         inst.foreach_target([&](Qubit wref) {
-            uint32_t const qubit = wref; 
+            uint32_t const qubit = wref;
             qubit_pathsum.at(qubit).clear();
             qubit_pathsum.at(qubit).emplace_back((num_path_vars++ << 1));
         });
@@ -76,11 +74,11 @@ Circuit phase_folding(Circuit const& original)
     for (uint32_t i = 0; i < original.num_qubits(); ++i) {
         qubit_pathsum.at(i) = {(num_path_vars++ << 1)};
     }
-    
+
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         if (skipped.at(ref)) {
             inst.foreach_target([&](Qubit wref) {
-                uint32_t const qubit = wref; 
+                uint32_t const qubit = wref;
                 qubit_pathsum.at(qubit).clear();
                 qubit_pathsum.at(qubit).emplace_back((num_path_vars++ << 1));
             });
@@ -106,8 +104,8 @@ Circuit phase_folding(Circuit const& original)
                 uint32_t c = inst.control();
                 std::vector<uint32_t> esop;
                 std::set_symmetric_difference(qubit_pathsum.at(c).begin(),
-                    qubit_pathsum.at(c).end(), qubit_pathsum.at(t).begin(),
-                    qubit_pathsum.at(t).end(), std::back_inserter(esop));
+                  qubit_pathsum.at(c).end(), qubit_pathsum.at(t).begin(),
+                  qubit_pathsum.at(t).end(), std::back_inserter(esop));
                 qubit_pathsum.at(t) = esop;
             }
         }

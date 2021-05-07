@@ -18,9 +18,10 @@ inline auto count_operators(Circuit const& circuit)
 {
     std::unordered_map<std::string, uint32_t> counters;
     circuit.foreach_instruction([&](Instruction const& inst) {
-        std::string id = inst.num_controls() == 0 ? 
-            fmt::format("{}", inst.name()) :
-            fmt::format("({}c){}", inst.num_controls(), inst.name());
+        std::string id =
+          inst.num_controls() == 0
+            ? fmt::format("{}", inst.name())
+            : fmt::format("({}c){}", inst.num_controls(), inst.name());
         auto it = counters.find(id);
         if (it != counters.end()) {
             it->second += 1;

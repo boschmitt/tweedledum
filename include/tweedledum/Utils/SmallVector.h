@@ -50,7 +50,9 @@ protected:
     }
 
     SmallVectorBase(void* begin, uint32_t capacity)
-        : begin_(begin), size_(0u), capacity_(capacity)
+        : begin_(begin)
+        , size_(0u)
+        , capacity_(capacity)
     {}
 
     void grow_pod(void* begin, uint32_t min_size, uint32_t type_size)
@@ -77,13 +79,14 @@ protected:
     }
 };
 
-template <class T>
+template<class T>
 struct SmallVectorAlignment {
-    std::aligned_storage_t<sizeof(SmallVectorBase), alignof(SmallVectorBase)> base;
+    std::aligned_storage_t<sizeof(SmallVectorBase), alignof(SmallVectorBase)>
+      base;
     std::aligned_storage_t<sizeof(T), alignof(T)> first_element;
 };
 
-template <typename T>
+template<typename T>
 class SmallVectorTBase : public SmallVectorBase {
 public:
     using value_type = T;
@@ -103,7 +106,7 @@ public:
     using SmallVectorBase::size;
 
     iterator begin()
-    { 
+    {
         return static_cast<iterator>(this->begin_);
     }
 
@@ -112,7 +115,7 @@ public:
         return static_cast<const_iterator>(this->begin_);
     }
 
-    iterator end() 
+    iterator end()
     {
         return begin() + size();
     }
@@ -122,9 +125,9 @@ public:
         return begin() + size();
     }
 
-    reverse_iterator rbegin() 
+    reverse_iterator rbegin()
     {
-        return reverse_iterator(end()); 
+        return reverse_iterator(end());
     }
 
     const_reverse_iterator rbegin() const
@@ -144,7 +147,8 @@ public:
 
     size_type max_size() const
     {
-        return std::min(this->max_size(), size_type(this->max_size() / sizeof(T)));
+        return std::min(
+          this->max_size(), size_type(this->max_size() / sizeof(T)));
     }
 
     reference operator[](size_type idx)
@@ -197,14 +201,14 @@ private:
     void* first_element() const
     {
         return const_cast<void*>(reinterpret_cast<void const*>(
-            reinterpret_cast<char const*>(this) +
-            offsetof(SmallVectorAlignment<T>, first_element)));
+          reinterpret_cast<char const*>(this)
+          + offsetof(SmallVectorAlignment<T>, first_element)));
     }
 };
 
-template <typename T, bool = (std::is_trivially_copy_constructible<T>::value) &&
-                             (std::is_trivially_move_constructible<T>::value) &&
-                              std::is_trivially_destructible<T>::value>
+template<typename T, bool = (std::is_trivially_copy_constructible<T>::value)
+                         && (std::is_trivially_move_constructible<T>::value)
+                         && std::is_trivially_destructible<T>::value>
 class SmallVectorT : public SmallVectorTBase<T> {
 public:
     void push_back(T const& element)
@@ -212,7 +216,7 @@ public:
         if (this->size() >= this->capacity()) {
             this->grow();
         }
-        new ((void*)this->end()) T(element);
+        new ((void*) this->end()) T(element);
         this->size(this->size() + 1);
     }
 
@@ -221,7 +225,7 @@ public:
         if (this->size() >= this->capacity()) {
             this->grow();
         }
-        new ((void*)this->end()) T(std::move(element));
+        new ((void*) this->end()) T(std::move(element));
         this->size(this->size() + 1);
     }
 
@@ -246,27 +250,29 @@ protected:
         }
     }
 
-    template <typename It1, typename It2>
+    template<typename It1, typename It2>
     static void uninitialized_copy(It1 begin, It1 end, It2 dest)
     {
         std::uninitialized_copy(begin, end, dest);
     }
 
-    template <typename It1, typename It2>
+    template<typename It1, typename It2>
     static void uninitialized_move(It1 begin, It1 end, It2 dest)
     {
-        std::uninitialized_copy(std::make_move_iterator(begin),
-                                std::make_move_iterator(end), dest);
+        std::uninitialized_copy(
+          std::make_move_iterator(begin), std::make_move_iterator(end), dest);
     }
 
     void grow(uint32_t min_size = 0)
     {
-        if (min_size > this->max_size() || this->capacity() == this->max_size()) {
+        if (min_size > this->max_size() || this->capacity() == this->max_size())
+        {
             assert(0);
         }
 
         uint32_t new_capacity = 2 * this->capacity() + 2;
-        new_capacity = std::min(std::max(new_capacity, min_size), this->max_size());
+        new_capacity =
+          std::min(std::max(new_capacity, min_size), this->max_size());
         T* new_mem = static_cast<T*>(std::malloc(new_capacity * sizeof(T)));
 
         this->uninitialized_move(this->begin(), this->end(), new_mem);
@@ -281,7 +287,7 @@ protected:
     }
 };
 
-template <typename T>
+template<typename T>
 class SmallVectorT<T, /* IsPOD */ true> : public SmallVectorTBase<T> {
 public:
     void push_back(T const& element)
@@ -306,23 +312,26 @@ protected:
     static void destroy(T*, T*)
     {}
 
-    template <typename It1, typename It2>
+    template<typename It1, typename It2>
     static void uninitialized_move(It1 begin, It1 end, It2 dest)
     {
         uninitialized_copy(begin, end, dest);
     }
 
-    template <typename It1, typename It2>
+    template<typename It1, typename It2>
     static void uninitialized_copy(It1 begin, It1 end, It2 dest)
     {
         std::uninitialized_copy(begin, end, dest);
     }
 
-    template <typename T1, typename T2, std::enable_if_t<std::is_same<std::remove_const_t<T1>, T2>::value> * = nullptr>
+    template<typename T1, typename T2,
+      std::enable_if_t<std::is_same<std::remove_const_t<T1>, T2>::value>* =
+        nullptr>
     static void uninitialized_copy(T1* begin, T1* end, T2* dest)
     {
         if (begin != end) {
-            std::memcpy(reinterpret_cast<void*>(dest), begin, (end - begin) * sizeof(T));
+            std::memcpy(
+              reinterpret_cast<void*>(dest), begin, (end - begin) * sizeof(T));
         }
     }
 
@@ -332,7 +341,7 @@ protected:
     }
 };
 
-template <typename T>
+template<typename T>
 class SmallVector : public SmallVectorT<T> {
 public:
     using size_type = typename SmallVectorT<T>::size_type;
@@ -345,7 +354,7 @@ public:
     ~SmallVector()
     {
         // At this point, the subclass destructor has already destroyed all
-        // elements in the vector.  We just need to make sure we free our 
+        // elements in the vector.  We just need to make sure we free our
         // possible heap allocated memory:
         if (!this->is_inline()) {
             std::free(this->begin());
@@ -365,7 +374,10 @@ public:
         }
     }
 
-    template <typename It, typename = std::enable_if_t<std::is_convertible<typename std::iterator_traits<It>::iterator_category, std::input_iterator_tag>::value>>
+    template<typename It,
+      typename = std::enable_if_t<std::is_convertible<
+        typename std::iterator_traits<It>::iterator_category,
+        std::input_iterator_tag>::value>>
     void append(It begin, It end)
     {
         size_type num_elements = std::distance(begin, end);
@@ -376,13 +388,13 @@ public:
         this->size(this->size() + num_elements);
     }
 
-    template <typename... ArgTypes>
-    reference emplace_back(ArgTypes&& ...args)
+    template<typename... ArgTypes>
+    reference emplace_back(ArgTypes&&... args)
     {
         if (this->size() >= this->capacity()) {
             this->grow();
         }
-        new ((void*)this->end()) T(std::forward<ArgTypes>(args)...);
+        new ((void*) this->end()) T(std::forward<ArgTypes>(args)...);
         this->size(this->size() + 1);
         return this->back();
     }
@@ -410,7 +422,7 @@ protected:
     {}
 };
 
-template <typename T>
+template<typename T>
 SmallVector<T>& SmallVector<T>::operator=(SmallVector<T> const& rhs)
 {
     if (this == &rhs) {
@@ -421,7 +433,8 @@ SmallVector<T>& SmallVector<T>::operator=(SmallVector<T> const& rhs)
     if (size >= rhs_size) {
         iterator new_end;
         if (rhs_size) {
-            new_end = std::copy(rhs.begin(), rhs.begin() + rhs_size, this->begin());
+            new_end =
+              std::copy(rhs.begin(), rhs.begin() + rhs_size, this->begin());
         } else {
             new_end = this->begin();
         }
@@ -437,12 +450,13 @@ SmallVector<T>& SmallVector<T>::operator=(SmallVector<T> const& rhs)
     } else if (size) {
         std::copy(rhs.begin(), rhs.begin() + size, this->begin());
     }
-    this->uninitialized_copy(rhs.begin() + size, rhs.end(), this->begin() + size);
+    this->uninitialized_copy(
+      rhs.begin() + size, rhs.end(), this->begin() + size);
     this->size(rhs_size);
     return *this;
 }
 
-template <typename T>
+template<typename T>
 SmallVector<T>& SmallVector<T>::operator=(SmallVector<T>&& rhs)
 {
     if (this == &rhs) {
@@ -479,29 +493,30 @@ SmallVector<T>& SmallVector<T>::operator=(SmallVector<T>&& rhs)
     } else if (size) {
         std::move(rhs.begin(), rhs.begin() + size, this->begin());
     }
-    this->uninitialized_move(rhs.begin() + size, rhs.end(), this->begin() + size);
+    this->uninitialized_move(
+      rhs.begin() + size, rhs.end(), this->begin() + size);
     this->size(rhs_size);
     rhs.clear();
     return *this;
 }
 
-template <typename T, uint32_t NumElements>
+template<typename T, uint32_t NumElements>
 struct SmallVectorStorage {
     std::aligned_storage_t<sizeof(T) * NumElements, alignof(T)> inline_buffer_;
 };
 
-template <typename T>
-struct alignas(alignof(T)) SmallVectorStorage<T, 0> {
-};
+template<typename T>
+struct alignas(alignof(T)) SmallVectorStorage<T, 0> {};
 
 } // namespace detail
 
-template <typename T, uint32_t NumElements>
-class SmallVector : public detail::SmallVector<T>, 
-                           detail::SmallVectorStorage<T, NumElements> {
+template<typename T, uint32_t NumElements>
+class SmallVector
+    : public detail::SmallVector<T>
+    , detail::SmallVectorStorage<T, NumElements> {
 public:
     SmallVector()
-        : detail::SmallVector<T>(NumElements) 
+        : detail::SmallVector<T>(NumElements)
     {}
 
     ~SmallVector()
@@ -509,7 +524,10 @@ public:
         this->destroy(this->begin(), this->end());
     }
 
-    template <typename It, typename = std::enable_if_t<std::is_convertible<typename std::iterator_traits<It>::iterator_category, std::input_iterator_tag>::value>>
+    template<typename It,
+      typename = std::enable_if_t<std::is_convertible<
+        typename std::iterator_traits<It>::iterator_category,
+        std::input_iterator_tag>::value>>
     SmallVector(It begin, It end)
         : detail::SmallVector<T>(NumElements)
     {

@@ -46,9 +46,9 @@ namespace tweedledum {
  * \param[in] parities List of parities and their associated angles.
  */
 // Each column is a parity, num_rows = num_qubits
-void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits, 
-    std::vector<Cbit> const& cbits, BMatrix linear_trans, LinPhasePoly parities,
-    nlohmann::json const& config = {});
+void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+  std::vector<Cbit> const& cbits, BMatrix linear_trans, LinPhasePoly parities,
+  nlohmann::json const& config = {});
 
 /*! \brief Synthesis of a CNOT-dihedral circuits.
  *
@@ -57,6 +57,6 @@ void gray_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
  * \return A CNOT-dihedral circuit on `num_qubits`.
  */
 Circuit gray_synth(uint32_t num_qubits, LinPhasePoly const& parities,
-    nlohmann::json const& config = {});
+  nlohmann::json const& config = {});
 
 } // namespace tweedledum

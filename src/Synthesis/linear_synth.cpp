@@ -2,8 +2,8 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Synthesis/linear_synth.h"
+#include "tweedledum/Operators/Standard.h"
 
 namespace tweedledum {
 
@@ -36,8 +36,8 @@ struct Config {
 using AbstractGate = std::pair<uint32_t, uint32_t>;
 using GateList = std::vector<AbstractGate>;
 
-inline void pattern_elimination(BMatrix& matrix, uint32_t start, uint32_t end,
-    GateList& gates)
+inline void pattern_elimination(
+  BMatrix& matrix, uint32_t start, uint32_t end, GateList& gates)
 {
     std::vector<uint32_t> table(matrix.rows(), 0);
     auto const begin = table.begin() + start;
@@ -62,8 +62,8 @@ inline void pattern_elimination(BMatrix& matrix, uint32_t start, uint32_t end,
     }
 }
 
-inline void gaussian_elimination(BMatrix& matrix, uint32_t start, uint32_t end,
-    GateList& gates)
+inline void gaussian_elimination(
+  BMatrix& matrix, uint32_t start, uint32_t end, GateList& gates)
 {
     for (uint32_t col = start; col < end; ++col) {
         bool is_diagonal_one = (matrix(col, col) == MyBool(1u));
@@ -97,8 +97,8 @@ inline GateList lower_cnot_synthesis(BMatrix& matrix, uint32_t section_size)
 }
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, BMatrix matrix, uint32_t const section_size,
-    bool const inverse)
+  std::vector<Cbit> const& cbits, BMatrix matrix, uint32_t const section_size,
+  bool const inverse)
 {
     GateList lower = lower_cnot_synthesis(matrix, section_size);
     matrix.transposeInPlace();
@@ -112,22 +112,23 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     // Here, I do add to the back, then instead of reversing upper, I reverse
     // lower.  I still need to switch control/target in upper!
     std::for_each(upper.begin(), upper.end(),
-    [&](auto const& gate) { to_add.emplace_back(gate.second, gate.first); });
+      [&](auto const& gate) { to_add.emplace_back(gate.second, gate.first); });
 
     std::for_each(lower.rbegin(), lower.rend(),
-    [&](auto const& gate) { to_add.emplace_back(gate); });
+      [&](auto const& gate) { to_add.emplace_back(gate); });
 
     if (inverse) {
         std::reverse(to_add.begin(), to_add.end());
     }
     for (auto const& [control, target] : to_add) {
-        circuit.apply_operator(Op::X(), {qubits[control], qubits[target]}, cbits);
+        circuit.apply_operator(
+          Op::X(), {qubits[control], qubits[target]}, cbits);
     }
 }
 
 inline void best_effort_synthesize(Circuit& circuit,
-    std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
-    BMatrix const& matrix, bool const reverse)
+  std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
+  BMatrix const& matrix, bool const reverse)
 {
     BMatrix temp_matrix = matrix;
     GateList lower = lower_cnot_synthesis(temp_matrix, 1u);
@@ -158,11 +159,11 @@ inline void best_effort_synthesize(Circuit& circuit,
     } while ((current_ss < max_ss) && (best_size > 1));
     synthesize(circuit, qubits, cbits, matrix, best_ss, reverse);
 }
-}
+} // namespace
 
 void linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, BMatrix const& matrix,
-    nlohmann::json const& config)
+  std::vector<Cbit> const& cbits, BMatrix const& matrix,
+  nlohmann::json const& config)
 {
     Config cfg(config);
     if (cfg.best_effort) {

@@ -15,7 +15,7 @@ public:
     Placement(uint32_t num_phy_qubits, uint32_t num_v_qubits)
         : v_to_phy_(num_v_qubits, Qubit::invalid())
         , phy_to_v_(num_phy_qubits, Qubit::invalid())
-    {} 
+    {}
 
     void reset()
     {

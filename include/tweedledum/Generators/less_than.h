@@ -18,10 +18,10 @@
 //
 namespace tweedledum {
 namespace deprecated {
-// Implementation based on TTK ripple carry adder.  This basically just make 
+// Implementation based on TTK ripple carry adder.  This basically just make
 // a one complement by adding inverters (NOT) gates.
-inline void less_than_ttk(Circuit& circuit,
-    std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit lt)
+inline void less_than_ttk(
+  Circuit& circuit, std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit lt)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -34,7 +34,7 @@ inline void less_than_ttk(Circuit& circuit,
         circuit.apply_operator(Op::X(), {a[i], b[i]});
     }
     // Step 2
-    for (uint32_t i = n; i --> 1;) {
+    for (uint32_t i = n; i-- > 1;) {
         circuit.apply_operator(Op::X(), {a[i], a[i + 1]});
     }
     // Step 3
@@ -42,7 +42,7 @@ inline void less_than_ttk(Circuit& circuit,
         circuit.apply_operator(Op::X(), {a[i], b[i], a[i + 1]});
     }
     // Step 4
-    for (uint32_t i = n; i --> 1;) {
+    for (uint32_t i = n; i-- > 1;) {
         circuit.apply_operator(Op::X(), {a[i - 1], b[i - 1], a[i]});
     }
     // Step 5
@@ -57,12 +57,12 @@ inline void less_than_ttk(Circuit& circuit,
         circuit.apply_operator(Op::X(), {a[i]});
     }
 }
-}
+} // namespace deprecated
 
-// This is a slightly better version.  The only difference here is that the 
+// This is a slightly better version.  The only difference here is that the
 // inversters are absorbed into the the controls of the Toffoli gates.
-inline void less_than_ttk(Circuit& circuit,
-    std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit lt)
+inline void less_than_ttk(
+  Circuit& circuit, std::vector<Qubit> a, std::vector<Qubit> const& b, Qubit lt)
 {
     assert(a.size() == b.size());
     uint32_t const n = a.size();
@@ -72,7 +72,7 @@ inline void less_than_ttk(Circuit& circuit,
         circuit.apply_operator(Op::X(), {a[i], b[i]});
     }
     // Step 2
-    for (uint32_t i = n; i --> 1;) {
+    for (uint32_t i = n; i-- > 1;) {
         circuit.apply_operator(Op::X(), {a[i], a[i + 1]});
     }
     // Step 3
@@ -82,7 +82,7 @@ inline void less_than_ttk(Circuit& circuit,
         circuit.apply_operator(Op::X(), {a[i], !b[i], a[i + 1]});
     }
     // Step 4
-    for (uint32_t i = n; i --> 3;) {
+    for (uint32_t i = n; i-- > 3;) {
         circuit.apply_operator(Op::X(), {a[i - 1], !b[i - 1], a[i]});
     }
     circuit.apply_operator(Op::X(), {!a[1], !b[1], a[2]});
@@ -99,8 +99,8 @@ inline void less_than_ttk(Circuit& circuit,
 }
 
 // Generic function that takes the one I think is best (:
-inline void less_than(Circuit& circuit,
-    std::vector<Qubit> const& a, std::vector<Qubit> const& b, Qubit carry)
+inline void less_than(Circuit& circuit, std::vector<Qubit> const& a,
+  std::vector<Qubit> const& b, Qubit carry)
 {
     less_than_ttk(circuit, a, b, carry);
 }

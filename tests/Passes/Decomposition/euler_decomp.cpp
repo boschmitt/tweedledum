@@ -11,8 +11,8 @@
 
 #include "../check_unitary.h"
 
-#include <cmath>
 #include <catch.hpp>
+#include <cmath>
 
 using namespace tweedledum;
 
@@ -46,7 +46,8 @@ TEST_CASE("Euler decomp test cases", "[euler_decomp][decomp]")
     for (uint32_t i = 0; i < 22u; ++i) {
         Circuit original;
         Qubit q0 = original.create_qubit();
-        UMatrix2 matrix = create_matrix(smallest * std::pow(factor, i), phi, lambda);
+        UMatrix2 matrix =
+          create_matrix(smallest * std::pow(factor, i), phi, lambda);
         original.apply_operator(Op::Unitary(matrix), {q0});
         Circuit decomposed = euler_decomp(original);
         CHECK(check_unitary(original, decomposed, upto_global_phase));

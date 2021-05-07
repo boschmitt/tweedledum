@@ -19,4 +19,3 @@ TEST_CASE("Simple circuit functionality", "[circuit][ir]")
     // CHECK(qubit.kind() == Wire::Kind::quantum);
     // CHECK(cbit.kind() == Wire::Kind::classical);
 }
-

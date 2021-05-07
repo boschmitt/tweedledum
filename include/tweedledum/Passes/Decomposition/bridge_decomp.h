@@ -13,7 +13,8 @@
 
 namespace tweedledum {
 
-void bridge_decomp(Device const& device, Circuit& circuit, Instruction const& inst);
+void bridge_decomp(
+  Device const& device, Circuit& circuit, Instruction const& inst);
 
 Circuit bridge_decomp(Device const& device, Circuit const& original);
 

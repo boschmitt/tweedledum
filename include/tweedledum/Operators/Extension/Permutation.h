@@ -40,4 +40,4 @@ private:
     std::vector<uint32_t> const permutation_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

@@ -49,8 +49,8 @@ TEST_CASE("Simulate reversible circuit", "[simulate_classically]")
     }
     SECTION("Toffoli gate circuit")
     {
-        std::vector<DynamicBitset<uint8_t>> permutation = {{3, 0},
-            {3, 1}, {3, 2}, {3, 3}, {3, 4}, {3, 5}, {3, 7}, {3, 6}};
+        std::vector<DynamicBitset<uint8_t>> permutation = {
+          {3, 0}, {3, 1}, {3, 2}, {3, 3}, {3, 4}, {3, 5}, {3, 7}, {3, 6}};
         circuit.apply_operator(Op::X(), {q1, q2, q0});
         for (uint32_t i = 0; i < permutation.size(); ++i) {
             DynamicBitset<uint8_t> pattern(3, i);

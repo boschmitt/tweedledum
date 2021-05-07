@@ -10,9 +10,8 @@ namespace tweedledum {
 std::pair<Circuit, Mapping> SabreRouter::run()
 {
     Circuit mapped;
-    original_.foreach_cbit([&](std::string_view name) {
-        mapped.create_cbit(name);
-    });
+    original_.foreach_cbit(
+      [&](std::string_view name) { mapped.create_cbit(name); });
     for (uint32_t i = 0u; i < device_.num_qubits(); ++i) {
         mapped.create_qubit();
     }
@@ -52,19 +51,20 @@ bool SabreRouter::add_front_layer()
     for (InstRef ref : front_layer_) {
         Instruction const& inst = original_.instruction(ref);
         if (add_instruction(inst) == false) {
-                new_front_layer.push_back(ref);
-                auto const qubits = inst.qubits();
-                involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(0))) = 1u;
-                involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(1))) = 1u;
-                continue;
+            new_front_layer.push_back(ref);
+            auto const qubits = inst.qubits();
+            involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(0))) = 1u;
+            involved_phy_.at(mapping_.placement.v_to_phy(qubits.at(1))) = 1u;
+            continue;
         }
         added_at_least_one = true;
-        original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-            visited_.at(cref) += 1;
-            if (visited_.at(cref) == child.num_wires()) {
-                new_front_layer.push_back(cref);
-            }
-        });
+        original_.foreach_child(
+          ref, [&](InstRef cref, Instruction const& child) {
+              visited_.at(cref) += 1;
+              if (visited_.at(cref) == child.num_wires()) {
+                  new_front_layer.push_back(cref);
+              }
+          });
     }
     front_layer_ = std::move(new_front_layer);
     return added_at_least_one;
@@ -78,16 +78,17 @@ void SabreRouter::select_extended_layer()
     while (!tmp_layer.empty()) {
         std::vector<InstRef> new_tmp_layer;
         for (InstRef const ref : tmp_layer) {
-            original_.foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-                visited_.at(cref) += 1;
-                incremented.push_back(cref);
-                if (visited_.at(cref) == child.num_wires()) {
-                    new_tmp_layer.push_back(cref);
-                    if (child.num_qubits() == 2u) {
-                        extended_layer_.emplace_back(cref);
-                    }
-                }
-            });
+            original_.foreach_child(
+              ref, [&](InstRef cref, Instruction const& child) {
+                  visited_.at(cref) += 1;
+                  incremented.push_back(cref);
+                  if (visited_.at(cref) == child.num_wires()) {
+                      new_tmp_layer.push_back(cref);
+                      if (child.num_qubits() == 2u) {
+                          extended_layer_.emplace_back(cref);
+                      }
+                  }
+              });
             if (extended_layer_.size() >= e_set_size_) {
                 goto undo_increment;
             }
@@ -146,8 +147,8 @@ SabreRouter::Swap SabreRouter::find_swap()
     std::vector<double> cost;
     for (auto const& [phy0, phy1] : swap_candidates) {
         std::vector<Qubit> v_to_phy = mapping_.placement.v_to_phy();
-        Qubit const v0 =  mapping_.placement.phy_to_v(phy0);
-        Qubit const v1 =  mapping_.placement.phy_to_v(phy1);
+        Qubit const v0 = mapping_.placement.phy_to_v(phy0);
+        Qubit const v1 = mapping_.placement.phy_to_v(phy1);
         if (v0 != Qubit::invalid()) {
             v_to_phy.at(v0) = phy1;
         }
@@ -155,7 +156,8 @@ SabreRouter::Swap SabreRouter::find_swap()
             v_to_phy.at(v1) = phy0;
         }
         double swap_cost = compute_cost(v_to_phy, front_layer_);
-        double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
+        double const max_decay =
+          std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 
         if (!extended_layer_.empty()) {
             double const f_cost = swap_cost / front_layer_.size();
@@ -176,7 +178,8 @@ SabreRouter::Swap SabreRouter::find_swap()
     return swap_candidates.at(min);
 }
 
-double SabreRouter::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
+double SabreRouter::compute_cost(
+  std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {

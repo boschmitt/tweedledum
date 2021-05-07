@@ -33,8 +33,7 @@ public:
 
     Source const* add_file(std::filesystem::path const& file_path)
     {
-        std::unique_ptr<File> file
-            = File::open(file_path, next_offset_);
+        std::unique_ptr<File> file = File::open(file_path, next_offset_);
         if (file != nullptr) {
             Source const* file_ptr = file.get();
             next_offset_ += file->length() + 1;
@@ -57,11 +56,10 @@ public:
 
     std::string location_str(uint32_t const location) const
     {
-        uint32_t const source_id
-            = location_map_.lower_bound(location)->second;
+        uint32_t const source_id = location_map_.lower_bound(location)->second;
         Source const* source = sources_.at(source_id).get();
-        return fmt::format("<{}:{}:{}>", source->name(),
-            source->line(location), source->column(location));
+        return fmt::format("<{}:{}:{}>", source->name(), source->line(location),
+          source->column(location));
     }
 
 private:

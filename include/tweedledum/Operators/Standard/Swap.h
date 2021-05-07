@@ -24,10 +24,12 @@ public:
 
     UMatrix4 const matrix() const
     {
+        // clang-format off
         return (UMatrix4() << 1, 0 ,0, 0,
                               0, 0, 1, 0,
                               0, 1, 0, 0,
                               0, 0, 0, 1).finished();
+        // clang-format on
     }
 
     uint32_t num_targets() const
@@ -36,4 +38,4 @@ public:
     }
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

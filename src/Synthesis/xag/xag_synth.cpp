@@ -2,11 +2,11 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#include "tweedledum/Synthesis/xag_synth.h"
 #include "HighLevelXAG.h"
 #include "tweedledum/Operators/Extension/Parity.h"
 #include "tweedledum/Operators/Standard/Rx.h"
 #include "tweedledum/Operators/Standard/X.h"
-#include "tweedledum/Synthesis/xag_synth.h"
 
 #include <cassert>
 
@@ -16,10 +16,9 @@ namespace {
 
 struct Config {
     Config(nlohmann::json const& config)
-    { }
+    {}
 };
-}
-
+} // namespace
 
 #pragma region Implementation details
 namespace xag_synth_detail {
@@ -30,20 +29,26 @@ public:
     Synthesizer() = default;
 
     void operator()(mockturtle::xag_network const& xag, Circuit& circuit,
-        std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits);
+      std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits);
 
 private:
     void pre_process(HighLevelXAG& hl_xag);
-    bool try_compute(Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
-    void try_cleanup_inputs(Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
-    
-    void cleanup(Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
+    bool try_compute(
+      Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
+    void try_cleanup_inputs(
+      Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
 
-    Qubit request_ancilla(Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
+    void cleanup(
+      Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
+
+    Qubit request_ancilla(
+      Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
     void release_ancilla(Circuit& circuit, Qubit qubit);
     void add_parity(Circuit& circuit, std::vector<Qubit> const& qubits);
-    void compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
-    void cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref);
+    void compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag,
+      HighLevelXAG::NodeRef ref);
+    void cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag,
+      HighLevelXAG::NodeRef ref);
 
     std::vector<Qubit> qubits_;
     std::vector<Cbit> cbits_;
@@ -74,8 +79,8 @@ void Synthesizer::pre_process(HighLevelXAG& hl_xag)
         to_qubit_.at(gate_ref) = qubits_.at(qubit_idx);
         cleanup_.at(gate_ref) = 0; // Don't cleanup inputs!
     }
-    // Assing qubits to gates that drive outputs 
-    // Note: Here we can save qubits and cleanup gates by identifying 
+    // Assing qubits to gates that drive outputs
+    // Note: Here we can save qubits and cleanup gates by identifying
     //       parity_and gates that can be computed directly into an output
     //       qubit
     //
@@ -84,111 +89,115 @@ void Synthesizer::pre_process(HighLevelXAG& hl_xag)
     // I handle this in two passes:
     // 1st pass: deal with the parity_and drivers
     std::for_each(hl_xag.cbegin_outputs(), hl_xag.cend_outputs(),
-    [&](HighLevelXAG::OutputRef ref) {
-        HighLevelXAG::NodeRef const node_ref = ref.first;
-        // The same gate might drive different outputs.  Here I check if
-        // this gate was already assigned a qubit.  If yes, do nothing
-        if (to_qubit_.at(node_ref) != Qubit::invalid()) {
-            qubit_idx += 1;
-            return;
-        }
-        HighLevelXAG::Node const& node = hl_xag.get_node(node_ref);
-        if (!node.is_parity_and()) {
-            qubit_idx += 1;
-            return;
-        }
-        for (HighLevelXAG::NodeRef input_ref : node) {
-            hl_xag.dereference(input_ref);
-        }
-        to_qubit_.at(node_ref) = qubits_.at(qubit_idx);
-        cleanup_.at(node_ref) = 0;
-        qubit_info_.at(qubit_idx).compute_time = node.level();
-        bool only_inputs = true;
-        for (HighLevelXAG::NodeRef const input_ref : node) {
-            HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
-            if (!input.is_input()) {
-                only_inputs = false;
-                break;
-            }
-        }
-        if (only_inputs && node.num_ref() == 0) {
-            qubit_info_.at(qubit_idx).compute_time = hl_xag.num_levels();
-        }
-        qubit_idx += 1;
-    });
+      [&](HighLevelXAG::OutputRef ref) {
+          HighLevelXAG::NodeRef const node_ref = ref.first;
+          // The same gate might drive different outputs.  Here I check if
+          // this gate was already assigned a qubit.  If yes, do nothing
+          if (to_qubit_.at(node_ref) != Qubit::invalid()) {
+              qubit_idx += 1;
+              return;
+          }
+          HighLevelXAG::Node const& node = hl_xag.get_node(node_ref);
+          if (!node.is_parity_and()) {
+              qubit_idx += 1;
+              return;
+          }
+          for (HighLevelXAG::NodeRef input_ref : node) {
+              hl_xag.dereference(input_ref);
+          }
+          to_qubit_.at(node_ref) = qubits_.at(qubit_idx);
+          cleanup_.at(node_ref) = 0;
+          qubit_info_.at(qubit_idx).compute_time = node.level();
+          bool only_inputs = true;
+          for (HighLevelXAG::NodeRef const input_ref : node) {
+              HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
+              if (!input.is_input()) {
+                  only_inputs = false;
+                  break;
+              }
+          }
+          if (only_inputs && node.num_ref() == 0) {
+              qubit_info_.at(qubit_idx).compute_time = hl_xag.num_levels();
+          }
+          qubit_idx += 1;
+      });
     // 2nd pass: deal with the parity drivers
     qubit_idx = hl_xag.num_inputs();
     std::for_each(hl_xag.cbegin_outputs(), hl_xag.cend_outputs(),
-    [&](HighLevelXAG::OutputRef ref) {
-        HighLevelXAG::NodeRef const node_ref = ref.first;
-        // The same gate might drive different outputs.  Here I check if
-        // this gate was already assigned a qubit.  If yes, do nothing
-        if (to_qubit_.at(node_ref) != Qubit::invalid()) {
-            qubit_idx += 1;
-            return;
-        }
-        HighLevelXAG::Node const& node = hl_xag.get_node(node_ref);
-        if (!node.is_parity()) {
-            qubit_idx += 1;
-            return;
-        }
-        to_qubit_.at(node_ref) = qubits_.at(qubit_idx);
-        cleanup_.at(node_ref) = 0;
-        qubit_info_.at(qubit_idx).compute_time = node.level();
-        std::vector<HighLevelXAG::NodeRef> ands;
-        bool only_inputs = true;
-        
-        for (HighLevelXAG::NodeRef const input_ref : node) {
-            HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
-            if (to_qubit_.at(input_ref) != Qubit::invalid()) {
-                if (!input.is_input()) {
-                    only_inputs = false;
-                }
-                continue;
-            }
-            only_inputs = false;
-            if (!input.is_parity_and()) {
-                continue;
-            }
-            ands.push_back(input_ref);
-        }
-        if (only_inputs && node.num_ref() == 0) {
-            qubit_info_.at(qubit_idx).compute_time = hl_xag.num_levels();
-        }
-        for (HighLevelXAG::NodeRef const input_ref : ands) {
-            HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
-            if ((input.num_ref() == 1 || ands.size() == 1) && input.last_level() <= node.level()) {
-                to_qubit_.at(input_ref) = qubits_.at(qubit_idx);
-                cleanup_.at(input_ref) = 0;
-                qubit_info_.at(qubit_idx).compute_time = std::min(input.level(), qubit_info_.at(qubit_idx).compute_time);
-                hl_xag.dereference(input_ref);
-                for (HighLevelXAG::NodeRef a : input) {
-                    hl_xag.dereference(a);
-                }
-            }
-        }
-        qubit_idx += 1;
-    });
+      [&](HighLevelXAG::OutputRef ref) {
+          HighLevelXAG::NodeRef const node_ref = ref.first;
+          // The same gate might drive different outputs.  Here I check if
+          // this gate was already assigned a qubit.  If yes, do nothing
+          if (to_qubit_.at(node_ref) != Qubit::invalid()) {
+              qubit_idx += 1;
+              return;
+          }
+          HighLevelXAG::Node const& node = hl_xag.get_node(node_ref);
+          if (!node.is_parity()) {
+              qubit_idx += 1;
+              return;
+          }
+          to_qubit_.at(node_ref) = qubits_.at(qubit_idx);
+          cleanup_.at(node_ref) = 0;
+          qubit_info_.at(qubit_idx).compute_time = node.level();
+          std::vector<HighLevelXAG::NodeRef> ands;
+          bool only_inputs = true;
+
+          for (HighLevelXAG::NodeRef const input_ref : node) {
+              HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
+              if (to_qubit_.at(input_ref) != Qubit::invalid()) {
+                  if (!input.is_input()) {
+                      only_inputs = false;
+                  }
+                  continue;
+              }
+              only_inputs = false;
+              if (!input.is_parity_and()) {
+                  continue;
+              }
+              ands.push_back(input_ref);
+          }
+          if (only_inputs && node.num_ref() == 0) {
+              qubit_info_.at(qubit_idx).compute_time = hl_xag.num_levels();
+          }
+          for (HighLevelXAG::NodeRef const input_ref : ands) {
+              HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
+              if ((input.num_ref() == 1 || ands.size() == 1)
+                  && input.last_level() <= node.level())
+              {
+                  to_qubit_.at(input_ref) = qubits_.at(qubit_idx);
+                  cleanup_.at(input_ref) = 0;
+                  qubit_info_.at(qubit_idx).compute_time = std::min(
+                    input.level(), qubit_info_.at(qubit_idx).compute_time);
+                  hl_xag.dereference(input_ref);
+                  for (HighLevelXAG::NodeRef a : input) {
+                      hl_xag.dereference(a);
+                  }
+              }
+          }
+          qubit_idx += 1;
+      });
     HighLevelXAG::NodeRef node_ref = hl_xag.size() - 1;
-    std::for_each(hl_xag.rbegin(), hl_xag.rend(),
-    [&](HighLevelXAG::Node& node) {
-        if (cleanup_.at(node_ref) == 0) {
-            node_ref -= 1;
-            return;
-        }
-        for (HighLevelXAG::NodeRef input_ref : node) {
-            HighLevelXAG::Node& input = hl_xag.get_node(input_ref);
-            if (node.last_level() == input.last_level()) {
-                input.last_level(node.last_level() + 1);
-                continue;
-            }
-            input.last_level(std::max(node.last_level(), input.last_level()));
-        }
-        node_ref -= 1;
-    });
+    std::for_each(
+      hl_xag.rbegin(), hl_xag.rend(), [&](HighLevelXAG::Node& node) {
+          if (cleanup_.at(node_ref) == 0) {
+              node_ref -= 1;
+              return;
+          }
+          for (HighLevelXAG::NodeRef input_ref : node) {
+              HighLevelXAG::Node& input = hl_xag.get_node(input_ref);
+              if (node.last_level() == input.last_level()) {
+                  input.last_level(node.last_level() + 1);
+                  continue;
+              }
+              input.last_level(std::max(node.last_level(), input.last_level()));
+          }
+          node_ref -= 1;
+      });
 }
 
-Qubit Synthesizer::request_ancilla(Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+Qubit Synthesizer::request_ancilla(
+  Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     // HighLevelXAG::Node const& node = hl_xag.get_node(ref);
     // for (uint32_t i = hl_xag.num_inputs(); i < qubits_.size(); ++i) {
@@ -223,7 +232,8 @@ void Synthesizer::add_parity(Circuit& circuit, std::vector<Qubit> const& qubits)
     circuit.apply_operator(Op::Parity(), qubits, cbits_);
 }
 
-void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+void Synthesizer::compute_node(Circuit& circuit, Qubit target,
+  HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     HighLevelXAG::Node const& node = hl_xag.get_node(ref);
     std::vector<Qubit> in0;
@@ -231,15 +241,15 @@ void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
     std::vector<Qubit> in01;
 
     // fmt::print(">>>>>>>> input\n");
-    std::for_each(node.cbegin_in0(), node.cend_in0(),
-    [&](HighLevelXAG::NodeRef input_ref) { 
-        if(to_qubit_.at(input_ref) == target) {
-            return;
-        }
-        in0.push_back(to_qubit_.at(input_ref));
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
+    std::for_each(
+      node.cbegin_in0(), node.cend_in0(), [&](HighLevelXAG::NodeRef input_ref) {
+          if (to_qubit_.at(input_ref) == target) {
+              return;
+          }
+          in0.push_back(to_qubit_.at(input_ref));
+          hl_xag.dereference(input_ref);
+          assert(to_qubit_.at(input_ref) != Qubit::invalid());
+      });
 
     if (node.is_parity()) {
         in0.push_back(target);
@@ -247,20 +257,21 @@ void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
         return;
     }
 
-    std::for_each(node.cbegin_in1(), node.cend_in1(),
-    [&](HighLevelXAG::NodeRef input_ref) {
-        in1.push_back(to_qubit_.at(input_ref)); 
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
+    std::for_each(
+      node.cbegin_in1(), node.cend_in1(), [&](HighLevelXAG::NodeRef input_ref) {
+          in1.push_back(to_qubit_.at(input_ref));
+          hl_xag.dereference(input_ref);
+          assert(to_qubit_.at(input_ref) != Qubit::invalid());
+      });
 
     std::for_each(node.cbegin_in01(), node.cend_in01(),
-    [&](HighLevelXAG::NodeRef input_ref) {
-        in01.push_back(to_qubit_.at(input_ref));
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
-    // fmt::print(">>>>>>>> actual: {}, {}, {}\n", in0.size(), in1.size(), in01.size());
+      [&](HighLevelXAG::NodeRef input_ref) {
+          in01.push_back(to_qubit_.at(input_ref));
+          hl_xag.dereference(input_ref);
+          assert(to_qubit_.at(input_ref) != Qubit::invalid());
+      });
+    // fmt::print(">>>>>>>> actual: {}, {}, {}\n", in0.size(), in1.size(),
+    // in01.size());
 
     // Compute the inputs to the Toffoli gate (inplace)
     add_parity(circuit, in0);
@@ -289,7 +300,8 @@ void Synthesizer::compute_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
     add_parity(circuit, in0);
 }
 
-void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+void Synthesizer::cleanup_node(Circuit& circuit, Qubit target,
+  HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     HighLevelXAG::Node const& node = hl_xag.get_node(ref);
     std::vector<Qubit> in0;
@@ -297,15 +309,15 @@ void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
     std::vector<Qubit> in01;
 
     // fmt::print(">>>>>>>> input\n");
-    std::for_each(node.cbegin_in0(), node.cend_in0(),
-    [&](HighLevelXAG::NodeRef input_ref) { 
-        if(to_qubit_.at(input_ref) == target) {
-            return;
-        }
-        in0.push_back(to_qubit_.at(input_ref));
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
+    std::for_each(
+      node.cbegin_in0(), node.cend_in0(), [&](HighLevelXAG::NodeRef input_ref) {
+          if (to_qubit_.at(input_ref) == target) {
+              return;
+          }
+          in0.push_back(to_qubit_.at(input_ref));
+          hl_xag.dereference(input_ref);
+          assert(to_qubit_.at(input_ref) != Qubit::invalid());
+      });
 
     if (node.is_parity()) {
         in0.push_back(target);
@@ -313,20 +325,21 @@ void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
         return;
     }
 
-    std::for_each(node.cbegin_in1(), node.cend_in1(),
-    [&](HighLevelXAG::NodeRef input_ref) {
-        in1.push_back(to_qubit_.at(input_ref)); 
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
+    std::for_each(
+      node.cbegin_in1(), node.cend_in1(), [&](HighLevelXAG::NodeRef input_ref) {
+          in1.push_back(to_qubit_.at(input_ref));
+          hl_xag.dereference(input_ref);
+          assert(to_qubit_.at(input_ref) != Qubit::invalid());
+      });
 
     std::for_each(node.cbegin_in01(), node.cend_in01(),
-    [&](HighLevelXAG::NodeRef input_ref) {
-        in01.push_back(to_qubit_.at(input_ref));
-        hl_xag.dereference(input_ref);
-        assert(to_qubit_.at(input_ref) != Qubit::invalid());
-    });
-    // fmt::print(">>>>>>>> actual: {}, {}, {}\n", in0.size(), in1.size(), in01.size());
+      [&](HighLevelXAG::NodeRef input_ref) {
+          in01.push_back(to_qubit_.at(input_ref));
+          hl_xag.dereference(input_ref);
+          assert(to_qubit_.at(input_ref) != Qubit::invalid());
+      });
+    // fmt::print(">>>>>>>> actual: {}, {}, {}\n", in0.size(), in1.size(),
+    // in01.size());
 
     // Compute the inputs to the Toffoli gate (inplace)
     add_parity(circuit, in0);
@@ -352,7 +365,7 @@ void Synthesizer::cleanup_node(Circuit& circuit, Qubit target, HighLevelXAG& hl_
 }
 
 bool Synthesizer::try_compute(
-    Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+  Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     Qubit& qubit = to_qubit_.at(ref);
     if (qubit == Qubit::invalid()) {
@@ -376,7 +389,7 @@ bool Synthesizer::try_compute(
 }
 
 void Synthesizer::cleanup(
-    Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+  Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     // fmt::print("cleanup: {}\n", ref);
     cleanup_node(circuit, to_qubit_.at(ref), hl_xag, ref);
@@ -386,26 +399,27 @@ void Synthesizer::cleanup(
     cleanup_.at(ref) = 0;
 }
 
-void Synthesizer::try_cleanup_inputs(Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
+void Synthesizer::try_cleanup_inputs(
+  Circuit& circuit, HighLevelXAG& hl_xag, HighLevelXAG::NodeRef ref)
 {
     HighLevelXAG::Node const& node = hl_xag.get_node(ref);
-    std::for_each(node.crbegin(), node.crend(),
-    [&](HighLevelXAG::NodeRef input_ref) {
-        if (cleanup_.at(input_ref) == 0) {
-            return;
-        }
-        HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
-        // Check if the input gate is referenced after the c
-        if (input.num_ref() == 0) {
-            cleanup(circuit, hl_xag, input_ref);
-            try_cleanup_inputs(circuit, hl_xag, input_ref);
-        }
-    });
+    std::for_each(
+      node.crbegin(), node.crend(), [&](HighLevelXAG::NodeRef input_ref) {
+          if (cleanup_.at(input_ref) == 0) {
+              return;
+          }
+          HighLevelXAG::Node const& input = hl_xag.get_node(input_ref);
+          // Check if the input gate is referenced after the c
+          if (input.num_ref() == 0) {
+              cleanup(circuit, hl_xag, input_ref);
+              try_cleanup_inputs(circuit, hl_xag, input_ref);
+          }
+      });
 }
 
 void Synthesizer::operator()(mockturtle::xag_network const& xag,
-    Circuit& circuit, std::vector<Qubit> const& qubits, 
-    std::vector<Cbit> const& cbits)
+  Circuit& circuit, std::vector<Qubit> const& qubits,
+  std::vector<Cbit> const& cbits)
 {
     HighLevelXAG hl_xag = to_pag(xag);
     qubits_ = qubits;
@@ -417,11 +431,12 @@ void Synthesizer::operator()(mockturtle::xag_network const& xag,
     pre_process(hl_xag);
     // fmt::print("> Done preprocess\n");
 
-    HighLevelXAG::NodeRef node_ref = hl_xag.num_inputs() + 1; // inputs + constant
+    HighLevelXAG::NodeRef node_ref =
+      hl_xag.num_inputs() + 1; // inputs + constant
     std::vector<std::vector<HighLevelXAG::NodeRef>> levels(hl_xag.num_levels());
     for (HighLevelXAG::Node const& node : hl_xag) {
         // THIS MEANS there are danglng nodes!
-        assert(node.level()!= std::numeric_limits<uint32_t>::max());
+        assert(node.level() != std::numeric_limits<uint32_t>::max());
         levels.at(node.level()).push_back(node_ref);
         node_ref += 1;
     }
@@ -460,38 +475,39 @@ void Synthesizer::operator()(mockturtle::xag_network const& xag,
     //
     uint32_t qubit_idx = hl_xag.num_inputs();
     std::for_each(hl_xag.cbegin_outputs(), hl_xag.cend_outputs(),
-    [&](HighLevelXAG::OutputRef ref) {
-        HighLevelXAG::NodeRef const node_ref = ref.first;
-        if (node_ref == 0 || to_qubit_.at(node_ref) == qubits.at(qubit_idx)) {
-            qubit_idx += 1;
-            return;
-        }
-        circuit.apply_operator(Op::X(), {to_qubit_.at(node_ref), qubits.at(qubit_idx)}, cbits_);
-        qubit_idx += 1;
-    });
+      [&](HighLevelXAG::OutputRef ref) {
+          HighLevelXAG::NodeRef const node_ref = ref.first;
+          if (node_ref == 0 || to_qubit_.at(node_ref) == qubits.at(qubit_idx)) {
+              qubit_idx += 1;
+              return;
+          }
+          circuit.apply_operator(
+            Op::X(), {to_qubit_.at(node_ref), qubits.at(qubit_idx)}, cbits_);
+          qubit_idx += 1;
+      });
     qubit_idx = hl_xag.num_inputs();
     std::for_each(hl_xag.cbegin_outputs(), hl_xag.cend_outputs(),
-    [&](HighLevelXAG::OutputRef ref) {
-        if (ref.second) {
-            circuit.apply_operator(Op::X(), {qubits.at(qubit_idx)}, cbits_);
-        }
-        qubit_idx += 1;
-    });
+      [&](HighLevelXAG::OutputRef ref) {
+          if (ref.second) {
+              circuit.apply_operator(Op::X(), {qubits.at(qubit_idx)}, cbits_);
+          }
+          qubit_idx += 1;
+      });
 }
 
 } // namespace xag_synth_detail
 #pragma endregion
 
 void xag_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
-    nlohmann::json const& config)
+  std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
+  nlohmann::json const& config)
 {
     xag_synth_detail::Synthesizer xag_synthesize;
     xag_synthesize(xag, circuit, qubits, cbits);
 }
 
-Circuit xag_synth(mockturtle::xag_network const& xag,
-    nlohmann::json const& config)
+Circuit xag_synth(
+  mockturtle::xag_network const& xag, nlohmann::json const& config)
 {
     Circuit circuit;
     // Config cfg(config);

@@ -11,8 +11,8 @@
 namespace tweedledum {
 
 void spectrum_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
-    nlohmann::json const& config)
+  std::vector<Cbit> const& cbits, kitty::dynamic_truth_table const& function,
+  nlohmann::json const& config)
 {
     uint32_t const num_controls = function.num_vars();
     assert(qubits.size() >= (num_controls + 1u));
@@ -35,14 +35,14 @@ void spectrum_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
     if (parities.size() == spectrum.size() - 1) {
         all_linear_synth(circuit, qubits, cbits, parities);
     } else {
-        gray_synth(circuit, qubits, cbits, 
-            BMatrix::Identity(qubits.size(), qubits.size()), parities, config);
+        gray_synth(circuit, qubits, cbits,
+          BMatrix::Identity(qubits.size(), qubits.size()), parities, config);
     }
     circuit.apply_operator(Op::H(), {qubits.back()}, cbits);
 }
 
-Circuit spectrum_synth(kitty::dynamic_truth_table const& function,
-    nlohmann::json const& config)
+Circuit spectrum_synth(
+  kitty::dynamic_truth_table const& function, nlohmann::json const& config)
 {
     Circuit circuit;
     std::vector<Qubit> qubits;

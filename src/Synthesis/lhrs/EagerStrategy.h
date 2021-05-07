@@ -22,7 +22,7 @@ public:
 
 private:
     void cleanup(LogicNetwork const& klut,
-        mockturtle::node_map<uint32_t, LogicNetwork>& ref_counts, Node node);
+      mockturtle::node_map<uint32_t, LogicNetwork>& ref_counts, Node node);
 };
 
 inline bool EagerStrategy::compute_steps(LogicNetwork const& klut)
@@ -30,9 +30,8 @@ inline bool EagerStrategy::compute_steps(LogicNetwork const& klut)
     using namespace mockturtle;
     // Initialize reference counters
     node_map<uint32_t, LogicNetwork> ref_counts(klut, 0);
-    klut.foreach_node([&](auto node) {
-        ref_counts[node] = klut.fanout_size(node);
-    });
+    klut.foreach_node(
+      [&](auto node) { ref_counts[node] = klut.fanout_size(node); });
 
     klut.clear_visited();
     std::vector<Node> outputs;
@@ -58,7 +57,7 @@ inline bool EagerStrategy::compute_steps(LogicNetwork const& klut)
 }
 
 inline void EagerStrategy::cleanup(LogicNetwork const& klut,
-    mockturtle::node_map<uint32_t, LogicNetwork>& ref_counts, Node node)
+  mockturtle::node_map<uint32_t, LogicNetwork>& ref_counts, Node node)
 {
     klut.foreach_fanin(node, [&](auto const& input) {
         const auto child = klut.get_node(input);

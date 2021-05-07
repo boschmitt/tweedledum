@@ -15,13 +15,15 @@
 TEST_CASE("Synthesize a truth table using PPRM", "[pprm][synth]")
 {
     using namespace tweedledum;
-    SECTION("Constant-0") {
+    SECTION("Constant-0")
+    {
         kitty::dynamic_truth_table tt(1);
         Circuit circuit = pprm_synth(tt);
         REQUIRE(circuit.num_qubits() == 2);
         // number of operations = 1?
     }
-    SECTION("Prime (3, .., 10)") {
+    SECTION("Prime (3, .., 10)")
+    {
         for (uint32_t i = 3; i < 10u; ++i) {
             kitty::dynamic_truth_table tt(i);
             kitty::create_prime(tt);

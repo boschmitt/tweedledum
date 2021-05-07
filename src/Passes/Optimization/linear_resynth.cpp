@@ -24,14 +24,13 @@ inline std::vector<Slice> partition_into_silces(Circuit const& original)
     std::vector<Slice> slices;
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t max = 0;
-        inst.foreach_qubit([&](InstRef child) {
-            max = std::max(max, to_slice[child]);
-        });
+        inst.foreach_qubit(
+          [&](InstRef child) { max = std::max(max, to_slice[child]); });
         to_slice[ref] = max;
         if (max == slices.size()) {
             slices.emplace_back();
         }
-        if (!inst.is_one<Op::X, Op::Parity>()) { 
+        if (!inst.is_one<Op::X, Op::Parity>()) {
             slices.at(max).non_linear_gates.emplace_back(ref);
             to_slice[ref] += 1;
         } else if (inst.is_a<Op::X>() && inst.num_wires() > 2u) {
@@ -45,7 +44,7 @@ inline std::vector<Slice> partition_into_silces(Circuit const& original)
 }
 
 inline void resynth_slice(Circuit const& original, Slice const& slice,
-    Circuit& result, nlohmann::json const& config)
+  Circuit& result, nlohmann::json const& config)
 {
     if (!slice.linear_gates.empty()) {
         // Get the qubits
@@ -92,7 +91,7 @@ inline void resynth_slice(Circuit const& original, Slice const& slice,
     }
 }
 
-} // namespace linear_resynth_detail
+} // namespace
 #pragma endregion
 
 Circuit linear_resynth(Circuit const& original, nlohmann::json const& config)

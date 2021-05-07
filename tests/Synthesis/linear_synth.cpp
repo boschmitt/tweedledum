@@ -19,9 +19,7 @@ TEST_CASE("Trivial cases for linear_synth", "[linear_synth][synth]")
 {
     using namespace tweedledum;
     BMatrix linear_trans(3, 3);
-    linear_trans << 1,1,1,
-                    0,1,1,
-                    0,0,1;
+    linear_trans << 1, 1, 1, 0, 1, 1, 0, 0, 1;
 
     nlohmann::json config;
     Circuit synthesized = linear_synth(linear_trans, config);

@@ -44,8 +44,8 @@ struct Config {
     }
 };
 
-inline std::vector<Qubit> get_workspace(Circuit& circuit,
-    std::vector<Qubit> const& qubits, Config const& cfg)
+inline std::vector<Qubit> get_workspace(
+  Circuit& circuit, std::vector<Qubit> const& qubits, Config const& cfg)
 {
     std::vector<Qubit> workspace;
     circuit.foreach_qubit([&](Qubit current_qubit) {
@@ -63,8 +63,8 @@ inline std::vector<Qubit> get_workspace(Circuit& circuit,
 }
 
 inline void v_dirty(Circuit& circuit, Operator const& op,
-    std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits, 
-    Config const& cfg)
+  std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
+  Config const& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
     std::vector<Qubit> workspace = get_workspace(circuit, qubits, cfg);
@@ -82,8 +82,9 @@ inline void v_dirty(Circuit& circuit, Operator const& op,
         }
 
         circuit.apply_operator(offset ? cfg.cleanup_op : cfg.compute_op,
-            {qubits[0], qubits[1], workspace[workspace_size - (num_controls - 2)]},
-            cbits);
+          {qubits[0], qubits[1],
+            workspace[workspace_size - (num_controls - 2)]},
+          cbits);
 
         for (int i = num_controls - 2 - 1; i >= offset; --i) {
             Qubit const c0 = qubits.at(num_controls - 1 - i);
@@ -95,8 +96,8 @@ inline void v_dirty(Circuit& circuit, Operator const& op,
 }
 
 inline void v_clean(Circuit& circuit, Operator const& op,
-    std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits, 
-    Config const& cfg)
+  std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
+  Config const& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
     std::vector<Qubit> ancillae;
@@ -104,34 +105,33 @@ inline void v_clean(Circuit& circuit, Operator const& op,
         ancillae.push_back(circuit.request_ancilla());
     }
 
-    circuit.apply_operator(cfg.compute_op, {qubits[0], qubits[1], ancillae.at(0)});
+    circuit.apply_operator(
+      cfg.compute_op, {qubits[0], qubits[1], ancillae.at(0)});
     uint32_t j = 0;
     for (uint32_t i = 2; i < (num_controls - 1); ++i) {
         circuit.apply_operator(cfg.compute_op,
-                               {qubits.at(i), ancillae.at(j), ancillae.at(j + 1)},
-                               cbits);
+          {qubits.at(i), ancillae.at(j), ancillae.at(j + 1)}, cbits);
         j += 1;
     }
 
     circuit.apply_operator(
-        op, {qubits.at(num_controls - 1), ancillae.back(), qubits.back()}, cbits);
+      op, {qubits.at(num_controls - 1), ancillae.back(), qubits.back()}, cbits);
 
-    for (uint32_t i = (num_controls - 1); i --> 2;) {
-        circuit.apply_operator(cfg.cleanup_op, 
-                               {qubits.at(i), ancillae.at(j - 1), ancillae.at(j)},
-                               cbits);
+    for (uint32_t i = (num_controls - 1); i-- > 2;) {
+        circuit.apply_operator(cfg.cleanup_op,
+          {qubits.at(i), ancillae.at(j - 1), ancillae.at(j)}, cbits);
         j -= 1;
     }
-    circuit.apply_operator(cfg.cleanup_op,
-                           {qubits[0], qubits[1], ancillae.at(0)}, cbits);
+    circuit.apply_operator(
+      cfg.cleanup_op, {qubits[0], qubits[1], ancillae.at(0)}, cbits);
     for (Qubit const qubit : ancillae) {
         circuit.release_ancilla(qubit);
     }
 }
 
 inline void dirty_ancilla(Circuit& circuit, Operator const& op,
-    std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
-    Config const& cfg)
+  std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
+  Config const& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
     if (num_controls <= cfg.controls_threshold) {
@@ -173,8 +173,8 @@ inline void dirty_ancilla(Circuit& circuit, Operator const& op,
 }
 
 inline void clean_ancilla(Circuit& circuit, Operator const& op,
-    std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits, 
-    Config const& cfg)
+  std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits,
+  Config const& cfg)
 {
     uint32_t const num_controls = qubits.size() - 1;
     if (num_controls <= cfg.controls_threshold) {
@@ -235,14 +235,11 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
     if (inst.num_controls() == 3u && circuit.num_ancillae() > 0) {
         Qubit ancilla = circuit.request_ancilla();
         circuit.apply_operator(cfg.compute_op,
-                               {inst.control(0), inst.control(1), ancilla},
-                               inst.cbits());
-        circuit.apply_operator(inst,
-                               {inst.control(2), ancilla, inst.target()},
-                               inst.cbits());
+          {inst.control(0), inst.control(1), ancilla}, inst.cbits());
+        circuit.apply_operator(
+          inst, {inst.control(2), ancilla, inst.target()}, inst.cbits());
         circuit.apply_operator(cfg.cleanup_op,
-                               {inst.control(0), inst.control(1), ancilla},
-                               inst.cbits());
+          {inst.control(0), inst.control(1), ancilla}, inst.cbits());
         circuit.release_ancilla(ancilla);
         return true;
     }
@@ -250,7 +247,11 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
         dirty_ancilla(circuit, inst, inst.qubits(), inst.cbits(), cfg);
         return true;
     }
-    for (uint32_t i = circuit.num_qubits(); i < cfg.max_qubits && circuit.num_ancillae() < (inst.num_controls() - 2); ++i) {
+    for (uint32_t i = circuit.num_qubits();
+         i < cfg.max_qubits
+         && circuit.num_ancillae() < (inst.num_controls() - 2);
+         ++i)
+    {
         circuit.create_ancilla();
     }
     if (circuit.num_ancillae() >= (inst.num_controls() - 2)) {
@@ -261,17 +262,17 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
     return true;
 }
 
-}
+} // namespace
 
-void barenco_decomp(Circuit& circuit, Instruction const& inst,
-    nlohmann::json const& config)
+void barenco_decomp(
+  Circuit& circuit, Instruction const& inst, nlohmann::json const& config)
 {
     Config cfg(config);
     decompose(circuit, inst, cfg);
 }
 
-void barenco_decomp(Circuit& decomposed, Circuit const& original,
-    nlohmann::json const& config)
+void barenco_decomp(
+  Circuit& decomposed, Circuit const& original, nlohmann::json const& config)
 {
     Config cfg(config);
     original.foreach_instruction([&](Instruction const& inst) {

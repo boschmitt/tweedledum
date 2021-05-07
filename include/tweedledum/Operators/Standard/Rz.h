@@ -18,7 +18,8 @@ public:
         return "std.rz";
     }
 
-    Rz(double angle) : angle_(angle)
+    Rz(double angle)
+        : angle_(angle)
     {}
 
     Rz adjoint() const
@@ -33,8 +34,9 @@ public:
 
     UMatrix2 const matrix() const
     {
-        return (UMatrix2() << std::exp(Complex(0., -angle_ / 2.)), 0.,
-        0, std::exp(Complex(0., angle_ / 2.))).finished();
+        return (UMatrix2() << std::exp(Complex(0., -angle_ / 2.)), 0., 0,
+          std::exp(Complex(0., angle_ / 2.)))
+          .finished();
     }
 
     bool operator==(Rz const& other) const
@@ -46,4 +48,4 @@ private:
     double const angle_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

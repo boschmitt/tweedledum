@@ -12,9 +12,8 @@
 
 namespace tweedledum {
 
-Circuit a_star_swap_synth(Device const& device, 
-    std::vector<uint32_t> const& init_cfg,
-    std::vector<uint32_t> const& final_cfg,
-    nlohmann::json const& config = {});
+Circuit a_star_swap_synth(Device const& device,
+  std::vector<uint32_t> const& init_cfg, std::vector<uint32_t> const& final_cfg,
+  nlohmann::json const& config = {});
 
 } // namespace tweedledum

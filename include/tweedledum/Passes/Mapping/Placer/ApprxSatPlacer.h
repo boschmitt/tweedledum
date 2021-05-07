@@ -22,12 +22,14 @@ class ApprxSatPlacer {
     using Var = bill::var_type;
 
 public:
-    ApprxSatPlacer(Device const& device, Circuit const& original, Solver& solver, bool use_weight)
+    ApprxSatPlacer(Device const& device, Circuit const& original,
+      Solver& solver, bool use_weight)
         : device_(device)
         , original_(original)
         , solver_(solver)
         , use_weight_(use_weight)
-        , pairs_act_(original.num_qubits() * (original.num_qubits() + 1) / 2, -1)
+        , pairs_act_(
+            original.num_qubits() * (original.num_qubits() + 1) / 2, -1)
     {}
 
     std::optional<Placement> run()
@@ -121,21 +123,21 @@ private:
         }
     }
 
-    uint32_t choose_act_var(std::vector<Lit> const& core, 
-        std::vector<uint32_t> const& weight)
+    uint32_t choose_act_var(
+      std::vector<Lit> const& core, std::vector<uint32_t> const& weight)
     {
         auto index = [&](Lit lit) {
             uint32_t const var = static_cast<uint32_t>(lit.variable());
             return (var - (num_v() * num_phy()));
         };
-        auto const lit = std::max_element(core.begin(), core.end(), 
-        [&](Lit const& a, Lit const& b) {
-            if (use_weight_) {
-                // Choose the remove the pair with least number of gates
-                return weight.at(index(a)) > weight.at(index(b));
-            }
-            return a < b;
-        });
+        auto const lit = std::max_element(
+          core.begin(), core.end(), [&](Lit const& a, Lit const& b) {
+              if (use_weight_) {
+                  // Choose the remove the pair with least number of gates
+                  return weight.at(index(a)) > weight.at(index(b));
+              }
+              return a < b;
+          });
         return index(*lit);
     }
 
@@ -188,6 +190,6 @@ private:
 /*! \brief Yet to be written.
  */
 std::optional<Placement> apprx_sat_place(Device const& device,
-    Circuit const& original, nlohmann::json const& config = {});
+  Circuit const& original, nlohmann::json const& config = {});
 
 } // namespace tweedledum

@@ -77,7 +77,8 @@ public:
             for (Cbit const& cbit : cbits_) {
                 fn(cbit);
             }
-        } else if constexpr (std::is_invocable_r_v<void, Fn, std::string_view>) {
+        } else if constexpr (std::is_invocable_r_v<void, Fn, std::string_view>)
+        {
             for (std::string const& name : cbit_names_) {
                 fn(name);
             }
@@ -100,7 +101,8 @@ public:
             for (Qubit const& qubit : qubits_) {
                 fn(qubit);
             }
-        } else if constexpr (std::is_invocable_r_v<void, Fn, std::string_view>) {
+        } else if constexpr (std::is_invocable_r_v<void, Fn, std::string_view>)
+        {
             for (std::string const& name : qubit_names_) {
                 fn(name);
             }

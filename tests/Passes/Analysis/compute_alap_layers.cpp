@@ -17,7 +17,8 @@ TEST_CASE("Compute intructions' ALAP layer", "[compute_alap_layers][analysis]")
     Circuit circuit;
     Qubit q0 = circuit.create_qubit();
     Qubit q1 = circuit.create_qubit();
-    SECTION("Two qubits (0)") {
+    SECTION("Two qubits (0)")
+    {
         circuit.apply_operator(Op::X(), {q0});
         circuit.apply_operator(Op::X(), {q1, q0});
         circuit.apply_operator(Op::X(), {q0});
@@ -28,14 +29,15 @@ TEST_CASE("Compute intructions' ALAP layer", "[compute_alap_layers][analysis]")
         CHECK(expected == alap_layers);
     }
     Qubit q2 = circuit.create_qubit();
-    SECTION("Three qubits (0)") {
-        circuit.apply_operator(Op::X(), {q0});     // Layer 0
-        circuit.apply_operator(Op::X(), {q0});     // Layer 1
+    SECTION("Three qubits (0)")
+    {
+        circuit.apply_operator(Op::X(), {q0}); // Layer 0
+        circuit.apply_operator(Op::X(), {q0}); // Layer 1
         circuit.apply_operator(Op::X(), {q1, q0}); // Layer 2
-        circuit.apply_operator(Op::X(), {q1});     // Layer 3
-        circuit.apply_operator(Op::X(), {q2});     // Layer 1
-        circuit.apply_operator(Op::X(), {q2});     // Layer 2
-        circuit.apply_operator(Op::X(), {q2, q0}); // Layer 3 
+        circuit.apply_operator(Op::X(), {q1}); // Layer 3
+        circuit.apply_operator(Op::X(), {q2}); // Layer 1
+        circuit.apply_operator(Op::X(), {q2}); // Layer 2
+        circuit.apply_operator(Op::X(), {q2, q0}); // Layer 3
         std::vector<uint32_t> expected = {0, 1, 2, 3, 1, 2, 3};
         std::vector<uint32_t> alap_layers = compute_alap_layers(circuit);
         CHECK(expected == alap_layers);

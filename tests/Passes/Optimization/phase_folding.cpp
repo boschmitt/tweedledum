@@ -17,24 +17,26 @@ using namespace tweedledum;
 TEST_CASE("Trivial phase folding", "[phase_folding][optimization]")
 {
     using namespace tweedledum;
-    SECTION("Trivial 1 qubit") {
+    SECTION("Trivial 1 qubit")
+    {
         Circuit circuit;
         Qubit q0 = circuit.create_qubit();
         circuit.apply_operator(Op::T(), {q0});
         circuit.apply_operator(Op::Tdg(), {q0});
-        
+
         Circuit optimized = phase_folding(circuit);
         CHECK(optimized.size() == 0u);
         CHECK(check_unitary(circuit, optimized));
     }
-    SECTION("Trivial 2 qubit swap") {
+    SECTION("Trivial 2 qubit swap")
+    {
         Circuit circuit;
         Qubit q0 = circuit.create_qubit();
         Qubit q1 = circuit.create_qubit();
         circuit.apply_operator(Op::T(), {q0});
         circuit.apply_operator(Op::Swap(), {q1, q0});
         circuit.apply_operator(Op::Tdg(), {q1});
-        
+
         Circuit optimized = phase_folding(circuit);
         CHECK(optimized.size() == 1u);
         CHECK(check_unitary(circuit, optimized));

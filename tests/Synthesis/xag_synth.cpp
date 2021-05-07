@@ -4,8 +4,8 @@
 *-----------------------------------------------------------------------------*/
 // FIXME: There are conflicts among SAT solvers, so this header need to appear
 //        first! Quite weird!
-#include <mockturtle/algorithms/equivalence_checking.hpp>
 #include "tweedledum/Synthesis/xag_synth.h"
+#include <mockturtle/algorithms/equivalence_checking.hpp>
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
@@ -20,32 +20,34 @@
 #include <mockturtle/networks/xag.hpp>
 #include <vector>
 
-
 // Helper function
 namespace tweedledum {
 
 mockturtle::xag_network to_xag_network(
-    Circuit const& circuit, uint32_t num_i, uint32_t num_o)
+  Circuit const& circuit, uint32_t num_i, uint32_t num_o)
 {
     using Signal = typename mockturtle::xag_network::signal;
 
     auto network = mockturtle::xag_network();
     std::vector<Signal> to_signal(
-        circuit.num_qubits(), network.get_constant(false));
+      circuit.num_qubits(), network.get_constant(false));
     for (uint32_t i = 0; i < num_i; ++i) {
         to_signal[i] = network.create_pi();
     }
     circuit.foreach_instruction([&](Instruction const& inst) {
         std::vector<Signal> signals;
         inst.foreach_qubit([&](Qubit w) {
-            signals.push_back(to_signal[w.uid()] ^ (w.polarity() == Qubit::Polarity::negative));
+            signals.push_back(
+              to_signal[w.uid()] ^ (w.polarity() == Qubit::Polarity::negative));
         });
         if (inst.is_a<Op::Parity>()) {
             to_signal[inst.target().uid()] = network.create_nary_xor(signals);
             return;
         }
-        Signal const ctrl = network.create_nary_and({signals.begin(), signals.end() - 1});
-        to_signal[inst.target().uid()] = network.create_xor(signals.back(), ctrl);
+        Signal const ctrl =
+          network.create_nary_and({signals.begin(), signals.end() - 1});
+        to_signal[inst.target().uid()] =
+          network.create_xor(signals.back(), ctrl);
     });
     for (uint32_t i = 0; i < num_o; ++i) {
         network.create_po(to_signal[num_i + i]);
@@ -64,7 +66,8 @@ TEST_CASE("Synthesize constant gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -77,7 +80,8 @@ TEST_CASE("Synthesize constant gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -89,7 +93,8 @@ TEST_CASE("Synthesize constant gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -102,7 +107,8 @@ TEST_CASE("Synthesize constant gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -117,7 +123,8 @@ TEST_CASE("Synthesize constant gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -135,7 +142,8 @@ TEST_CASE("Synthesize buffer gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -148,7 +156,8 @@ TEST_CASE("Synthesize buffer gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -162,7 +171,8 @@ TEST_CASE("Synthesize buffer gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -182,7 +192,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -197,7 +208,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -212,7 +224,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -227,7 +240,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -242,7 +256,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -257,7 +272,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -273,7 +289,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -289,7 +306,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -305,7 +323,8 @@ TEST_CASE("Synthesize one AND gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -325,7 +344,8 @@ TEST_CASE("Synthesize one XOR gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -340,7 +360,8 @@ TEST_CASE("Synthesize one XOR gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -356,7 +377,8 @@ TEST_CASE("Synthesize one XOR gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -372,7 +394,8 @@ TEST_CASE("Synthesize one XOR gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -388,7 +411,8 @@ TEST_CASE("Synthesize one XOR gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -409,7 +433,8 @@ TEST_CASE("Synthesize AND-XOR gate", "[xag][synth]")
 
         Circuit circuit = xag_synth(oracle);
         auto xag = to_xag_network(circuit, oracle.num_pis(), oracle.num_pos());
-        auto const miter = *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
+        auto const miter =
+          *mockturtle::miter<mockturtle::xag_network>(oracle, xag);
         auto const result = mockturtle::equivalence_checking(miter);
         CHECK(result);
         CHECK(*result);
@@ -459,17 +484,11 @@ TEST_CASE("Out-of-place adder", "[xag][synth]")
         xag_network xag;
         std::vector<xag_network::signal> a(n);
         std::vector<xag_network::signal> b(n);
-        std::generate(a.begin(), a.end(), [&xag]() {
-            return xag.create_pi();
-        });
-        std::generate(b.begin(), b.end(), [&xag]() {
-            return xag.create_pi();
-        });
+        std::generate(a.begin(), a.end(), [&xag]() { return xag.create_pi(); });
+        std::generate(b.begin(), b.end(), [&xag]() { return xag.create_pi(); });
         auto carry = xag.create_pi();
         carry_ripple_adder_inplace(xag, a, b, carry);
-        std::for_each(a.begin(), a.end(), [&](auto f) {
-            xag.create_po(f);
-        });
+        std::for_each(a.begin(), a.end(), [&](auto f) { xag.create_po(f); });
         xag.create_po(carry);
 
         Circuit circuit = xag_synth(xag);
@@ -485,20 +504,14 @@ TEST_CASE("Out-of-place modular adder", "[xag][synth]")
 {
     using namespace mockturtle;
     using namespace tweedledum;
-    for (uint32_t n = 2; n <= 8; ++n)  {
+    for (uint32_t n = 2; n <= 8; ++n) {
         xag_network xag;
         std::vector<xag_network::signal> a(n);
         std::vector<xag_network::signal> b(n);
-        std::generate(a.begin(), a.end(), [&xag]() {
-            return xag.create_pi();
-        });
-        std::generate(b.begin(), b.end(), [&xag]() {
-            return xag.create_pi();
-        });
+        std::generate(a.begin(), a.end(), [&xag]() { return xag.create_pi(); });
+        std::generate(b.begin(), b.end(), [&xag]() { return xag.create_pi(); });
         modular_adder_inplace(xag, a, b);
-        std::for_each(a.begin(), a.end(), [&](auto f) {
-            xag.create_po(f);
-        });
+        std::for_each(a.begin(), a.end(), [&](auto f) { xag.create_po(f); });
         // FIXME: For some reason there are dangling nodes here!?
         xag = cleanup_dangling(xag);
         Circuit circuit = xag_synth(xag);
@@ -514,16 +527,12 @@ TEST_CASE("Out-of-place multiplier", "[xag][synth]")
 {
     using namespace mockturtle;
     using namespace tweedledum;
-    for (uint32_t n = 2; n <= 8; ++n)  {
+    for (uint32_t n = 2; n <= 8; ++n) {
         xag_network xag;
         std::vector<xag_network::signal> a(n);
         std::vector<xag_network::signal> b(n);
-        std::generate(a.begin(), a.end(), [&xag]() {
-            return xag.create_pi();
-        });
-        std::generate(b.begin(), b.end(), [&xag]() {
-            return xag.create_pi();
-        });
+        std::generate(a.begin(), a.end(), [&xag]() { return xag.create_pi(); });
+        std::generate(b.begin(), b.end(), [&xag]() { return xag.create_pi(); });
         for (auto const& o : carry_ripple_multiplier(xag, a, b)) {
             xag.create_po(o);
         }
@@ -546,12 +555,8 @@ TEST_CASE("Out-of-place Montgomery multiplier", "[xag][synth]")
     xag_network xag;
     std::vector<xag_network::signal> a(n);
     std::vector<xag_network::signal> b(n);
-    std::generate(a.begin(), a.end(), [&xag]() {
-        return xag.create_pi();
-    });
-    std::generate(b.begin(), b.end(), [&xag]() {
-        return xag.create_pi();
-    });
+    std::generate(a.begin(), a.end(), [&xag]() { return xag.create_pi(); });
+    std::generate(b.begin(), b.end(), [&xag]() { return xag.create_pi(); });
     auto const outputs = montgomery_multiplication(xag, a, b, 17);
     for (auto const& o : outputs) {
         xag.create_po(o);
@@ -573,13 +578,10 @@ TEST_CASE("Out-of-place n-to-2^n binary decoder", "[xag][synth]")
     for (uint32_t n = 2; n <= 8; ++n) {
         xag_network xag;
         std::vector<xag_network::signal> xs(n);
-        std::generate(xs.begin(), xs.end(), [&]() {
-            return xag.create_pi();
-        });
+        std::generate(xs.begin(), xs.end(), [&]() { return xag.create_pi(); });
         const auto ds = binary_decoder(xag, xs);
-        std::for_each(ds.begin(), ds.end(), [&](auto const& d) {
-            xag.create_po(d);
-        });
+        std::for_each(
+          ds.begin(), ds.end(), [&](auto const& d) { xag.create_po(d); });
         xag = xag_constant_fanin_optimization(xag);
 
         Circuit circuit = xag_synth(xag);

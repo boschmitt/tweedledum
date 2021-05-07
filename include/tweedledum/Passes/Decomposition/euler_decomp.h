@@ -13,10 +13,10 @@
 
 namespace tweedledum {
 
-void euler_decomp(Circuit& circuit, Instruction const& inst,
-    nlohmann::json const& config = {});
+void euler_decomp(
+  Circuit& circuit, Instruction const& inst, nlohmann::json const& config = {});
 
-Circuit euler_decomp(Circuit const& original,
-    nlohmann::json const& config = {});
+Circuit euler_decomp(
+  Circuit const& original, nlohmann::json const& config = {});
 
 } // namespace tweedledum

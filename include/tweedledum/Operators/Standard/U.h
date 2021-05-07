@@ -19,7 +19,9 @@ public:
     }
 
     U(double theta, double phi, double lambda)
-        : theta_(theta), phi_(phi), lambda_(lambda)
+        : theta_(theta)
+        , phi_(phi)
+        , lambda_(lambda)
     {}
 
     U adjoint() const
@@ -31,15 +33,16 @@ public:
     {
         using namespace std::complex_literals;
         return (UMatrix2() << std::cos(theta_ / 2.),
-                              std::exp(1.i * phi_) * std::sin(theta_ / 2.),
-                              -std::exp(1.i * lambda_) * std::sin(theta_ / 2.),
-                              std::exp(1.i * (phi_ + lambda_)) * std::cos(theta_ / 2.)
-                              ).finished();
+          std::exp(1.i * phi_) * std::sin(theta_ / 2.),
+          -std::exp(1.i * lambda_) * std::sin(theta_ / 2.),
+          std::exp(1.i * (phi_ + lambda_)) * std::cos(theta_ / 2.))
+          .finished();
     }
 
     bool operator==(U const& other) const
     {
-        return theta_ == other.theta_ && phi_ == other.phi_ && lambda_ == other.lambda_;
+        return theta_ == other.theta_ && phi_ == other.phi_
+            && lambda_ == other.lambda_;
     }
 
 private:
@@ -48,4 +51,4 @@ private:
     double const lambda_;
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

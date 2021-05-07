@@ -8,8 +8,8 @@
 #include "../../../IR/Qubit.h"
 #include "../../../Operators/Reversible.h"
 #include "../../../Target/Device.h"
-#include "../../../Target/Placement.h"
 #include "../../../Target/Mapping.h"
+#include "../../../Target/Placement.h"
 #include "../../Utility/reverse.h"
 
 namespace tweedledum {
@@ -17,8 +17,10 @@ namespace tweedledum {
 class SabreRouter {
 public:
     SabreRouter(Device const& device, Circuit const& original,
-        Placement const& init_placement)
-        : device_(device), original_(original), mapping_(init_placement)
+      Placement const& init_placement)
+        : device_(device)
+        , original_(original)
+        , mapping_(init_placement)
         , visited_(original_.size(), 0u)
         , involved_phy_(device_.num_qubits(), 0u)
         , phy_decay_(device_.num_qubits(), 1.0)
@@ -54,7 +56,7 @@ private:
     std::vector<InstRef> extended_layer_;
     std::vector<uint32_t> involved_phy_;
     std::vector<float> phy_decay_;
-    
+
     // Sabre configuration
     uint32_t e_set_size_ = 20;
     float e_weight_ = 0.5;

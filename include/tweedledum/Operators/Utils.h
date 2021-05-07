@@ -72,4 +72,4 @@ inline std::optional<double> rotation_angle(Instruction const& inst)
     return std::nullopt;
 }
 
-}
+} // namespace tweedledum

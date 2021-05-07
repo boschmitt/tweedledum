@@ -106,7 +106,7 @@ void LinePlacer::extract_lines()
         --v_degree_.at(lines_.back().back());
     }
     std::sort(lines_.begin(), lines_.end(),
-    [](auto const& l0, auto const& l1) { return l0.size() > l1.size(); });
+      [](auto const& l0, auto const& l1) { return l0.size() > l1.size(); });
 }
 
 Qubit LinePlacer::pick_neighbor(Placement const& placement, uint32_t phy) const
@@ -163,7 +163,8 @@ std::optional<Placement> LinePlacer::place_lines()
 
 /*! \brief Yet to be written.
  */
-std::optional<Placement> line_place(Device const& device, Circuit const& original)
+std::optional<Placement> line_place(
+  Device const& device, Circuit const& original)
 {
     LinePlacer placer(device, original);
     return placer.run();

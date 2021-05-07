@@ -8,7 +8,8 @@ namespace tweedledum {
 
 /*! \brief Yet to be written.
  */
-std::optional<Placement> sat_place(Device const& device, Circuit const& original)
+std::optional<Placement> sat_place(
+  Device const& device, Circuit const& original)
 {
     bill::solver solver;
     SatPlacer placer(device, original, solver);

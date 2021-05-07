@@ -4,15 +4,15 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
+#include "../Utils/SmallVector.h"
 #include "Operator.h"
 #include "Wire.h"
-#include "../Utils/SmallVector.h"
 
 #include <cassert>
 #include <limits>
 #include <memory>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace tweedledum {
 
@@ -53,12 +53,13 @@ class Instruction : public Operator {
 public:
     // This is called by realloc!!
     Instruction(Instruction const& other)
-        : Operator(static_cast<Operator const&>(other)), qubits_conns_(other.qubits_conns_)
+        : Operator(static_cast<Operator const&>(other))
+        , qubits_conns_(other.qubits_conns_)
         , cbits_conns_(other.cbits_conns_)
     {}
 
     Instruction(Instruction const& other, std::vector<Qubit> const& qubits,
-        std::vector<Cbit> const& cbits)
+      std::vector<Cbit> const& cbits)
         : Operator(static_cast<Operator const&>(other))
     {
         for (Qubit qubit : qubits) {
@@ -75,13 +76,13 @@ public:
         return qubits_conns_.size() - this->num_targets();
     }
 
-    Qubit control(uint32_t const idx = 0u) const 
+    Qubit control(uint32_t const idx = 0u) const
     {
         assert(idx < num_controls());
         return qubits_conns_[idx].qubit;
     }
 
-    Qubit target(uint32_t const idx = 0u) const 
+    Qubit target(uint32_t const idx = 0u) const
     {
         assert(idx < this->num_targets());
         return qubits_conns_[num_controls() + idx].qubit;
@@ -112,11 +113,9 @@ public:
     {
         std::vector<Cbit> cbits;
         cbits.reserve(cbits_conns_.size());
-        std::transform(cbits_conns_.begin(), cbits_conns_.end(), 
-        std::back_inserter(cbits), 
-        [](CbitConnection const& c) -> Cbit { 
-            return c.cbit; 
-        });
+        std::transform(cbits_conns_.begin(), cbits_conns_.end(),
+          std::back_inserter(cbits),
+          [](CbitConnection const& c) -> Cbit { return c.cbit; });
         return cbits;
     }
 
@@ -130,11 +129,9 @@ public:
     {
         std::vector<Qubit> qubits;
         qubits.reserve(qubits_conns_.size());
-        std::transform(qubits_conns_.begin(), qubits_conns_.end(), 
-        std::back_inserter(qubits), 
-        [](QubitConnection const& c) -> Qubit { 
-            return c.qubit; 
-        });
+        std::transform(qubits_conns_.begin(), qubits_conns_.end(),
+          std::back_inserter(qubits),
+          [](QubitConnection const& c) -> Qubit { return c.qubit; });
         return qubits;
     }
 
@@ -156,9 +153,11 @@ public:
     template<typename Fn>
     void foreach_cbit(Fn&& fn) const
     {
+        // clang-format off
         static_assert(std::is_invocable_r_v<void, Fn, Cbit, InstRef> ||
                       std::is_invocable_r_v<void, Fn, Cbit> ||
                       std::is_invocable_r_v<void, Fn, InstRef>);
+        // clang-format on
         for (CbitConnection const& connection : cbits_conns_) {
             if constexpr (std::is_invocable_r_v<void, Fn, Cbit, InstRef>) {
                 fn(connection.cbit, connection.inst_ref);
@@ -176,9 +175,11 @@ public:
     template<typename Fn>
     void foreach_qubit(Fn&& fn) const
     {
+        // clang-format off
         static_assert(std::is_invocable_r_v<void, Fn, Qubit, InstRef> ||
                       std::is_invocable_r_v<void, Fn, Qubit> ||
                       std::is_invocable_r_v<void, Fn, InstRef>);
+        // clang-format on
         for (QubitConnection const& connection : qubits_conns_) {
             if constexpr (std::is_invocable_r_v<void, Fn, Qubit, InstRef>) {
                 fn(connection.qubit, connection.inst_ref);
@@ -219,14 +220,17 @@ public:
         if (cbits_conns_ != other.cbits_conns_) {
             return false;
         }
-        return static_cast<Operator const&>(*this) == static_cast<Operator const&>(other);
+        return static_cast<Operator const&>(*this)
+            == static_cast<Operator const&>(other);
     }
 
 private:
     struct QubitConnection {
         Qubit qubit;
         InstRef inst_ref;
-        QubitConnection(Qubit qubit, InstRef i) : qubit(qubit), inst_ref(i)
+        QubitConnection(Qubit qubit, InstRef i)
+            : qubit(qubit)
+            , inst_ref(i)
         {}
 
         // FIXME: this quite counterintuitive
@@ -239,7 +243,9 @@ private:
     struct CbitConnection {
         Cbit cbit;
         InstRef inst_ref;
-        CbitConnection(Cbit cbit, InstRef i) : cbit(cbit), inst_ref(i)
+        CbitConnection(Cbit cbit, InstRef i)
+            : cbit(cbit)
+            , inst_ref(i)
         {}
 
         // FIXME: this quite counterintuitive
@@ -253,7 +259,7 @@ private:
 
     template<typename OpT>
     Instruction(OpT&& optor, std::vector<Qubit> const& qubits,
-        std::vector<Cbit> const& cbits)
+      std::vector<Cbit> const& cbits)
         : Operator(std::forward<OpT>(optor))
     {
         for (Qubit qubit : qubits) {

@@ -40,19 +40,20 @@ bool JitRePlacer::add_front_layer()
     for (InstRef ref : front_layer_) {
         Instruction const& inst = current_->instruction(ref);
         if (add_instruction(inst) == false) {
-                new_front_layer.push_back(ref);
-                auto const qubits = inst.qubits();
-                involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
-                involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
-                continue;
+            new_front_layer.push_back(ref);
+            auto const qubits = inst.qubits();
+            involved_phy_.at(placement_.v_to_phy(qubits.at(0))) = 1u;
+            involved_phy_.at(placement_.v_to_phy(qubits.at(1))) = 1u;
+            continue;
         }
         added_at_least_one = true;
-        current_->foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-            visited_.at(cref) += 1;
-            if (visited_.at(cref) == child.num_wires()) {
-                new_front_layer.push_back(cref);
-            }
-        });
+        current_->foreach_child(
+          ref, [&](InstRef cref, Instruction const& child) {
+              visited_.at(cref) += 1;
+              if (visited_.at(cref) == child.num_wires()) {
+                  new_front_layer.push_back(cref);
+              }
+          });
     }
     front_layer_ = std::move(new_front_layer);
     return added_at_least_one;
@@ -66,16 +67,17 @@ void JitRePlacer::select_extended_layer()
     while (!tmp_layer.empty()) {
         std::vector<InstRef> new_tmp_layer;
         for (InstRef const ref : tmp_layer) {
-            current_->foreach_child(ref, [&](InstRef cref, Instruction const& child) {
-                visited_.at(cref) += 1;
-                incremented.push_back(cref);
-                if (visited_.at(cref) == child.num_wires()) {
-                    new_tmp_layer.push_back(cref);
-                    if (child.num_qubits() == 2u) {
-                        extended_layer_.emplace_back(cref);
-                    }
-                }
-            });
+            current_->foreach_child(
+              ref, [&](InstRef cref, Instruction const& child) {
+                  visited_.at(cref) += 1;
+                  incremented.push_back(cref);
+                  if (visited_.at(cref) == child.num_wires()) {
+                      new_tmp_layer.push_back(cref);
+                      if (child.num_qubits() == 2u) {
+                          extended_layer_.emplace_back(cref);
+                      }
+                  }
+              });
             if (extended_layer_.size() >= e_set_size_) {
                 goto undo_increment;
             }
@@ -156,9 +158,7 @@ bool JitRePlacer::add_instruction(Instruction const& inst)
     }
     // Transform the wires to a new
     SmallVector<Qubit, 2> qubits;
-    inst.foreach_qubit([&](Qubit ref) {
-        qubits.push_back(ref);
-    });
+    inst.foreach_qubit([&](Qubit ref) { qubits.push_back(ref); });
     // FIXME: implement .at in SmallVector!
     Qubit phy0 = placement_.v_to_phy(qubits[0]);
     Qubit phy1 = placement_.v_to_phy(qubits[1]);
@@ -209,7 +209,8 @@ JitRePlacer::Swap JitRePlacer::find_swap()
             v_to_phy.at(v1) = phy0;
         }
         double swap_cost = compute_cost(v_to_phy, front_layer_);
-        double const max_decay = std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
+        double const max_decay =
+          std::max(phy_decay_.at(phy0), phy_decay_.at(phy1));
 
         if (!extended_layer_.empty()) {
             double const f_cost = swap_cost / front_layer_.size();
@@ -230,7 +231,8 @@ JitRePlacer::Swap JitRePlacer::find_swap()
     return swap_candidates.at(min);
 }
 
-double JitRePlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
+double JitRePlacer::compute_cost(
+  std::vector<Qubit> const& v_to_phy, std::vector<InstRef> const& layer)
 {
     double cost = 0.0;
     for (InstRef ref : layer) {
@@ -247,8 +249,8 @@ double JitRePlacer::compute_cost(std::vector<Qubit> const& v_to_phy, std::vector
     return cost;
 }
 
-void jit_re_place(Device const& device, Circuit const& original,
-    Placement& placement)
+void jit_re_place(
+  Device const& device, Circuit const& original, Placement& placement)
 {
     JitRePlacer re_placer(device, original, placement);
     re_placer.run();

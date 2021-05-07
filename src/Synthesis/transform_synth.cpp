@@ -6,7 +6,7 @@
 
 #include "tweedledum/Operators/Standard.h"
 #ifdef _MSC_VER
-#include "tweedledum/Utils/Intrinsics.h"
+    #include "tweedledum/Utils/Intrinsics.h"
 #endif
 
 namespace tweedledum {
@@ -16,7 +16,7 @@ using AbstractGate = std::pair<uint32_t, uint32_t>;
 using GateList = std::vector<AbstractGate>;
 
 inline void update_permutation(
-    std::vector<uint32_t>& perm, uint32_t controls, uint32_t targets)
+  std::vector<uint32_t>& perm, uint32_t controls, uint32_t targets)
 {
     for (uint32_t i = 0; i < perm.size(); ++i) {
         if ((perm[i] & controls) == controls) {
@@ -62,14 +62,14 @@ inline GateList unidirectional(std::vector<uint32_t> perm)
 }
 
 inline void update_permutation_inv(
-    std::vector<uint32_t>& perm, uint32_t controls, uint32_t targets)
+  std::vector<uint32_t>& perm, uint32_t controls, uint32_t targets)
 {
     for (uint32_t i = 0u; i < perm.size(); ++i) {
         if ((i & controls) != controls) {
             continue;
         }
         uint32_t const partner = i ^ targets;
-        if ( partner > i) {
+        if (partner > i) {
             std::swap(perm[i], perm[partner]);
         }
     }
@@ -85,7 +85,7 @@ inline GateList bidirectional(std::vector<uint32_t> perm)
         }
         uint32_t const y = perm[i];
         uint32_t const x = std::distance(
-            perm.begin(), std::find(perm.begin() + i, perm.end(), i));
+          perm.begin(), std::find(perm.begin() + i, perm.end(), i));
 
         if (__builtin_popcount(i ^ y) <= __builtin_popcount(i ^ x)) {
             uint32_t const p = i & ~y;
@@ -164,7 +164,7 @@ inline GateList multidirectional(std::vector<uint32_t> perm)
 }
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm)
+  std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm)
 {
     // GateList gates = unidirectional(perm);
     // GateList gates = bidirectional(perm);
@@ -187,10 +187,10 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
         }
     }
 }
-}
+} // namespace
 
 void transform_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm)
+  std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm)
 {
     assert(!perm.empty() && !(perm.size() & (perm.size() - 1)));
     synthesize(circuit, qubits, cbits, perm);

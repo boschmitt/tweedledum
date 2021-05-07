@@ -34,7 +34,8 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
     circuit.apply_operator(Op::Y(), {q0});
     circuit.apply_operator(Op::Z(), {q0});
 
-    SECTION("Adjoints") {
+    SECTION("Adjoints")
+    {
         // Create a circuit with adjoints
         Circuit adjoints;
         adjoints.create_qubit();
@@ -64,15 +65,17 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
             }
         }
     }
-    SECTION("Not adjoints (different qubits)") {
+    SECTION("Not adjoints (different qubits)")
+    {
         // Create a circuit with adjoints but on other qubits
         Circuit non_adjoints;
         non_adjoints.create_qubit();
         Qubit q1 = non_adjoints.create_qubit();
-        circuit.foreach_instruction([&non_adjoints, q1](Instruction const& inst) {
-            std::optional<Operator> adj = inst.adjoint();
-            non_adjoints.apply_operator(*adj, {q1});
-        });
+        circuit.foreach_instruction(
+          [&non_adjoints, q1](Instruction const& inst) {
+              std::optional<Operator> adj = inst.adjoint();
+              non_adjoints.apply_operator(*adj, {q1});
+          });
         REQUIRE(circuit.size() == non_adjoints.size());
 
         // Check for correctness
@@ -116,7 +119,8 @@ TEST_CASE("Check single-target, two-qubit adjointness", "[instruction][ir]")
     circuit.apply_operator(Op::Y(), {q0, q1});
     circuit.apply_operator(Op::Z(), {q0, q1});
 
-    SECTION("Adjoints") {
+    SECTION("Adjoints")
+    {
         // Create a circuit with adjoints
         Circuit adjoints;
         adjoints.create_qubit();
@@ -147,7 +151,8 @@ TEST_CASE("Check single-target, two-qubit adjointness", "[instruction][ir]")
             }
         }
     }
-    SECTION("Not adjoints (same qubits, different order)") {
+    SECTION("Not adjoints (same qubits, different order)")
+    {
         // Create a circuit with adjoints but on other qubits
         Circuit non_adjoints;
         non_adjoints.create_qubit();
@@ -191,7 +196,8 @@ TEST_CASE("Check two-target, two-qubit adjointness", "[instruction][ir]")
     circuit.apply_operator(Op::Rzz(numbers::pi), {q0, q1});
     circuit.apply_operator(Op::Swap(), {q0, q1});
 
-    SECTION("Adjoints") {
+    SECTION("Adjoints")
+    {
         // Create a circuit with adjoints
         Circuit adjoints;
         adjoints.create_qubit();
@@ -222,7 +228,8 @@ TEST_CASE("Check two-target, two-qubit adjointness", "[instruction][ir]")
             }
         }
     }
-    SECTION("Not adjoints (same qubits, different order)") {
+    SECTION("Not adjoints (same qubits, different order)")
+    {
         // Create a circuit with adjoints but on other qubits
         Circuit non_adjoints;
         non_adjoints.create_qubit();

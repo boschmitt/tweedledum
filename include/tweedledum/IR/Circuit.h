@@ -12,8 +12,8 @@
 #include <cassert>
 #include <fmt/format.h>
 #include <memory>
-#include <vector>
 #include <utility>
+#include <vector>
 
 namespace tweedledum {
 
@@ -21,7 +21,8 @@ class BaseView;
 
 class Circuit : public WireStorage {
 public:
-    Circuit() : global_phase_(0.0)
+    Circuit()
+        : global_phase_(0.0)
     {
         instructions_.reserve(1024);
     }
@@ -50,8 +51,8 @@ public:
     // Wires
     Qubit create_qubit(std::string_view name)
     {
-        last_instruction_.emplace(last_instruction_.begin() + num_qubits(), 
-                                  InstRef::invalid());
+        last_instruction_.emplace(
+          last_instruction_.begin() + num_qubits(), InstRef::invalid());
         return do_create_qubit(name);
     }
 
@@ -98,15 +99,16 @@ public:
     // Instructions
     template<typename OpT>
     InstRef apply_operator(OpT&& optor, std::vector<Qubit> const& qubits,
-        std::vector<Cbit> const& cbits = {})
+      std::vector<Cbit> const& cbits = {})
     {
-        Instruction& inst = instructions_.emplace_back(std::forward<OpT>(optor), qubits, cbits);
+        Instruction& inst =
+          instructions_.emplace_back(std::forward<OpT>(optor), qubits, cbits);
         connect_instruction(inst);
         return InstRef(instructions_.size() - 1);
     }
 
-    InstRef apply_operator(Instruction const& optor, 
-        std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits = {})
+    InstRef apply_operator(Instruction const& optor,
+      std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits = {})
     {
         Instruction& inst = instructions_.emplace_back(optor, qubits, cbits);
         connect_instruction(inst);
@@ -122,8 +124,8 @@ public:
     }
 
     // Composition
-    void append(Circuit const& other, std::vector<Qubit> const& qubits, 
-        std::vector<Cbit> const& cbits)
+    void append(Circuit const& other, std::vector<Qubit> const& qubits,
+      std::vector<Cbit> const& cbits)
     {
         assert(other.num_cbits() == cbits.size());
         assert(other.num_qubits() == qubits.size());
@@ -131,13 +133,15 @@ public:
         other.foreach_instruction([&](Instruction const& inst) {
             std::vector<Qubit> this_qubits;
             inst.foreach_qubit([&](Qubit qubit) {
-                Qubit const new_qubit = qubit.polarity() == Qubit::Polarity::positive ? qubits.at(qubit) : !qubits.at(qubit);
+                Qubit const new_qubit =
+                  qubit.polarity() == Qubit::Polarity::positive
+                    ? qubits.at(qubit)
+                    : !qubits.at(qubit);
                 this_qubits.push_back(new_qubit);
             });
             std::vector<Cbit> this_cbits;
-            inst.foreach_cbit([&](Cbit cbit) {
-                this_cbits.push_back(cbits.at(cbit));
-            });
+            inst.foreach_cbit(
+              [&](Cbit cbit) { this_cbits.push_back(cbits.at(cbit)); });
             assert(!this_qubits.empty());
             apply_operator(inst, this_qubits, this_cbits);
         });
@@ -164,7 +168,8 @@ public:
             }
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(ref);
-            } else if constexpr (std::is_invocable_r_v<void, Fn, Instruction const&>) {
+            } else if constexpr (std::is_invocable_r_v<void, Fn,
+                                   Instruction const&>) {
                 fn(instructions_.at(ref));
             } else {
                 fn(ref, instructions_.at(ref));
@@ -183,7 +188,8 @@ public:
         for (uint32_t i = 0u; i < instructions_.size(); ++i) {
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(InstRef(i));
-            } else if constexpr (std::is_invocable_r_v<void, Fn, Instruction const&>) {
+            } else if constexpr (std::is_invocable_r_v<void, Fn,
+                                   Instruction const&>) {
                 fn(instructions_.at(i));
             } else {
                 fn(InstRef(i), instructions_.at(i));
@@ -199,10 +205,11 @@ public:
                       std::is_invocable_r_v<void, Fn, Instruction const&> ||
                       std::is_invocable_r_v<void, Fn, InstRef, Instruction const&>);
         // clang-format on
-        for (uint32_t i = instructions_.size(); i --> 0u;) {
+        for (uint32_t i = instructions_.size(); i-- > 0u;) {
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(InstRef(i));
-            } else if constexpr (std::is_invocable_r_v<void, Fn, Instruction const&>) {
+            } else if constexpr (std::is_invocable_r_v<void, Fn,
+                                   Instruction const&>) {
                 fn(instructions_.at(i));
             } else {
                 fn(InstRef(i), instructions_.at(i));
@@ -222,7 +229,8 @@ public:
         inst.foreach_cbit([&](InstRef const iref) {
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(iref);
-            } else if constexpr (std::is_invocable_r_v<void, Fn, Instruction const&>) {
+            } else if constexpr (std::is_invocable_r_v<void, Fn,
+                                   Instruction const&>) {
                 fn(instructions_.at(iref));
             } else {
                 fn(iref, instructions_.at(iref));
@@ -231,7 +239,8 @@ public:
         inst.foreach_qubit([&](InstRef const iref) {
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(iref);
-            } else if constexpr (std::is_invocable_r_v<void, Fn, Instruction const&>) {
+            } else if constexpr (std::is_invocable_r_v<void, Fn,
+                                   Instruction const&>) {
                 fn(instructions_.at(iref));
             } else {
                 fn(iref, instructions_.at(iref));
@@ -239,7 +248,7 @@ public:
         });
     }
 
-    // This methods are needed for the python bindings 
+    // This methods are needed for the python bindings
     auto py_begin() const
     {
         return instructions_.begin();

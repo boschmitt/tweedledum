@@ -14,10 +14,13 @@ inline void xag_stats(mockturtle::xag_network const& xag)
 {
     using namespace mockturtle;
     auto mc_size = multiplicative_complexity(xag);
-    auto mc_depth =multiplicative_complexity_depth(xag);
-    fmt::print("[i] + [i/o] = {}/{}, nodes = {}\n", xag.num_pis(), xag.num_pos(), xag.size());
-    fmt::print("[i] + mult. compl. size: {}\n", mc_size ? std::to_string(*mc_size) : "N/A");
-    fmt::print("[i] + mult. compl. depth: {}\n\n", mc_depth ? std::to_string(*mc_depth) : "N/A");
+    auto mc_depth = multiplicative_complexity_depth(xag);
+    fmt::print("[i] + [i/o] = {}/{}, nodes = {}\n", xag.num_pis(),
+      xag.num_pos(), xag.size());
+    fmt::print("[i] + mult. compl. size: {}\n",
+      mc_size ? std::to_string(*mc_size) : "N/A");
+    fmt::print("[i] + mult. compl. depth: {}\n\n",
+      mc_depth ? std::to_string(*mc_depth) : "N/A");
 }
 
 } // namespace tweedledum

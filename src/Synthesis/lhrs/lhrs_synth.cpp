@@ -2,18 +2,18 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Operators/Extension/TruthTable.h"
-#include "tweedledum/Operators/Standard/X.h"
 #include "tweedledum/Synthesis/lhrs_synth.h"
 #include "BennettStrategy.h"
 #include "EagerStrategy.h"
+#include "tweedledum/Operators/Extension/TruthTable.h"
+#include "tweedledum/Operators/Standard/X.h"
 
 #include <cassert>
 #include <memory>
 #include <mockturtle/algorithms/collapse_mapped.hpp>
 #include <mockturtle/algorithms/lut_mapping.hpp>
-#include <mockturtle/networks/xag.hpp>
 #include <mockturtle/networks/klut.hpp>
+#include <mockturtle/networks/xag.hpp>
 #include <mockturtle/utils/node_map.hpp>
 #include <mockturtle/views/mapping_view.hpp>
 
@@ -25,10 +25,9 @@ struct Config {
     std::unique_ptr<BaseStrategy> strategy;
 
     Config(nlohmann::json const& config)
-    : strategy(std::make_unique<BennettStrategy>())
-    { }
+        : strategy(std::make_unique<BennettStrategy>())
+    {}
 };
-
 
 using namespace mockturtle;
 
@@ -44,8 +43,7 @@ inline klut_network collapse_to_klut(xag_network const& xag)
 }
 
 inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, xag_network const& xag, 
-    Config const& config)
+  std::vector<Cbit> const& cbits, xag_network const& xag, Config const& config)
 {
     using Action = BaseStrategy::Action;
 
@@ -54,9 +52,7 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     node_map<Qubit, klut_network> to_qubit(klut, Qubit::invalid());
 
     uint32_t i = 0u;
-    klut.foreach_pi([&](auto const& node) {
-        to_qubit[node] = qubits.at(i++);
-    });
+    klut.foreach_pi([&](auto const& node) { to_qubit[node] = qubits.at(i++); });
 
     // Analysis of the primary outputs:  Here I do two things:
     // *) look for primary outputs that point to the same node.  For those
@@ -104,7 +100,7 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
         }
         qs.push_back(to_qubit[step.node]);
         circuit.apply_operator(
-            Op::TruthTable(klut.node_function(step.node)), qs, cbits);
+          Op::TruthTable(klut.node_function(step.node)), qs, cbits);
     }
 
     // Compute the outputs that need to be "copied" from other qubits.
@@ -126,19 +122,19 @@ inline void synthesize(Circuit& circuit, std::vector<Qubit> const& qubits,
     }
 }
 
-}
+} // namespace
 
 void lhrs_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
-    nlohmann::json const& config)
+  std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
+  nlohmann::json const& config)
 {
     Config cfg(config);
     synthesize(circuit, qubits, cbits, xag, cfg);
 }
 
 //  LUT-based hierarchical reversible logic synthesis (LHRS)
-Circuit lhrs_synth(mockturtle::xag_network const& xag,
-    nlohmann::json const& config)
+Circuit lhrs_synth(
+  mockturtle::xag_network const& xag, nlohmann::json const& config)
 {
     Circuit circuit;
     Config cfg(config);

@@ -14,4 +14,4 @@ Circuit parse_source_file(std::string_view path);
 
 Circuit parse_source_buffer(std::string_view buffer);
 
-} // namespace tweedledum
+} // namespace tweedledum::qasm

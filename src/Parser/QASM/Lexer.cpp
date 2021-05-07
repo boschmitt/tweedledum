@@ -6,7 +6,7 @@
 #include "Token.h"
 
 #include <cctype>
-#include <cstdint> 
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -17,8 +17,7 @@ bool Lexer::skip_whitespace(char const* current_pos_)
 {
     if ((*current_pos_ == ' ') || (*current_pos_ == '\t')) {
         ++current_pos_;
-        while (
-            (*current_pos_ == ' ') || (*current_pos_ == '\t')) {
+        while ((*current_pos_ == ' ') || (*current_pos_ == '\t')) {
             ++current_pos_;
         }
         src_position_ = current_pos_;
@@ -29,7 +28,8 @@ bool Lexer::skip_whitespace(char const* current_pos_)
 
 bool Lexer::skip_line_comment(char const* current_pos_)
 {
-    while (*current_pos_ != 0 && *current_pos_ != '\n' && *current_pos_ != '\r') {
+    while (*current_pos_ != 0 && *current_pos_ != '\n' && *current_pos_ != '\r')
+    {
         ++current_pos_;
     }
     src_position_ = ++current_pos_;
@@ -41,7 +41,7 @@ Token Lexer::create_token(char const* token_end, Token::Kinds const kind)
     uint32_t token_len = token_end - src_position_;
     src_position_ = token_end;
     return Token(kind, current_location() - token_len, token_len,
-        src_position_ - token_len);
+      src_position_ - token_len);
 }
 
 Token Lexer::lex_numeric_constant(char const* current_pos_)
@@ -51,8 +51,7 @@ Token Lexer::lex_numeric_constant(char const* current_pos_)
         ++current_pos_;
     }
     if (*current_pos_ != '.') {
-        return create_token(
-            current_pos_, Token::Kinds::nninteger);
+        return create_token(current_pos_, Token::Kinds::nninteger);
     }
     ++current_pos_;
     while (std::isdigit(*current_pos_)) {
@@ -73,20 +72,18 @@ Token Lexer::lex_numeric_constant(char const* current_pos_)
 Token Lexer::lex_identifier(char const* current_pos_)
 {
     // We have already matched [a-z$]
-    while (std::isalpha(*current_pos_)
-            || std::isdigit(*current_pos_) || *current_pos_ == '_')
+    while (std::isalpha(*current_pos_) || std::isdigit(*current_pos_)
+           || *current_pos_ == '_')
     {
         ++current_pos_;
     }
     // Check if the identifier is a known keyword
-    auto keyword
-        = kw_tokens.find(std::string(src_position_, current_pos_));
+    auto keyword = kw_tokens.find(std::string(src_position_, current_pos_));
     if (keyword != kw_tokens.end()) {
         return create_token(current_pos_, keyword->second);
     }
     // Check if the identifier is a known preprocessor keyword
-    keyword
-        = pp_tokens.find(std::string(src_position_, current_pos_));
+    keyword = pp_tokens.find(std::string(src_position_, current_pos_));
     if (keyword != pp_tokens.end()) {
         return create_token(current_pos_, keyword->second);
     }
@@ -216,7 +213,7 @@ lex_next_token:
 
     case '"':
         while (*current_pos_ != '"' && *current_pos_ != '\n'
-                && *current_pos_ != '\r') {
+               && *current_pos_ != '\r') {
             ++current_pos_;
         }
         if (*current_pos_ != '"') {
@@ -227,8 +224,7 @@ lex_next_token:
         return create_token(current_pos_, Token::Kinds::string);
 
     default:
-        return Token(Token::Kinds::error, current_location(),
-            length, nullptr);
+        return Token(Token::Kinds::error, current_location(), length, nullptr);
     }
     uint32_t location = current_location();
     src_position_ = current_pos_;

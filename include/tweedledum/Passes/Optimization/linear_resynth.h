@@ -10,6 +10,7 @@
 
 namespace tweedledum {
 
-Circuit linear_resynth(Circuit const& original, nlohmann::json const& config = {});
+Circuit linear_resynth(
+  Circuit const& original, nlohmann::json const& config = {});
 
 } // namespace tweedledum

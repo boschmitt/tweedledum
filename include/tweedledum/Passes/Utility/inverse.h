@@ -21,7 +21,8 @@ inline std::optional<Circuit> inverse(Circuit const& original)
             failed = true;
             return;
         }
-        adjoint_circuit.apply_operator(*adjoint_op, inst.qubits(), inst.cbits());
+        adjoint_circuit.apply_operator(
+          *adjoint_op, inst.qubits(), inst.cbits());
     });
     if (failed) {
         return std::nullopt;

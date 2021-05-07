@@ -19,7 +19,8 @@ TEST_CASE("Trivial cases for gray_synth", "[gray_synth][synth]")
 {
     using namespace tweedledum;
     nlohmann::json config;
-    SECTION("Check simple example from Amy paper") {
+    SECTION("Check simple example from Amy paper")
+    {
         LinPhasePoly phase_parities;
         phase_parities.add_term(0b0110, numbers::pi_div_4);
         phase_parities.add_term(0b0001, numbers::pi_div_4);
@@ -38,7 +39,7 @@ TEST_CASE("Trivial cases for gray_synth", "[gray_synth][synth]")
         CHECK(transform.isIdentity());
         CHECK(synthesized.size() == 15u);
 
-        // The example in the paper is wrong! :( 
+        // The example in the paper is wrong! :(
         // (it took me a while to figure it out)
         Circuit expected;
         Qubit q0 = expected.create_qubit();

@@ -15,50 +15,58 @@
 #include <catch.hpp>
 #include <nlohmann/json.hpp>
 
-TEST_CASE("Trivial cases for CX-Dihedral synthesis", "[cx_dihedral_synth][synth]")
+TEST_CASE(
+  "Trivial cases for CX-Dihedral synthesis", "[cx_dihedral_synth][synth]")
 {
     using namespace tweedledum;
     nlohmann::json config;
     LinPhasePoly phase_parities;
     BMatrix transform = BMatrix::Identity(3, 3);
-    SECTION("Trivial case") {
+    SECTION("Trivial case")
+    {
         phase_parities.add_term(0b001, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
         CHECK(circuit.size() == 1u);
     }
-    SECTION("Still trivial, but with more rotations") {
+    SECTION("Still trivial, but with more rotations")
+    {
         phase_parities.add_term(0b001, numbers::pi_div_4);
         phase_parities.add_term(0b010, numbers::pi_div_4);
         phase_parities.add_term(0b100, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
         CHECK(circuit.size() == 3u);
     }
-    SECTION("Will require one CX") {
+    SECTION("Will require one CX")
+    {
         transform(0, 1) = 1;
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
         CHECK(circuit.size() == 2u);
     }
-    SECTION("Will require two CX") {
+    SECTION("Will require two CX")
+    {
         transform(0, 1) = 1;
         transform(1, 2) = 1;
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
         CHECK(circuit.size() == 3u);
     }
-    SECTION("Will require two CX") {
+    SECTION("Will require two CX")
+    {
         transform(0, 1) = 1;
         transform(1, 2) = 1;
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
         CHECK(circuit.size() == 3u);
     }
-    SECTION("Will require two CX") {
+    SECTION("Will require two CX")
+    {
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
         CHECK(circuit.size() == 3u);
     }
-    SECTION("Will require more CX") {
+    SECTION("Will require more CX")
+    {
         constexpr auto T = numbers::pi_div_4;
         constexpr auto T_dagger = -numbers::pi_div_4;
         phase_parities.add_term(0b001, T);

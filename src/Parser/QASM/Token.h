@@ -13,19 +13,25 @@ namespace tweedledum::qasm {
 /*! \brief Represent a single lexed token. */
 class Token {
 public:
-    enum class Kinds : uint8_t {
+    enum class Kinds : uint8_t
+    {
 #define TOKEN(X) X,
 #include "Tokens.def"
     };
 
     Token()
-        : kind_(Token::Kinds::unknown), location_(0u), length_(0u),
-          content_ptr_(nullptr)
+        : kind_(Token::Kinds::unknown)
+        , location_(0u)
+        , length_(0u)
+        , content_ptr_(nullptr)
     {}
 
     Token(Kinds const k, uint32_t const loc, uint32_t const len,
-        char const* content)
-        : kind_(k), location_(loc), length_(len), content_ptr_(content)
+      char const* content)
+        : kind_(k)
+        , location_(loc)
+        , length_(len)
+        , content_ptr_(content)
     {}
 
     // Token classification.

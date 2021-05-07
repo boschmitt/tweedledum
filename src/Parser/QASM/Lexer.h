@@ -4,11 +4,11 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "tweedledum/Utils/Source.h"
 #include "Token.h"
+#include "tweedledum/Utils/Source.h"
 
 #include <cctype>
-#include <cstdint> 
+#include <cstdint>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -30,7 +30,8 @@ public:
     // assumes that the associated file buffer will outlive it, so it
     // doesn't take ownership of it, hence the naked pointer.
     Lexer(Source const* source)
-        : source_(source), src_position_(source_->cbegin())
+        : source_(source)
+        , src_position_(source_->cbegin())
     {}
 
     // Lex a token and consume it.

@@ -31,7 +31,7 @@
 // (*) unidirectional: only adds gates from the output side
 // (*) bidirectional: adds gates from input __or__ output side at each step
 // (*) multidirectional: adds gates from input __and__ output side at each step
-// 
+//
 namespace tweedledum {
 
 /*! \brief Reversible synthesis based on symbolic transformation.
@@ -40,7 +40,7 @@ namespace tweedledum {
  * passed as a parameter and can potentially already contain some gates.  The
  * parameter ``qubits`` provides a qubit mapping to the existing qubits in the
  * circuit.
- * 
+ *
  * \param[inout] circuit A circuit in which the permutation will be synthesized
  * on.
  * \param[in] qubits The qubits that will be used.
@@ -48,13 +48,13 @@ namespace tweedledum {
  * \param[in] perm A vector of different integers.
  */
 void transform_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm);
+  std::vector<Cbit> const& cbits, std::vector<uint32_t> const& perm);
 
 /*! \brief Reversible synthesis based on symbolic transformation.
  *
  * A permutation is specified as a vector of :math:`2^n` different integers
  * ranging from :math:`0` to :math:`2^n-1`.
- * 
+ *
  * \param[in] perm A vector of different integers.
  * \return A reversible circuit.
  */

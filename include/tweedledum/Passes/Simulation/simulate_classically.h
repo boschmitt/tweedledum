@@ -13,7 +13,7 @@ namespace tweedledum {
 
 template<typename WordType>
 inline DynamicBitset<WordType> simulate_classically(
-    Circuit const& circuit, DynamicBitset<WordType> pattern)
+  Circuit const& circuit, DynamicBitset<WordType> pattern)
 {
     assert(circuit.num_qubits() == pattern.size());
     circuit.foreach_instruction([&](Instruction const& inst) {

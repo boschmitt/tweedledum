@@ -16,4 +16,4 @@ public:
     }
 };
 
-} // namespace tweedledum
+} // namespace tweedledum::Op

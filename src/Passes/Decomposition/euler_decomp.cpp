@@ -17,7 +17,8 @@ namespace tweedledum {
 namespace {
 
 struct Config {
-    enum class Basis {
+    enum class Basis
+    {
         zxz,
         zyz
     };
@@ -45,7 +46,7 @@ struct Params {
     double phase;
 };
 
-inline Params zyz_params(UMatrix const& matrix) 
+inline Params zyz_params(UMatrix const& matrix)
 {
     Params params = {0, 0, 0, 0};
 
@@ -53,7 +54,8 @@ inline Params zyz_params(UMatrix const& matrix)
     params.phase = -std::arg(phase);
     UMatrix2 su_mat = phase * matrix;
 
-    params.theta = 2 * std::atan2(std::abs(su_mat(1, 0)), std::abs(su_mat(0, 0)));
+    params.theta =
+      2 * std::atan2(std::abs(su_mat(1, 0)), std::abs(su_mat(0, 0)));
     double const arg0 = 2 * std::arg(su_mat(1, 1));
     double const arg1 = 2 * std::arg(su_mat(1, 0));
     params.lambda = (arg0 - arg1) / 2.0;
@@ -70,21 +72,24 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
     }
     circuit.apply_operator(Op::Rz(params.lambda), inst.qubits(), inst.cbits());
     switch (cfg.basis) {
-        case Config::Basis::zxz:
-            circuit.apply_operator(Op::Rx(params.theta), inst.qubits(), inst.cbits());
-            break;
-        case Config::Basis::zyz:
-            circuit.apply_operator(Op::Ry(params.theta), inst.qubits(), inst.cbits());
-            break;
+    case Config::Basis::zxz:
+        circuit.apply_operator(
+          Op::Rx(params.theta), inst.qubits(), inst.cbits());
+        break;
+    case Config::Basis::zyz:
+        circuit.apply_operator(
+          Op::Ry(params.theta), inst.qubits(), inst.cbits());
+        break;
     }
     circuit.apply_operator(Op::Rz(params.phi), inst.qubits(), inst.cbits());
     circuit.global_phase() += params.phase;
     return true;
 }
 
-}
+} // namespace
 
-void euler_decomp(Circuit& circuit, Instruction const& inst, nlohmann::json const& config)
+void euler_decomp(
+  Circuit& circuit, Instruction const& inst, nlohmann::json const& config)
 {
     Config cfg(config);
     decompose(circuit, inst, cfg);

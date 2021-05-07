@@ -21,7 +21,7 @@ class Instruction;
 // This class that can be initialized with any­ type that satisfies the Operator
 // concept, which is defined in `struct Concept`.
 //
-// It takes ownership of the controlled object. That is, it moves the object 
+// It takes ownership of the controlled object. That is, it moves the object
 // into a region of storage where we can control its lifetime.  We do that by
 // creating a copy of the original ConcreteOp object on the heap (or on the
 // stack if the object is small enough).
@@ -36,8 +36,10 @@ public:
             concept_ = op.concept_;
             concept_->clone(&op.model_, &model_);
         } else {
-            constexpr bool is_small = sizeof(Model<std::decay_t<ConcreteOp>, true>) <= small_size;
-            new (&model_) Model<std::decay_t<ConcreteOp>, is_small>(std::forward<ConcreteOp>(op));
+            constexpr bool is_small =
+              sizeof(Model<std::decay_t<ConcreteOp>, true>) <= small_size;
+            new (&model_) Model<std::decay_t<ConcreteOp>, is_small>(
+              std::forward<ConcreteOp>(op));
             concept_ = &Model<std::decay_t<ConcreteOp>, is_small>::vtable_;
         }
     }
@@ -61,13 +63,13 @@ public:
     {
         std::string_view the_kind = kind();
         auto pos = the_kind.find_first_of(".");
-        if (pos ==  std::string_view::npos) {
+        if (pos == std::string_view::npos) {
             pos = 0;
         } else {
             ++pos;
         }
         return std::string_view(the_kind.data() + pos, the_kind.size() - pos);
-    }; 
+    };
 
     std::optional<UMatrix> const matrix() const
     {
@@ -86,8 +88,10 @@ public:
     }
 
     template<typename... Args>
-    bool is_one() const 
-    { return (... || is_a<Args>()); }
+    bool is_one() const
+    {
+        return (... || is_a<Args>());
+    }
 
     template<typename ConcreteOp>
     ConcreteOp const& cast() const
@@ -118,7 +122,7 @@ private:
         uint32_t (*num_targets)(void const*) noexcept;
     };
 
-    template <class ConcreteOp, bool IsSmall>
+    template<class ConcreteOp, bool IsSmall>
     struct Model;
 
     static constexpr size_t small_size = sizeof(void*) * 4;
@@ -127,7 +131,7 @@ private:
 };
 
 // Stack
-template <class ConcreteOp>
+template<class ConcreteOp>
 struct Operator::Model<ConcreteOp, true> {
     Model(ConcreteOp&& op) noexcept
         : operator_(std::forward<ConcreteOp>(op))
@@ -144,15 +148,18 @@ struct Operator::Model<ConcreteOp, true> {
 
     static void clone(void const* self, void* other) noexcept
     {
-        new (other) Model<std::decay_t<ConcreteOp>, true>(static_cast<Model const*>(self)->operator_);
+        new (other) Model<std::decay_t<ConcreteOp>, true>(
+          static_cast<Model const*>(self)->operator_);
     }
 
     static bool equal(void const* self, void const* other) noexcept
     {
-        if constexpr (!supports<std::equal_to<>(ConcreteOp, ConcreteOp)>::value) {
+        if constexpr (!supports<std::equal_to<>(ConcreteOp, ConcreteOp)>::value)
+        {
             return true;
         } else {
-            return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
+            return static_cast<Model const*>(self)->operator_
+                == static_cast<Model const*>(other)->operator_;
         }
     }
 
@@ -170,12 +177,12 @@ struct Operator::Model<ConcreteOp, true> {
         }
     }
 
-    static std::string_view kind(void const* self) noexcept 
+    static std::string_view kind(void const* self) noexcept
     {
         return static_cast<Model const*>(self)->operator_.kind();
     }
 
-    static std::optional<UMatrix> const matrix(void const* self) noexcept 
+    static std::optional<UMatrix> const matrix(void const* self) noexcept
     {
         if constexpr (has_matrix_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.matrix();
@@ -184,7 +191,7 @@ struct Operator::Model<ConcreteOp, true> {
         }
     }
 
-    static uint32_t num_targets(void const* self) noexcept 
+    static uint32_t num_targets(void const* self) noexcept
     {
         if constexpr (has_num_targets_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_.num_targets();
@@ -193,13 +200,14 @@ struct Operator::Model<ConcreteOp, true> {
         }
     }
 
-    static constexpr Concept vtable_{dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};
+    static constexpr Concept vtable_{
+      dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};
 
     ConcreteOp operator_;
 };
 
 // Heap
-template <class ConcreteOp>
+template<class ConcreteOp>
 struct Operator::Model<ConcreteOp, false> {
     Model(ConcreteOp&& op) noexcept
         : operator_(std::make_unique<ConcreteOp>(std::forward<ConcreteOp>(op)))
@@ -216,15 +224,18 @@ struct Operator::Model<ConcreteOp, false> {
 
     static void clone(void const* self, void* other) noexcept
     {
-        new (other) Model<ConcreteOp, false>(*static_cast<Model const*>(self)->operator_);
+        new (other)
+          Model<ConcreteOp, false>(*static_cast<Model const*>(self)->operator_);
     }
 
     static bool equal(void const* self, void const* other) noexcept
     {
-        if constexpr (!supports<std::equal_to<>(ConcreteOp, ConcreteOp)>::value) {
+        if constexpr (!supports<std::equal_to<>(ConcreteOp, ConcreteOp)>::value)
+        {
             return true;
         } else {
-            return static_cast<Model const*>(self)->operator_ == static_cast<Model const*>(other)->operator_;
+            return static_cast<Model const*>(self)->operator_
+                == static_cast<Model const*>(other)->operator_;
         }
     }
 
@@ -242,12 +253,12 @@ struct Operator::Model<ConcreteOp, false> {
         }
     }
 
-    static std::string_view kind(void const* self) noexcept 
+    static std::string_view kind(void const* self) noexcept
     {
         return static_cast<Model const*>(self)->operator_->kind();
     }
 
-    static std::optional<UMatrix> const matrix(void const* self) noexcept 
+    static std::optional<UMatrix> const matrix(void const* self) noexcept
     {
         if constexpr (has_matrix_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_->matrix();
@@ -256,7 +267,7 @@ struct Operator::Model<ConcreteOp, false> {
         }
     }
 
-    static uint32_t num_targets(void const* self) noexcept 
+    static uint32_t num_targets(void const* self) noexcept
     {
         if constexpr (has_num_targets_v<ConcreteOp>) {
             return static_cast<Model const*>(self)->operator_->num_targets();
@@ -265,7 +276,8 @@ struct Operator::Model<ConcreteOp, false> {
         }
     }
 
-    static constexpr Concept vtable_{dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};
+    static constexpr Concept vtable_{
+      dtor, clone, equal, optor, adjoint, kind, matrix, num_targets};
 
     std::unique_ptr<ConcreteOp> operator_;
 };

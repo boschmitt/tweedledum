@@ -8,8 +8,8 @@ namespace tweedledum {
 
 /*! \brief Yet to be written.
  */
-std::optional<Placement> apprx_sat_place(Device const& device,
-    Circuit const& original, nlohmann::json const& config)
+std::optional<Placement> apprx_sat_place(
+  Device const& device, Circuit const& original, nlohmann::json const& config)
 {
     bool use_weight = true;
     bill::solver solver;

@@ -18,7 +18,7 @@
 // combinations, of the inputs and a respective angle.
 //
 // To make things clear, take a decomposed Toffoli gate as an example:
-// 
+//
 //                                                             ┌───┐
 // x1 ──────────────●───────────────────●─────────●─────────●──┤ R ├
 //                  │                   │         │         │  └───┘
@@ -31,8 +31,8 @@
 //
 // The numbered gates are CNOTs.  Their corresponding parities are:
 //     (1): x2 + x3
-//     (2): x1 + x2 + x3 
-//     (3): x1 + x3 
+//     (2): x1 + x2 + x3
+//     (3): x1 + x3
 //     (4): x3
 //     (5): x1 + x2
 //     (6): x2
@@ -41,10 +41,10 @@
 // The method implemented here generates exactly this.  It will create a circuit
 // with all linear combinations and associated Rz gates.
 //
-// __NOTE__: Keep in mind that the overall linear transformation will be the 
+// __NOTE__: Keep in mind that the overall linear transformation will be the
 // identity.
 //
-// __NOTE__: This algorithm generate all linear combinations, even when the Rz 
+// __NOTE__: This algorithm generate all linear combinations, even when the Rz
 // angles are 0.  Thus, this method might not be the best if your sum-over-path
 // does not require all parities.
 //
@@ -57,14 +57,14 @@ namespace tweedledum {
  * passed as a parameter and can potentially already contain some gates.  The
  * parameter ``qubits`` provides a qubit mapping to the existing qubits in the
  * circuit.
- * 
+ *
  * \param[inout] circuit A circuit in which the parities will be synthesized on.
  * \param[in] qubits The qubits that will be used.
  * \param[in] cbits The cbits that will be used.
  * \param[in] parities List of parities and their associated angles.
  */
 void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
-    std::vector<Cbit> const& cbits, LinPhasePoly const& parities);
+  std::vector<Cbit> const& cbits, LinPhasePoly const& parities);
 
 /*! \brief Synthesis of a CNOT-dihedral circuits with all linear combinations.
  *
@@ -73,6 +73,5 @@ void all_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
  * \return A CNOT-dihedral circuit on `num_qubits`.
  */
 Circuit all_linear_synth(uint32_t num_qubits, LinPhasePoly const& parities);
-
 
 } // namespace tweedledum

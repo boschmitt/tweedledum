@@ -20,7 +20,8 @@ struct Hash<std::vector<uint32_t>> {
 
     void combine(std::size_t& seed, uint32_t const& v) const
     {
-        seed ^= std::hash<uint32_t>()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        seed ^=
+          std::hash<uint32_t>()(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
 
     result_type operator()(argument_type const& in) const
