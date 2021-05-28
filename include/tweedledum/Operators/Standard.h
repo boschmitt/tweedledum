@@ -11,6 +11,7 @@
 #include "Standard/Ry.h"
 #include "Standard/Rz.h"
 #include "Standard/S.h"
+#include "Standard/Sx.h"
 #include "Standard/Swap.h"
 #include "Standard/T.h"
 #include "Standard/U.h"

@@ -116,6 +116,10 @@ void Parser::parse_gate_statement(Circuit& circuit)
         circuit.apply_operator(Op::S(), qubits);
     } else if (name == "sdg") {
         circuit.apply_operator(Op::Sdg(), qubits);
+    } else if (name == "sx") {
+        circuit.apply_operator(Op::Sx(), qubits);
+    } else if (name == "sxdg") {
+        circuit.apply_operator(Op::Sxdg(), qubits);
     } else if (name == "y") {
         circuit.apply_operator(Op::Y(), qubits);
     } else if (name == "z" || name == "cz") {
