@@ -187,7 +187,8 @@ inline void clean_ancilla(Circuit& circuit, Operator const& op,
     // by a circuit consisting of 4(m − 2) gates.
     // n is the number of qubits
     // m is the number of controls
-    if (circuit.num_qubits() + 1 >= (num_controls << 1)) {
+    if (!circuit.num_ancillae()
+        && circuit.num_qubits() + 1 >= (num_controls << 1)) {
         v_dirty(circuit, op, qubits, cbits, cfg);
         return;
     }
