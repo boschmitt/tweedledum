@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
+#include <cstring>
 #include <iterator>
 #include <limits>
 #include <type_traits>
