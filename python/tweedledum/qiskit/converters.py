@@ -5,8 +5,8 @@
 from tweedledum.ir import Circuit, Qubit, Cbit, rotation_angle
 from tweedledum import operators as Op
 
-from qiskit.circuit import (QuantumCircuit, QuantumRegister, Gate, 
-    ControlledGate, Measure)
+from qiskit.circuit import (QuantumCircuit, QuantumRegister, ClassicalRegister,
+    Gate, ControlledGate, Measure)
 from qiskit.dagcircuit.dagcircuit import DAGCircuit
 from qiskit.circuit.library.standard_gates import (HGate, IGate, PhaseGate, 
     RXGate, RYGate, RZGate, RXXGate, RYYGate, RZZGate, SGate, SdgGate, SwapGate,
@@ -66,7 +66,7 @@ def _convert_qiskit_operator(gate):
             return gate, ctrl_state
     return op(), ctrl_state
 
-def qiskit_qc_to_tweedledum(qiskit_qc):
+def _from_qc(qiskit_qc):
     circuit = Circuit()
     qubits = [circuit.create_qubit() for i in range(len(qiskit_qc.qubits))]
     qubits_map = dict(zip(qiskit_qc.qubits, qubits))
@@ -83,12 +83,12 @@ def qiskit_qc_to_tweedledum(qiskit_qc):
         circuit.apply_operator(op, qs, cs)
     return circuit
 
-def qiskit_dag_to_tweedledum(qiskit_dag):
+def _from_dag(qiskit_dag):
     circuit = Circuit()
     qubits = [circuit.create_qubit() for i in range(len(qiskit_dag.qubits))]
     qubits_map = dict(zip(qiskit_dag.qubits, qubits))
-    cbits = [circuit.create_cbit() for i in range(len(qiskit_qc.clbits))]
-    cbits_map = dict(zip(qiskit_qc.clbits, cbits))
+    cbits = [circuit.create_cbit() for i in range(len(qiskit_dag.clbits))]
+    cbits_map = dict(zip(qiskit_dag.clbits, cbits))
 
     for node in qiskit_dag.op_nodes():
         op, ctrl_state = _convert_qiskit_operator(node.op)
@@ -124,7 +124,7 @@ def _convert_tweedledum_op(op):
         return gate.control(len(ctrl_state), ctrl_state=ctrl_state[::-1])
     return gate
 
-def tweedledum_to_qiskit_qc(circuit):
+def _to_qc(circuit):
     qiskit_qc = QuantumCircuit()
     # Qiskit is weird, it doesn't allow passing 0 as size for register.
     if circuit.num_cbits():
@@ -139,12 +139,33 @@ def tweedledum_to_qiskit_qc(circuit):
         qiskit_qc.append(gate, qubits, cbits)
     return qiskit_qc
 
-def tweedledum_to_qiskit_dag(circuit):
+def _to_dag(circuit):
     qiskit_dag = DAGCircuit()
-    qiskit_dag.add_qreg(circuit.num_qubits(), circuit.num_cbits())
+    qreg = QuantumRegister(circuit.num_qubits())
+    qiskit_dag.add_qreg(qreg)
+    if circuit.num_cbits():
+        creg = ClassicalRegister(circuit.num_cbits())
+        qiskit_dag.add_creg(creg)
     for instruction in circuit:
         gate = _convert_tweedledum_op(instruction)
-        qubits = [qubit.uid() for qubit in instruction.qubits()]
-        cbits = [cbit.uid() for cbit in instruction.cbits()]
+        qubits = [qreg[qubit.uid()] for qubit in instruction.qubits()]
+        if circuit.num_cbits():
+            cbits = [creg[cbit.uid()] for cbit in instruction.cbits()]
+        else:
+            cbits = []
         qiskit_dag.apply_operation_back(gate, qubits, cbits)
     return qiskit_dag
+
+def from_qiskit(circuit):
+    if isinstance(circuit, QuantumCircuit):
+        return _from_qc(circuit)
+    elif isinstance(circuit, DAGCircuit):
+        return _from_dag(circuit)
+    raise TypeError("Circuit must be either a QuantumCircuit or DAGCircuit")
+
+def to_qiskit(circuit, circuit_type='dag'):
+    if circuit_type == 'dag':
+        return _to_dag(circuit)
+    elif circuit_type == 'gatelist':
+        return _to_qc(circuit)
+    raise TypeError(f"Unrecognized circuit type {circuit_type}")
