@@ -55,7 +55,7 @@ passes in python.
 
 Tweedledum has two python packages that can be installed using `pip`.  For both,
 you will at least __Python 3.6__.  The `tweedledum` package contains the latest
-stable release.  You can install it from PyPi using:
+stable release.  You can install it from PyPI using:
 
 * Latest stable release (Linux/Mac/Windows)
 
@@ -123,7 +123,7 @@ Once the examples have been built you can run it:
 
 ## C++ and Python
 
-The second workflow is a bot of a hack.  In Python we can install libraries in
+The second workflow is a bit of a hack.  In Python we can install libraries in
 editable mode, meaning that code changes to the _Python code_ in the project
 don't require a reinstall to be applied. 
 
@@ -133,24 +133,24 @@ pip install -e .
 ```
 
 The only problem now, is that if we change the C++ code, we will need to 
-reinstall the library.  Fortunately, there is a way yo circumvent this 
+reinstall the library.  Fortunately, there is a way to circumvent this 
 annoyance.  
 
 After installing in editable mode, you will see that in `python/tweedledum/` 
 there is a cpython shared library `_tweedledum.cpython-...` Remove this file:
 
-```
+```sh
 rm python/tweedledum/_tweedledum.cpython-...
 ```
 
 Now, we create a build directory as we did with the C++ workflow:
-```
+```sh
 mkdir build      
 cd build
 ```
 
 We can manually build the cpython shared library using:
-```
+```sh
 make _tweedledum
 ```
 
@@ -158,7 +158,7 @@ This will create the library in the `build/` directory. Now, all we need to
 create a symbolic link in `python/tweedledum/` that points the library in 
 `build/`:
 
-```
+```sh
 ln -s _tweedledum.cpython-39-darwin.so ../python/tweedledum/
 ```
 
