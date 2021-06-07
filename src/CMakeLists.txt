@@ -5,6 +5,7 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/QASM/Lexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/QASM/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/qasm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parser/tfc.cpp
     # Passes
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/bridge_decomp.cpp
