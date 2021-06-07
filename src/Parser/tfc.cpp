@@ -7,8 +7,9 @@
 #include "tweedledum/Operators/Standard/Swap.h"
 #include "tweedledum/Operators/Standard/X.h"
 
+#include <cassert>
+#include <cctype>
 #include <fstream>
-#include <iostream>
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -52,7 +53,7 @@ inline std::vector<std::string> split(std::string const& line)
               end = str.find(',', begin);
           }
           if (begin < str.size()) {
-            slipt_string.emplace_back(str.substr(begin));
+              slipt_string.emplace_back(str.substr(begin));
           }
       });
     return slipt_string;
@@ -64,34 +65,24 @@ Circuit parse_stream(std::istream& buffer)
     std::unordered_map<std::string, Qubit> qubits;
     std::string line;
 
-    // Parser header directives
-    while (buffer.peek() == '.' || buffer.peek() == '#') {
-        if (buffer.peek() == '#') {
-            std::getline(buffer, line);
-            continue;
-        }
-        std::getline(buffer, line, ' ');
-        if (line[1] == 'v') {
-            std::getline(buffer, line);
-            auto labels = split(line);
-            for (auto const& label : labels) {
-                qubits.emplace(label, circuit.create_qubit(label));
-            }
-        } else {
-            // Ignore unknown directive line.
-            std::getline(buffer, line);
-        }
-    }
-
     while (std::getline(buffer, line)) {
         left_trim(line);
         if (line.empty() || line.at(0) == '#') {
             continue;
         }
         auto entries = split(line);
-        if (entries.at(0) == "BEGIN" || entries.at(0) == "END") {
+        if (line.at(0) == '.') {
+            if (entries.at(0) == ".v") {
+                std::for_each(entries.begin() + 1, entries.end(),
+                [&](std::string const& label) {
+                    qubits.emplace(label, circuit.create_qubit(label));
+                });
+            }
+            continue;
+        } else if (entries.at(0) == "BEGIN" || entries.at(0) == "END") {
             continue;
         }
+        assert(entries.at(0).at(0) == 'f' || entries.at(0).at(0) == 't');
         Operator op = Op::X();
         if (entries.at(0).at(0) == 'f') {
             op = Op::Swap();
@@ -99,7 +90,13 @@ Circuit parse_stream(std::istream& buffer)
         std::vector<Qubit> op_qubits;
         std::for_each(
           entries.begin() + 1, entries.end(), [&](std::string const& label) {
-              op_qubits.push_back(qubits.at(label));
+              Qubit qubit = Qubit::invalid();
+              if (label.back() == '\'') {
+                  qubit = !qubits.at(label.substr(0, label.size() - 1));
+              } else {
+                  qubit = qubits.at(label);
+              }
+              op_qubits.push_back(qubit);
           });
         circuit.apply_operator(op, op_qubits);
     }
