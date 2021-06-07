@@ -75,6 +75,96 @@ pip install tweedledum-dev
 
 __Warning__: The two packages cannot be installed together.
 
+# Installation from source (Development)
+
+Installing `tweedledum` from the source, instead of using the Python Package 
+Index (PyPI) repository version, allows you to extend the latest version of the
+code. In the following, I will explain two workflows I personally use for
+development. Choose one that best suits your needs.
+
+Alright, both workflows start the same way. You clone the repository:
+```
+git clone https://github.com/boschmitt/tweedledum.git
+```
+
+## C++
+The first workflow is pure C++. We start by creating a directory to hold the 
+build output:
+
+```
+mkdir build      
+cd build
+```
+
+Note that the library has a directory named `examples/`.  If we set the
+``TWEEDLEDUM_EXAMPLES`` CMake variable to ``TRUE``.  Any `.cpp` file in this
+directory will be compiled to its own executable. 
+
+So, lets assume you have a file named `hello_world.cpp` in the `examples/`.
+First we configure our project and enable the examples:
+
+```
+cmake -DTWEEDLEDUM_EXAMPLES=TRUE ..
+```
+
+If you are on a \*nix system, you should now see a Makefile in the current
+directory. Now you can build the library by running `make`. At this point you
+can build the `hello_world` executable by calling
+
+```
+make hello_world
+```
+
+Once the examples have been built you can run it:
+
+```
+./examples/hello_world
+```
+
+## C++ and Python
+
+The second workflow is a bot of a hack.  In Python we can install libraries in
+editable mode, meaning that code changes to the _Python code_ in the project
+don't require a reinstall to be applied. 
+
+If you want to install it in editable mode, you can do this with:
+```
+pip install -e .
+```
+
+The only problem now, is that if we change the C++ code, we will need to 
+reinstall the library.  Fortunately, there is a way yo circumvent this 
+annoyance.  
+
+After installing in editable mode, you will see that in `python/tweedledum/` 
+there is a cpython shared library `_tweedledum.cpython-...` Remove this file:
+
+```
+rm python/tweedledum/_tweedledum.cpython-...
+```
+
+Now, we create a build directory as we did with the C++ workflow:
+```
+mkdir build      
+cd build
+```
+
+We can manually build the cpython shared library using:
+```
+make _tweedledum
+```
+
+This will create the library in the `build/` directory. Now, all we need to
+create a symbolic link in `python/tweedledum/` that points the library in 
+`build/`:
+
+```
+ln -s _tweedledum.cpython-39-darwin.so ../python/tweedledum/
+```
+
+Now, whenever we change the C++ code and rebuild the python library, the changes
+won't require a reinstall of the library to be available.
+
 # Used third-party tools
 
 The library it is built, tested, bind to python, and whatnot using many
