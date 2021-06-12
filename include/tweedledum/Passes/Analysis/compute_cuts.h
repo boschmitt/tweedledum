@@ -36,8 +36,8 @@ inline std::vector<Cut> compute_cuts(
                 cut = inst_cut.at(child);
                 return;
             }
-            same_cut += (cut == inst_cut.at(child) || std::signbit(cut)
-                         || std::signbit(inst_cut.at(child)));
+            same_cut +=
+              (cut == inst_cut.at(child) || cut < 0 || inst_cut.at(child) < 0);
             cut = std::max(cut, inst_cut.at(child));
         });
         if (++same_cut == inst.num_wires() && cut >= 0) {
@@ -66,8 +66,8 @@ inline std::vector<Cut> compute_cuts(
         }
     }
     // After merging some cuts, remove the empty ones
-    auto end = std::remove_if(cuts.begin(), cuts.end(),
-      [](Cut const& cut) { return cut.empty(); });
+    auto end = std::remove_if(
+      cuts.begin(), cuts.end(), [](Cut const& cut) { return cut.empty(); });
     cuts.erase(end, cuts.end());
     return cuts;
 }
