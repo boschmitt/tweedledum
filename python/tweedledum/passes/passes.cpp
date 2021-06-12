@@ -27,6 +27,8 @@ void init_Passes(pybind11::module& module)
     module.def("compute_critical_paths", &compute_critical_paths, 
         "Compute circuit critical path(s).");
 
+    module.def("compute_cuts", &compute_cuts, "Compute circuit cuts.");
+
     module.def("compute_depth", &compute_depth, "Compute circuit depth.");
 
     module.def("count_operators", &count_operators, "Operators couting pass.");

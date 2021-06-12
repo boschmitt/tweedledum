@@ -7,5 +7,6 @@
 #include "Analysis/compute_alap_layers.h"
 #include "Analysis/compute_asap_layers.h"
 #include "Analysis/compute_critical_paths.h"
+#include "Analysis/compute_cuts.h"
 #include "Analysis/compute_depth.h"
 #include "Analysis/count_operators.h"
