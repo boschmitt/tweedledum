@@ -270,7 +270,7 @@ private:
             last_instruction_.at(wref).uid_ = inst_uid;
         }
         for (auto& [wref, iref] : inst.cbits_conns_) {
-            iref = last_instruction_.at(wref);
+            iref = last_instruction_.at(wref + num_qubits());
             last_instruction_.at(wref + num_qubits()).uid_ = inst_uid;
         }
     }

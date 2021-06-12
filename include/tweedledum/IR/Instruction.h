@@ -103,10 +103,10 @@ public:
         return num_qubits() + num_cbits();
     }
 
-    Qubit cbit(uint32_t idx) const
+    Cbit cbit(uint32_t idx) const
     {
-        assert(idx < qubits_conns_.size());
-        return qubits_conns_[idx].qubit;
+        assert(idx < cbits_conns_.size());
+        return cbits_conns_[idx].cbit;
     }
 
     std::vector<Cbit> cbits() const
