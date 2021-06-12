@@ -3,6 +3,7 @@
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
 #include <pybind11/pybind11.h>
+#include <tweedledum/Utils/Cut.h>
 #include <tweedledum/Utils/LinPhasePoly.h>
 
 void init_utils(pybind11::module& module)
@@ -15,4 +16,9 @@ void init_utils(pybind11::module& module)
         .def("add_term", py::overload_cast<uint32_t, double const>(&LinPhasePoly::add_term));
         // This is too slow and I have no idea why :(
         // .def("add_term", py::overload_cast<std::vector<uint32_t> const&, double const>(&LinPhasePoly::add_term));
+
+    py::class_<Cut>(module, "Cut")
+        .def("cbits", &Cut::py_cbits)
+        .def("qubits", &Cut::py_qubits)
+        .def("instructions", &Cut::py_instructions);
 }
