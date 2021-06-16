@@ -80,7 +80,7 @@ void init_Circuit(pybind11::module& module)
         .def("apply_operator", static_cast<InstRef (Circuit::*)(Instruction const&)>(&Circuit::apply_operator))
         .def("apply_operator", static_cast<InstRef (Circuit::*)(pybind11::object const&, std::vector<Qubit> const&, std::vector<Cbit> const&)>(&Circuit::apply_operator),
              py::arg("optor"), py::arg("qubits"), py::arg("cbits") = std::vector<Cbit>())
-        .def("append", &Circuit::append)
+        .def("append", &Circuit::append, py::arg("other"), py::arg("qubits"), py::arg("cbits") = std::vector<Cbit>())
         // Python stuff
         .def("__iter__", [](Circuit const& c) { return py::make_iterator(c.py_begin(), c.py_end()); }, py::keep_alive<0, 1>())
         .def("__len__", &Circuit::size)
