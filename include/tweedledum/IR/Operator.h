@@ -44,6 +44,12 @@ public:
         }
     }
 
+    Operator(Operator const& op) noexcept
+    {
+        concept_ = op.concept_;
+        concept_->clone(&op.model_, &model_);
+    }
+
     ~Operator()
     {
         concept_->dtor(&model_);
