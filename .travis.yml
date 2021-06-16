@@ -1,0 +1,56 @@
+---
+notifications:
+  email: false
+os: linux
+language: python
+cache:
+  pip: true
+  cargo: true
+dist: bionic
+install:
+  - pip install -U twine importlib-metadata keyring cibuildwheel==1.11.1
+stages:
+  - name: deploy
+    if: tag IS present
+
+jobs:
+  include:
+    - stage: deploy
+      arch: arm64
+      python: 3.7
+      services:
+        - docker
+      env:
+        - CIBW_TEST_COMMAND="python -m unittest discover -s {project}/python/test/ -t {project}"
+        - CMAKE_BUILD_PARALLEL_LEVEL=2
+        - CIBW_SKIP="cp27-* cp34-* cp35-* pp*"
+      script:
+        - cibuildwheel --output-dir wheelhouse
+        - twine upload wheelhouse/*
+    - stage: deploy
+      arch: ppc64le
+      python: 3.7
+      services:
+        - docker
+      env:
+        - CIBW_TEST_COMMAND="python -m unittest discover -s {project}/python/test/ -t {project}"
+        - CMAKE_BUILD_PARALLEL_LEVEL=2
+        - CIBW_SKIP="cp27-* cp34-* cp35-* pp*"
+      script:
+        - cibuildwheel --output-dir wheelhouse
+        - twine upload wheelhouse/*
+    - stage: deploy
+      arch: s390x
+      python: 3.7
+      services:
+        - docker
+      env:
+        - CIBW_TEST_COMMAND="python -m unittest discover -s {project}/python/test/ -t {project}"
+        - CMAKE_BUILD_PARALLEL_LEVEL=2
+        - CIBW_SKIP="cp27-* cp34-* cp35-* pp*"
+        - CIBW_BEFORE_ALL="yum install -y wget && {package}/tools/install_rust_no_rustup.sh"
+        - CIBW_BEFORE_BUILD="pip install -U setuptools-rust"
+      script:
+        - cibuildwheel --output-dir wheelhouse
+        - twine upload wheelhouse/*
+
