@@ -22,84 +22,77 @@ public:
         return "ext.unitary";
     }
 
-    Unitary(
-      UMatrix const& unitary, std::optional<double> const& phase = std::nullopt)
-        : global_phase_(phase)
-        , unitary_(unitary)
+    Unitary(UMatrix const& unitary)
+        : matrix_(unitary)
     {}
 
-    Unitary(
-      UMatrix&& unitary, std::optional<double> const& phase = std::nullopt)
-        : global_phase_(phase)
-        , unitary_(unitary)
+    Unitary(UMatrix&& unitary)
+        : matrix_(unitary)
     {}
 
     UMatrix const& matrix() const
     {
-        return unitary_;
-    }
-
-    double global_phase()
-    {
-        if (!global_phase_) {
-            calculate_global_phase();
-        }
-        return global_phase_.value();
+        return matrix_;
     }
 
     uint32_t num_targets() const
     {
         // FIXME: rows are guaranteed to be a power of 2, do this with a
         // a dedicated function?
-        return std::log2(unitary_.rows());
+        return std::log2(matrix_.rows());
     }
 
     bool operator==(Unitary const& other) const
     {
-        return unitary_ == other.unitary_;
+        return matrix_ == other.matrix_;
     }
+
+    friend double global_phase(Unitary const& unitary);
 
 private:
-    void calculate_global_phase()
-    {
-        Complex const phase = 1. / std::sqrt(unitary_.determinant());
-        double angle = -std::arg(phase);
-        global_phase_.emplace(angle);
-        if (angle != 0.0) {
-            unitary_ *= std::exp(Complex(0., angle));
-        }
-    }
-
-    std::optional<double> global_phase_;
-    UMatrix unitary_;
-
-    friend bool is_approx_equal(Unitary& rhs, Unitary& lhs,
-      bool up_to_global_phase, double const rtol, double const atol);
+    UMatrix matrix_;
 };
+
+inline double global_phase(Unitary const& unitary)
+{
+    Complex const phase = 1. / std::sqrt(unitary.matrix_.determinant());
+    double angle = -std::arg(phase);
+    return angle;
+}
+
+inline bool is_approx_equal(
+  double lhs, double rhs, double const rtol = 1e-05, double const atol = 1e-08)
+{
+    return std::abs(rhs - lhs) <= (atol + rtol * std::abs(lhs));
+}
 
 // rtol : Relative tolerance
 // atol : Absolute tolerance
-// FIXME:: this function might change the unitary
-// (when it tries to isolate the global phase)
-inline bool is_approx_equal(Unitary& rhs, Unitary& lhs,
+inline bool is_approx_equal(Unitary const& lhs, Unitary const& rhs,
   bool up_to_global_phase = false, double const rtol = 1e-05,
   double const atol = 1e-08)
 {
-    assert(rhs.unitary_.size() == lhs.unitary_.size());
-    uint32_t const end = rhs.unitary_.size();
+    assert(rhs.matrix().size() == lhs.matrix().size());
     bool is_close = true;
-    auto const* r_data = rhs.unitary_.data();
-    auto const* l_data = lhs.unitary_.data();
+    uint32_t const end = rhs.matrix().size();
+    auto const* r_data = rhs.matrix().data();
+    auto const* l_data = lhs.matrix().data();
     if (!up_to_global_phase) {
-        if (rhs.global_phase() != lhs.global_phase()) {
-            return false;
+        for (uint32_t i = 0u; i < end && is_close; ++i) {
+            is_close &=
+              is_approx_equal(l_data[i].real(), r_data[i].real(), rtol, atol);
+            is_close &=
+              is_approx_equal(l_data[i].imag(), r_data[i].imag(), rtol, atol);
         }
+        return is_close;
     }
+    auto const l_phase = std::exp(Complex(0., global_phase(lhs)));
+    auto const r_phase = std::exp(Complex(0., global_phase(rhs)));
     for (uint32_t i = 0u; i < end && is_close; ++i) {
-        is_close &= std::abs(r_data[i].real() - l_data[i].real())
-                 <= (atol + rtol * std::abs(l_data[i].real()));
-        is_close &= std::abs(r_data[i].imag() - l_data[i].imag())
-                 <= (atol + rtol * std::abs(l_data[i].imag()));
+        Complex l = l_phase == Complex(0, 0) ? l_data[i] : l_data[i] / l_phase;
+        Complex r = r_phase == Complex(0, 0) ? r_data[i] : r_data[i] / r_phase;
+        is_close &= is_approx_equal(l.real(), r.real(), rtol, atol);
+        is_close &= is_approx_equal(l.imag(), r.imag(), rtol, atol);
     }
     return is_close;
 }
@@ -125,18 +118,22 @@ public:
             apply_matrix(optor.matrix(), qubits);
             return;
         }
-        switch (optor.num_targets()) {
-        case 1u:
+        if constexpr (has_num_targets_v<OpT>) {
+            switch (optor.num_targets()) {
+            case 1u:
+                apply_matrix_nc(optor.matrix(), qubits);
+                break;
+
+            case 2u:
+                apply_matrix_nt<2>(optor.matrix(), qubits);
+                break;
+
+            default:
+                assert(0);
+                break;
+            }
+        } else {
             apply_matrix_nc(optor.matrix(), qubits);
-            break;
-
-        case 2u:
-            apply_matrix_nt<2>(optor.matrix(), qubits);
-            break;
-
-        default:
-            assert(0);
-            break;
         }
     }
 
@@ -174,7 +171,7 @@ public:
         if (global_phase_ != 0.0) {
             matrix_ *= std::exp(Complex(0., global_phase_));
         }
-        return Unitary(matrix_, global_phase_);
+        return Unitary(matrix_);
     }
 
 private:
