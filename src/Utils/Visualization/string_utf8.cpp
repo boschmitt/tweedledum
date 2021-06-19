@@ -420,7 +420,8 @@ private:
             merge_chars(diagram.at(i, mid_col), U'║');
         }
         diagram.at(row, left_col_ + 1) = U'V';
-        std::u32string const wire_label = fmt::format(U"{:>2}", wires_.back());
+        std::u32string const wire_label =
+          fmt::format(U"{:>2}", wires_.back() - diagram.num_qubits());
         std::copy(wire_label.begin(), wire_label.end(),
           diagram.row(row + 1).begin() + (mid_col - 1));
     }
