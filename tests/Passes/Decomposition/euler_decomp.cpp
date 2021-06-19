@@ -27,29 +27,45 @@ UMatrix2 create_matrix(double theta, double phi, double lambda)
     return matrix;
 }
 
-TEST_CASE("Euler decomp test cases", "[euler_decomp][decomp]")
+TEST_CASE("Trivial euler decomp test cases", "[euler_decomp][decomp]")
 {
     using namespace tweedledum;
-    bool const upto_global_phase = true;
     Circuit original;
     Qubit q0 = original.create_qubit();
     UMatrix2 matrix = Op::H().matrix();
     original.apply_operator(Op::Unitary(matrix), {q0});
 
-    Circuit decomposed = euler_decomp(original);
-    CHECK(check_unitary(original, decomposed, upto_global_phase));
+    nlohmann::json config;
+    std::vector<std::string> basis = {"zyz", "zxz", "xyx", "px", "psx", "zsx"};
+    for (auto const& base : basis) {
+        config["euler_decomp"]["basis"] = base;
+        Circuit decomposed = euler_decomp(original);
+        INFO("Basis is: " << base);
+        CHECK(check_unitary(original, decomposed));
+    }
+}
 
+TEST_CASE("Euler decomp test cases", "[euler_decomp][decomp]")
+{
+    using namespace tweedledum;
     double smallest = 1e-18;
     double factor = 3.2;
     double lambda = 0.9;
     double phi = 0.7;
-    for (uint32_t i = 0; i < 22u; ++i) {
-        Circuit original;
-        Qubit q0 = original.create_qubit();
-        UMatrix2 matrix =
-          create_matrix(smallest * std::pow(factor, i), phi, lambda);
-        original.apply_operator(Op::Unitary(matrix), {q0});
-        Circuit decomposed = euler_decomp(original);
-        CHECK(check_unitary(original, decomposed, upto_global_phase));
+    nlohmann::json config;
+    std::vector<std::string> basis = {"zyz", "zxz", "xyx", "px", "psx", "zsx"};
+    for (auto const& base : basis) {
+        config["euler_decomp"]["basis"] = base;
+        for (uint32_t i = 0; i < 22u; ++i) {
+            Circuit original;
+            Qubit q0 = original.create_qubit();
+            UMatrix2 matrix =
+              create_matrix(smallest * std::pow(factor, i), phi, lambda);
+            original.apply_operator(Op::Unitary(matrix), {q0});
+            Circuit decomposed = euler_decomp(original, config);
+            INFO("Basis is: " << base);
+            INFO("i = " << i);
+            CHECK(check_unitary(original, decomposed));
+        }
     }
 }
