@@ -9,7 +9,7 @@ set(SRC
     # Passes
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/bridge_decomp.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/euler_decomp.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/one_qubit_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/parity_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/ApprxSatPlacer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Mapping/Placer/LinePlacer.cpp

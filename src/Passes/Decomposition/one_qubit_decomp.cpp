@@ -5,7 +5,7 @@
 // At this point this is basically a C++ implementaiton of what you see in:
 // https://github.com/Qiskit/qiskit-terra/blob/main/qiskit/quantum_info/synthesis/one_qubit_decompose.py
 
-#include "tweedledum/Passes/Decomposition/euler_decomp.h"
+#include "tweedledum/Passes/Decomposition/one_qubit_decomp.h"
 
 #include "tweedledum/Operators/Extension.h"
 #include "tweedledum/Operators/Standard.h"
@@ -39,7 +39,7 @@ struct Config {
         : basis(Basis::zyz)
         , atol(1e-12)
     {
-        auto euler_cfg = config.find("euler_decomp");
+        auto euler_cfg = config.find("one_qubit_decomp");
         if (euler_cfg != config.end()) {
             if (euler_cfg->contains("basis")) {
                 if (euler_cfg->at("basis") == "px") {
@@ -266,14 +266,14 @@ inline bool decompose(Circuit& circuit, Instruction const& inst, Config& cfg)
 
 } // namespace
 
-void euler_decomp(
+void one_qubit_decomp(
   Circuit& circuit, Instruction const& inst, nlohmann::json const& config)
 {
     Config cfg(config);
     decompose(circuit, inst, cfg);
 }
 
-Circuit euler_decomp(Circuit const& original, nlohmann::json const& config)
+Circuit one_qubit_decomp(Circuit const& original, nlohmann::json const& config)
 {
     Config cfg(config);
     Circuit decomposed = shallow_duplicate(original);

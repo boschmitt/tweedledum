@@ -6,5 +6,5 @@
 
 #include "Decomposition/barenco_decomp.h"
 #include "Decomposition/bridge_decomp.h"
-#include "Decomposition/euler_decomp.h"
+#include "Decomposition/one_qubit_decomp.h"
 #include "Decomposition/parity_decomp.h"

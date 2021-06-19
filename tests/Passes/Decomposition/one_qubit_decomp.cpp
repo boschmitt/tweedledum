@@ -2,7 +2,7 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include "tweedledum/Passes/Decomposition/euler_decomp.h"
+#include "tweedledum/Passes/Decomposition/one_qubit_decomp.h"
 
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/IR/Wire.h"
@@ -27,7 +27,7 @@ UMatrix2 create_matrix(double theta, double phi, double lambda)
     return matrix;
 }
 
-TEST_CASE("Trivial euler decomp test cases", "[euler_decomp][decomp]")
+TEST_CASE("Trivial one qubit decomp test cases", "[one_qubit_decomp][decomp]")
 {
     using namespace tweedledum;
     Circuit original;
@@ -38,14 +38,14 @@ TEST_CASE("Trivial euler decomp test cases", "[euler_decomp][decomp]")
     nlohmann::json config;
     std::vector<std::string> basis = {"zyz", "zxz", "xyx", "px", "psx", "zsx"};
     for (auto const& base : basis) {
-        config["euler_decomp"]["basis"] = base;
-        Circuit decomposed = euler_decomp(original);
+        config["one_qubit_decomp"]["basis"] = base;
+        Circuit decomposed = one_qubit_decomp(original);
         INFO("Basis is: " << base);
         CHECK(check_unitary(original, decomposed));
     }
 }
 
-TEST_CASE("Euler decomp test cases", "[euler_decomp][decomp]")
+TEST_CASE("One qubit decomp test cases", "[one_qubit_decomp][decomp]")
 {
     using namespace tweedledum;
     double smallest = 1e-18;
@@ -55,14 +55,14 @@ TEST_CASE("Euler decomp test cases", "[euler_decomp][decomp]")
     nlohmann::json config;
     std::vector<std::string> basis = {"zyz", "zxz", "xyx", "px", "psx", "zsx"};
     for (auto const& base : basis) {
-        config["euler_decomp"]["basis"] = base;
+        config["one_qubit_decomp"]["basis"] = base;
         for (uint32_t i = 0; i < 22u; ++i) {
             Circuit original;
             Qubit q0 = original.create_qubit();
             UMatrix2 matrix =
               create_matrix(smallest * std::pow(factor, i), phi, lambda);
             original.apply_operator(Op::Unitary(matrix), {q0});
-            Circuit decomposed = euler_decomp(original, config);
+            Circuit decomposed = one_qubit_decomp(original, config);
             INFO("Basis is: " << base);
             INFO("i = " << i);
             CHECK(check_unitary(original, decomposed));
