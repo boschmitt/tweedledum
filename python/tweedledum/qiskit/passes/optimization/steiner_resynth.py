@@ -5,8 +5,9 @@
 from typing import Union
 
 from qiskit.dagcircuit import DAGCircuit
-from qiskit.transpiler.coupling import CouplingMap
 from qiskit.transpiler.basepasses import TransformationPass
+from qiskit.transpiler.coupling import CouplingMap
+from qiskit.transpiler.exceptions import TranspilerError
 
 from tweedledum.qiskit import from_qiskit, to_qiskit
 from tweedledum.ir import Circuit
@@ -17,14 +18,23 @@ from tweedledum.target import Device
 class SteinerResynth(TransformationPass):
     """TODO"""
 
-    def __init__(self, coupling_map: CouplingMap):
+    def __init__(self, cmap_or_device: Union[list, CouplingMap, Device]):
         """SteinerResynth initializer.
 
         Args:
-            coupling_map (CouplingMap): Directed graph represented a coupling map.
+            cmap_or_device (Union[list, CouplingMap, Device]): Directed graph
+                represented as a list of edges, or a qiskit coupling map, or a
+                tweedledum Device.
         """
         super().__init__()
-        self.device = Device.from_edge_list(coupling_map.get_edges())
+        if isinstance(cmap_or_device, list):
+            self.device = Device.from_edge_list(cmap_or_device)
+        elif isinstance(cmap_or_device, CouplingMap):
+            self.device = Device.from_edge_list(cmap_or_device.get_edges())
+        elif isinstance(cmap_or_device, Device):
+            self.device = cmap_or_device
+        else:
+            raise TranspilerError("Must pass a qiskit CouplingMap or tweedledum Device")
 
     def run(self, dag: Union[DAGCircuit, Circuit]) -> Union[DAGCircuit, Circuit]:
         """Run the LinearResynth pass on a circuit.

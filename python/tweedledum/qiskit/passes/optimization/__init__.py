@@ -5,3 +5,4 @@
 from .gate_cancellation import GateCancellation
 from .linear_resynth import LinearResynth
 from .phase_folding import PhaseFolding
+from .steiner_resynth import SteinerResynth
