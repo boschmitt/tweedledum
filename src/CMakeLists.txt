@@ -6,6 +6,11 @@ set(SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/QASM/Parser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/qasm.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/tfc.cpp
+    # Decomposition
+    ${CMAKE_CURRENT_SOURCE_DIR}/Decomposition/BarencoDecomposer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Decomposition/BridgeDecomposer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Decomposition/OneQubitDecomposer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Decomposition/ParityDecomposer.cpp
     # Passes
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/barenco_decomp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Passes/Decomposition/bridge_decomp.cpp
