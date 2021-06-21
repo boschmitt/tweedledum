@@ -7,3 +7,4 @@
 #include "Optimization/gate_cancellation.h"
 #include "Optimization/linear_resynth.h"
 #include "Optimization/phase_folding.h"
+#include "Optimization/steiner_resynth.h"
