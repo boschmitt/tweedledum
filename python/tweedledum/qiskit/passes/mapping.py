@@ -2,8 +2,6 @@
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
 # -------------------------------------------------------------------------------
-"""TODO"""
-
 from typing import Optional, Union
 
 from qiskit.transpiler.basepasses import TransformationPass
@@ -12,9 +10,9 @@ from qiskit.dagcircuit import DAGCircuit
 from qiskit.transpiler.coupling import CouplingMap
 
 from tweedledum.ir import Circuit
-from tweedledum.target import Device
 from tweedledum.passes import bridge_map, jit_map, sabre_map
 from tweedledum.qiskit import from_qiskit, to_qiskit
+from tweedledum.target import Device
 
 
 class TweedledumMap(TransformationPass):
@@ -33,7 +31,7 @@ class TweedledumMap(TransformationPass):
             coupling_map (CouplingMap): Directed graph represented a coupling map.
         """
         super().__init__()
-        self.coupling_map = coupling_map
+        self.device = Device.from_edge_list(coupling_map.get_edges())
         self.method = method
 
     def run(self, dag: Union[DAGCircuit, Circuit]) -> Union[DAGCircuit, Circuit]:
@@ -55,14 +53,12 @@ class TweedledumMap(TransformationPass):
         else:
             circuit = dag
 
-        device = Device.from_edge_list(self.coupling_map.get_edges())
-
         if self.method == "sabre":
-            mapped_circuit, _ = sabre_map(device, circuit)
+            mapped_circuit, _ = sabre_map(self.device, circuit)
         elif self.method == "lazy":
-            mapped_circuit, _ = jit_map(device, circuit)
+            mapped_circuit, _ = jit_map(self.device, circuit)
         elif self.method == "bridge":
-            mapped_circuit, _ = bridge_map(device, circuit)
+            mapped_circuit, _ = bridge_map(self.device, circuit)
 
         if isinstance(dag, DAGCircuit):
             return to_qiskit(mapped_circuit)
