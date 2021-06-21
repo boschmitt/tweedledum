@@ -45,7 +45,7 @@ inline std::vector<Slice> partition_into_silces(Circuit const& original)
     return slices;
 }
 
-inline void resynth_slice(Circuit const& original, Device const& device,
+inline void resynth_slice(Device const& device, Circuit const& original,
   Slice const& slice, Circuit& result, nlohmann::json const& config)
 {
     if (!slice.linear_gates.empty()) {
@@ -88,12 +88,12 @@ inline void resynth_slice(Circuit const& original, Device const& device,
 } // namespace
 
 Circuit steiner_resynth(
-  Circuit const& original, Device const& device, nlohmann::json const& config)
+  Device const& device, Circuit const& original, nlohmann::json const& config)
 {
     Circuit result = shallow_duplicate(original);
     auto slices = partition_into_silces(original);
     for (auto const& slice : slices) {
-        resynth_slice(original, device, slice, result, config);
+        resynth_slice(device, original, slice, result, config);
     }
     return result;
 }

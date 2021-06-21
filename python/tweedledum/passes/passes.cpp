@@ -66,6 +66,10 @@ void init_Passes(pybind11::module& module)
 
     module.def("phase_folding", &phase_folding, "Phase folding optimization.");
 
+    module.def("steiner_resynth", &steiner_resynth, 
+        py::arg("device"), py::arg("original"), py::arg("config") = nlohmann::json(),
+        "Coupling-aware resynthesize linear parts of the quantum circuit.");
+
     // Utility
     module.def("inverse", &inverse,
         "Invert (take adjoint of) a circuit.");
