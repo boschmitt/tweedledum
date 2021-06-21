@@ -5,17 +5,13 @@
 #pragma once
 
 #include "../../IR/Circuit.h"
-#include "../../IR/Instruction.h"
-#include "../../IR/Wire.h"
 #include "../../Target/Device.h"
 
 #include <nlohmann/json.hpp>
 
 namespace tweedledum {
 
-void bridge_decomp(
-  Device const& device, Circuit& circuit, Instruction const& inst);
-
-Circuit bridge_decomp(Device const& device, Circuit const& original);
+Circuit bridge_decomp(Device const& device, Circuit const& original,
+  nlohmann::json const& config = {});
 
 } // namespace tweedledum

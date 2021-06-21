@@ -5,14 +5,12 @@
 #pragma once
 
 #include "../../IR/Circuit.h"
-#include "../../IR/Instruction.h"
 
 #include <nlohmann/json.hpp>
 
 namespace tweedledum {
 
-void parity_decomp(Circuit& circuit, Instruction const& inst);
-
-Circuit parity_decomp(Circuit const& original);
+Circuit parity_decomp(
+  Circuit const& original, nlohmann::json const& config = {});
 
 } // namespace tweedledum

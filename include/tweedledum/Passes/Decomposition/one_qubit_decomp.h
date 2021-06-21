@@ -5,16 +5,10 @@
 #pragma once
 
 #include "../../IR/Circuit.h"
-#include "../../IR/Instruction.h"
-#include "../../IR/Wire.h"
 
 #include <nlohmann/json.hpp>
-#include <vector>
 
 namespace tweedledum {
-
-void one_qubit_decomp(
-  Circuit& circuit, Instruction const& inst, nlohmann::json const& config = {});
 
 Circuit one_qubit_decomp(
   Circuit const& original, nlohmann::json const& config = {});

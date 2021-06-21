@@ -4,13 +4,18 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include "../../IR/Circuit.h"
+#include "../IR/Circuit.h"
+#include "../IR/Instruction.h"
 
 #include <nlohmann/json.hpp>
 
 namespace tweedledum {
 
-Circuit barenco_decomp(
-  Circuit const& original, nlohmann::json const& config = {});
+class ParityDecomposer {
+public:
+    ParityDecomposer(nlohmann::json const& config = {})
+    {}
 
+    bool decompose(Circuit& circuit, Instruction const& inst);
+};
 } // namespace tweedledum
