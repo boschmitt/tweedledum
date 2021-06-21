@@ -411,7 +411,7 @@ private:
 
 void cx_dihedral_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
   std::vector<Cbit> const& cbits, BMatrix const& linear_trans,
-  LinPhasePoly phase_parities, nlohmann::json const& config)
+  LinPhasePoly phase_parities, [[maybe_unused]] nlohmann::json const& config)
 {
     assert(qubits.size() == linear_trans.rows());
     assert(linear_trans.rows() <= 32);

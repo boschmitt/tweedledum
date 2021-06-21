@@ -13,7 +13,7 @@ namespace tweedledum {
 
 class ParityDecomposer {
 public:
-    ParityDecomposer(nlohmann::json const& config = {})
+    ParityDecomposer([[maybe_unused]] nlohmann::json const& config = {})
     {}
 
     bool decompose(Circuit& circuit, Instruction const& inst);

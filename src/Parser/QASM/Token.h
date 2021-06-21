@@ -112,7 +112,7 @@ static std::string const token_names[] = {
 #include "Tokens.def"
 };
 
-static std::string_view token_name(Token::Kinds k)
+[[maybe_unused]] static std::string_view token_name(Token::Kinds k)
 {
     uint32_t k_idx = static_cast<uint32_t>(k);
     return token_names[k_idx];

@@ -14,8 +14,7 @@ namespace tweedledum {
 
 namespace {
 
-inline std::vector<double> fix_angles(
-  std::vector<Qubit>& qubits, std::vector<double> const& angles)
+inline std::vector<double> fix_angles(std::vector<double> const& angles)
 {
     std::vector<double> new_angles;
     std::transform(angles.begin(), angles.end(), std::back_inserter(new_angles),
@@ -49,7 +48,7 @@ void diagonal_synth(Circuit& circuit, std::vector<Qubit> qubits,
     assert((1u << qubits.size()) == angles.size());
 
     std::reverse(qubits.begin(), qubits.end());
-    std::vector<double> new_angles = fix_angles(qubits, angles);
+    std::vector<double> new_angles = fix_angles(angles);
     fast_hadamard_transform(new_angles);
     LinPhasePoly phase_parities;
     uint32_t factor = (1 << (qubits.size() - 1));

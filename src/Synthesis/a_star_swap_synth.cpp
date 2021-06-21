@@ -130,7 +130,7 @@ private:
 
 Circuit a_star_swap_synth(Device const& device,
   std::vector<uint32_t> const& init_cfg, std::vector<uint32_t> const& final_cfg,
-  nlohmann::json const& config)
+  [[maybe_unused]] nlohmann::json const& config)
 {
     using Swap = std::pair<uint32_t, uint32_t>;
     std::vector<Swap> swaps;

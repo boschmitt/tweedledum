@@ -145,7 +145,7 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
 } // namespace
 
 void steiner_gauss_synth(Circuit& circuit, Device const& device,
-  BMatrix const& matrix, nlohmann::json const& config)
+  BMatrix const& matrix, [[maybe_unused]] nlohmann::json const& config)
 {
     assert(matrix.rows() == matrix.cols());
     assert(matrix.rows() == circuit.num_qubits());
