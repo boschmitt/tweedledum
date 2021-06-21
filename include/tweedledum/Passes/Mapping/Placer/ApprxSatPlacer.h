@@ -45,7 +45,6 @@ public:
             Qubit const control = inst.control();
             Qubit const target = inst.target();
             uint32_t const index = triangle_to_vector_idx(control, target);
-            uint32_t act_index = 0u;
             if (pairs_act_.at(index) == -1) {
                 pairs_act_.at(index) = act_vars.size();
                 act_vars.push_back(gate_constraints(control, target));

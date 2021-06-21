@@ -121,8 +121,8 @@ double OneQubitDecomposer::add_rx(
     return 0.0;
 }
 
-void OneQubitDecomposer::add_ry(
-  Circuit& circuit, Instruction const& inst, double angle, double atol)
+void OneQubitDecomposer::add_ry(Circuit& circuit, Instruction const& inst,
+  double angle, [[maybe_unused]] double atol)
 {
     circuit.apply_operator(Op::Ry(angle), inst.qubits(), inst.cbits());
 }

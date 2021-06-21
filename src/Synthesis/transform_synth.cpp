@@ -25,7 +25,7 @@ inline void update_permutation(
     }
 }
 
-inline GateList unidirectional(std::vector<uint32_t> perm)
+[[maybe_unused]] inline GateList unidirectional(std::vector<uint32_t> perm)
 {
     GateList gates;
     for (uint32_t i = 0u; i < perm.size(); ++i) {
@@ -75,7 +75,7 @@ inline void update_permutation_inv(
     }
 }
 
-inline GateList bidirectional(std::vector<uint32_t> perm)
+[[maybe_unused]] inline GateList bidirectional(std::vector<uint32_t> perm)
 {
     GateList gates;
     auto pos = gates.begin();

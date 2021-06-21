@@ -14,7 +14,8 @@ namespace tweedledum {
 
 class BridgeDecomposer {
 public:
-    BridgeDecomposer(Device const& device, nlohmann::json const& config = {})
+    BridgeDecomposer(
+      Device const& device, [[maybe_unused]] nlohmann::json const& config = {})
         : device_(device)
     {}
 
