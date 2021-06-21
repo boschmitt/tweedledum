@@ -78,7 +78,6 @@ inline void resynth_slice(Device const& device, Circuit const& original,
             }
         }
     }
-    // Add Toffoli gates
     for (InstRef index : slice.non_linear_gates) {
         Instruction const& inst = original.instruction(index);
         result.apply_operator(inst);
