@@ -14,7 +14,7 @@ class PyOperator {
 public:
     static constexpr std::string_view kind()
     {
-        return "py_operator";
+        return "py_op";
     }
 
     PyOperator(pybind11::object const& handle)
