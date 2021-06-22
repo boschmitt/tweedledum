@@ -25,7 +25,6 @@ void init_mockturtle(pybind11::module& module)
 
     py::class_<xag_network>(module, "LogicNetwork")
         .def(py::init<>())
-        .def("get_constant", &xag_network::get_constant)
         .def("create_pi", &xag_network::create_pi, py::arg("name") = "")
         .def("create_po", &xag_network::create_po, py::arg("f"), py::arg("name") = "")
         // Operations
@@ -42,7 +41,12 @@ void init_mockturtle(pybind11::module& module)
         // Structural properties
         .def("num_gates", &xag_network::num_gates)
         .def("num_pis", &xag_network::num_pis)
-        .def("num_pos", &xag_network::num_pos);
+        .def("num_pos", &xag_network::num_pos)
+        // Node and signals
+        .def("get_constant", &xag_network::get_constant)
+        .def("get_node", &xag_network::get_node)
+        .def("pi_at", &xag_network::pi_at);
+
 
     // IO
     module.def("read_aiger", [](std::string const filename) {

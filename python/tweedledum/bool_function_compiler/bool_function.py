@@ -118,7 +118,7 @@ class BoolFunction(object):
         return self._truth_table[output_bit]
 
     @classmethod
-    def from_expression(cls, expression: str):
+    def from_expression(cls, expression: str, var_order: list = None):
         """
         Create a BooleanFunction from an arbitrary logical expression.
 
@@ -140,7 +140,7 @@ class BoolFunction(object):
         from .expression_parser import ExpressionParser
 
         function = cls.__new__(cls)
-        parsed_expression = ExpressionParser(expression)
+        parsed_expression = ExpressionParser(expression, var_order)
         function._parameters_signature = parsed_expression._parameters_signature
         function._return_signature = parsed_expression._return_signature
         function._logic_network = parsed_expression._logic_network
