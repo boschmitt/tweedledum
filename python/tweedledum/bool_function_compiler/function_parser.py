@@ -1,32 +1,32 @@
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Part of Tweedledum Project.  This file is distributed under the MIT License.
 # See accompanying file /LICENSE for details.
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 import _ast
 import ast
 
 from .bitvec import BitVec
 from .._tweedledum.classical import LogicNetwork
 
+
 class ParseError(Exception):
     pass
 
+
 class FunctionParser(ast.NodeVisitor):
     bit_ops = {
-        _ast.BitAnd: 'create_and',
-        _ast.BitOr: 'create_or',
-        _ast.BitXor: 'create_xor',
+        _ast.BitAnd: "create_and",
+        _ast.BitOr: "create_or",
+        _ast.BitXor: "create_xor",
     }
 
     bool_ops = {
-        _ast.And: 'create_and',
-        _ast.Or: 'create_or',
+        _ast.And: "create_and",
+        _ast.Or: "create_or",
     }
 
     # This feels quite hack-y
-    types = {
-        'BitVec' : type(BitVec(1))
-    }
+    types = {"BitVec": type(BitVec(1))}
 
     def __init__(self, source):
         self._symbol_table = dict()
@@ -55,7 +55,7 @@ class FunctionParser(ast.NodeVisitor):
                 self._parameters_signature.append((arg_type, arg_size))
             cache.clear()
         if len(cache) != 0:
-             raise ParseError("Argument type is needed for %s" % cache)
+            raise ParseError("Argument type is needed for %s" % cache)
 
     def visit_Assign(self, node):
         """When assign, the scope needs to be updated with the right type"""
@@ -83,8 +83,10 @@ class FunctionParser(ast.NodeVisitor):
         op = FunctionParser.bool_ops.get(type(node.op))
         for value in node.values[1:]:
             _, value_signal = self.visit(value)
-            result_signal[0] = getattr(self._logic_network, op)(result_signal[0], value_signal[0])
-        return (FunctionParser.types['BitVec'], 1), result_signal
+            result_signal[0] = getattr(self._logic_network, op)(
+                result_signal[0], value_signal[0]
+            )
+        return (FunctionParser.types["BitVec"], 1), result_signal
 
     def visit_Call(self, node):
         type_ = FunctionParser.types[node.func.id]
@@ -93,7 +95,7 @@ class FunctionParser(ast.NodeVisitor):
             if isinstance(value, str):
                 return (type_, len(value)), self._const_BitVec(len(value), value)
             elif isinstance(value, int):
-                return (type_, value),  self._const_BitVec(value)
+                return (type_, value), self._const_BitVec(value)
         elif len(node.args) == 2:
             length = ast.literal_eval(node.args[0])
             if not isinstance(length, int):
@@ -113,16 +115,22 @@ class FunctionParser(ast.NodeVisitor):
             if len(left_signals) != len(right_signals):
                 raise ParseError("Different length")
             if isinstance(op, ast.Eq):
-                new_signals = [self._logic_network.create_xnor(i, j) for i, j in zip(left_signals, right_signals)]
+                new_signals = [
+                    self._logic_network.create_xnor(i, j)
+                    for i, j in zip(left_signals, right_signals)
+                ]
                 partial_results.append(self._logic_network.create_nary_and(new_signals))
             elif isinstance(op, ast.NotEq):
-                new_signals = [self._logic_network.create_xor(i, j) for i, j in zip(left_signals, right_signals)]
+                new_signals = [
+                    self._logic_network.create_xor(i, j)
+                    for i, j in zip(left_signals, right_signals)
+                ]
                 partial_results.append(self._logic_network.create_nary_or(new_signals))
             else:
-               raise ParseError("Unsupported comparator") 
+                raise ParseError("Unsupported comparator")
 
         result = self._logic_network.create_nary_and(partial_results)
-        return (FunctionParser.types['BitVec'], 1), [result]
+        return (FunctionParser.types["BitVec"], 1), [result]
 
     def visit_FunctionDef(self, node):
         if node.returns is None:
@@ -133,7 +141,7 @@ class FunctionParser(ast.NodeVisitor):
             if not isinstance(size, int):
                 ParseError("Size must be an integer")
             self._return_signature = [(FunctionParser.types[return_type], size)]
-            self._symbol_table['__dee_ret_0'] = (return_type, None)
+            self._symbol_table["__dee_ret_0"] = (return_type, None)
         elif isinstance(node.returns, ast.Tuple):
             for i, elt in enumerate(node.returns.elts):
                 return_type = elt.func.id
@@ -141,7 +149,7 @@ class FunctionParser(ast.NodeVisitor):
                 if not isinstance(size, int):
                     ParseError("Size must be an integer")
                 self._return_signature.append((FunctionParser.types[return_type], size))
-                self._symbol_table[f'__dee_ret_{i}'] = (return_type, None)
+                self._symbol_table[f"__dee_ret_{i}"] = (return_type, None)
         else:
             raise ParseError("Return type is needed")
 
@@ -150,35 +158,43 @@ class FunctionParser(ast.NodeVisitor):
 
     def visit_Name(self, node):
         if node.id not in self._symbol_table:
-            raise ParseError('out of scope: %s' % node.id)
+            raise ParseError("out of scope: %s" % node.id)
         return self._symbol_table[node.id][0], self._symbol_table[node.id][1]
 
     def visit_Return(self, node):
         """The return type should match the return type hint."""
         if isinstance(node.value, ast.Tuple):
             if len(self._return_signature) != len(node.value.elts):
-                raise ParseError(f'The function was expected to return '
-                                 f'{len(self._return_signature)} values, '
-                                 f'but it returned {len(node.value.elts)}.')
+                raise ParseError(
+                    f"The function was expected to return "
+                    f"{len(self._return_signature)} values, "
+                    f"but it returned {len(node.value.elts)}."
+                )
             for i, elt in enumerate(node.value.elts):
                 elt_type, elt_signals = self.visit(elt)
                 if elt_type != self._return_signature[i]:
-                    raise ParseError(f'The {i}-th return value was expected to '
-                                     f'be of type {self._return_signature[i]}, '
-                                     f'but got {elt_type}.')
+                    raise ParseError(
+                        f"The {i}-th return value was expected to "
+                        f"be of type {self._return_signature[i]}, "
+                        f"but got {elt_type}."
+                    )
 
                 for s in elt_signals:
                     self._logic_network.create_po(s)
         else:
             if len(self._return_signature) > 1:
-                raise ParseError(f'The function was expected to return '
-                                 f'{len(self._return_signature)} values, '
-                                 f'but it returned just 1.')
+                raise ParseError(
+                    f"The function was expected to return "
+                    f"{len(self._return_signature)} values, "
+                    f"but it returned just 1."
+                )
             return_type, signals = self.visit(node.value)
             if return_type != self._return_signature[0]:
-                raise ParseError(f'The return value was expected to '
-                                 f'be of type {self._return_signature[0]}, '
-                                 f'but got {return_type}.')
+                raise ParseError(
+                    f"The return value was expected to "
+                    f"be of type {self._return_signature[0]}, "
+                    f"but got {return_type}."
+                )
             for s in signals:
                 self._logic_network.create_po(s)
 
@@ -231,10 +247,13 @@ class FunctionParser(ast.NodeVisitor):
         if value == None:
             return [self._logic_network.get_constant(0) for i in range(length)]
         if not isinstance(value, str):
-            raise ParseError("When creating constant BitVec, "
-                             "value must be a string or None")
-        if (len(value) > length):
-            ParseError(f"BitVec value requires a bit vector of "
-                       f"length {len(value)}, but declared BitVec has "
-                       f"length {length}")
-        return [self._logic_network.get_constant(i == '1') for i in value[::-1]]
+            raise ParseError(
+                "When creating constant BitVec, value must be a string or None"
+            )
+        if len(value) > length:
+            ParseError(
+                f"BitVec value requires a bit vector of "
+                f"length {len(value)}, but declared BitVec has "
+                f"length {length}"
+            )
+        return [self._logic_network.get_constant(i == "1") for i in value[::-1]]
