@@ -27,7 +27,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Install dependencies
         run: |
@@ -55,7 +55,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v1.12.0
@@ -83,13 +83,14 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v1.12.0
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp*
-          CIBW_ARCHS_MACOS: x86_64, universal2, arm64
+          CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
+          CIBW_ARCHS_MACOS: x86_64 universal2
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
@@ -113,13 +114,13 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v1.12.0
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp*
-          CIBW_ARCHS_MACOS: x86_64, universal2, arm64
+          CIBW_ARCHS_MACOS: x86_64
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}} CC=gcc-10 CXX=g++-10 CXXFLAGS='-static-libgcc -static-libstdc++'"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
@@ -143,10 +144,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1.5.0
+        uses: ilammy/msvc-dev-cmd@v1.9.0
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v1.12.0
@@ -176,10 +177,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1.5.0
+        uses: ilammy/msvc-dev-cmd@v1.9.0
         with:
             arch: x86
 
