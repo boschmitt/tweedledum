@@ -58,7 +58,7 @@ jobs:
           python-version: '3.8'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v1.12.0
+        uses: pypa/cibuildwheel@v2.0.0a3
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp*
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
@@ -86,7 +86,7 @@ jobs:
           python-version: '3.8'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v1.12.0
+        uses: pypa/cibuildwheel@v2.0.0a3
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp*
           CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
@@ -117,7 +117,7 @@ jobs:
           python-version: '3.8'
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v1.12.0
+        uses: pypa/cibuildwheel@v2.0.0a3
         env:
           CIBW_SKIP: cp27-* cp34-* cp35-* pp*
           CIBW_ARCHS_MACOS: x86_64
@@ -150,7 +150,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1.9.0
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v1.12.0
+        uses: pypa/cibuildwheel@v2.0.0a3
         env:
           CC: cl.exe
           CXX: cl.exe 
@@ -185,7 +185,7 @@ jobs:
             arch: x86
 
       - name: Build wheel
-        uses: pypa/cibuildwheel@v1.12.0
+        uses: pypa/cibuildwheel@v2.0.0a3
         env:
           CC: cl.exe
           CXX: cl.exe
