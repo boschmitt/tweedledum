@@ -58,9 +58,11 @@ jobs:
         - os: macos-latest
           build: "cp3*-macosx_arm64"
           name: macOS Apple Silicon
+          target: '10.15'
         - os: macos-latest
           build: "cp3*-macosx_universal2"
           name: macOS Universal2
+          target: '10.15'
         - os: windows-latest
           build: "cp3*-win_amd64"
           name: Windows 64-bit
