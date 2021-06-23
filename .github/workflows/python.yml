@@ -15,7 +15,9 @@ jobs:
   tests:
     name: ${{ matrix.os }} • Py${{ matrix.python-version }} 
     runs-on: ${{ matrix.os }}
-    matrix:
+    strategy:
+      fail-fast: false
+      matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         python-version: [3.6, 3.7, 3.8, 3.9]
 
