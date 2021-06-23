@@ -78,9 +78,23 @@ jobs:
         - os: ubuntu-latest
           build: "cp3*-manylinux_i686"
           name: Linux Intel 32-bit
+          platform: intel
         - os: ubuntu-latest
           build: "cp3*-manylinux_x86_64"
           name: Linux Intel 64-bit
+          platform: intel
+        - os: ubuntu-latest
+          build: "cp3*-manylinux_aarch64"
+          name: Linux ARM 64-bit (aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp3*-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp3*-manylinux_s390x"
+          name: Linux IBM Z (s390x)
+          platform: s390x
 
     steps:
       - name: Checkout code
@@ -94,6 +108,12 @@ jobs:
 
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v1.9
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux' && matrix.platform != 'intel'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: ${{ matrix.platform }}
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1.9.0
