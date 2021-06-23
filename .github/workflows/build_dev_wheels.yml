@@ -68,6 +68,7 @@ jobs:
         - os: windows-latest
           build: "cp3*-win_amd64"
           name: Windows 64-bit
+          arch: x64
         - os: windows-latest
           build: "cp3*-win32"
           name: Windows 32-bit
@@ -111,7 +112,7 @@ jobs:
         run: |
           echo "CC=gcc-10" >> $GITHUB_ENV
           echo "CXX=g++-10" >> $GITHUB_ENV
-          echo "CXXFLAGS='-static-libgcc -static-libstdc++'" >> $GITHUB_ENV
+          echo "CXXFLAGS=\"-static-libgcc -static-libstdc++\"" >> $GITHUB_ENV
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.0.0a3
