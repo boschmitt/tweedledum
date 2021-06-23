@@ -83,18 +83,49 @@ jobs:
           build: "cp3*-manylinux_x86_64"
           name: Linux Intel 64-bit
           platform: intel
+        # Since this relies on QEMU, I separated the jobs here to
+        # speedup the action
         - os: ubuntu-latest
-          build: "cp3*-manylinux_aarch64"
-          name: Linux ARM 64-bit (aarch64)
+          build: "cp36-manylinux_aarch64"
+          name: Linux ARM 64-bit (py36-aarch64)
           platform: aarch64
         - os: ubuntu-latest
-          build: "cp3*-manylinux_ppc64le"
-          name: Linux POWER8 64-bit (ppc64le)
+          build: "cp37-manylinux_aarch64"
+          name: Linux ARM 64-bit (py37-aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp38-manylinux_aarch64"
+          name: Linux ARM 64-bit (py38-aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp39-manylinux_aarch64"
+          name: Linux ARM 64-bit (py39-aarch64)
+          platform: aarch64
+        # Since this relies on QEMU, I separated the jobs here to
+        # speedup the action
+        - os: ubuntu-latest
+          build: "cp36-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py36-ppc64le)
           platform: ppc64le
         - os: ubuntu-latest
-          build: "cp3*-manylinux_s390x"
-          name: Linux IBM Z (s390x)
-          platform: s390x
+          build: "cp37-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py37-ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp38-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py38-ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp39-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py39-ppc64le)
+          platform: ppc64le
+        # I still need to figure it out how to build for s390x
+        # My suspicions is that some dependency or even tweedledum
+        # relies on little-endianness
+        # - os: ubuntu-latest
+        #   build: "cp3*-manylinux_s390x"
+        #   name: Linux IBM Z (s390x)
+        #   platform: s390x
 
     steps:
       - name: Checkout code
