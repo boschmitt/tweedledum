@@ -20,7 +20,6 @@ class TestExpressionParser(unittest.TestCase):
         parser = ExpressionParser(
             "((A & C) | (B & D)) & ~(C & D)", var_order=["A", "B", "C", "D"]
         )
-        # Remember that index 0 is the constant!
         self.assertEqual(self._get_node(parser, "A"), parser._logic_network.pi_at(0))
         self.assertEqual(self._get_node(parser, "B"), parser._logic_network.pi_at(1))
         self.assertEqual(self._get_node(parser, "C"), parser._logic_network.pi_at(2))
@@ -35,7 +34,6 @@ class TestExpressionParser(unittest.TestCase):
 
     def test_unordered(self):
         parser = ExpressionParser("((A & C) | (B & D)) & ~(C & D)")
-        # Remember that index 0 is the constant!
         self.assertEqual(self._get_node(parser, "A"), parser._logic_network.pi_at(0))
         self.assertEqual(self._get_node(parser, "B"), parser._logic_network.pi_at(2))
         self.assertEqual(self._get_node(parser, "C"), parser._logic_network.pi_at(1))
