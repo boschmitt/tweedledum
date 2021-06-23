@@ -18,7 +18,6 @@ class Device {
 public:
     using Edge = std::pair<uint32_t, uint32_t>;
 
-#pragma region Generic topologies
     // Create a device for a path topology.
     static Device path(uint32_t const num_qubits)
     {
@@ -66,7 +65,6 @@ public:
         }
         return topology;
     }
-#pragma endregion
 
     static Device from_edge_list(std::vector<Edge> const& edges);
 
@@ -80,7 +78,6 @@ public:
         , dist_matrix_()
     {}
 
-#pragma region Qubits
     uint32_t num_qubits() const
     {
         return neighbors_.size();
@@ -100,9 +97,7 @@ public:
             fn(neighbors.at(i));
         }
     }
-#pragma endregion
 
-#pragma region Edges
     uint32_t num_edges() const
     {
         return edges_.size();
@@ -190,7 +185,6 @@ public:
             neighbors_.at(u).emplace_back(v);
         }
     }
-#pragma endregion
 
 private:
     void compute_shortest_paths() const;

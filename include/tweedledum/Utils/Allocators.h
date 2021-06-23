@@ -284,7 +284,6 @@ public:
     }
 
 private:
-#pragma region Helper functions
     /*! \brief Aligns `address` to `alignment` bytes, rounding up when
      * necessary. */
     static uintptr_t align_address(void const* address, size_t alignment)
@@ -322,7 +321,6 @@ private:
         current_ptr_ = (char*) (new_chunk);
         end_ptr_ = ((char*) new_chunk) + size;
     }
-#pragma endregion
 
     /*! \brief The current pointer into the current chunk (points to the next
      * free byte). */
