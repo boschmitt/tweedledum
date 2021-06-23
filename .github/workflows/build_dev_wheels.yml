@@ -27,15 +27,15 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade scikit-build
+          python -m pip install build
 
       - name: Build sdist
         run: |
-          python setup.py sdist --dist-dir=wheelhouse
+          python -m build --sdist --outdir wheelhouse
 
       - name: Upload built sdist
         uses: actions/upload-artifact@v2
@@ -43,10 +43,89 @@ jobs:
           name: wheels
           path: ./wheelhouse/*.tar.gz
 
-  build_wheels_linux:
-    name: Wheels • Linux
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: Wheels • ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
     needs: setup_date
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: macos-latest
+          build: "cp3*-macosx_x86_64"
+          name: macOS Intel (10.15)
+          target: '10.15'
+        - os: macos-latest
+          build: "cp3*-macosx_x86_64"
+          name: macOS Intel (10.9)
+          target: '10.9'
+        - os: macos-latest
+          build: "cp3*-macosx_arm64"
+          name: macOS Apple Silicon
+          target: '10.15'
+        - os: macos-latest
+          build: "cp3*-macosx_universal2"
+          name: macOS Universal2
+          target: '10.15'
+        - os: windows-latest
+          build: "cp3*-win_amd64"
+          name: Windows 64-bit
+          arch: x64
+        - os: windows-latest
+          build: "cp3*-win32"
+          name: Windows 32-bit
+          arch: x86
+        - os: ubuntu-latest
+          build: "cp3*-manylinux_i686"
+          name: Linux Intel 32-bit
+          platform: intel
+        - os: ubuntu-latest
+          build: "cp3*-manylinux_x86_64"
+          name: Linux Intel 64-bit
+          platform: intel
+        # Since this relies on QEMU, I separated the jobs here to
+        # speedup the action
+        - os: ubuntu-latest
+          build: "cp36-manylinux_aarch64"
+          name: Linux ARM 64-bit (py36-aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp37-manylinux_aarch64"
+          name: Linux ARM 64-bit (py37-aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp38-manylinux_aarch64"
+          name: Linux ARM 64-bit (py38-aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp39-manylinux_aarch64"
+          name: Linux ARM 64-bit (py39-aarch64)
+          platform: aarch64
+        # Since this relies on QEMU, I separated the jobs here to
+        # speedup the action
+        - os: ubuntu-latest
+          build: "cp36-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py36-ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp37-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py37-ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp38-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py38-ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp39-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py39-ppc64le)
+          platform: ppc64le
+        # I still need to figure it out how to build for s390x
+        # My suspicions is that some dependency or even tweedledum
+        # relies on little-endianness
+        # - os: ubuntu-latest
+        #   build: "cp3*-manylinux_s390x"
+        #   name: Linux IBM Z (s390x)
+        #   platform: s390x
 
     steps:
       - name: Checkout code
@@ -55,145 +134,51 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
+          architecture: ${{ matrix.arch }}
 
-      - name: Build wheels
-        uses: joerick/cibuildwheel@v1.9.0
-        env:
-          CIBW_SKIP: cp27-* cp34-* cp35-* pp*
-          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
-          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v1.9
 
-      - name: Upload built wheels
-        uses: actions/upload-artifact@v2
+      - name: Set up QEMU
+        if: runner.os == 'Linux' && matrix.platform != 'intel'
+        uses: docker/setup-qemu-action@v1
         with:
-          name: wheels
-          path: ./wheelhouse/*.whl
-
-  build_wheels_macos_10_15:
-    name: Wheels • MacOS (10.15+)
-    runs-on: macos-latest
-    needs: setup_date
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-
-      - name: Build wheels
-        uses: joerick/cibuildwheel@v1.9.0
-        env:
-          CIBW_SKIP: cp27-* cp34-* cp35-* pp*
-          CIBW_ARCHS_MACOS: x86_64
-          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
-          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
-          MACOSX_DEPLOYMENT_TARGET: '10.15'
-
-      - name: Upload built wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: wheels
-          path: ./wheelhouse/*.whl
-
-  build_wheels_macos_10_9:
-    name: Wheels • MacOS (10.9+)
-    runs-on: macos-latest
-    needs: setup_date
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-
-      - name: Build wheels
-        uses: joerick/cibuildwheel@v1.9.0
-        env:
-          CIBW_SKIP: cp27-* cp34-* cp35-* pp*
-          CIBW_ARCHS_MACOS: x86_64
-          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}} CC=gcc-10 CXX=g++-10 CXXFLAGS='-static-libgcc -static-libstdc++'"
-          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
-          MACOSX_DEPLOYMENT_TARGET: '10.9'
-
-      - name: Upload built wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: wheels
-          path: ./wheelhouse/*.whl
-
-  build_wheels_windows64:
-    name: Wheels • Windows (64-bits)
-    runs-on: windows-latest
-    needs: setup_date
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
+          platforms: ${{ matrix.platform }}
 
       - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1.5.0
+        uses: ilammy/msvc-dev-cmd@v1.9.0
+        if: runner.os == 'Windows'
+        with:
+            arch: ${{ matrix.arch }}
+
+      - name: Set Windows variables
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "CC=cl.exe" >> $GITHUB_ENV
+          echo "CXX=cl.exe" >> $GITHUB_ENV
+
+      - name: Set macOS 10.9 variables
+        if: runner.os == 'macOS' && matrix.target == '10.9'
+        shell: bash
+        run: |
+          echo "CC=gcc-10" >> $GITHUB_ENV
+          echo "CXX=g++-10" >> $GITHUB_ENV
+          echo "CXXFLAGS=-static-libgcc -static-libstdc++" >> $GITHUB_ENV
 
       - name: Build wheels
-        uses: joerick/cibuildwheel@v1.9.0
+        uses: pypa/cibuildwheel@v2.0.0a3
         env:
-          CC: cl.exe
-          CXX: cl.exe 
-          CIBW_SKIP: cp27-* cp34-* cp35-* pp* *-win32
+          CIBW_BUILD: ${{ matrix.build }}
+          CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
+          CIBW_ARCHS: all 
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
           CMAKE_BUILD_PARALLEL_LEVEL: 2
+          MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
 
       - name: Upload built wheels
-        uses: actions/upload-artifact@v2
-        with:
-          name: wheels
-          path: ./wheelhouse/*.whl
-
-  build_wheels_windows32:
-    name: Wheels • Windows (32-bits)
-    runs-on: windows-latest
-    needs: setup_date
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.7'
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1.5.0
-        with:
-            arch: x86
-
-      - name: Build wheel
-        uses: joerick/cibuildwheel@v1.9.0
-        env:
-          CC: cl.exe
-          CXX: cl.exe
-          CIBW_BUILD: cp3{6,7,8,9}*-win32
-          CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
-          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
-
-      - name: Upload built wheel 
         uses: actions/upload-artifact@v2
         with:
           name: wheels
