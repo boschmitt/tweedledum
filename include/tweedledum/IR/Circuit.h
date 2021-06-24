@@ -281,7 +281,7 @@ private:
         }
     }
 
-    std::vector<Instruction, Instruction::Allocator> instructions_;
+    std::vector<Instruction> instructions_;
     std::vector<InstRef> last_instruction_; // last instruction on a wire
     std::vector<Qubit> free_ancillae_; // Should this be here?!
     double global_phase_;
