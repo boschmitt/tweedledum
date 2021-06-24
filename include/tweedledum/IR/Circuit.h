@@ -85,9 +85,10 @@ public:
         }
     }
 
-    void release_ancilla(Qubit qubit)
+    void release_ancilla(Qubit& qubit)
     {
         free_ancillae_.push_back(qubit);
+        qubit = Qubit::invalid();
     }
 
     Cbit create_cbit(std::string_view name)
