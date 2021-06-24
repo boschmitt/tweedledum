@@ -51,6 +51,20 @@ private:
 
 class Instruction : public Operator {
 public:
+    template<typename OpT>
+    Instruction(OpT&& optor, std::vector<Qubit> const& qubits,
+      std::vector<Cbit> const& cbits)
+        : Operator(std::forward<OpT>(optor))
+    {
+        for (Qubit qubit : qubits) {
+            qubits_conns_.emplace_back(qubit, InstRef::invalid());
+        }
+        for (Cbit cbit : cbits) {
+            cbits_conns_.emplace_back(cbit, InstRef::invalid());
+        }
+        assert(qubits_conns_.size() >= this->num_targets());
+    }
+
     // This is called by realloc!!
     Instruction(Instruction const& other)
         : Operator(static_cast<Operator const&>(other))
@@ -257,40 +271,9 @@ private:
 
     friend class Circuit;
 
-    template<typename OpT>
-    Instruction(OpT&& optor, std::vector<Qubit> const& qubits,
-      std::vector<Cbit> const& cbits)
-        : Operator(std::forward<OpT>(optor))
-    {
-        for (Qubit qubit : qubits) {
-            qubits_conns_.emplace_back(qubit, InstRef::invalid());
-        }
-        for (Cbit cbit : cbits) {
-            cbits_conns_.emplace_back(cbit, InstRef::invalid());
-        }
-        assert(qubits_conns_.size() >= this->num_targets());
-    }
-
     // TODO: Come up with a good value for the size of the inline buffer!
     SmallVector<QubitConnection, 3> qubits_conns_;
     SmallVector<CbitConnection, 1> cbits_conns_;
-
-    // I not sure about this:
-    // This is needed because the constructor is private and a container such
-    // as std::vector need to be able to create this
-    struct Allocator : std::allocator<Instruction> {
-        template<class U, class... Args>
-        void construct(U* p, Args&&... args)
-        {
-            ::new ((void*) p) U(std::forward<Args>(args)...);
-        }
-
-        template<class U>
-        struct rebind {
-            typedef Allocator other;
-        };
-    };
-    friend struct Allocator;
 };
 
 } // namespace tweedledum
