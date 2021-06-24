@@ -55,6 +55,16 @@ public:
         return complemented;
     }
 
+    Qubit operator+() const
+    {
+        return Qubit(uid_, Polarity::positive);
+    }
+
+    Qubit operator-() const
+    {
+        return Qubit(uid_, Polarity::negative);
+    }
+
     bool operator==(Qubit other) const
     {
         return data_ == other.data_;

@@ -55,6 +55,16 @@ public:
         return complemented;
     }
 
+    Cbit operator+() const
+    {
+        return Cbit(uid_, Polarity::positive);
+    }
+
+    Cbit operator-() const
+    {
+        return Cbit(uid_, Polarity::negative);
+    }
+
     bool operator==(Cbit other) const
     {
         return data_ == other.data_;
