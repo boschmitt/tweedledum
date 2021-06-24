@@ -1,5 +1,5 @@
 /* kitty: C++ truth table library
- * Copyright (C) 2017-2020  EPFL
+ * Copyright (C) 2017-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -248,6 +248,42 @@ bool binary_predicate( const partial_truth_table& first, const partial_truth_tab
   assert( first.num_bits() == second.num_bits() );
 
   return std::equal( first.begin(), first.end(), second.begin(), op );
+}
+/*! \endcond */
+
+/*! \brief Computes a predicate based on three truth tables
+
+  The dimensions of `first`, `second` and `third` must match.  This is ensured
+  at compile-time for static truth tables, but at run-time for dynamic
+  truth tables.
+
+  \param first First truth table
+  \param second Second truth table
+  \param third Third truth table
+  \param op Ternary operation that takes as input three words (`uint64_t`) and returns a Boolean
+
+  \return true or false based on the predicate
+ */
+template<typename TT, typename Fn>
+bool ternary_predicate( const TT& first, const TT& second, const TT& third, Fn&& op )
+{
+  assert( first.num_blocks() == second.num_blocks() && first.num_blocks() == third.num_blocks() );
+
+  for ( auto i = 0u; i < first.num_blocks(); ++i )
+  {
+    if ( !op( first._bits[i], second._bits[i], third._bits[i] ) )
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+/*! \cond PRIVATE */
+template<uint32_t NumVars, typename Fn>
+bool ternary_predicate( const static_truth_table<NumVars, true>& first, const static_truth_table<NumVars, true>& second, const static_truth_table<NumVars, true>& third, Fn&& op )
+{
+  return op( first._bits, second._bits, third._bits );
 }
 /*! \endcond */
 
