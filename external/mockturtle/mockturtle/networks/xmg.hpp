@@ -1,5 +1,5 @@
 /* mockturtle: C++ logic network library
- * Copyright (C) 2018-2019  EPFL
+ * Copyright (C) 2018-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,12 @@
   \file xmg.hpp
   \brief XMG logic network implementation
 
+  \author Heinz Riener
+  \author Jinzheng Tu
   \author Mathias Soeken
+  \author Max Austin
+  \author Siang-Yun (Sonia) Lee
+  \author Walter Lau Neto
 */
 
 #pragma once
@@ -40,6 +45,7 @@
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/operators.hpp>
 
+#include "../endianness.hpp"
 #include "../traits.hpp"
 #include "../utils/algorithm.hpp"
 #include "detail/foreach.hpp"
@@ -104,8 +110,13 @@ public:
     union {
       struct
       {
+#if MOCKTURTLE_ENDIAN == MOCKTURTLE_BIGENDIAN
+        std::size_t index : 63;
+        std::size_t complement : 1;
+#else
         std::size_t complement : 1;
         std::size_t index : 63;
+#endif
       };
       std::size_t data;
     };
@@ -149,6 +160,13 @@ public:
     {
       return {index, complement};
     }
+
+#if __cplusplus > 201703L
+    bool operator==( xmg_storage::node_type::pointer_type const& other ) const
+    {
+      return data == other.data;
+    }
+#endif
   };
 
   xmg_network()
@@ -340,7 +358,7 @@ public:
 
     for ( auto const& fn : _events->on_add )
     {
-      fn( index );
+      (*fn)( index );
     }
 
     return {index, node_complement};
@@ -407,7 +425,7 @@ public:
 
     for ( auto const& fn : _events->on_add )
     {
-      fn( index );
+      (*fn)( index );
     }
 
     return {index, fcompl};
@@ -646,7 +664,7 @@ public:
 
     for ( auto const& fn : _events->on_modified )
     {
-      fn( n, {old_child0, old_child1, old_child2} );
+      (*fn)( n, {old_child0, old_child1, old_child2} );
     }
 
     return std::nullopt;
@@ -679,7 +697,7 @@ public:
 
     for ( auto const& fn : _events->on_delete )
     {
-      fn( n );
+      (*fn)( n );
     }
 
     for ( auto i = 0u; i < 3u; ++i )

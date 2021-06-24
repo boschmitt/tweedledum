@@ -1,5 +1,5 @@
 /* mockturtle: C++ logic network library
- * Copyright (C) 2018-2019  EPFL
+ * Copyright (C) 2018-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,7 @@
   \brief Generate random logic networks
 
   \author Heinz Riener
+  \author Mathias Soeken
 */
 
 #pragma once
@@ -154,7 +155,7 @@ public:
   {
     assert( num_inputs > 0 );
     assert( num_outputs > 0 );
-    assert( num_gates_per_level.size() >= 0 );
+    assert( num_gates_per_level.size() >= 0u );
 
     uint64_t const num_levels{num_gates_per_level.size() + 2u};
     std::vector<std::vector<signal>> levels( num_levels );

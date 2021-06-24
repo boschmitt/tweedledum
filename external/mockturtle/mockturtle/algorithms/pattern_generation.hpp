@@ -1,5 +1,5 @@
 /* mockturtle: C++ logic network library
- * Copyright (C) 2018-2020  EPFL
+ * Copyright (C) 2018-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,8 @@
   \file pattern_generation.hpp
   \brief Expressive Simulation Pattern Generation
 
-  \author Siang-Yun Lee
+  \author Heinz Riener
+  \author Siang-Yun (Sonia) Lee
 */
 
 #pragma once
@@ -198,7 +199,7 @@ private:
         bool value = ( tts[n] == zero ); /* wanted value of n */
 
         const auto res = call_with_stopwatch( st.time_sat, [&]() {
-          vps.odc_levels = 0;
+          validator.set_odc_levels( 0 );
           return validator.validate( n, !value );
         } );
         if ( !res )
@@ -221,7 +222,7 @@ private:
               }
 
               const auto res2 = call_with_stopwatch( st.time_sat, [&]() {
-                vps.odc_levels = ps.odc_levels;
+                validator.set_odc_levels( ps.odc_levels );
                 return validator.validate( n, !value );
               } );
               if ( res2 )
@@ -252,7 +253,7 @@ private:
           if ( ps.num_stuck_at > 1 )
           {
             auto generated = call_with_stopwatch( st.time_sat, [&]() {
-              vps.odc_levels = ps.odc_levels;
+              validator.set_odc_levels( ps.odc_levels );
               return validator.generate_pattern( n, value, {validator.cex}, ps.num_stuck_at - 1 );
             } );
             for ( auto& pattern : generated )
@@ -325,7 +326,7 @@ private:
         }
 
         const auto res = call_with_stopwatch( st.time_sat, [&]() {
-          vps.odc_levels = ps.odc_levels;
+          validator.set_odc_levels( ps.odc_levels );
           return validator.validate( n, false );
         } );
         if ( res )
@@ -362,7 +363,7 @@ private:
         }
 
         const auto res = call_with_stopwatch( st.time_sat, [&]() {
-          vps.odc_levels = ps.odc_levels;
+          validator.set_odc_levels( ps.odc_levels );
           return validator.validate( n, true );
         } );
         if ( res )
@@ -436,7 +437,7 @@ private:
     }
 
     auto generated = call_with_stopwatch( st.time_sat, [&]() {
-      vps.odc_levels = ps.odc_levels;
+      validator.set_odc_levels( ps.odc_levels );
       return validator.generate_pattern( n, value, patterns, ps.num_stuck_at - patterns.size() );
     } );
     for ( auto& pattern : generated )
