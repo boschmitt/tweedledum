@@ -109,13 +109,24 @@ jobs:
           build: "cp39-manylinux_ppc64le"
           name: Linux POWER8 64-bit (py39-ppc64le)
           platform: ppc64le
-        # I still need to figure it out how to build for s390x
-        # My suspicions is that some dependency or even tweedledum
-        # relies on little-endianness
-        # - os: ubuntu-latest
-        #   build: "cp3*-manylinux_s390x"
-        #   name: Linux IBM Z (s390x)
-        #   platform: s390x
+        # Since this relies on QEMU, I separated the jobs here to
+        # speedup the action
+        - os: ubuntu-latest
+          build: "cp36-manylinux_s390x"
+          name: Linux IBM/Z (py36-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp37-manylinux_s390x"
+          name: Linux IBM/Z (py37-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp38-manylinux_s390x"
+          name: Linux IBM/Z (py38-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp39-manylinux_s390x"
+          name: Linux IBM/Z (py39-s390x)
+          platform: s390x
 
     steps:
       - name: Checkout code
