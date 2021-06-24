@@ -43,7 +43,7 @@ jobs:
       run: |
         sudo apt-get install lcov
         lcov -t "result" -o lcov.info -c -d .
-        lcov -e lcov.info "*tweedledum/include*" "*tweedledum/lib*"  -o lcov_filtered.info
+        lcov -e lcov.info "*tweedledum/include*" "*tweedledum/src*"  -o lcov_filtered.info
         lcov -l lcov_filtered.info
 
     - name: CodeCov
