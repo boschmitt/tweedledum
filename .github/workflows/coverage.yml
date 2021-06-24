@@ -2,6 +2,14 @@ name: Coverage CI
 
 on:
   workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - '**/CMakeLists.txt'
+      - '**.cpp'
+      - '**.h'
+      - 'tests/**'
+      - 'external/**'
   pull_request:
     branches: [master]
     paths:
