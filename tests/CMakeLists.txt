@@ -49,6 +49,9 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils/BMatrix.cpp
 )
 
+get_filename_component(TEST_QASM_DIR qasm ABSOLUTE)
+add_compile_definitions(TEST_QASM_DIR="${TEST_QASM_DIR}")
+
 add_executable(run_tests ${tweedledum_tests_files})
 target_link_libraries(run_tests PUBLIC
     tweedledum
