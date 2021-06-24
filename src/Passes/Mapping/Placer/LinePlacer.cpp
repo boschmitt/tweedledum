@@ -16,7 +16,7 @@ namespace tweedledum {
 // which can be executed simultaneously.
 void LinePlacer::partition_into_timeframes()
 {
-    std::vector<uint32_t> frame(original_.size(), 0u);
+    std::vector<uint32_t> frame(original_.num_instructions(), 0u);
     original_.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t max_timeframe = 0u;
         original_.foreach_child(ref, [&](InstRef child) {

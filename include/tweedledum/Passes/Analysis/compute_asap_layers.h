@@ -14,7 +14,7 @@ namespace tweedledum {
 
 inline std::vector<uint32_t> compute_asap_layers(Circuit const& circuit)
 {
-    std::vector<uint32_t> instruction_layer(circuit.size(), 0u);
+    std::vector<uint32_t> instruction_layer(circuit.num_instructions(), 0u);
     circuit.foreach_instruction([&](InstRef inst) {
         uint32_t layer = 0;
         circuit.foreach_child(inst, [&](InstRef child) {

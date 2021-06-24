@@ -34,7 +34,7 @@ TEST_CASE("sat_map test cases", "[sat_map][mapping]")
         circuit.create_cbit();
         Device device = Device::path(circuit.num_qubits());
         auto mapped = sat_map(circuit, device);
-        CHECK(mapped.size() == circuit.size());
+        CHECK(mapped.size() == circuit.num_instructions());
         CHECK(mapped.num_wires() == circuit.num_wires());
         CHECK(mapped.num_qubits() == circuit.num_qubits());
         CHECK(mapped.num_cbits() == circuit.num_cbits());
@@ -54,7 +54,7 @@ TEST_CASE("sat_map test cases", "[sat_map][mapping]")
 
         Device device = Device::path(circuit.num_qubits());
         auto mapped = sat_map(circuit, device);
-        CHECK(mapped.size() == circuit.size());
+        CHECK(mapped.size() == circuit.num_instructions());
     }
     SECTION("Simple circuit (UNSAT)")
     {
@@ -71,7 +71,7 @@ TEST_CASE("sat_map test cases", "[sat_map][mapping]")
 
         Device device = Device::path(circuit.num_qubits());
         auto mapped = sat_map(circuit, device);
-        CHECK(mapped.size() != circuit.size());
+        CHECK(mapped.size() != circuit.num_instructions());
         CHECK(mapped.size() == 0);
     }
 }

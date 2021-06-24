@@ -36,7 +36,7 @@ TEST_CASE("Trivial cases for gray_synth", "[gray_synth][synth]")
             transform.row(inst.target()) += transform.row(inst.control());
         });
         CHECK(transform.isIdentity());
-        CHECK(synthesized.size() == 15u);
+        CHECK(synthesized.num_instructions() == 15u);
 
         // The example in the paper is wrong! :(
         // (it took me a while to figure it out)

@@ -13,14 +13,14 @@ TEST_CASE("QASM Parsing", "[qasm][parser]")
     {
         std::string qasm = "";
         Circuit circuit = qasm::parse_source_buffer(qasm);
-        CHECK(circuit.size() == 0u);
+        CHECK(circuit.num_instructions() == 0u);
     }
     SECTION("Empty circuit")
     {
         std::string qasm = "OPENQASM 2.0;\n"
                            "include \"qelib1.inc\";\n";
         Circuit circuit = qasm::parse_source_buffer(qasm);
-        CHECK(circuit.size() == 0u);
+        CHECK(circuit.num_instructions() == 0u);
     }
     SECTION("Circuit without instructions")
     {
@@ -28,7 +28,7 @@ TEST_CASE("QASM Parsing", "[qasm][parser]")
                            "include \"qelib1.inc\";\n"
                            "qreg q[32];";
         Circuit circuit = qasm::parse_source_buffer(qasm);
-        CHECK(circuit.size() == 0u);
+        CHECK(circuit.num_instructions() == 0u);
         CHECK(circuit.num_qubits() == 32u);
         CHECK(circuit.num_cbits() == 0u);
     }
@@ -56,7 +56,7 @@ TEST_CASE("QASM Parsing", "[qasm][parser]")
                            "t a[0];"
                            "s a[1];";
         Circuit circuit = qasm::parse_source_buffer(qasm);
-        CHECK(circuit.size() == 18u);
+        CHECK(circuit.num_instructions() == 18u);
         CHECK(circuit.num_qubits() == 3u);
     }
 }

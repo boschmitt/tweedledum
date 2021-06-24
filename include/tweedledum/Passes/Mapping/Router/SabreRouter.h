@@ -21,7 +21,7 @@ public:
         : device_(device)
         , original_(original)
         , mapping_(init_placement)
-        , visited_(original_.size(), 0u)
+        , visited_(original_.num_instructions(), 0u)
         , involved_phy_(device_.num_qubits(), 0u)
         , phy_decay_(device_.num_qubits(), 1.0)
     {

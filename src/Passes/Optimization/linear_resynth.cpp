@@ -19,7 +19,7 @@ struct Slice {
 
 inline std::vector<Slice> partition_into_silces(Circuit const& original)
 {
-    std::vector<uint32_t> to_slice(original.size(), 0);
+    std::vector<uint32_t> to_slice(original.num_instructions(), 0);
     std::vector<Slice> slices;
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {
         uint32_t max = 0;
@@ -74,7 +74,7 @@ inline void resynth_slice(Circuit const& original, Slice const& slice,
         // Synthesize matrix
         // Circuit linear = linear_synth(result, qubits, matrix, config);
         Circuit subcircuit = linear_synth(matrix, config);
-        if (subcircuit.size() < num_cnot) {
+        if (subcircuit.num_instructions() < num_cnot) {
             result.append(subcircuit, qubits, {});
         } else {
             for (InstRef index : slice.linear_gates) {

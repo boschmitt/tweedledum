@@ -19,7 +19,7 @@ inline std::vector<Cut> compute_cuts(
   Circuit const& circuit, uint32_t const cut_width = 2u)
 {
     constexpr int32_t invalid_cut = std::numeric_limits<int32_t>::min();
-    std::vector<int32_t> inst_cut(circuit.size(), invalid_cut);
+    std::vector<int32_t> inst_cut(circuit.num_instructions(), invalid_cut);
     std::vector<Cut> cuts;
     circuit.foreach_instruction([&](InstRef ref) {
         Instruction const& inst = circuit.instruction(ref);
