@@ -5,9 +5,6 @@
 #pragma once
 
 #include "Placement.h"
-// #include "../../IR/Circuit.h"
-// #include "../../IR/Wire.h"
-// #include "../../Target/Device.h"
 
 #include <vector>
 

@@ -6,7 +6,6 @@
 
 #include "../../IR/Circuit.h"
 #include "../../IR/Instruction.h"
-#include "../../IR/Wire.h"
 #include "../../Target/Device.h"
 #include "../Utility/shallow_duplicate.h"
 #include "placer/SatPlacer.h"

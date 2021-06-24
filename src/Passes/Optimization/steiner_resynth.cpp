@@ -4,7 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #include "tweedledum/Passes/Optimization/steiner_resynth.h"
 
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Extension/Bridge.h"
 #include "tweedledum/Operators/Extension/Parity.h"
 #include "tweedledum/Operators/Standard/Swap.h"

@@ -6,7 +6,6 @@
 
 #include "../../IR/Circuit.h"
 #include "../../IR/Instruction.h"
-#include "../../IR/Wire.h"
 #include "../../Operators/Standard/Measure.h"
 #include "../../Utils/Cut.h"
 

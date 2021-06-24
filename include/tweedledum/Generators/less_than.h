@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../IR/Circuit.h"
-#include "../IR/Wire.h"
 #include "../Operators/Standard/X.h"
 
 // Applies a less-than comparison between two integers encoded into qubits.  It

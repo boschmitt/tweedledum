@@ -5,7 +5,6 @@
 #include "tweedledum/Passes/Simulation/simulate_classically.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Reversible.h"
 #include "tweedledum/Utils/DynamicBitset.h"
 

@@ -5,7 +5,6 @@
 #include "tweedledum/Synthesis/diagonal_synth.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Utils/Numbers.h"
 

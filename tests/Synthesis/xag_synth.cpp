@@ -8,7 +8,6 @@
 #include <mockturtle/algorithms/equivalence_checking.hpp>
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Extension/Parity.h"
 
 #include <catch.hpp>

@@ -5,7 +5,6 @@
 #include "tweedledum/Synthesis/gray_synth.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Utils/LinPhasePoly.h"
 #include "tweedledum/Utils/Numbers.h"
