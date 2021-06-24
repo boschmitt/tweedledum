@@ -11,7 +11,7 @@ namespace tweedledum {
 
 Circuit gate_cancellation(Circuit const& original)
 {
-    std::vector<uint32_t> to_remove(original.size(), 0u);
+    std::vector<uint32_t> to_remove(original.num_instructions(), 0u);
     std::vector<InstRef> qubit_last(original.num_qubits(), InstRef::invalid());
     std::vector<InstRef> cbit_last(original.num_cbits(), InstRef::invalid());
     original.foreach_instruction([&](InstRef ref, Instruction const& inst) {

@@ -20,7 +20,7 @@ public:
         : device_(device)
         , original_(original)
         , placement_(placement)
-        , visited_(original.size(), 0u)
+        , visited_(original.num_instructions(), 0u)
         , involved_phy_(device_.num_qubits(), 0u)
         , phy_decay_(device_.num_qubits(), 1.0)
     {

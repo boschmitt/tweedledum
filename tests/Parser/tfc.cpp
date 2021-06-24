@@ -17,14 +17,14 @@ TEST_CASE("TFC Parsing", "[tfc][parser]")
     {
         std::string tfc = "";
         Circuit parsed = tfc::parse_source_buffer(tfc);
-        CHECK(parsed.size() == 0u);
+        CHECK(parsed.num_instructions() == 0u);
     }
     SECTION("Circuit without instructions")
     {
         std::string tfc = "# A comment.\n"
                           ".v a,b c1, d5\n";
         Circuit parsed = tfc::parse_source_buffer(tfc);
-        CHECK(parsed.size() == 0u);
+        CHECK(parsed.num_instructions() == 0u);
         CHECK(parsed.num_qubits() == 4u);
         CHECK(parsed.num_cbits() == 0u);
     }
@@ -41,7 +41,7 @@ TEST_CASE("TFC Parsing", "[tfc][parser]")
                           "f3 a,b,d5\n"
                           "END\n";
         Circuit parsed = tfc::parse_source_buffer(tfc);
-        CHECK(parsed.size() == 4u);
+        CHECK(parsed.num_instructions() == 4u);
         CHECK(parsed.num_qubits() == 4u);
         CHECK(parsed.num_cbits() == 0u);
         Circuit expected;

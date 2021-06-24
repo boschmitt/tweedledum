@@ -15,7 +15,7 @@ Circuit phase_folding(Circuit const& original)
     Circuit optimized;
     uint32_t num_path_vars = 1u;
     std::vector<ESOP> qubit_pathsum;
-    std::vector<uint8_t> skipped(original.size(), 0);
+    std::vector<uint8_t> skipped(original.num_instructions(), 0);
 
     original.foreach_cbit(
       [&](std::string_view name) { optimized.create_cbit(name); });

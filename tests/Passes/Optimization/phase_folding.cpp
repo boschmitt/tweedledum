@@ -24,7 +24,7 @@ TEST_CASE("Trivial phase folding", "[phase_folding][optimization]")
         circuit.apply_operator(Op::Tdg(), {q0});
 
         Circuit optimized = phase_folding(circuit);
-        CHECK(optimized.size() == 0u);
+        CHECK(optimized.num_instructions() == 0u);
         CHECK(check_unitary(circuit, optimized));
     }
     SECTION("Trivial 2 qubit swap")
@@ -37,7 +37,7 @@ TEST_CASE("Trivial phase folding", "[phase_folding][optimization]")
         circuit.apply_operator(Op::Tdg(), {q1});
 
         Circuit optimized = phase_folding(circuit);
-        CHECK(optimized.size() == 1u);
+        CHECK(optimized.num_instructions() == 1u);
         CHECK(check_unitary(circuit, optimized));
     }
 }

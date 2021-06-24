@@ -25,7 +25,7 @@ TEST_CASE(
     {
         phase_parities.add_term(0b001, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
-        CHECK(circuit.size() == 1u);
+        CHECK(circuit.num_instructions() == 1u);
     }
     SECTION("Still trivial, but with more rotations")
     {
@@ -33,14 +33,14 @@ TEST_CASE(
         phase_parities.add_term(0b010, numbers::pi_div_4);
         phase_parities.add_term(0b100, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
-        CHECK(circuit.size() == 3u);
+        CHECK(circuit.num_instructions() == 3u);
     }
     SECTION("Will require one CX")
     {
         transform(0, 1) = 1;
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
-        CHECK(circuit.size() == 2u);
+        CHECK(circuit.num_instructions() == 2u);
     }
     SECTION("Will require two CX")
     {
@@ -48,7 +48,7 @@ TEST_CASE(
         transform(1, 2) = 1;
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
-        CHECK(circuit.size() == 3u);
+        CHECK(circuit.num_instructions() == 3u);
     }
     SECTION("Will require two CX")
     {
@@ -56,13 +56,13 @@ TEST_CASE(
         transform(1, 2) = 1;
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
-        CHECK(circuit.size() == 3u);
+        CHECK(circuit.num_instructions() == 3u);
     }
     SECTION("Will require two CX")
     {
         phase_parities.add_term(0b011, numbers::pi_div_4);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
-        CHECK(circuit.size() == 3u);
+        CHECK(circuit.num_instructions() == 3u);
     }
     SECTION("Will require more CX")
     {
@@ -76,6 +76,6 @@ TEST_CASE(
         phase_parities.add_term(0b110, T_dagger);
         phase_parities.add_term(0b111, T);
         auto circuit = cx_dihedral_synth(transform, phase_parities);
-        CHECK(circuit.size() == 13u);
+        CHECK(circuit.num_instructions() == 13u);
     }
 }
