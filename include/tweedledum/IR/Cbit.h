@@ -11,8 +11,6 @@
 
 namespace tweedledum {
 
-class WireStorage;
-
 class Cbit {
 public:
     enum Polarity : uint32_t
@@ -26,6 +24,11 @@ public:
     {
         return Cbit();
     }
+
+    constexpr Cbit(uint32_t uid, Polarity polarity = Polarity::positive)
+        : uid_(uid)
+        , polarity_(static_cast<uint32_t>(polarity))
+    {}
 
     Cbit(Cbit const& other) = default;
 
@@ -68,13 +71,6 @@ public:
     }
 
 protected:
-    friend class WireStorage;
-
-    constexpr Cbit(uint32_t uid, Polarity polarity = Polarity::positive)
-        : uid_(uid)
-        , polarity_(static_cast<uint32_t>(polarity))
-    {}
-
     union {
         uint32_t data_;
         struct {
