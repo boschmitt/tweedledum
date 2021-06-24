@@ -12,10 +12,9 @@ void init_mockturtle(pybind11::module& module);
 void init_classical_utils(pybind11::module& module);
 
 // IR
-void init_Cbit(pybind11::module& module);
 void init_Circuit(pybind11::module& module);
 void init_Instruction(pybind11::module& module);
-void init_Qubit(pybind11::module& module);
+void init_Wires(pybind11::module& module);
 
 // Operators
 void init_ext_operators(pybind11::module& module);
