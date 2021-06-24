@@ -11,8 +11,6 @@
 
 namespace tweedledum {
 
-class WireStorage;
-
 class Qubit {
 public:
     enum Polarity : uint32_t
@@ -73,8 +71,6 @@ public:
     }
 
 protected:
-    friend class WireStorage;
-
     union {
         uint32_t data_;
         struct {
