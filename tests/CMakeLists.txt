@@ -7,8 +7,10 @@ set(tweedledum_tests_files
     ${CMAKE_CURRENT_SOURCE_DIR}/base/base.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Generators/adder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Generators/less_than.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/IR/Cbit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/Circuit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/IR/Instruction.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/IR/Qubit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Operators/Unitary.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/qasm.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parser/tfc.cpp
