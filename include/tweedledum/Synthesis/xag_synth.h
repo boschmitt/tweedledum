@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../IR/Circuit.h"
-#include "../IR/Wire.h"
 
 #include <mockturtle/networks/xag.hpp>
 #include <nlohmann/json.hpp>

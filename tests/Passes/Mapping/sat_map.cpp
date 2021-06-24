@@ -5,7 +5,6 @@
 #include "tweedledum/Passes/Mapping/sat_map.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Standard/X.h"
 #include "tweedledum/Target/Device.h"
 

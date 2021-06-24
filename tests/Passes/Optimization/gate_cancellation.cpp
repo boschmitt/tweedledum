@@ -5,7 +5,6 @@
 #include "tweedledum/Passes/Optimization/gate_cancellation.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Passes/Utility/inverse.h"
 

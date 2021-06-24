@@ -5,7 +5,6 @@
 #include "tweedledum/Synthesis/all_linear_synth.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Utils/LinPhasePoly.h"
 
 #include <catch.hpp>

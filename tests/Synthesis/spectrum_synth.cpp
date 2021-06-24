@@ -5,7 +5,6 @@
 #include "tweedledum/Synthesis/spectrum_synth.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Standard.h"
 
 #include "../check_unitary.h"

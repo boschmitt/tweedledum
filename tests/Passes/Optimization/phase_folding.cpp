@@ -5,7 +5,6 @@
 #include "tweedledum/Passes/Optimization/phase_folding.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
 
 #include "../check_unitary.h"

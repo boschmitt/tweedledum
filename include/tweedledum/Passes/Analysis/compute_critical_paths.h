@@ -6,7 +6,6 @@
 
 #include "../../IR/Circuit.h"
 #include "../../IR/Instruction.h"
-#include "../../IR/Wire.h"
 #include "compute_alap_layers.h"
 #include "compute_asap_layers.h"
 

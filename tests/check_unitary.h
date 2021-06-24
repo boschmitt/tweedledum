@@ -5,7 +5,6 @@
 #pragma once
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Extension/Unitary.h"
 
 using namespace tweedledum;

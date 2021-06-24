@@ -5,7 +5,6 @@
 #include "tweedledum/Passes/Decomposition/one_qubit_decomp.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Utils/Matrix.h"
 

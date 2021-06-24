@@ -4,7 +4,6 @@
 *-----------------------------------------------------------------------------*/
 #include "tweedledum/Passes/Optimization/linear_resynth.h"
 
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Extension/Parity.h"
 #include "tweedledum/Operators/Standard/X.h"
 #include "tweedledum/Passes/Utility/shallow_duplicate.h"
