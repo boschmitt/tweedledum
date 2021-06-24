@@ -6,7 +6,7 @@
 
 #include "../Utils/SmallVector.h"
 #include "Operator.h"
-#include "Wire.h"
+#include "WireStorage.h"
 
 #include <cassert>
 #include <limits>
