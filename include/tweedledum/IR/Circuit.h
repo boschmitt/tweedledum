@@ -7,7 +7,7 @@
 #include "Cbit.h"
 #include "Instruction.h"
 #include "Qubit.h"
-#include "Wire.h"
+#include "WireStorage.h"
 
 #include <cassert>
 #include <fmt/format.h>
