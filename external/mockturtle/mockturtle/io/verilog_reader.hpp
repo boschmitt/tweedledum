@@ -1,5 +1,5 @@
 /* mockturtle: C++ logic network library
- * Copyright (C) 2018-2019  EPFL
+ * Copyright (C) 2018-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -29,6 +29,7 @@
 
   \author Heinz Riener
   \author Mathias Soeken
+  \author Siang-Yun Lee
 */
 
 #pragma once
@@ -77,7 +78,7 @@ template<typename Ntk>
 class verilog_reader : public lorina::verilog_reader
 {
 public:
-  explicit verilog_reader( Ntk& ntk ) : ntk_( ntk )
+  explicit verilog_reader( Ntk& ntk, std::string const& top_module_name = "top" ) : ntk_( ntk ), top_module_name_( top_module_name )
   {
     static_assert( is_network_type_v<Ntk>, "Ntk is not a network type" );
     static_assert( has_create_pi_v<Ntk>, "Ntk does not implement the create_pi function" );
@@ -98,12 +99,19 @@ public:
   void on_module_header( const std::string& module_name, const std::vector<std::string>& inouts ) const override
   {
     (void)inouts;
+    if constexpr ( has_set_network_name_v<Ntk> )
+    {
+      ntk_.set_network_name( module_name );
+    }
+
     name_ = module_name;
   }
 
   void on_inputs( const std::vector<std::string>& names, std::string const& size = "" ) const override
   {
     (void)size;
+    if ( name_ != top_module_name_ ) return;
+
     for ( const auto& name : names )
     {
       if ( size.empty() )
@@ -130,6 +138,8 @@ public:
   void on_outputs( const std::vector<std::string>& names, std::string const& size = "" ) const override
   {
     (void)size;
+    if ( name_ != top_module_name_ ) return;
+
     for ( const auto& name : names )
     {
       if ( size.empty() )
@@ -151,8 +161,10 @@ public:
 
   void on_assign( const std::string& lhs, const std::pair<std::string, bool>& rhs ) const override
   {
-    if ( signals_.find( rhs.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", rhs.first ) << std::endl;
+    if ( name_ != top_module_name_ ) return;
+
+    if ( signals_.find( rhs.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", rhs.first );
 
     auto r = signals_[rhs.first];
     signals_[lhs] = rhs.second ? ntk_.create_not( r ) : r;
@@ -160,10 +172,12 @@ public:
 
   void on_nand( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( signals_.find( op1.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op1.first ) << std::endl;
-    if ( signals_.find( op2.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op2.first ) << std::endl;
+    if ( name_ != top_module_name_ ) return;
+
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
@@ -172,10 +186,12 @@ public:
 
   void on_and( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( signals_.find( op1.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op1.first ) << std::endl;
-    if ( signals_.find( op2.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op2.first ) << std::endl;
+    if ( name_ != top_module_name_ ) return;
+
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
@@ -184,10 +200,12 @@ public:
 
   void on_or( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( signals_.find( op1.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op1.first ) << std::endl;
-    if ( signals_.find( op2.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op2.first ) << std::endl;
+    if ( name_ != top_module_name_ ) return;
+
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
@@ -196,10 +214,12 @@ public:
 
   void on_xor( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2 ) const override
   {
-    if ( signals_.find( op1.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op1.first ) << std::endl;
-    if ( signals_.find( op2.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op2.first ) << std::endl;
+    if ( name_ != top_module_name_ ) return;
+
+    if ( signals_.find( op1.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
@@ -208,12 +228,14 @@ public:
 
   void on_xor3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
   {
+    if ( name_ != top_module_name_ ) return;
+
     if ( signals_.find( op1.first ) == signals_.end() )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op1.first ) << std::endl;
-    if ( signals_.find( op2.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op2.first ) << std::endl;
-    if ( signals_.find( op3.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op3.first ) << std::endl;
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
@@ -231,12 +253,14 @@ public:
 
   void on_maj3( const std::string& lhs, const std::pair<std::string, bool>& op1, const std::pair<std::string, bool>& op2, const std::pair<std::string, bool>& op3 ) const override
   {
+    if ( name_ != top_module_name_ ) return;
+
     if ( signals_.find( op1.first ) == signals_.end() )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op1.first ) << std::endl;
-    if ( signals_.find( op2.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op2.first ) << std::endl;
-    if ( signals_.find( op3.first ) == signals_.end()  )
-      std::cerr << fmt::format( "[w] undefined signal {} assigned 0", op3.first ) << std::endl;
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op1.first );
+    if ( signals_.find( op2.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op2.first );
+    if ( signals_.find( op3.first ) == signals_.end() )
+      fmt::print( stderr, "[w] undefined signal {} assigned 0\n", op3.first );
 
     auto a = signals_[op1.first];
     auto b = signals_[op2.first];
@@ -247,14 +271,14 @@ public:
   void on_module_instantiation( std::string const& module_name, std::vector<std::string> const& params, std::string const& inst_name,
                                 std::vector<std::pair<std::string, std::string>> const& args ) const override
   {
-    (void)params;
     (void)inst_name;
+    if ( name_ != top_module_name_ ) return;
 
     /* check routines */
     const auto num_args_equals = [&]( uint32_t expected_count ) {
       if ( args.size() != expected_count )
       {
-        std::cerr << fmt::format( "[e] {} module expects {} arguments\n", module_name, expected_count );
+        fmt::print( stderr, "[e] {} module expects {} arguments\n", module_name, expected_count );
         return false;
       }
       return true;
@@ -263,7 +287,7 @@ public:
     const auto num_params_equals = [&]( uint32_t expected_count ) {
       if ( params.size() != expected_count )
       {
-        std::cerr << fmt::format( "[e] {} module expects {} parameters\n", module_name, expected_count );
+        fmt::print( stderr, "[e] {} module expects {} parameters\n", module_name, expected_count );
         return false;
       }
       return true;
@@ -272,7 +296,7 @@ public:
     const auto register_exists = [&]( std::string const& name ) {
       if ( registers_.find( name ) == registers_.end() )
       {
-        std::cerr << fmt::format( "[e] register {} does not exist\n", name );
+        fmt::print( stderr, "[e] register {} does not exist\n", name );
         return false;
       }
       return true;
@@ -281,7 +305,7 @@ public:
     const auto register_has_size = [&]( std::string const& name, uint32_t size ) {
       if ( !register_exists( name ) || registers_[name].size() != size )
       {
-        std::cerr << fmt::format( "[e] register {} must have size {}\n", name, size );
+        fmt::print( stderr, "[e] register {} must have size {}\n", name, size );
         return false;
       }
       return true;
@@ -328,12 +352,41 @@ public:
     }
     else
     {
-      std::cout << fmt::format( "[e] unknown module name {}\n", module_name );
+      if constexpr( is_buffered_network_type_v<Ntk> )
+      {
+        static_assert( has_create_buf_v<Ntk>, "Ntk does not implement the create_buf method" );
+
+        if ( module_name == "buffer" || module_name == "inverter" )
+        {
+          if ( !num_args_equals( 2u ) )
+            fmt::print( stderr, "[e] number of arguments of a `{}` instance is not 2\n", module_name );
+          
+          signal<Ntk> fi;
+          std::string lhs;
+          for ( auto const& arg : args )
+          {
+            if ( arg.first == ".i" )
+              fi = signals_[arg.second];
+            else if ( arg.first == ".o" )
+              lhs = arg.second;
+            else
+              fmt::print( stderr, "[e] unknown argument {} to a `{}` instance\n", arg.first, module_name );
+          }
+          if ( module_name == "inverter" )
+            fi = ntk_.create_not( fi );
+          signals_[lhs] = ntk_.create_buf( fi );
+          return;
+        }
+      }
+      
+      fmt::print( stderr, "[e] unknown module name {}\n", module_name );
     }
   }
 
   void on_endmodule() const override
   {
+    if ( name_ != top_module_name_ ) return;
+
     for ( auto const& o : outputs_ )
     {
       ntk_.create_po( signals_[o], o );
@@ -374,7 +427,7 @@ private:
     }
     else
     {
-      fmt::print( "[e] cannot parse number '{}'\n", value );
+      fmt::print( stderr, "[e] cannot parse number '{}'\n", value );
     }
     assert( false );
     return {};
@@ -403,6 +456,8 @@ private:
 
 private:
   Ntk& ntk_;
+
+  std::string const top_module_name_;
 
   mutable std::map<std::string, signal<Ntk>> signals_;
   mutable std::map<std::string, std::vector<signal<Ntk>>> registers_;

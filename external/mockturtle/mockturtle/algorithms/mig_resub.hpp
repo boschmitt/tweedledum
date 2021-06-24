@@ -27,34 +27,21 @@
   \file mig_resub.hpp
   \brief Majority-specific resustitution rules
 
+  \author Eleonora Testa
   \author Heinz Riener
-  \author Siang-Yun Lee
+  \author Mathias Soeken
+  \author Siang-Yun (Sonia) Lee
 */
 
 #pragma once
 
-#include <mockturtle/algorithms/resubstitution.hpp>
-#include <mockturtle/networks/mig.hpp>
-#include <mockturtle/algorithms/mig_resyn_engines.hpp>
-#include <mockturtle/utils/index_list.hpp>
+#include "resubstitution.hpp"
+#include "resyn_engines/mig_resyn.hpp"
+#include "../networks/mig.hpp"
+#include "../utils/index_list.hpp"
+#include "../utils/truth_table_utils.hpp"
 
-namespace kitty
-{
-
-/*! \brief Relevance */
-inline bool relevance( const dynamic_truth_table& tt0, const dynamic_truth_table& tt1, const dynamic_truth_table& tt2, const dynamic_truth_table& tt )
-{
-  return is_const0( ( ( tt0 ^ tt ) & ( tt1 ^ tt2 ) ) );
-}
-
-/*! \brief Relevance */
-template<uint32_t NumVars>
-inline bool relevance( const static_truth_table<NumVars>& tt0, const static_truth_table<NumVars>& tt1, const static_truth_table<NumVars>& tt2, const static_truth_table<NumVars>& tt )
-{
-  return is_const0( ( ( tt0 ^ tt ) & ( tt1 ^ tt2 ) ) );
-}
-
-} /* namespace kitty */
+#include <kitty/kitty.hpp>
 
 namespace mockturtle
 {
@@ -291,7 +278,7 @@ public:
       auto const tt1 = sim.get_tt( fs[1] );
       auto const tt2 = sim.get_tt( fs[2] );
 
-      if ( ntk.get_node( fs[0] ) != d0 && ntk.fanout_size( ntk.get_node( fs[0] ) ) == 1 && relevance( tt0, tt1, tt2, tt ) )
+      if ( ntk.get_node( fs[0] ) != d0 && ntk.fanout_size( ntk.get_node( fs[0] ) ) == 1 && can_replace_majority_fanin( tt0, tt1, tt2, tt ) )
       {
         auto const b = sim.get_phase( ntk.get_node( fs[1] ) ) ? !fs[1] : fs[1];
         auto const c = sim.get_phase( ntk.get_node( fs[2] ) ) ? !fs[2] : fs[2];
@@ -300,7 +287,7 @@ public:
           !ntk.create_maj( sim.get_phase( d0 ) ? !s : s, b, c ) :
            ntk.create_maj( sim.get_phase( d0 ) ? !s : s, b, c );
       }
-      else if ( ntk.get_node( fs[1] ) != d0 && ntk.fanout_size( ntk.get_node( fs[1] ) ) == 1 && relevance( tt1, tt0, tt2, tt ) )
+      else if ( ntk.get_node( fs[1] ) != d0 && ntk.fanout_size( ntk.get_node( fs[1] ) ) == 1 && can_replace_majority_fanin( tt1, tt0, tt2, tt ) )
       {
         auto const a = sim.get_phase( ntk.get_node( fs[0] ) ) ? !fs[0] : fs[0];
         auto const c = sim.get_phase( ntk.get_node( fs[2] ) ) ? !fs[2] : fs[2];
@@ -309,7 +296,7 @@ public:
           !ntk.create_maj( sim.get_phase( d0 ) ? !s : s, a, c ) :
            ntk.create_maj( sim.get_phase( d0 ) ? !s : s, a, c );
       }
-      else if ( ntk.get_node( fs[2] ) != d0 && ntk.fanout_size( ntk.get_node( fs[2] ) ) == 1 && relevance( tt2, tt0, tt1, tt ) )
+      else if ( ntk.get_node( fs[2] ) != d0 && ntk.fanout_size( ntk.get_node( fs[2] ) ) == 1 && can_replace_majority_fanin( tt2, tt0, tt1, tt ) )
       {
         auto const a = sim.get_phase( ntk.get_node( fs[0] ) ) ? !fs[0] : fs[0];
         auto const b = sim.get_phase( ntk.get_node( fs[1] ) ) ? !fs[1] : fs[1];
@@ -318,7 +305,7 @@ public:
           !ntk.create_maj( sim.get_phase( d0 ) ? !s : s, a, b ) :
           ntk.create_maj( sim.get_phase( d0 ) ? !s : s, a, b );
       }
-      else if ( ntk.get_node( fs[0] ) != d0 && ntk.fanout_size( ntk.get_node( fs[0] ) ) == 1 && relevance( ~tt0, tt1, tt2, tt ) )
+      else if ( ntk.get_node( fs[0] ) != d0 && ntk.fanout_size( ntk.get_node( fs[0] ) ) == 1 && can_replace_majority_fanin( ~tt0, tt1, tt2, tt ) )
       {
         auto const b = sim.get_phase( ntk.get_node( fs[1] ) ) ? !fs[1] : fs[1];
         auto const c = sim.get_phase( ntk.get_node( fs[2] ) ) ? !fs[2] : fs[2];
@@ -327,7 +314,7 @@ public:
           !ntk.create_maj( sim.get_phase( d0 ) ? s : !s, b, c ) :
            ntk.create_maj( sim.get_phase( d0 ) ? s : !s, b, c );
       }
-      else if ( ntk.get_node( fs[1] ) != d0 && ntk.fanout_size( ntk.get_node( fs[1] ) ) == 1 && relevance( ~tt1, tt0, tt2, tt ) )
+      else if ( ntk.get_node( fs[1] ) != d0 && ntk.fanout_size( ntk.get_node( fs[1] ) ) == 1 && can_replace_majority_fanin( ~tt1, tt0, tt2, tt ) )
       {
         auto const a = sim.get_phase( ntk.get_node( fs[0] ) ) ? !fs[0] : fs[0];
         auto const c = sim.get_phase( ntk.get_node( fs[2] ) ) ? !fs[2] : fs[2];
@@ -336,7 +323,7 @@ public:
           !ntk.create_maj( sim.get_phase( d0 ) ? s : !s, a, c ) :
            ntk.create_maj( sim.get_phase( d0 ) ? s : !s, a, c );
       }
-      else if ( ntk.get_node( fs[2] ) != d0 && ntk.fanout_size( ntk.get_node( fs[2] ) ) == 1 && relevance( ~tt2, tt0, tt1, tt ) )
+      else if ( ntk.get_node( fs[2] ) != d0 && ntk.fanout_size( ntk.get_node( fs[2] ) ) == 1 && can_replace_majority_fanin( ~tt2, tt0, tt1, tt ) )
       {
         auto const a = sim.get_phase( ntk.get_node( fs[0] ) ) ? !fs[0] : fs[0];
         auto const b = sim.get_phase( ntk.get_node( fs[1] ) ) ? !fs[1] : fs[1];
@@ -620,7 +607,7 @@ private:
   binate_divisors bdivs;
 }; /* mig_enumerative_resub_functor */
 
-struct mig_resyn_stats
+struct mig_resyn_resub_stats
 {
   /*! \brief Time for finding dependency function. */
   stopwatch<>::duration time_compute_function{0};
@@ -633,22 +620,25 @@ struct mig_resyn_stats
 
   void report() const
   {
-    // clang-format off
-    std::cout <<              "[i]     <ResubFn: abc_resub_functor>\n";
-    std::cout << fmt::format( "[i]         #solution = {:6d}\n", num_success );
-    std::cout << fmt::format( "[i]         #invoke   = {:6d}\n", num_success + num_fail );
-    std::cout << fmt::format( "[i]         engine time: {:>5.2f} secs\n", to_seconds( time_compute_function ) );
-    // clang-format on
+    fmt::print( "[i]     <ResubFn: mig_resyn_functor>\n" );
+    fmt::print( "[i]         #solution = {:6d}\n", num_success );
+    fmt::print( "[i]         #invoke   = {:6d}\n", num_success + num_fail );
+    fmt::print( "[i]         engine time: {:>5.2f} secs\n", to_seconds( time_compute_function ) );
   }
-}; /* mig_resyn_stats */
+}; /* mig_resyn_resub_stats */
 
-template<typename Ntk, typename Simulator, typename TTcare, typename Engine = mig_resyn_engine<kitty::partial_truth_table>>
+/*! \brief Interfacing resubstitution functor with MIG resynthesis engines for `window_based_resub_engine`.
+ */
+template<typename Ntk, typename Simulator, typename TTcare, typename ResynEngine = mig_resyn_topdown<typename Simulator::truthtable_t>>
 struct mig_resyn_functor
 {
 public:
   using node = mig_network::node;
   using signal = mig_network::signal;
-  using stats = mig_resyn_stats;
+  using stats = mig_resyn_resub_stats;
+  using TT = typename ResynEngine::truth_table_t;
+
+  static_assert( std::is_same_v<TT, typename Simulator::truthtable_t>, "truth table type of the simulator does not match" );
 
 public:
   explicit mig_resyn_functor( Ntk& ntk, Simulator const& sim, std::vector<node> const& divs, uint32_t num_divs, stats& st )
@@ -664,19 +654,21 @@ public:
 
   std::optional<signal> operator()( node const& root, TTcare care, uint32_t required, uint32_t max_inserts, uint32_t potential_gain, uint32_t& real_gain )
   {
-    (void)care; (void)required;
-    kitty::partial_truth_table root_tt;
-    root_tt = sim.get_tt( sim.get_phase( root ) ? !ntk.make_signal( root ) : ntk.make_signal( root ) );
-    Engine engine( root_tt );
+    (void)required;
+    TT target = sim.get_tt( sim.get_phase( root ) ? !ntk.make_signal( root ) : ntk.make_signal( root ) );
+    TT care_transformed = target.construct();
+    care_transformed = care;
+
+    typename ResynEngine::stats st_eng;
+    ResynEngine engine( st_eng );
     for ( auto const& d : divs )
     {
       div_signals.emplace_back( sim.get_phase( d ) ? !ntk.make_signal( d ) : ntk.make_signal( d ) );
       tts[d] = sim.get_tt( div_signals.back() );
     }
-    engine.add_divisors( divs.begin(), divs.end(), tts );
 
     auto const res = call_with_stopwatch( st.time_compute_function, [&]() {
-      return engine.compute_function( std::min( potential_gain - 1, max_inserts ) );
+      return engine( target, care_transformed, divs.begin(), divs.end(), tts, std::min( potential_gain - 1, max_inserts ) );
     });
     if ( res )
     {
@@ -696,7 +688,7 @@ public:
 private:
   Ntk& ntk;
   Simulator const& sim;
-  unordered_node_map<kitty::partial_truth_table, Ntk> tts;
+  unordered_node_map<TT, Ntk> tts;
   std::vector<node> const& divs;
   std::vector<signal> div_signals;
   stats& st;
@@ -766,8 +758,8 @@ void mig_resubstitution( Ntk& ntk, resubstitution_params const& ps = {}, resubst
   {
     using truthtable_t = kitty::static_truth_table<8u>;
     using truthtable_dc_t = kitty::dynamic_truth_table;
-    using functor_t = mig_enumerative_resub_functor<Ntk, typename detail::window_simulator<Ntk, truthtable_t>, truthtable_dc_t>;
-    using resub_impl_t = detail::resubstitution_impl<Ntk, typename detail::window_based_resub_engine<Ntk, truthtable_t, truthtable_dc_t, functor_t>>;
+    using functor_t = mig_enumerative_resub_functor<Ntk, detail::window_simulator<Ntk, truthtable_t>, truthtable_dc_t>;
+    using resub_impl_t = detail::resubstitution_impl<Ntk, detail::window_based_resub_engine<Ntk, truthtable_t, truthtable_dc_t, functor_t>>;
 
     resubstitution_stats st;
     typename resub_impl_t::engine_st_t engine_st;
@@ -792,8 +784,8 @@ void mig_resubstitution( Ntk& ntk, resubstitution_params const& ps = {}, resubst
   {
     using truthtable_t = kitty::dynamic_truth_table;
     using truthtable_dc_t = kitty::dynamic_truth_table;
-    using functor_t = mig_enumerative_resub_functor<Ntk, typename detail::window_simulator<Ntk, truthtable_t>, truthtable_dc_t>;
-    using resub_impl_t = detail::resubstitution_impl<Ntk, typename detail::window_based_resub_engine<Ntk, truthtable_t, truthtable_dc_t, functor_t>>;
+    using functor_t = mig_enumerative_resub_functor<Ntk, detail::window_simulator<Ntk, truthtable_t>, truthtable_dc_t>;
+    using resub_impl_t = detail::resubstitution_impl<Ntk, detail::window_based_resub_engine<Ntk, truthtable_t, truthtable_dc_t, functor_t>>;
 
     resubstitution_stats st;
     typename resub_impl_t::engine_st_t engine_st;
@@ -813,6 +805,92 @@ void mig_resubstitution( Ntk& ntk, resubstitution_params const& ps = {}, resubst
     {
       *pst = st;
     }
+  }
+}
+
+/*! \brief MIG-specific resubstitution algorithm.
+ *
+ * This algorithms iterates over each node, creates a
+ * reconvergence-driven cut, and attempts to re-express the node's
+ * function using existing nodes from the cut.  Node which are no
+ * longer used (including nodes in their transitive fanins) can then
+ * be removed.  The objective is to reduce the size of the network as
+ * much as possible while maintaing the global input-output
+ * functionality.
+ *
+ * **Required network functions:**
+ *
+ * - `clear_values`
+ * - `fanout_size`
+ * - `foreach_fanin`
+ * - `foreach_fanout`
+ * - `foreach_gate`
+ * - `foreach_node`
+ * - `get_constant`
+ * - `get_node`
+ * - `is_complemented`
+ * - `is_pi`
+ * - `level`
+ * - `make_signal`
+ * - `set_value`
+ * - `set_visited`
+ * - `size`
+ * - `substitute_node`
+ * - `value`
+ * - `visited`
+ *
+ * \param ntk A network type derived from mig_network
+ * \param ps Resubstitution parameters
+ * \param pst Resubstitution statistics
+ */
+template<class Ntk>
+void mig_resubstitution2( Ntk& ntk, resubstitution_params const& ps = {}, resubstitution_stats* pst = nullptr )
+{
+  static_assert( is_network_type_v<Ntk>, "Ntk is not a network type" );
+  static_assert( std::is_same_v<typename Ntk::base_type, mig_network>, "Network type is not mig_network" );
+
+  static_assert( has_clear_values_v<Ntk>, "Ntk does not implement the clear_values method" );
+  static_assert( has_fanout_size_v<Ntk>, "Ntk does not implement the fanout_size method" );
+  static_assert( has_foreach_fanin_v<Ntk>, "Ntk does not implement the foreach_fanin method" );
+  static_assert( has_foreach_gate_v<Ntk>, "Ntk does not implement the foreach_gate method" );
+  static_assert( has_foreach_node_v<Ntk>, "Ntk does not implement the foreach_node method" );
+  static_assert( has_get_constant_v<Ntk>, "Ntk does not implement the get_constant method" );
+  static_assert( has_get_node_v<Ntk>, "Ntk does not implement the get_node method" );
+  static_assert( has_is_complemented_v<Ntk>, "Ntk does not implement the is_complemented method" );
+  static_assert( has_is_pi_v<Ntk>, "Ntk does not implement the is_pi method" );
+  static_assert( has_make_signal_v<Ntk>, "Ntk does not implement the make_signal method" );
+  static_assert( has_set_value_v<Ntk>, "Ntk does not implement the set_value method" );
+  static_assert( has_set_visited_v<Ntk>, "Ntk does not implement the set_visited method" );
+  static_assert( has_size_v<Ntk>, "Ntk does not implement the has_size method" );
+  static_assert( has_substitute_node_v<Ntk>, "Ntk does not implement the has substitute_node method" );
+  static_assert( has_value_v<Ntk>, "Ntk does not implement the has_value method" );
+  static_assert( has_visited_v<Ntk>, "Ntk does not implement the has_visited method" );
+  static_assert( has_level_v<Ntk>, "Ntk does not implement the level method" );
+  static_assert( has_foreach_fanout_v<Ntk>, "Ntk does not implement the foreach_fanout method" );
+
+  using truthtable_t = kitty::dynamic_truth_table;
+  using truthtable_dc_t = kitty::dynamic_truth_table;
+  using functor_t = mig_resyn_functor<Ntk, detail::window_simulator<Ntk, truthtable_t>, truthtable_dc_t>;
+
+  using resub_impl_t = detail::resubstitution_impl<Ntk, detail::window_based_resub_engine<Ntk, truthtable_t, truthtable_dc_t, functor_t>>;
+
+  resubstitution_stats st;
+  typename resub_impl_t::engine_st_t engine_st;
+  typename resub_impl_t::collector_st_t collector_st;
+
+  resub_impl_t p( ntk, ps, st, engine_st, collector_st );
+  p.run();
+
+  if ( ps.verbose )
+  {
+    st.report();
+    collector_st.report();
+    engine_st.report();
+  }
+
+  if ( pst )
+  {
+    *pst = st;
   }
 }
 

@@ -24,17 +24,18 @@
  */
 
 /*!
-  \file mig_resyn_engines.hpp
+  \file mig_resyn.hpp
   \brief Implements resynthesis methods for MIGs.
 
-  \author Siang-Yun Lee
+  \author Siang-Yun (Sonia) Lee
 */
 
 #pragma once
 
-#include "../utils/index_list.hpp"
+#include "../../utils/index_list.hpp"
 
 #include <kitty/kitty.hpp>
+#include <fmt/format.h>
 
 #include <vector>
 #include <unordered_map>
@@ -42,34 +43,62 @@
 namespace mockturtle
 {
 
+struct mig_resyn_params
+{
+  /*! \brief Reserved capacity for divisor truth tables (number of divisors). */
+  uint32_t reserve{200u};
+};
+
+struct mig_resyn_stats
+{
+};
+
+/*! \brief Logic resynthesis engine for MIGs with a bottom-up approach.
+ *
+ * This algorithm resynthesizes the target function with divisor functions
+ * by building a chain of majority gates from bottom to top. Divisors are
+ * chosen as side fanins based on some scoring functions aiming at covering
+ * more uncovered bits.
+ * 
+ */
 template<class TT>
-class mig_resyn_engine_bottom_up
+class mig_resyn_bottomup
 {
 public:
-  explicit mig_resyn_engine_bottom_up( TT const& target )
-    : num_bits( target.num_bits() ), divisors( { ~target, target } )
-  { }
+  using stats = mig_resyn_stats;
+  using params = mig_resyn_params;
+  using index_list_t = mig_index_list;
+  using truth_table_t = TT;
 
-  template<class node_type, class truth_table_storage_type>
-  void add_divisor( node_type const& node, truth_table_storage_type const& tts )
+  explicit mig_resyn_bottomup( stats& st, params const& ps = {} )
+    : st( st ), ps( ps )
   {
-    assert( tts[node].num_bits() == num_bits );
-    divisors.emplace_back( tts[node] ^ divisors.at( 0u ) ); // XNOR target = XOR ~target
-    divisors.emplace_back( ~tts[node] ^ divisors.at( 0u ) );
-    index_list.add_inputs();
+    divisors.reserve( ps.reserve + 2 );
   }
 
   template<class iterator_type, class truth_table_storage_type>
-  void add_divisors( iterator_type begin, iterator_type end, truth_table_storage_type const& tts )
-  { 
+  std::optional<index_list_t> operator()( TT const& target, TT const& care, iterator_type begin, iterator_type end, truth_table_storage_type const& tts, uint32_t max_size = std::numeric_limits<uint32_t>::max() )
+  {
+    (void)care;
+    num_bits = target.num_bits();
+    divisors.emplace_back( ~target );
+    divisors.emplace_back( target );
+    
     while ( begin != end )
     {
-      add_divisor( *begin, tts );
+      auto const& tt = tts[*begin];
+      assert( tt.num_bits() == target.num_bits() );
+      divisors.emplace_back( tt ^ divisors[0] ); // tt XNOR target = tt XOR ~target
+      divisors.emplace_back( tt ^ target );      // ~tt XNOR target = tt XOR target
+      index_list.add_inputs();
       ++begin;
     }
+
+    return compute_function( max_size );
   }
 
-  std::optional<mig_index_list> compute_function( uint32_t num_inserts )
+private:
+  std::optional<index_list_t> compute_function( uint32_t num_inserts )
   {
     uint64_t max_score = 0u;
     max_i = 0u;
@@ -102,7 +131,6 @@ public:
     return bottom_up_approach();
   }
 
-private:
   std::optional<mig_index_list> bottom_up_approach()
   {
     //maj_nodes.emplace_back( maj_node{uint32_t( divisors.size() ), {max_i}} );
@@ -174,12 +202,31 @@ private:
   uint32_t max_i, max_j, max_k;
 
   std::vector<TT> divisors;
-  mig_index_list index_list;
-}; /* mig_resyn_engine_bottom_up */
+  index_list_t index_list;
 
+  stats& st;
+  params const ps;
+}; /* mig_resyn_bottomup */
+
+/*! \brief Logic resynthesis engine for MIGs with top-down decomposition.
+ *
+ * This algorithm resynthesizes the target function with divisor functions
+ * by first building the topmost node, and then iteratively refining its
+ * output function by expanding a leaf with a new node. The three fanins
+ * of the newly-created node are chosen from the divisors based on some
+ * scoring functions aiming at covering more *care* bits.
+ * 
+ */
 template<class TT>
-class mig_resyn_engine
+class mig_resyn_topdown
 {
+public:
+  using stats = mig_resyn_stats;
+  using params = mig_resyn_params;
+  using index_list_t = mig_index_list;
+  using truth_table_t = TT;
+
+private:
   /*! \brief Internal data structure */
   struct expansion_position
   {
@@ -209,34 +256,50 @@ class mig_resyn_engine
   };
 
 public:
-  explicit mig_resyn_engine( TT const& target )
-    : num_bits( target.num_bits() ), divisors( { ~target, target } )
-  { }
-
-  template<class node_type, class truth_table_storage_type>
-  void add_divisor( node_type const& node, truth_table_storage_type const& tts )
+  explicit mig_resyn_topdown( stats& st, params const& ps = {} )
+    : st( st ), ps( ps )
   {
-    assert( tts[node].num_bits() == num_bits );
-    divisors.emplace_back( tts[node] ^ divisors.at( 0u ) ); // XNOR target = XOR ~target
-    divisors.emplace_back( ~tts[node] ^ divisors.at( 0u ) );
-    scores.resize( divisors.size() );
+    divisors.reserve( ps.reserve + 2 );
   }
 
+  /*! \brief Perform MIG resynthesis.
+   *
+   * `*pTTs[*begin]` must be of type `TT`.
+   *
+   * \param target Truth table of the target function.
+   * \param care Truth table of the care set.
+   * \param begin Begin iterator to divisor nodes.
+   * \param end End iterator to divisor nodes.
+   * \param tts A data structure (e.g. std::vector<TT>) that stores the truth tables of the divisor functions.
+   * \param max_size Maximum number of nodes allowed in the dependency circuit.
+   */
   template<class iterator_type, class truth_table_storage_type>
-  void add_divisors( iterator_type begin, iterator_type end, truth_table_storage_type const& tts )
-  { 
+  std::optional<index_list_t> operator()( TT const& target, TT const& care, iterator_type begin, iterator_type end, truth_table_storage_type const& tts, uint32_t max_size = std::numeric_limits<uint32_t>::max() )
+  {
+    divisors.emplace_back( ~target );
+    divisors.emplace_back( target );
+    
     while ( begin != end )
     {
-      add_divisor( *begin, tts );
+      auto const& tt = tts[*begin];
+      assert( tt.num_bits() == target.num_bits() );
+      divisors.emplace_back( tt ^ divisors[0] ); // tt XNOR target = tt XOR ~target
+      divisors.emplace_back( tt ^ target );      // ~tt XNOR target = tt XOR target
       ++begin;
     }
+    scores.resize( divisors.size() );
+    size_limit = max_size;
+    num_bits = kitty::count_ones( care );
+
+    return compute_function( care );
   }
 
-  std::optional<mig_index_list> compute_function( uint32_t num_inserts )
+private:
+  std::optional<index_list_t> compute_function( TT const& care )
   {
     for ( auto i = 0u; i < divisors.size(); ++i )
     {
-      if ( kitty::is_const0( ~divisors.at( i ) ) )
+      if ( kitty::is_const0( ~divisors.at( i ) & care ) )
       {
         /* 0-resub (including constants) */
         mig_index_list index_list( divisors.size() / 2 - 1 );
@@ -245,24 +308,20 @@ public:
       }
     }
 
-    if ( num_inserts == 0u )
+    if ( size_limit == 0u )
     {
       return std::nullopt;
     }
-    size_limit = num_inserts;
 
-    return top_down_approach();
+    return top_down_approach( care );
   }
 
-private:
-  std::optional<mig_index_list> top_down_approach()
+  std::optional<index_list_t> top_down_approach( TT const& top_care )
   {
     maj_nodes.reserve( size_limit );
-    /* topmost node: care is const1 */
-    TT const const1 = divisors.at( 0u ) | divisors.at( 1u );
-    std::vector<simple_maj> top_node_choices = construct_top();
+    std::vector<simple_maj> top_node_choices = construct_top( top_care );
     
-    if ( top_node_choices.size() == 1u && kitty::is_const0( ~top_node_choices[0].function ) )
+    if ( top_node_choices.size() == 1u && kitty::is_const0( ~top_node_choices[0].function & top_care ) )
     {
       /* 1-resub */
       mig_index_list index_list( divisors.size() / 2 - 1 );
@@ -272,7 +331,7 @@ private:
     }
     for ( simple_maj& top_node : top_node_choices )
     {
-      if ( easy_refine( top_node, 0 ) || easy_refine( top_node, 1 ) )
+      if ( easy_refine( top_node, top_care, 0 ) || easy_refine( top_node, top_care, 1 ) )
       {
         /* 1-resub */
         mig_index_list index_list( divisors.size() / 2 - 1 );
@@ -292,7 +351,7 @@ private:
       for ( int32_t i = 0; i < 3; ++i )
       {
         maj_nodes.clear();
-        maj_nodes.emplace_back( maj_node{uint32_t( divisors.size() ), top_node.fanins, {divisors.at( top_node.fanins[0] ), divisors.at( top_node.fanins[1] ), divisors.at( top_node.fanins[2] )}, const1} );
+        maj_nodes.emplace_back( maj_node{uint32_t( divisors.size() ), top_node.fanins, {divisors.at( top_node.fanins[0] ), divisors.at( top_node.fanins[1] ), divisors.at( top_node.fanins[2] )}, top_care} );
 
         leaves.clear();
         improve_in_parent.clear();
@@ -301,7 +360,7 @@ private:
         leaves.emplace_back( expansion_position{0, (int32_t)sibling_index( i, 1 )} );
         leaves.emplace_back( expansion_position{0, (int32_t)sibling_index( i, 2 )} );
 
-        TT const care = ~( divisors.at( top_node.fanins[sibling_index( i, 1 )] ) & divisors.at( top_node.fanins[sibling_index( i, 2 )] ) );
+        TT const care = top_care & ~( divisors.at( top_node.fanins[sibling_index( i, 1 )] ) & divisors.at( top_node.fanins[sibling_index( i, 2 )] ) );
         if ( evaluate_one( care, divisors.at( top_node.fanins[i] ), expansion_position{0, i} ) )
         {
           /* 2-resub */
@@ -528,7 +587,7 @@ private:
     return computed_table[care];
   }
 
-  std::vector<simple_maj> construct_top()
+  std::vector<simple_maj> construct_top( TT const& care )
   {
     std::vector<simple_maj> res;
 
@@ -536,7 +595,7 @@ private:
     uint64_t max_score = 0u;
     for ( auto i = 0u; i < divisors.size(); ++i )
     {
-      scores.at( i ) = kitty::count_ones( divisors.at( i ) );
+      scores.at( i ) = kitty::count_ones( divisors.at( i ) & care );
       if ( scores.at( i ) > max_score )
       {
         max_score = scores.at( i );
@@ -546,7 +605,7 @@ private:
     {
       if ( scores.at( i ) == max_score )
       {
-        if ( construct_top( i, res ) )
+        if ( construct_top( care, i, res ) )
         {
           break;
         }
@@ -555,14 +614,14 @@ private:
     return res;
   }
 
-  bool construct_top( uint32_t max_i, std::vector<simple_maj>& res )
+  bool construct_top( TT const& care, uint32_t max_i, std::vector<simple_maj>& res )
   {
     /* the second fanin: 2 * #newly-covered-bits + 1 * #cover-again-bits */
     uint64_t max_score = 0u;
     auto const not_covered_by_i = ~divisors.at( max_i );
     for ( auto j = 0u; j < divisors.size(); ++j )
     {
-      auto const covered_by_j = divisors.at( j );
+      auto const covered_by_j = divisors.at( j ) & care;
       scores.at( j ) = kitty::count_ones( covered_by_j ) + kitty::count_ones( not_covered_by_i & covered_by_j );
       if ( scores.at( j ) > max_score && !same_divisor( j, max_i ) )
       {
@@ -573,7 +632,7 @@ private:
     {
       if ( scores.at( j ) == max_score && !same_divisor( j, max_i ) )
       {
-        if ( construct_top( max_i, j, res ) )
+        if ( construct_top( care, max_i, j, res ) )
         {
           break;
         }
@@ -582,7 +641,7 @@ private:
     return false;
   }
 
-  bool construct_top( uint32_t max_i, uint32_t max_j, std::vector<simple_maj>& res )
+  bool construct_top( TT const& care, uint32_t max_i, uint32_t max_j, std::vector<simple_maj>& res )
   {
     /* the third fanin: 2 * #cover-never-covered-bits + 1 * #cover-covered-once-bits */
     uint64_t max_score = 0u;
@@ -590,7 +649,7 @@ private:
     auto const not_covered_by_j = ~divisors.at( max_j );
     for ( auto k = 0u; k < divisors.size(); ++k )
     {
-      auto const covered_by_k = divisors.at( k );
+      auto const covered_by_k = divisors.at( k ) & care;
       scores.at( k ) = kitty::count_ones( covered_by_k & not_covered_by_i ) + kitty::count_ones( covered_by_k & not_covered_by_j );
       if ( scores.at( k ) > max_score && !same_divisor( k, max_i ) && !same_divisor( k, max_j ) )
       {
@@ -603,7 +662,7 @@ private:
       if ( scores.at( k ) == max_score && !same_divisor( k, max_i ) && !same_divisor( k, max_j ) )
       {
         TT const func = kitty::ternary_majority( divisors.at( max_i ), divisors.at( max_j ), divisors.at( k ) );
-        if ( kitty::is_const0( ~func ) )
+        if ( kitty::is_const0( ~func & care ) )
         {
           res.clear();
           res.emplace_back( simple_maj( {{max_i, max_j, k}, func} ) );
@@ -616,9 +675,9 @@ private:
   }
 
   /* try to replace the first (fi=0) or the second (fi=1) fanin with another divisor to improve coverage */
-  bool easy_refine( simple_maj& n, uint32_t fi )
+  bool easy_refine( simple_maj& n, TT const& care, uint32_t fi )
   {
-    uint64_t const original_coverage = kitty::count_ones( n.function );
+    uint64_t const original_coverage = kitty::count_ones( n.function & care );
     uint64_t current_coverage = original_coverage;
     auto const& tt1 = divisors.at( n.fanins[fi ? 0 : 1] );
     auto const& tt2 = divisors.at( n.fanins[fi < 2 ? 2 : 1] );
@@ -629,7 +688,7 @@ private:
         continue;
       }
       auto const& tti = divisors.at( i );
-      uint64_t coverage = kitty::count_ones( kitty::ternary_majority( tti, tt1, tt2 ) );
+      uint64_t coverage = kitty::count_ones( kitty::ternary_majority( tti, tt1, tt2 ) & care );
       if ( coverage > current_coverage )
       {
         current_coverage = coverage;
@@ -831,39 +890,61 @@ private:
 
   std::vector<expansion_position> leaves, improve_in_parent, shuffle;
   bool first_round = true;
-}; /* mig_resyn_engine */
 
-class mig_resyn_engine_akers
+  stats& st;
+  params const ps;
+}; /* mig_resyn_topdown */
+
+/*! \brief Logic resynthesis engine for MIGs by Akers' majority synthesis algorithm.
+ *
+ * This engine is a re-implementation of Akers' algorithm based on the following paper:
+ *
+ * Akers, S. B. (1962, October). Synthesis of combinational logic using 
+ * three-input majority gates. In 3rd Annual Symposium on Switching Circuit Theory
+ * and Logical Design (SWCT 1962) (pp. 149-158). IEEE.
+ * 
+ */
+class mig_resyn_akers
 {
 public:
-  explicit mig_resyn_engine_akers( kitty::partial_truth_table const& target )
-    : divisors( { ~target, target } ), id_to_lit( { 0, 1 } )
-                /* const0, const1 */
-  { }
+  using stats = mig_resyn_stats;
+  using params = mig_resyn_params;
+  using index_list_t = mig_index_list;
+  using TT = kitty::partial_truth_table;
+  using truth_table_t = TT;
 
-  template<class node_type, class truth_table_storage_type>
-  void add_divisor( node_type const& node, truth_table_storage_type const& tts )
+  explicit mig_resyn_akers( stats& st, params const& ps = {} )
+    : id_to_lit( { 0, 1 } ), st( st ), ps( ps )
   {
-    assert( tts[node].num_bits() == divisors[0].num_bits() );
-    id_to_lit.emplace_back( divisors.size() );
-    divisors.emplace_back( tts[node] ^ divisors.at( 0u ) ); // XNOR target = XOR ~target
-    id_to_lit.emplace_back( divisors.size() );
-    divisors.emplace_back( ~tts[node] ^ divisors.at( 0u ) );
-    index_list.add_inputs();
+    divisors.reserve( ps.reserve + 2 );
   }
 
   template<class iterator_type, class truth_table_storage_type>
-  void add_divisors( iterator_type begin, iterator_type end, truth_table_storage_type const& tts )
-  { 
+  std::optional<index_list_t> operator()( TT const& target, TT const& care, iterator_type begin, iterator_type end, truth_table_storage_type const& tts, uint32_t max_size = std::numeric_limits<uint32_t>::max() )
+  {
+    (void)care;
+    divisors.emplace_back( ~target );
+    divisors.emplace_back( target );
+
     while ( begin != end )
     {
-      add_divisor( *begin, tts );
+      auto const& tt = tts[*begin];
+      assert( tt.num_bits() == divisors[0].num_bits() );
+      id_to_lit.emplace_back( divisors.size() );
+      divisors.emplace_back( tt ^ divisors[0] );
+      id_to_lit.emplace_back( divisors.size() );
+      divisors.emplace_back( tt ^ target );
+      index_list.add_inputs();
       ++begin;
     }
+
+    return compute_function( max_size );
   }
 
-  std::optional<mig_index_list> compute_function( uint32_t num_inserts )
+private:
+  std::optional<index_list_t> compute_function( uint32_t num_inserts )
   {
+    (void)st;
     if ( !is_feasible() )
     {
       return std::nullopt;
@@ -900,7 +981,6 @@ public:
     return index_list;
   }
 
-private:
   void reduce()
   {
     uint32_t num_bits_before = 0u;
@@ -1197,7 +1277,10 @@ private:
 private:
   std::vector<kitty::partial_truth_table> divisors;
   std::vector<uint32_t> id_to_lit;
-  mig_index_list index_list;
+  index_list_t index_list;
   uint32_t fanins[3];
-};
+
+  stats& st;
+  params const ps;
+}; /* mig_resyn_akers */
 } /* namespace mockturtle */
