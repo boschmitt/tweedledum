@@ -28,27 +28,55 @@ class Instruction;
 //
 class Operator {
 public:
-    template<typename ConcreteOp>
+    // clang-format off
+    template<typename ConcreteOp,
+             std::enable_if_t<!std::is_same_v<Operator, remove_cvref_t<ConcreteOp>>, bool> = true>
     Operator(ConcreteOp&& op) noexcept
     {
-        static_assert(!std::is_same_v<std::decay_t<ConcreteOp>, Instruction>);
-        if constexpr (std::is_same_v<std::decay_t<ConcreteOp>, Operator>) {
-            concept_ = op.concept_;
-            concept_->clone(&op.model_, &model_);
-        } else {
-            constexpr bool is_small =
-              sizeof(Model<std::decay_t<ConcreteOp>, true>) <= small_size;
-            new (&model_) Model<std::decay_t<ConcreteOp>, is_small>(
-              std::forward<ConcreteOp>(op));
-            concept_ = &Model<std::decay_t<ConcreteOp>, is_small>::vtable_;
-        }
+        using ConcreteType = remove_cvref_t<ConcreteOp>;
+        static_assert(!std::is_same_v<ConcreteType, Instruction>);
+        constexpr bool is_small = sizeof(Model<ConcreteType, true>) <= small_size;
+        new (&model_) Model<ConcreteType, is_small>(std::forward<ConcreteOp>(op));
+        concept_ = &Model<ConcreteType, is_small>::vtable_;
     }
 
-    Operator(Operator const& op) noexcept
+    template<typename ConcreteOp,
+             std::enable_if_t<!std::is_same_v<Operator, remove_cvref_t<ConcreteOp>>, bool> = true>
+    Operator& operator=(ConcreteOp&& op) noexcept
     {
-        concept_ = op.concept_;
-        concept_->clone(&op.model_, &model_);
+        using ConcreteType = remove_cvref_t<ConcreteOp>;
+        static_assert(!std::is_same_v<ConcreteType, Instruction>);
+        constexpr bool is_small = sizeof(Model<ConcreteType, true>) <= small_size;
+        concept_->dtor(&model_);
+        new (&model_) Model<ConcreteType, is_small>(std::forward<ConcreteOp>(op));
+        concept_ = &Model<ConcreteType, is_small>::vtable_;
+        return *this;
     }
+    // clang-format on
+
+    Operator(Operator const& other) noexcept
+    {
+        concept_ = other.concept_;
+        concept_->clone(&other.model_, &model_);
+    }
+
+    Operator& operator=(Operator const& other) noexcept
+    {
+        // Guard self assignment
+        if (this == &other) {
+            return *this;
+        }
+        concept_->dtor(&model_);
+
+        concept_ = other.concept_;
+        concept_->clone(&other.model_, &model_);
+        return *this;
+    }
+
+    // TODO: I need to think a bit better about move!!
+    Operator(Operator&& other) = delete;
+
+    Operator& operator=(Operator&& other) = delete;
 
     ~Operator()
     {
@@ -154,7 +182,7 @@ struct Operator::Model<ConcreteOp, true> {
 
     static void clone(void const* self, void* other) noexcept
     {
-        new (other) Model<std::decay_t<ConcreteOp>, true>(
+        new (other) Model<remove_cvref_t<ConcreteOp>, true>(
           static_cast<Model const*>(self)->operator_);
     }
 
@@ -225,7 +253,7 @@ struct Operator::Model<ConcreteOp, false> {
 
     static void dtor(void* self) noexcept
     {
-        static_cast<Model*>(self)->~Model();
+        static_cast<Model*>(self)->operator_.reset();
     }
 
     static void clone(void const* self, void* other) noexcept
