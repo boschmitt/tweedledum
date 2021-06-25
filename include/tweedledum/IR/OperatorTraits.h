@@ -56,4 +56,12 @@ template<class F, class... T>
 struct supports<F(T...)>
     : decltype(supports_test(std::declval<F>(), std::declval<T>()...)) {};
 
+template<class T>
+struct remove_cvref {
+    typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+};
+
+template< class T >
+using remove_cvref_t = typename remove_cvref<T>::type;
+
 } // namespace tweedledum
