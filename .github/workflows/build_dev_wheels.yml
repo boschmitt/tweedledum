@@ -175,7 +175,7 @@ jobs:
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
           CIBW_TEST_REQUIRES: pytest
-          CIBW_TEST_COMMAND: pytest -v {project}/python/test/
+          CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
 

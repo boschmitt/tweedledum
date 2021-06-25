@@ -48,4 +48,4 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest -v python/test/
+          pytest --import-mode importlib -v python/test/

@@ -6,7 +6,7 @@ import _ast
 import ast
 
 from .bitvec import BitVec
-from .._tweedledum.classical import LogicNetwork
+from tweedledum.classical import LogicNetwork
 
 
 class ParseError(Exception):
