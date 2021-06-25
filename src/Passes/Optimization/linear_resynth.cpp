@@ -91,7 +91,6 @@ inline void resynth_slice(Circuit const& original, Slice const& slice,
 }
 
 } // namespace
-#pragma endregion
 
 Circuit linear_resynth(Circuit const& original, nlohmann::json const& config)
 {

@@ -191,7 +191,6 @@ public:
         block_width_type position_;
     };
 
-#pragma region Constructors
     constexpr DynamicBitset() noexcept = default;
 
     template<typename ValueType>
@@ -222,9 +221,7 @@ public:
         assert((other.bits_ = container_type()).empty());
         other.num_bits_ = 0;
     }
-#pragma endregion
 
-#pragma region Comparison
     bool operator==(DynamicBitset const& rhs) const noexcept
     {
         return (num_bits_ == rhs.num_bits_) && (bits_ == rhs.bits_);
@@ -234,9 +231,7 @@ public:
     {
         return !(*this == rhs);
     }
-#pragma endregion
 
-#pragma region Dynamic bitset operations
     DynamicBitset& operator&=(const DynamicBitset& rhs) noexcept
     {
         assert(size() == rhs.size());
@@ -267,9 +262,7 @@ public:
     // TODO
     DynamicBitset& operator<<=(size_type position) noexcept;
     DynamicBitset& operator>>=(size_type position) noexcept;
-#pragma endregion
 
-#pragma region Bit operations
     DynamicBitset& set() noexcept
     {
         std::fill(bits_.begin(), bits_.end(), static_cast<block_type>(~0));
@@ -337,9 +330,7 @@ public:
         zero_unused_bits();
         return *this;
     }
-#pragma endregion
 
-#pragma region Element access
     constexpr bool operator[](size_type position) const
     {
         return test(position);
@@ -403,9 +394,7 @@ public:
         }
         return count;
     }
-#pragma endregion
 
-#pragma region Iterators
     iterator begin() noexcept
     {
         return iterator(bits_.begin(), bit_index(0));
@@ -415,9 +404,7 @@ public:
     {
         return iterator(bits_.end() - 1, bit_index(num_bits_));
     }
-#pragma endregion
 
-#pragma region Capacity
     constexpr size_type size() const noexcept
     {
         return num_bits_;
@@ -432,7 +419,6 @@ public:
     {
         return num_bits_ == 0;
     }
-#pragma endregion
 
     // TODO
     DynamicBitset operator<<(size_type position) const noexcept;

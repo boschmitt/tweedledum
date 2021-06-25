@@ -20,7 +20,6 @@ struct Config {
 };
 } // namespace
 
-#pragma region Implementation details
 namespace xag_synth_detail {
 
 // Synthesizer functor
@@ -496,7 +495,6 @@ void Synthesizer::operator()(mockturtle::xag_network const& xag,
 }
 
 } // namespace xag_synth_detail
-#pragma endregion
 
 void xag_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
   std::vector<Cbit> const& cbits, mockturtle::xag_network const& xag,
