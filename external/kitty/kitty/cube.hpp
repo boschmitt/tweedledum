@@ -1,5 +1,5 @@
 /* kitty: C++ truth table library
- * Copyright (C) 2017-2020  EPFL
+ * Copyright (C) 2017-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -256,8 +256,13 @@ public:
   union {
     struct
     {
+#if KITTY_ENDIAN == KITTY_BIGENDIAN
+      uint32_t _mask;
+      uint32_t _bits;
+#else
       uint32_t _bits;
       uint32_t _mask;
+#endif
     };
     uint64_t _value;
   };

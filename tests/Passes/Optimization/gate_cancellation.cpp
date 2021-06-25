@@ -5,7 +5,6 @@
 #include "tweedledum/Passes/Optimization/gate_cancellation.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Passes/Utility/inverse.h"
 
@@ -29,7 +28,7 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
         circuit.apply_operator(Op::T(), {q1});
         circuit.apply_operator(Op::Tdg(), {q1});
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 1);
+        CHECK(optimized.num_instructions() == 1);
         CHECK(check_unitary(circuit, optimized));
     }
     SECTION("Two qubit X operator (0)")
@@ -37,7 +36,7 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
         circuit.apply_operator(Op::X(), {q0, q1});
         circuit.apply_operator(Op::X(), {q1, q0});
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 2);
+        CHECK(optimized.num_instructions() == 2);
         CHECK(check_unitary(circuit, optimized));
     }
     SECTION("Two qubit X operator (1)")
@@ -46,7 +45,7 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
         circuit.apply_operator(Op::X(), {q0, q1});
         circuit.apply_operator(Op::X(), {q1, q0});
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 1);
+        CHECK(optimized.num_instructions() == 1);
         CHECK(check_unitary(circuit, optimized));
     }
     SECTION("Two qubit X operator (2)")
@@ -57,7 +56,7 @@ TEST_CASE("Trivial gate cancellation", "[gate_cancellation][optimization]")
         circuit.apply_operator(Op::X(), {q1, q0});
         circuit.apply_operator(Op::X(), {q0, q2});
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 0);
+        CHECK(optimized.num_instructions() == 0);
         CHECK(check_unitary(circuit, optimized));
     }
 }
@@ -73,7 +72,7 @@ TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)",
             circuit.apply_operator(TestType(), {q0});
         }
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 0);
+        CHECK(optimized.num_instructions() == 0);
     }
     Qubit const q1 = circuit.create_qubit();
     SECTION("Controlled")
@@ -82,7 +81,7 @@ TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)",
             circuit.apply_operator(TestType(), {q1, q0});
         }
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 0);
+        CHECK(optimized.num_instructions() == 0);
     }
     Qubit const q2 = circuit.create_qubit();
     SECTION("Multiple controls")
@@ -91,7 +90,7 @@ TEMPLATE_TEST_CASE("Even Sequences (self-adjoint)",
             circuit.apply_operator(TestType(), {q1, q2, q0});
         }
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 0);
+        CHECK(optimized.num_instructions() == 0);
     }
 }
 
@@ -106,7 +105,7 @@ TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
             circuit.apply_operator(TestType(), {q0});
         }
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 1);
+        CHECK(optimized.num_instructions() == 1);
     }
     Qubit const q1 = circuit.create_qubit();
     SECTION("Controlled")
@@ -115,7 +114,7 @@ TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
             circuit.apply_operator(TestType(), {q1, q0});
         }
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 1);
+        CHECK(optimized.num_instructions() == 1);
     }
     Qubit const q2 = circuit.create_qubit();
     SECTION("Multiple controls")
@@ -124,7 +123,7 @@ TEMPLATE_TEST_CASE("Odd Sequences (self-adjoint)",
             circuit.apply_operator(TestType(), {q1, q2, q0});
         }
         auto optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 1);
+        CHECK(optimized.num_instructions() == 1);
     }
 }
 
@@ -138,7 +137,7 @@ TEST_CASE("Inverted circuits.", "[gate_cancellation][optimization]")
         CHECK(adjoint);
         circuit.append(*adjoint, circuit.qubits(), circuit.cbits());
         Circuit optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 0u);
+        CHECK(optimized.num_instructions() == 0u);
     }
     SECTION("Graph coloring init")
     {
@@ -147,7 +146,7 @@ TEST_CASE("Inverted circuits.", "[gate_cancellation][optimization]")
         CHECK(adjoint);
         circuit.append(*adjoint, circuit.qubits(), circuit.cbits());
         Circuit optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 0u);
+        CHECK(optimized.num_instructions() == 0u);
     }
     SECTION("IBM Contest 2019 init")
     {
@@ -156,6 +155,6 @@ TEST_CASE("Inverted circuits.", "[gate_cancellation][optimization]")
         CHECK(adjoint);
         circuit.append(*adjoint, circuit.qubits(), circuit.cbits());
         Circuit optimized = gate_cancellation(circuit);
-        CHECK(optimized.size() == 0u);
+        CHECK(optimized.num_instructions() == 0u);
     }
 }

@@ -23,10 +23,9 @@ PYBIND11_MODULE(_tweedledum, module)
 
     // IR
     py::module ir = module.def_submodule("ir", "Tweedledum intermediate representation");
-    init_Cbit(ir);
-    init_Qubit(ir);
     init_Instruction(ir);
     init_Circuit(ir);
+    init_Wires(ir);
 
     // Operators
     py::module ops = module.def_submodule("operators", "Tweedledum operators");

@@ -7,7 +7,7 @@
 #include "Cbit.h"
 #include "Instruction.h"
 #include "Qubit.h"
-#include "Wire.h"
+#include "WireStorage.h"
 
 #include <cassert>
 #include <fmt/format.h>
@@ -38,7 +38,13 @@ public:
         return global_phase_;
     }
 
+    [[deprecated("Use num_instructions().")]]
     uint32_t size() const
+    {
+        return num_instructions();
+    }
+
+    uint32_t num_instructions() const
     {
         return instructions_.size();
     }
@@ -79,9 +85,10 @@ public:
         }
     }
 
-    void release_ancilla(Qubit qubit)
+    void release_ancilla(Qubit& qubit)
     {
         free_ancillae_.push_back(qubit);
+        qubit = Qubit::invalid();
     }
 
     Cbit create_cbit(std::string_view name)
@@ -104,7 +111,7 @@ public:
         Instruction& inst =
           instructions_.emplace_back(std::forward<OpT>(optor), qubits, cbits);
         connect_instruction(inst);
-        return InstRef(instructions_.size() - 1);
+        return InstRef(num_instructions() - 1);
     }
 
     InstRef apply_operator(Instruction const& optor,
@@ -112,7 +119,7 @@ public:
     {
         Instruction& inst = instructions_.emplace_back(optor, qubits, cbits);
         connect_instruction(inst);
-        return InstRef(instructions_.size() - 1);
+        return InstRef(num_instructions() - 1);
     }
 
     // FIXME: maybe remove this, if so need to change the python bindings!
@@ -120,7 +127,7 @@ public:
     {
         Instruction& inst = instructions_.emplace_back(optor);
         connect_instruction(inst);
-        return InstRef(instructions_.size() - 1);
+        return InstRef(num_instructions() - 1);
     }
 
     // Composition
@@ -185,7 +192,7 @@ public:
                       std::is_invocable_r_v<void, Fn, Instruction const&> ||
                       std::is_invocable_r_v<void, Fn, InstRef, Instruction const&>);
         // clang-format on
-        for (uint32_t i = 0u; i < instructions_.size(); ++i) {
+        for (uint32_t i = 0u; i < num_instructions(); ++i) {
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(InstRef(i));
             } else if constexpr (std::is_invocable_r_v<void, Fn,
@@ -205,7 +212,7 @@ public:
                       std::is_invocable_r_v<void, Fn, Instruction const&> ||
                       std::is_invocable_r_v<void, Fn, InstRef, Instruction const&>);
         // clang-format on
-        for (uint32_t i = instructions_.size(); i-- > 0u;) {
+        for (uint32_t i = num_instructions(); i-- > 0u;) {
             if constexpr (std::is_invocable_r_v<void, Fn, InstRef>) {
                 fn(InstRef(i));
             } else if constexpr (std::is_invocable_r_v<void, Fn,
@@ -264,7 +271,7 @@ private:
 
     void connect_instruction(Instruction& inst)
     {
-        uint32_t const inst_uid = instructions_.size() - 1;
+        uint32_t const inst_uid = num_instructions() - 1;
         for (auto& [wref, iref] : inst.qubits_conns_) {
             iref = last_instruction_.at(wref);
             last_instruction_.at(wref).uid_ = inst_uid;
@@ -275,7 +282,7 @@ private:
         }
     }
 
-    std::vector<Instruction, Instruction::Allocator> instructions_;
+    std::vector<Instruction> instructions_;
     std::vector<InstRef> last_instruction_; // last instruction on a wire
     std::vector<Qubit> free_ancillae_; // Should this be here?!
     double global_phase_;

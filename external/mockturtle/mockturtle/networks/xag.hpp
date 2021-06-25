@@ -1,5 +1,5 @@
 /* mockturtle: C++ logic network library
- * Copyright (C) 2018-2019  EPFL
+ * Copyright (C) 2018-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -28,6 +28,12 @@
   \brief Xor-And Graph (XAG) logic network implementation
 
   \author Eleonora Testa
+  \author Heinz Riener
+  \author Jinzheng Tu
+  \author Mathias Soeken
+  \author Max Austin
+  \author Siang-Yun (Sonia) Lee
+  \author Walter Lau Neto
 */
 
 #pragma once
@@ -40,6 +46,7 @@
 #include <kitty/dynamic_truth_table.hpp>
 #include <kitty/operators.hpp>
 
+#include "../endianness.hpp"
 #include "../traits.hpp"
 #include "../utils/algorithm.hpp"
 #include "detail/foreach.hpp"
@@ -119,8 +126,13 @@ public:
     union {
       struct
       {
+#if MOCKTURTLE_ENDIAN == MOCKTURTLE_BIGENDIAN
+        uint64_t index : 63;
+        uint64_t complement : 1;
+#else
         uint64_t complement : 1;
         uint64_t index : 63;
+#endif;
       };
       uint64_t data;
     };
@@ -164,6 +176,13 @@ public:
     {
       return {index, complement};
     }
+
+#if __cplusplus > 201703L
+    bool operator==( xag_storage::node_type::pointer_type const& other ) const
+    {
+      return data == other.data;
+    }
+#endif
   };
 
   xag_network()
@@ -315,7 +334,7 @@ public:
 
     for ( auto const& fn : _events->on_add )
     {
-      fn( index );
+      (*fn)( index );
     }
 
     return {index, 0};
@@ -542,7 +561,7 @@ public:
 
     for ( auto const& fn : _events->on_modified )
     {
-      fn( n, {old_child0, old_child1} );
+      (*fn)( n, {old_child0, old_child1} );
     }
 
     return std::nullopt;
@@ -575,7 +594,7 @@ public:
 
     for ( auto const& fn : _events->on_delete )
     {
-      fn( n );
+      (*fn)( n );
     }
 
     for ( auto i = 0u; i < 2u; ++i )

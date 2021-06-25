@@ -5,7 +5,6 @@
 #include "tweedledum/Synthesis/linear_synth.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/Standard.h"
 #include "tweedledum/Utils/Matrix.h"
 #include "tweedledum/Utils/Visualization/string_utf8.h"

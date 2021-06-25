@@ -1,5 +1,5 @@
 /* mockturtle: C++ logic network library
- * Copyright (C) 2018-2019  EPFL
+ * Copyright (C) 2018-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,7 +27,9 @@
   \file traits.hpp
   \brief Type traits and checkers for the network interface
 
+  \author Heinz Riener
   \author Mathias Soeken
+  \author Max Austin
 */
 
 #pragma once
@@ -68,6 +70,14 @@ struct is_network_type<Ntk, std::enable_if_t<
 
 template<class Ntk>
 inline constexpr bool is_network_type_v = is_network_type<Ntk>::value;
+
+template<class Ntk>
+struct is_buffered_network_type : std::false_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool is_buffered_network_type_v = is_buffered_network_type<Ntk>::value;
 
 #pragma region is_topologically_sorted
 template<class Ntk, class = void>
@@ -937,6 +947,21 @@ struct has_is_on_critical_path<Ntk, std::void_t<decltype( std::declval<Ntk>().is
 
 template<class Ntk>
 inline constexpr bool has_is_on_critical_path_v = has_is_on_critical_path<Ntk>::value;
+#pragma endregion
+
+#pragma region has_is_buf
+template<class Ntk, class = void>
+struct has_is_buf : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_is_buf<Ntk, std::void_t<decltype( std::declval<Ntk>().is_buf( std::declval<node<Ntk>>() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_is_buf_v = has_is_buf<Ntk>::value;
 #pragma endregion
 
 #pragma region has_is_and
@@ -1867,6 +1892,36 @@ struct has_incr_trav_id<Ntk, std::void_t<decltype( std::declval<Ntk>().incr_trav
 
 template<class Ntk>
 inline constexpr bool has_incr_trav_id_v = has_incr_trav_id<Ntk>::value;
+#pragma endregion
+
+#pragma region has_get_network_name
+template<class Ntk, class = void>
+struct has_get_network_name : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_get_network_name<Ntk, std::void_t<decltype( std::declval<Ntk>().get_network_name() )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_get_network_name_v = has_get_network_name<Ntk>::value;
+#pragma endregion
+
+#pragma region has_set_network_name
+template<class Ntk, class = void>
+struct has_set_network_name : std::false_type
+{
+};
+
+template<class Ntk>
+struct has_set_network_name<Ntk, std::void_t<decltype( std::declval<Ntk>().set_network_name( std::string() ) )>> : std::true_type
+{
+};
+
+template<class Ntk>
+inline constexpr bool has_set_network_name_v = has_set_network_name<Ntk>::value;
 #pragma endregion
 
 #pragma region has_get_name

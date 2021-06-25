@@ -119,13 +119,24 @@ jobs:
           build: "cp39-manylinux_ppc64le"
           name: Linux POWER8 64-bit (py39-ppc64le)
           platform: ppc64le
-        # I still need to figure it out how to build for s390x
-        # My suspicions is that some dependency or even tweedledum
-        # relies on little-endianness
-        # - os: ubuntu-latest
-        #   build: "cp3*-manylinux_s390x"
-        #   name: Linux IBM Z (s390x)
-        #   platform: s390x
+        # Since this relies on QEMU, I separated the jobs here to
+        # speedup the action
+        - os: ubuntu-latest
+          build: "cp36-manylinux_s390x"
+          name: Linux IBM/Z (py36-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp37-manylinux_s390x"
+          name: Linux IBM/Z (py37-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp38-manylinux_s390x"
+          name: Linux IBM/Z (py38-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp39-manylinux_s390x"
+          name: Linux IBM/Z (py39-s390x)
+          platform: s390x
 
     steps:
       - name: Checkout code
@@ -171,10 +182,11 @@ jobs:
         uses: pypa/cibuildwheel@v2.0.0a3
         env:
           CIBW_BUILD: ${{ matrix.build }}
-          CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
           CIBW_ARCHS: all 
           CIBW_ENVIRONMENT: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
-          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
+          CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
 

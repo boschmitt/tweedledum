@@ -5,7 +5,6 @@
 #include "tweedledum/Synthesis/decomp_synth.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 
 #include "../check_permutation.h"
 

@@ -5,7 +5,6 @@
 #include "tweedledum/Passes/Analysis/count_operators.h"
 
 #include "tweedledum/IR/Circuit.h"
-#include "tweedledum/IR/Wire.h"
 #include "tweedledum/Operators/All.h"
 
 #include <catch.hpp>

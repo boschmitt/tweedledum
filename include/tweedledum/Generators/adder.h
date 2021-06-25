@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../IR/Circuit.h"
-#include "../IR/Wire.h"
 #include "../Operators/Standard/X.h"
 
 // The adders implemented here are based on the following papers:

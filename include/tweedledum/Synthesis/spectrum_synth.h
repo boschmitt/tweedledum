@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../IR/Circuit.h"
-#include "../IR/Wire.h"
 
 #include <kitty/kitty.hpp>
 #include <nlohmann/json.hpp>

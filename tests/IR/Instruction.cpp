@@ -44,21 +44,21 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
             REQUIRE(adj);
             adjoints.apply_operator(*adj, inst.qubits());
         });
-        REQUIRE(circuit.size() == adjoints.size());
+        REQUIRE(circuit.num_instructions() == adjoints.num_instructions());
 
         // Check for correctness
-        for (uint32_t i = 0; i < circuit.size(); ++i) {
+        for (uint32_t i = 0; i < circuit.num_instructions(); ++i) {
             InstRef const ref(i);
             Instruction const& inst0 = circuit.instruction(ref);
             Instruction const& inst1 = adjoints.instruction(ref);
             CHECK(inst0.is_adjoint(inst1));
             CHECK(inst1.is_adjoint(inst0));
-            for (uint32_t j = i + 1; j < circuit.size(); ++j) {
+            for (uint32_t j = i + 1; j < circuit.num_instructions(); ++j) {
                 Instruction const& inst = circuit.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
             }
-            for (uint32_t j = i + 1; j < adjoints.size(); ++j) {
+            for (uint32_t j = i + 1; j < adjoints.num_instructions(); ++j) {
                 Instruction const& inst = adjoints.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
@@ -76,16 +76,16 @@ TEST_CASE("Check single-target, one-qubit adjointness", "[instruction][ir]")
               std::optional<Operator> adj = inst.adjoint();
               non_adjoints.apply_operator(*adj, {q1});
           });
-        REQUIRE(circuit.size() == non_adjoints.size());
+        REQUIRE(circuit.num_instructions() == non_adjoints.num_instructions());
 
         // Check for correctness
-        for (uint32_t i = 0; i < circuit.size(); ++i) {
+        for (uint32_t i = 0; i < circuit.num_instructions(); ++i) {
             InstRef const ref(i);
             Instruction const& inst0 = circuit.instruction(ref);
             Instruction const& inst1 = non_adjoints.instruction(ref);
             CHECK_FALSE(inst0.is_adjoint(inst1));
             CHECK_FALSE(inst1.is_adjoint(inst0));
-            for (uint32_t j = i + 1; j < non_adjoints.size(); ++j) {
+            for (uint32_t j = i + 1; j < non_adjoints.num_instructions(); ++j) {
                 Instruction const& inst = non_adjoints.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
@@ -130,21 +130,21 @@ TEST_CASE("Check single-target, two-qubit adjointness", "[instruction][ir]")
             REQUIRE(adj);
             adjoints.apply_operator(*adj, inst.qubits());
         });
-        REQUIRE(circuit.size() == adjoints.size());
+        REQUIRE(circuit.num_instructions() == adjoints.num_instructions());
 
         // Check for correctness
-        for (uint32_t i = 0; i < circuit.size(); ++i) {
+        for (uint32_t i = 0; i < circuit.num_instructions(); ++i) {
             InstRef const ref(i);
             Instruction const& inst0 = circuit.instruction(ref);
             Instruction const& inst1 = adjoints.instruction(ref);
             CHECK(inst0.is_adjoint(inst1));
             CHECK(inst1.is_adjoint(inst0));
-            for (uint32_t j = i + 1; j < circuit.size(); ++j) {
+            for (uint32_t j = i + 1; j < circuit.num_instructions(); ++j) {
                 Instruction const& inst = circuit.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
             }
-            for (uint32_t j = i + 1; j < adjoints.size(); ++j) {
+            for (uint32_t j = i + 1; j < adjoints.num_instructions(); ++j) {
                 Instruction const& inst = adjoints.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
@@ -161,16 +161,16 @@ TEST_CASE("Check single-target, two-qubit adjointness", "[instruction][ir]")
             std::optional<Operator> adj = inst.adjoint();
             non_adjoints.apply_operator(*adj, {q1, q0});
         });
-        REQUIRE(circuit.size() == non_adjoints.size());
+        REQUIRE(circuit.num_instructions() == non_adjoints.num_instructions());
 
         // Check for correctness
-        for (uint32_t i = 0; i < circuit.size(); ++i) {
+        for (uint32_t i = 0; i < circuit.num_instructions(); ++i) {
             InstRef const ref(i);
             Instruction const& inst0 = circuit.instruction(ref);
             Instruction const& inst1 = non_adjoints.instruction(ref);
             CHECK_FALSE(inst0.is_adjoint(inst1));
             CHECK_FALSE(inst1.is_adjoint(inst0));
-            for (uint32_t j = i + 1; j < non_adjoints.size(); ++j) {
+            for (uint32_t j = i + 1; j < non_adjoints.num_instructions(); ++j) {
                 Instruction const& inst = non_adjoints.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
@@ -207,21 +207,21 @@ TEST_CASE("Check two-target, two-qubit adjointness", "[instruction][ir]")
             REQUIRE(adj);
             adjoints.apply_operator(*adj, inst.qubits());
         });
-        REQUIRE(circuit.size() == adjoints.size());
+        REQUIRE(circuit.num_instructions() == adjoints.num_instructions());
 
         // Check for correctness
-        for (uint32_t i = 0; i < circuit.size(); ++i) {
+        for (uint32_t i = 0; i < circuit.num_instructions(); ++i) {
             InstRef const ref(i);
             Instruction const& inst0 = circuit.instruction(ref);
             Instruction const& inst1 = adjoints.instruction(ref);
             CHECK(inst0.is_adjoint(inst1));
             CHECK(inst1.is_adjoint(inst0));
-            for (uint32_t j = i + 1; j < circuit.size(); ++j) {
+            for (uint32_t j = i + 1; j < circuit.num_instructions(); ++j) {
                 Instruction const& inst = circuit.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
             }
-            for (uint32_t j = i + 1; j < adjoints.size(); ++j) {
+            for (uint32_t j = i + 1; j < adjoints.num_instructions(); ++j) {
                 Instruction const& inst = adjoints.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));
@@ -238,16 +238,16 @@ TEST_CASE("Check two-target, two-qubit adjointness", "[instruction][ir]")
             std::optional<Operator> adj = inst.adjoint();
             non_adjoints.apply_operator(*adj, {q1, q0});
         });
-        REQUIRE(circuit.size() == non_adjoints.size());
+        REQUIRE(circuit.num_instructions() == non_adjoints.num_instructions());
 
         // Check for correctness
-        for (uint32_t i = 0; i < circuit.size(); ++i) {
+        for (uint32_t i = 0; i < circuit.num_instructions(); ++i) {
             InstRef const ref(i);
             Instruction const& inst0 = circuit.instruction(ref);
             Instruction const& inst1 = non_adjoints.instruction(ref);
             CHECK_FALSE(inst0.is_adjoint(inst1));
             CHECK_FALSE(inst1.is_adjoint(inst0));
-            for (uint32_t j = i + 1; j < non_adjoints.size(); ++j) {
+            for (uint32_t j = i + 1; j < non_adjoints.num_instructions(); ++j) {
                 Instruction const& inst = non_adjoints.instruction(InstRef(j));
                 CHECK_FALSE(inst0.is_adjoint(inst));
                 CHECK_FALSE(inst.is_adjoint(inst0));

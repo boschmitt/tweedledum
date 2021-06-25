@@ -114,7 +114,7 @@ void BarencoDecomposer::v_clean(Circuit& circuit, Operator const& op,
     }
     circuit.apply_operator(
       config.cleanup_op, {qubits[0], qubits[1], ancillae.at(0)}, cbits);
-    for (Qubit const qubit : ancillae) {
+    for (Qubit& qubit : ancillae) {
         circuit.release_ancilla(qubit);
     }
 }

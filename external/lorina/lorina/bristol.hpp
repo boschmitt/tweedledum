@@ -1,5 +1,5 @@
 /* lorina: C++ parsing library
- * Copyright (C) 2018  EPFL
+ * Copyright (C) 2018-2021  EPFL
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -27,9 +27,11 @@
   \file bristol.hpp
   \brief Implements a parser for Bristol fashion
 
-  \author Heinz Riener
-
   Reference: https://homes.esat.kuleuven.be/~nsmart/MPC/
+
+  \author Heinz Riener
+  \author Mathias Soeken
+  \author Siang-Yun (Sonia) Lee
 */
 
 #pragma once
@@ -118,6 +120,7 @@ public:
 
       assert( tokens.size() == num_input_wires + num_output_wires + 3u );
       assert( num_output_wires == 1u );
+      (void)num_output_wires;
 
       std::vector<uint32_t> inputs;
       for ( uint32_t i = 0; i < num_input_wires; ++i )
@@ -175,8 +178,9 @@ private:
  * \param diag An optional diagnostic engine with callback methods for parse errors
  * \return Success if parsing has been successful, or parse error if parsing has failed
  */
-inline return_code read_bristol( std::istream& is, bristol_reader const& reader, diagnostic_engine* diag = nullptr )
+[[nodiscard]] inline return_code read_bristol( std::istream& is, bristol_reader const& reader, diagnostic_engine* diag = nullptr )
 {
+  (void)diag;
   return bristol_parser( is, reader ).run();
 }
 
@@ -190,15 +194,14 @@ inline return_code read_bristol( std::istream& is, bristol_reader const& reader,
  * \param diag An optional diagnostic engine with callback methods for parse errors
  * \return Success if parsing has been successful, or parse error if parsing has failed
  */
-inline return_code read_bristol( std::string const& filename, bristol_reader const& reader, diagnostic_engine* diag = nullptr )
+[[nodiscard]] inline return_code read_bristol( std::string const& filename, bristol_reader const& reader, diagnostic_engine* diag = nullptr )
 {
   std::ifstream in( filename, std::ifstream::in );
   if ( !in.is_open() )
   {
     if ( diag )
     {
-      diag->report( diagnostic_level::fatal,
-                    fmt::format( "could not open file `{0}`", filename ) );
+      diag->report( diag_id::ERR_FILE_OPEN ).add_argument( filename );
     }    
     return return_code::parse_error;
   }
