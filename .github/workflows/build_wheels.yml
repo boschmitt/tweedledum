@@ -161,9 +161,10 @@ jobs:
         uses: pypa/cibuildwheel@v2.0.0a3
         env:
           CIBW_BUILD: ${{ matrix.build }}
-          CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
           CIBW_ARCHS: all 
-          CIBW_TEST_COMMAND: python -m unittest discover -s {project}/python/test/ -t {project}
+          CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: pytest -v {project}/python/test/
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
 
