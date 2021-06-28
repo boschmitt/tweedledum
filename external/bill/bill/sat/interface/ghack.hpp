@@ -53,6 +53,9 @@ public:
 	{
 		GHack::vec<GHack::Lit> literals;
 		while (it != ie) {
+			for (uint32_t i = num_variables(); i <= it->variable(); ++i) {
+				add_variable();
+			}
 			literals.push(GHack::mkLit(it->variable(), it->is_complemented()));
 			++it;
 		}
