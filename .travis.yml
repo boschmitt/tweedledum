@@ -3,39 +3,98 @@ notifications:
   email: false
 
 os: linux
-dist: bionic
-language: python
-
-python: 3.7
-cache:
-  pip: true
-
-env:
-  global:
-    - CIBW_TEST_COMMAND="python -m unittest discover -s {project}/python/test/ -t {project} -v"
-    - CMAKE_BUILD_PARALLEL_LEVEL=2
-    - CIBW_SKIP="cp27-* cp34-* cp35-* pp*"
-
-script: python3 -m cibuildwheel --output-dir wheelhouse
+dist: focal
 
 jobs:
   include:
+    - name: Build and run tests (amd64)
+      arch: amd64 
+      language: cpp 
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env: COMPILER=g++-8
+      script:
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=Release -DTWEEDLEDUM_TESTS=ON ..
+        - make -j2 run_tests
+        - ./tests/run_tests
+
+    - name: Build and run tests (arm64)
+      arch: arm64 
+      language: cpp 
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env: COMPILER=g++-8
+      script:
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=Release -DTWEEDLEDUM_TESTS=ON ..
+        - make -j2 run_tests
+        - ./tests/run_tests
+
+    - name: Build and run tests (ppc64le)
+      arch: ppc64le 
+      language: cpp 
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env: COMPILER=g++-8
+      script:
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=Release -DTWEEDLEDUM_TESTS=ON ..
+        - make -j2 run_tests
+        - ./tests/run_tests
+
+    - name: Build and run tests (s390x)
+      arch: s390x 
+      language: cpp 
+      compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-8
+      env: COMPILER=g++-8
+      script:
+        - mkdir -p build
+        - cd build
+        - cmake -DCMAKE_BUILD_TYPE=Release -DTWEEDLEDUM_TESTS=ON ..
+        - make -j2 run_tests
+        - ./tests/run_tests
+  
+    # Build wheels
     # - arch: arm64
-    #   services: docker
-    #   install:
-    #     - python3 -m pip install -U pip
-    #     - python3 -m pip install -U twine cibuildwheel
-
     # - arch: ppc64le
-    #   services: docker
-    #   install:
-    #     - pip install -U pip
-    #     - pip install -U twine cibuildwheel
 
-    - arch: s390x
+    - language: python 
+      python: 3.7
+      arch: s390x
       services: docker
+      env:
+        - CIBW_TEST_REQUIRES=pytest
+        - CIBW_TEST_COMMAND="pytest --import-mode importlib -v {project}/python/test/"
+        - CMAKE_BUILD_PARALLEL_LEVEL=2
+        - CIBW_SKIP="cp27-* cp34-* cp35-* pp*"
       install:
         - curl https://sh.rustup.rs -sSf | sh -s -- -y
         - export PATH=$PATH:~/.cargo/bin
         - python3 -m pip install -U pip
         - python3 -m pip install -U twine cibuildwheel
+      script: python3 -m cibuildwheel --output-dir wheelhouse

@@ -38,10 +38,10 @@
 #include <vector>
 
 #include "../traits.hpp"
-#include "../utils/include/percy.hpp"
 #include "../utils/stopwatch.hpp"
 #include "cnf.hpp"
 
+#include <bill/sat/solver.hpp>
 #include <fmt/format.h>
 
 namespace mockturtle
@@ -102,29 +102,25 @@ public:
   {
     stopwatch<> t( st_.time_total );
 
-    percy::bsat_wrapper solver;
-    int output = generate_cnf( miter_, [&]( auto const& clause ) {
+    bill::solver solver;
+    auto output = generate_cnf<Ntk, bill::lit_type>( miter_, [&]( auto const& clause ) {
       solver.add_clause( clause );
-    } )[0];
+    } );
 
-    const auto res = solver.solve( &output, &output + 1, 0 );
-
-    switch ( res )
-    {
-    default:
-      return std::nullopt;
-    case percy::synth_result::success:
-    {
+    solver.solve(output);
+    bill::result res = solver.get_result();
+    if (res) {
       st_.counter_example.clear();
+      auto const& model = res.model();
       for ( auto i = 1u; i <= miter_.num_pis(); ++i )
       {
-        st_.counter_example.push_back( solver.var_value( i ) );
+        st_.counter_example.push_back( model.at(i) == bill::lbool_type::true_ );
       }
       return false;
-    }
-    case percy::synth_result::failure:
+    } else if (res.is_unsatisfiable()) {
       return true;
     }
+    return std::nullopt;
   }
 
 private:
