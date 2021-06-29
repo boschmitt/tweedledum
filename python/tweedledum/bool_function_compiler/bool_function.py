@@ -3,10 +3,9 @@
 # See accompanying file /LICENSE for details.
 # -------------------------------------------------------------------------------
 from typing import Union, List
-import functools
+from os.path import isfile
 import inspect
 import math
-import string
 import types
 
 from .bitvec import BitVec
@@ -249,6 +248,8 @@ class BoolFunction(object):
         Returns:
             A BooleanFunction that uses a XAG to represent the function
         """
+        if not isfile(path):
+            raise FileNotFoundError(f"The file {path} does not exists.")
         function = cls.__new__(cls)
         function._logic_network = classical.read_aiger(path)
         function._truth_table = None
@@ -280,6 +281,8 @@ class BoolFunction(object):
         Returns:
             A BooleanFunction that uses a XAG to represent the function
         """
+        if not isfile(path):
+            raise FileNotFoundError(f"The file {path} does not exists.")
         function = cls.__new__(cls)
         function._logic_network = classical.read_dimacs(path)
         function._truth_table = None
@@ -308,6 +311,8 @@ class BoolFunction(object):
         Returns:
             A BooleanFunction that uses a XAG to represent the function
         """
+        if not isfile(path):
+            raise FileNotFoundError(f"The file {path} does not exists.")
         function = cls.__new__(cls)
         function._logic_network = classical.read_verilog(path)
         function._truth_table = None
