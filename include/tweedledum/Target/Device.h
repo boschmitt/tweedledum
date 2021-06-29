@@ -339,7 +339,6 @@ inline std::vector<Device::Edge> Device::steiner_tree(
                     edge_in.at(vertex) = new_vertex;
                 }
             }
-            vertex_cost.at(vertex) = distance(root, vertex);
             if (vertex_cost.at(vertex) < vertex_cost.at(*min_vertex)) {
                 min_vertex = it;
             }
