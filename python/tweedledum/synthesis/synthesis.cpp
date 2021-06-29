@@ -98,6 +98,26 @@ void init_Synthesis(pybind11::module& module)
         py::arg("circuit"), py::arg("qubits"), py::arg("cbits"), py::arg("function"), py::arg("config") = nlohmann::json(),
         "Synthesize a quantum circuit inplace from a function by computing PPRM representation.");
 
+    module.def("sat_linear_synth",
+        py::overload_cast<BMatrix const&, nlohmann::json const&>(&sat_linear_synth),
+        py::arg("matrix"), py::arg("config") = nlohmann::json(),
+        "SAT-based synthesis of linear reversible circuits (CNOT synthesis).");
+
+    module.def("sat_linear_synth",
+        py::overload_cast<Circuit&, std::vector<Qubit> const&, std::vector<Cbit> const&, BMatrix const&, nlohmann::json const&>(&sat_linear_synth),
+        py::arg("circuit"), py::arg("qubits"), py::arg("cbits"), py::arg("matrix"), py::arg("config") = nlohmann::json(),
+        "SAT-based synthesis of linear reversible circuits (CNOT synthesis).");
+
+    module.def("sat_linear_synth",
+        py::overload_cast<Device const&, BMatrix const&, nlohmann::json const&>(&sat_linear_synth),
+        py::arg("device"), py::arg("matrix"), py::arg("config") = nlohmann::json(),
+        "SAT-based synthesis of linear reversible circuits (CNOT synthesis).");
+
+    module.def("sat_linear_synth",
+        py::overload_cast<Device const&, Circuit&, BMatrix const&, nlohmann::json const&>(&sat_linear_synth),
+        py::arg("device"), py::arg("circuit"), py::arg("matrix"), py::arg("config") = nlohmann::json(),
+        "SAT-based synthesis of linear reversible circuits (CNOT synthesis).");
+
     module.def("sat_swap_synth", 
         py::overload_cast<Device const&, std::vector<uint32_t> const&, std::vector<uint32_t> const&, nlohmann::json const&>(&sat_swap_synth),
         py::arg("device"), py::arg("init_cfg"), py::arg("final_cfg"), py::arg("config") = nlohmann::json(),
