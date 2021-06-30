@@ -94,3 +94,29 @@ TEST_CASE(
         CHECK(check_unitary(expected, synthesized));
     }
 }
+
+TEST_CASE("Swap extremities", "[steiner_gauss_synth][synth]")
+{
+    BMatrix linear_trans(8, 8);
+    Device path = Device::path(8);
+    Circuit expected;
+    Qubit q0 = expected.create_qubit();
+    expected.create_qubit();
+    expected.create_qubit();
+    expected.create_qubit();
+    expected.create_qubit();
+    expected.create_qubit();
+    expected.create_qubit();
+    Qubit q7 = expected.create_qubit();
+    expected.apply_operator(Op::Swap(), {q0, q7});
+    linear_trans << 0,0,0,0,0,0,0,1, 
+                    0,1,0,0,0,0,0,0,
+                    0,0,1,0,0,0,0,0,
+                    0,0,0,1,0,0,0,0,
+                    0,0,0,0,1,0,0,0,
+                    0,0,0,0,0,1,0,0,
+                    0,0,0,0,0,0,1,0,
+                    1,0,0,0,0,0,0,0;
+    Circuit synthesized = steiner_gauss_synth(path, linear_trans);
+    CHECK(check_unitary(expected, synthesized));
+}
