@@ -41,22 +41,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: macos-latest
+        # _Unsupported_ macOS-10.x
+        # - os: macos-10.15
+        #   build: "cp3*-macosx_x86_64"
+        #   name: macOS (10.9)
+        #   target: '10.9'
+        #   flags: CC=gcc-11 CXX=g++-11 CXXFLAGS="-static-libgcc -static-libstdc++"
+        # Supported macOS-10.x
+        - os: macos-10.15
           build: "cp3*-macosx_x86_64"
-          name: macOS Intel (10.15)
+          # build: "cp3*-macosx_arm64 cp3*-macosx_x86_64"
+          name: macOS (10.15+)
           target: '10.15'
-        - os: macos-latest
-          build: "cp3*-macosx_x86_64"
-          name: macOS Intel (10.9)
-          target: '10.9'
-        - os: macos-latest
-          build: "cp3*-macosx_arm64"
-          name: macOS Apple Silicon
-          target: '10.15'
-        - os: macos-latest
-          build: "cp3*-macosx_universal2"
-          name: macOS Universal2
-          target: '10.15'
+        # macOS-11
+        # - os: macos-11
+        #   build: "cp3*-macosx_arm64 cp3*-macosx_x86_64"
+        #   name: macOS (11.0)
+        # - os: macos-11
+        #   build: "cp3*-macosx_universal2"
+        #   name: macOS Universal2 (11.0)
+        #   target: '11.0'
+        # Windows
         - os: windows-latest
           build: "cp3*-win_amd64"
           name: Windows 64-bit
@@ -65,6 +70,7 @@ jobs:
           build: "cp3*-win32"
           name: Windows 32-bit
           arch: x86
+        # Linux
         - os: ubuntu-latest
           build: "cp3*-manylinux_i686"
           name: Linux Intel 32-bit
@@ -160,20 +166,12 @@ jobs:
           echo "CC=cl.exe" >> $GITHUB_ENV
           echo "CXX=cl.exe" >> $GITHUB_ENV
 
-      - name: Set macOS 10.9 variables
-        if: runner.os == 'macOS' && matrix.target == '10.9'
-        shell: bash
-        run: |
-          echo "CC=gcc-10" >> $GITHUB_ENV
-          echo "CXX=g++-10" >> $GITHUB_ENV
-          echo "CXXFLAGS=-static-libgcc -static-libstdc++" >> $GITHUB_ENV
-
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.0.0a3
+        uses: pypa/cibuildwheel@v2.1.1
         env:
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_ARCHS: all 
-          CIBW_TEST_SKIP: cp*_arm64 cp*_universal2:arm64
+          CIBW_ENVIRONMENT: "${{ matrix.flags }}"
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
           CMAKE_BUILD_PARALLEL_LEVEL: 2
