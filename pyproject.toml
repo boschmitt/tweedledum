@@ -7,5 +7,5 @@ requires = [
     "wheel",
     "cmake>=3.18",
     "ninja",
-    "scikit-build @ git+https://github.com/scikit-build/scikit-build@master",
+    "scikit-build>=0.12.0",
 ]
