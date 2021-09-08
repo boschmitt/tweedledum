@@ -53,9 +53,11 @@ passes in python.
 
 # Installation
 
-Tweedledum has two python packages that can be installed using `pip`.  For both,
-you will at least __Python 3.6__.  The `tweedledum` package contains the latest
-stable release.  You can install it from PyPI using:
+[Known issues](#known-issues) with _macOS High Sierra (10.13)_ and _macOS Mojave (10.14)_.
+
+`tweedledum` has two python packages that can be installed using `pip`.  For
+both, you will at least __Python 3.6__.  The `tweedledum` package contains the
+latest stable release.  You can install it from PyPI using:
 
 * Latest stable release (Linux/Mac/Windows)
 
@@ -184,6 +186,26 @@ third-party tools and services. Thanks a lot!
 - [**percy**](https://github.com/lsils/percy) - C++ header-only exact synthesis library
 - [**pybind11**](https://github.com/pybind/pybind11) - Seamless operability between C++11 and Python
 - [**rang**](https://github.com/agauniyal/rang) - A Minimal, Header only Modern c++ library for terminal goodies
+
+## Known issues
+
+These are issues that hopefully will be fixed, but currently are unsolved.  If
+you know how to help with one of these issues, contributions are welcome!
+
+### macOS: High Sierra (10.13) and Mojave (10.14)
+
+`tweedledum` offers limited support for both systems.  While wheels might be
+available for some releases, it is strongly advised to install `tweedledum` or
+`tweedledum-dev` by building them directly from source.  For example:
+
+```sh
+CC=gcc-10 CXX=g++-10 CXXFLAGS="-static-libgcc -static-libstdc++" pip install tweedledum --no-binary :all:
+```
+
+Note that such command requires a working `gcc10` installation. (It also works
+with `gcc11`, but no further tests were made.) I recommend the use of 
+[Homebrew](https://brew.sh) to install `gcc`. (Or maybe 
+[Tigerbrew](https://github.com/mistydemeo/tigerbrew))
 
 ## License
 
