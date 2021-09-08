@@ -2,12 +2,11 @@
 notifications:
   email: false
 
-os: linux
-dist: focal
-
 jobs:
   include:
     - name: Build and run tests (amd64)
+      os: linux
+      dist: focal
       arch: amd64 
       language: cpp 
       compiler: gcc
@@ -26,6 +25,8 @@ jobs:
         - ./tests/run_tests
 
     - name: Build and run tests (arm64)
+      os: linux
+      dist: focal
       arch: arm64 
       language: cpp 
       compiler: gcc
@@ -44,6 +45,8 @@ jobs:
         - ./tests/run_tests
 
     - name: Build and run tests (ppc64le)
+      os: linux
+      dist: focal
       arch: ppc64le 
       language: cpp 
       compiler: gcc
@@ -62,6 +65,8 @@ jobs:
         - ./tests/run_tests
 
     - name: Build and run tests (s390x)
+      os: linux
+      dist: focal
       arch: s390x 
       language: cpp 
       compiler: gcc
@@ -83,18 +88,37 @@ jobs:
     # - arch: arm64
     # - arch: ppc64le
 
-    - language: python 
-      python: 3.7
-      arch: s390x
-      services: docker
+    - name: Build wheels (macOS)
+      os: osx
+      osx_image: xcode10.2
+      language: shell
       env:
+        - CC=gcc-10
+        - CXX=g++-10
+        - CXXFLAGS="-static-libgcc -static-libstdc++"
+        - CIBW_BUILD="cp3*-macosx_x86_64"
         - CIBW_TEST_REQUIRES=pytest
         - CIBW_TEST_COMMAND="pytest --import-mode importlib -v {project}/python/test/"
         - CMAKE_BUILD_PARALLEL_LEVEL=2
-        - CIBW_SKIP="cp27-* cp34-* cp35-* pp*"
+      before_install:
+        - HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install gcc@10
       install:
-        - curl https://sh.rustup.rs -sSf | sh -s -- -y
-        - export PATH=$PATH:~/.cargo/bin
         - python3 -m pip install -U pip
-        - python3 -m pip install -U twine cibuildwheel
+        - python3 -m pip install -U cibuildwheel==2.1.1
       script: python3 -m cibuildwheel --output-dir wheelhouse
+
+    # - language: python 
+    #   python: 3.7
+    #   arch: s390x
+    #   services: docker
+    #   env:
+    #     - CIBW_TEST_REQUIRES=pytest
+    #     - CIBW_TEST_COMMAND="pytest --import-mode importlib -v {project}/python/test/"
+    #     - CMAKE_BUILD_PARALLEL_LEVEL=2
+    #     - CIBW_SKIP="cp27-* cp34-* cp35-* pp*"
+    #   install:
+    #     - curl https://sh.rustup.rs -sSf | sh -s -- -y
+    #     - export PATH=$PATH:~/.cargo/bin
+    #     - python3 -m pip install -U pip
+    #     - python3 -m pip install -U twine cibuildwheel
+    #   script: python3 -m cibuildwheel --output-dir wheelhouse
