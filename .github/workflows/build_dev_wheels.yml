@@ -51,16 +51,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        # _Unsupported_ macOS-10.x
-        # - os: macos-10.15
-        #   build: "cp3*-macosx_x86_64"
-        #   name: macOS (10.9)
-        #   target: '10.9'
-        #   flags: CC=gcc-11 CXX=g++-11 CXXFLAGS="-static-libgcc -static-libstdc++"
         # Supported macOS-10.x
         - os: macos-10.15
           build: "cp3*-macosx_x86_64"
-          # build: "cp3*-macosx_arm64 cp3*-macosx_x86_64"
           name: macOS (10.15+)
           target: '10.15'
         # macOS-11
@@ -169,23 +162,19 @@ jobs:
         with:
             arch: ${{ matrix.arch }}
 
-      - name: Set Windows variables
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          echo "CC=cl.exe" >> $GITHUB_ENV
-          echo "CXX=cl.exe" >> $GITHUB_ENV
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.1.1
         env:
           CIBW_BUILD: ${{ matrix.build }}
-          CIBW_ARCHS: all 
-          CIBW_ENVIRONMENT: "${{ matrix.flags }} TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
+          CIBW_ARCHS: all
+          CIBW_ENVIRONMENT_LINUX: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
+          CIBW_ENVIRONMENT_MACOS: "${{ matrix.flags }} _PYTHON_HOST_PLATFORM=macosx-${{ matrix.target }}-x86_64"
+          CIBW_ENVIRONMENT_WINDOWS: "CC=cl.exe CXX=cl.exe"
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
+          TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.timestamp}}
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v2
