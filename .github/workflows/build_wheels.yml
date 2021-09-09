@@ -26,7 +26,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.7'
           architecture: ${{ matrix.arch }}
 
       - name: Setup CMake
@@ -40,7 +40,7 @@ jobs:
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
           CMAKE_BUILD_PARALLEL_LEVEL: 2
-          MACOSX_DEPLOYMENT_TARGET: '10.14'
+          MACOSX_DEPLOYMENT_TARGET: '10.15'
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v2
