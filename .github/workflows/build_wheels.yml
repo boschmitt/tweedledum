@@ -40,7 +40,7 @@ jobs:
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
           CMAKE_BUILD_PARALLEL_LEVEL: 2
-          MACOSX_DEPLOYMENT_TARGET: '10.11'
+          MACOSX_DEPLOYMENT_TARGET: '10.14'
 
       - name: Upload built wheels
         uses: actions/upload-artifact@v2
