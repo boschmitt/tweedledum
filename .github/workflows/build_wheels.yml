@@ -34,7 +34,7 @@ jobs:
         uses: jwlawson/actions-setup-cmake@v1.9
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@main
+        uses: pypa/cibuildwheel@v2.1.1
         env:
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_ARCHS: all
