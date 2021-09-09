@@ -39,7 +39,6 @@ jobs:
           CIBW_ARCHS: x86_64
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
-          CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: '10.15'
 
       - name: Upload built wheels
