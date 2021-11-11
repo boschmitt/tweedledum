@@ -108,6 +108,11 @@ public:
         return edges_.at(i);
     }
 
+    std::vector<Edge> edges() const
+    {
+        return edges_;
+    }
+
     bool are_connected(uint32_t const v, uint32_t const u) const
     {
         assert(v <= num_qubits() && u <= num_qubits());
