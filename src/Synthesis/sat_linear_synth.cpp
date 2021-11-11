@@ -331,8 +331,45 @@ private:
     Solver& solver_;
 };
 
+void sat_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
+  std::vector<Cbit> const& cbits, BMatrix const& transform)
+{
+    bill::solver solver;
+    CXSwapEncoder encoder(transform, solver);
+    encoder.encode();
+    do {
+        std::vector<bill::lit_type> assumptions = encoder.encode_assumptions();
+        solver.solve(assumptions);
+        bill::result result = solver.get_result();
+        if (result) {
+            encoder.decode(circuit, qubits, result.model());
+            return;
+        }
+        encoder.encode_new_moment();
+    } while (1);
+}
+
+void sat_linear_synth(Device const& device, Circuit& circuit,
+  BMatrix const& transform)
+{
+    bill::solver solver;
+    CXSwapEncoder encoder(device, transform, solver);
+    encoder.encode();
+    do {
+        std::vector<bill::lit_type> assumptions = encoder.encode_assumptions();
+        solver.solve(assumptions);
+        bill::result result = solver.get_result();
+        if (result) {
+            encoder.decode(circuit, result.model());
+            return;
+        }
+        encoder.encode_new_moment();
+    } while (1);
+}
+
 } // namespace legacy
 
+// TODO: implement num_cx optimization goal on this new encoding
 template<typename Solver>
 class CXSwapEncoder {
     using LBool = bill::lbool_type;
@@ -506,6 +543,7 @@ private:
             edges.push_back(edge_var(moment, edge, 1));
         }
         bill::at_least_one(edges, solver_);
+        // bill::at_most_one_pairwise(edges, solver_);
 
         // At any given moment, each qubit can participate on at most one CX
         for (auto const& temp : edges_with_) {
@@ -632,8 +670,15 @@ private:
 
 void sat_linear_synth(Circuit& circuit, std::vector<Qubit> const& qubits,
   std::vector<Cbit> const& cbits, BMatrix const& transform,
-  [[maybe_unused]] nlohmann::json const& config)
+  nlohmann::json const& config)
 {
+    auto cfg = config.find("sat_linear_synth");
+    if (cfg != config.end()) {
+        if (cfg->contains("opt_goal") && (cfg->at("opt_goal") != "depth")) {
+            legacy::sat_linear_synth(circuit, qubits, {}, transform);
+            return;
+        }
+    }
     bill::solver solver;
     CXSwapEncoder encoder(transform, solver);
     encoder.encode();
@@ -662,10 +707,15 @@ Circuit sat_linear_synth(BMatrix const& transform, nlohmann::json const& config)
 }
 
 void sat_linear_synth(Device const& device, Circuit& circuit,
-  BMatrix const& transform, [[maybe_unused]] nlohmann::json const& config)
+  BMatrix const& transform, nlohmann::json const& config)
 {
-    assert(transform.rows() <= 32);
-
+    auto cfg = config.find("sat_linear_synth");
+    if (cfg != config.end()) {
+        if (cfg->contains("opt_goal") && (cfg->at("opt_goal") != "depth")) {
+            legacy::sat_linear_synth(device, circuit, transform);
+            return;
+        }
+    }
     bill::solver solver;
     CXSwapEncoder encoder(device, transform, solver);
     encoder.encode();
