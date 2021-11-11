@@ -130,7 +130,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 1, 0, 0,
                      0, 1, 0,
                      0, 0, 1;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("Swap (q0 , q1)")
@@ -139,7 +139,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 0, 1, 0,
                      1, 0, 0,
                      0, 0, 1;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("Swap (q0 , q2)")
@@ -148,7 +148,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 0, 0, 1,
                      0, 1, 0,
                      1, 0, 0;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("2 Swaps (q1, q2) (q0, 1)")
@@ -158,7 +158,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 0, 0, 1, 
                      1, 0, 0,
                      0, 1, 0;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("Upper triangle")
@@ -168,7 +168,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 1, 1, 1,
                      0, 1, 1,
                      0, 0, 1;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("Lower triangle")
@@ -178,7 +178,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 1, 0, 0,
                      1, 1, 0,
                      1, 1, 1;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("Two CX to q0")
@@ -188,7 +188,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 1, 1, 1,
                      0, 1, 0,
                      0, 0, 1;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("Two CX to q1")
@@ -198,7 +198,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 1, 0, 0,
                      1, 1, 1,
                      0, 0, 1;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     SECTION("Two CX to q2")
@@ -208,7 +208,7 @@ TEST_CASE("Trivial path cases for constrained SAT linear synthesis",
         transform << 1, 0, 0,
                      0, 1, 0,
                      1, 1, 1;
-        Circuit synthesized = sat_linear_synth(transform);
+        Circuit synthesized = sat_linear_synth(path_3, transform);
         CHECK(check_unitary(expected, synthesized));
     }
     // clang-format on
