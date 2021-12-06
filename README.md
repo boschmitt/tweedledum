@@ -167,6 +167,10 @@ ln -s _tweedledum.cpython-39-darwin.so ../python/tweedledum/
 Now, whenever we change the C++ code and rebuild the python library, the changes
 won't require a reinstall of the library to be available.
 
+# Documentation
+
+For a deep dive into the Tweedledum API, architecture, and tutorials: https://tweedledum.readthedocs.io/
+
 # Used third-party tools
 
 The library it is built, tested, bind to python, and whatnot using many
