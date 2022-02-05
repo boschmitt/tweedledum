@@ -37,6 +37,11 @@ enum class diag_id
   ERR_GENLIB_PIN_PHASE,
   ERR_GENLIB_FAILED,
 
+  /* SUPER */
+  ERR_SUPER_INFO,
+  ERR_SUPER_UNEXPECTED_STRUCTURE,
+  ERR_SUPER_GATE,
+
   /* sentinel element to mark the end */
   NUM_STATIC_ERROR_IDS,
 };
@@ -78,4 +83,9 @@ static std::pair<diagnostic_level, std::string> const diag_info[] = {
   { diagnostic_level::fatal, "unexpected `{}` token (expected `PIN`)" },
   { diagnostic_level::fatal, "unknown PIN phase type `{}` (expected `INV`, `NONINV`, or `UNKNOWN`)" },
   { diagnostic_level::fatal, "parsing failed at token `{}`" },
+
+  /* SUPER */
+  { diagnostic_level::fatal, "line `{}` has unexpected structure (expected only one data)" },
+  { diagnostic_level::fatal, "line `{}` has a wrong structure (too few fields or exceeding the limit)" },
+  { diagnostic_level::fatal, "gate `{}` has a wrong number of fanin (zero or exceeding the limit)" },
 };
