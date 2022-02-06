@@ -8,6 +8,8 @@
 
 #include <algorithm>
 #include <codecvt>
+#include <fmt/format.h>
+#include <fmt/xchar.h>
 #include <limits>
 #include <utility>
 
