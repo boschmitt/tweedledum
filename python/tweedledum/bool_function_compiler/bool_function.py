@@ -296,7 +296,7 @@ class BoolFunction(object):
 
     @classmethod
     def from_verilog_file(cls, path: str):
-        """Create a BooleanFunction from Verilog file.
+        r"""Create a BooleanFunction from Verilog file.
 
         /!\ This function can only parse a _very_ small and simple subset of
         /!\ the Verilog language.
