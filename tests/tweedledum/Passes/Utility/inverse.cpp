@@ -7,8 +7,8 @@
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/Operators/All.h"
 
-#include "../check_inverse.h"
-#include "../test_circuits.h"
+#include "../../check_inverse.h"
+#include "../../test_circuits.h"
 
 #include <catch.hpp>
 

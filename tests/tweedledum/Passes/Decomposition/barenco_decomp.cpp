@@ -7,7 +7,7 @@
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/Operators/Standard.h"
 
-#include "../check_unitary.h"
+#include "../../check_unitary.h"
 
 #include <catch.hpp>
 

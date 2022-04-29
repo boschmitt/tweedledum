@@ -8,8 +8,8 @@
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Passes/Utility/inverse.h"
 
-#include "../check_unitary.h"
-#include "../test_circuits.h"
+#include "../../check_unitary.h"
+#include "../../test_circuits.h"
 
 #include <catch.hpp>
 

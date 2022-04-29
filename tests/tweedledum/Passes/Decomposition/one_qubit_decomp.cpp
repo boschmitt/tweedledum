@@ -8,7 +8,7 @@
 #include "tweedledum/Operators/All.h"
 #include "tweedledum/Utils/Matrix.h"
 
-#include "../check_unitary.h"
+#include "../../check_unitary.h"
 
 #include <catch.hpp>
 #include <cmath>

@@ -8,7 +8,7 @@
 #include "tweedledum/Operators/Extension/Bridge.h"
 #include "tweedledum/Target/Device.h"
 
-#include "../check_unitary.h"
+#include "../../check_unitary.h"
 
 #include <catch.hpp>
 

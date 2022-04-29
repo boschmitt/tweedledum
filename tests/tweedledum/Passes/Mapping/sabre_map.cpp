@@ -4,7 +4,7 @@
 *-----------------------------------------------------------------------------*/
 #include "tweedledum/Passes/Mapping/sabre_map.h"
 
-#include "../check_mapping.h"
+#include "../../check_mapping.h"
 #include "test_circuits.h"
 #include "tweedledum/IR/Circuit.h"
 #include "tweedledum/Passes/Optimization/steiner_resynth.h"
