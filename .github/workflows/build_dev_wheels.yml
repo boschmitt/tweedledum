@@ -163,7 +163,7 @@ jobs:
             arch: ${{ matrix.arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.1.1
+        uses: pypa/cibuildwheel@v2.11.2
         env:
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_ARCHS: all
@@ -172,6 +172,7 @@ jobs:
           CIBW_ENVIRONMENT_WINDOWS: "CC=cl.exe CXX=cl.exe"
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
+          CIBW_SKIP: "cp36*"
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
           TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.timestamp}}
