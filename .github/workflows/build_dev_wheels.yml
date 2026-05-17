@@ -10,8 +10,8 @@ jobs:
     outputs:
       timestamp: ${{ steps.date.outputs.now }}
     steps:
-    - id: date 
-      run: echo "::set-output name=now::$(date +'%Y%m%d%H%M')"
+    - id: date
+      run: echo "now=$(date +'%Y%m%d%H%M')" >> "$GITHUB_OUTPUT"
 
   build_sdist:
     name: Source distribution
@@ -22,12 +22,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
@@ -38,9 +38,9 @@ jobs:
           python -m build --sdist --outdir wheelhouse
 
       - name: Upload built sdist
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: cibw-sdist
           path: ./wheelhouse/*.tar.gz
 
   build_wheels:
@@ -51,19 +51,16 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        # Supported macOS-10.x
-        - os: macos-10.15
+        # macOS Intel (x86_64)
+        - os: macos-13
           build: "cp3*-macosx_x86_64"
-          name: macOS (10.15+)
-          target: '10.15'
-        # macOS-11
-        # - os: macos-11
-        #   build: "cp3*-macosx_arm64 cp3*-macosx_x86_64"
-        #   name: macOS (11.0)
-        # - os: macos-11
-        #   build: "cp3*-macosx_universal2"
-        #   name: macOS Universal2 (11.0)
-        #   target: '11.0'
+          name: macOS Intel (x86_64)
+          target: '13.0'
+        # macOS Apple Silicon (arm64)
+        - os: macos-14
+          build: "cp3*-macosx_arm64"
+          name: macOS Apple Silicon (arm64)
+          target: '14.0'
         # Windows
         - os: windows-latest
           build: "cp3*-win_amd64"
@@ -139,25 +136,25 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.12'
           architecture: ${{ matrix.arch }}
 
       - name: Setup CMake
-        uses: jwlawson/actions-setup-cmake@v1.9
+        uses: jwlawson/actions-setup-cmake@v2
 
       - name: Set up QEMU
         if: runner.os == 'Linux' && matrix.platform != 'intel'
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.platform }}
 
       - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1.9.0
+        uses: ilammy/msvc-dev-cmd@v1.13.0
         if: runner.os == 'Windows'
         with:
             arch: ${{ matrix.arch }}
@@ -168,17 +165,16 @@ jobs:
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_ARCHS: all
           CIBW_ENVIRONMENT_LINUX: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
-          CIBW_ENVIRONMENT_MACOS: "${{ matrix.flags }} _PYTHON_HOST_PLATFORM=macosx-${{ matrix.target }}-x86_64"
-          CIBW_ENVIRONMENT_WINDOWS: "CC=cl.exe CXX=cl.exe"
+          CIBW_ENVIRONMENT_MACOS: "${{ matrix.flags }} _PYTHON_HOST_PLATFORM=macosx-${{ matrix.target }}-${{ matrix.os == 'macos-14' && 'arm64' || 'x86_64' }} TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
+          CIBW_ENVIRONMENT_WINDOWS: "CC=cl.exe CXX=cl.exe TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_TEST_REQUIRES: pytest numpy
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
           CIBW_SKIP: "cp36* cp37* cp38*"
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
-          TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.timestamp}}
 
       - name: Upload built wheels
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
