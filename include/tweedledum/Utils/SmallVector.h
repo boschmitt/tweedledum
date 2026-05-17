@@ -10,6 +10,7 @@
 #include <cstring>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <type_traits>
 
 // Based this implementation on what I have seen in LLVM's SmallVector
