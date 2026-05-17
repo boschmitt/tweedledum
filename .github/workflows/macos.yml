@@ -14,9 +14,17 @@ on:
 jobs:
   build-macos:
     name: Build and run tests
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install nanobind
+      run: python -m pip install --upgrade pip "nanobind>=2.12.0"
 
     - name: Configure CMake
       run: |

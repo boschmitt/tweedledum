@@ -6,23 +6,24 @@
 
 #include <kitty/kitty.hpp>
 #include <mockturtle/networks/xag.hpp>
+#include <nanobind/stl/vector.h>
 #include <vector>
 
-void init_ext_operators(pybind11::module& module)
+void init_ext_operators(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
-    py::class_<Op::LogicNetwork>(module, "LogicNetwork")
-        .def(py::init<mockturtle::xag_network>());
+    nb::class_<Op::LogicNetwork>(module, "LogicNetwork")
+        .def(nb::init<mockturtle::xag_network>());
 
-    py::class_<Op::Permutation>(module, "Permutation")
-        .def(py::init<std::vector<uint32_t>>());
+    nb::class_<Op::Permutation>(module, "Permutation")
+        .def(nb::init<std::vector<uint32_t>>());
 
-    py::class_<Op::TruthTable>(module, "TruthTable")
-        .def(py::init<kitty::dynamic_truth_table, bool>(), 
-             py::arg("tt"), py::arg("is_phase") = false);
+    nb::class_<Op::TruthTable>(module, "TruthTable")
+        .def(nb::init<kitty::dynamic_truth_table, bool>(),
+             nb::arg("tt"), nb::arg("is_phase") = false);
 
-    // py::class_<Op::Unitary>(module, "Unitary")
-    //     .def(py::init<>());
+    // nb::class_<Op::Unitary>(module, "Unitary")
+    //     .def(nb::init<>());
 }

@@ -2,35 +2,35 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include <pybind11/operators.h>
-#include <pybind11/stl.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/operators.h>
 #include <tweedledum/IR/Cbit.h>
 #include <tweedledum/IR/Qubit.h>
 
-void init_Wires(pybind11::module& module)
+void init_Wires(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
 #define QUBIT_OR_CBIT_INSTANTIATION(T)                                        \
-    py::class_<T> bit_##T(module, #T);                                        \
-    py::enum_<T::Polarity>(bit_##T, "Polarity")                               \
+    nb::class_<T> bit_##T(module, #T);                                        \
+    nb::enum_<T::Polarity>(bit_##T, "Polarity")                               \
       .value("negative", T::Polarity::negative)                               \
       .value("positive", T::Polarity::positive)                               \
       .export_values();                                                       \
                                                                               \
     bit_##T.def_static("invalid", &T::invalid)                                \
-      .def(py::init<uint32_t, T::Polarity>(), py::arg("uid"),                 \
-        py::arg("polarity") = T::Polarity::positive)                          \
+      .def(nb::init<uint32_t, T::Polarity>(), nb::arg("uid"),                 \
+        nb::arg("polarity") = T::Polarity::positive)                          \
       .def("polarity", &T::polarity)                                          \
       .def("uid", &T::uid)                                                    \
       .def(                                                                   \
         "__index__", [](T const& bit) { return static_cast<uint32_t>(bit); }) \
       .def("__invert__", [](T const& lhs) { return !lhs; })                   \
-      .def(+py::self)                                                         \
-      .def(-py::self)                                                         \
-      .def(py::self == py::self)                                              \
-      .def(py::self != py::self);
+      .def(+nb::self)                                                         \
+      .def(-nb::self)                                                         \
+      .def(nb::self == nb::self)                                              \
+      .def(nb::self != nb::self);
 
     QUBIT_OR_CBIT_INSTANTIATION(Cbit);
     QUBIT_OR_CBIT_INSTANTIATION(Qubit);

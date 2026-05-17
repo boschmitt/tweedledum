@@ -4,17 +4,17 @@
 *-----------------------------------------------------------------------------*/
 #include "operators.h"
 
-void init_ising_operators(pybind11::module& module)
+void init_ising_operators(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
-    py::class_<Op::Rxx>(module, "Rxx")
-        .def(py::init<double const>());
+    nb::class_<Op::Rxx>(module, "Rxx")
+        .def(nb::init<double const>());
 
-    py::class_<Op::Ryy>(module, "Ryy")
-        .def(py::init<double const>());
+    nb::class_<Op::Ryy>(module, "Ryy")
+        .def(nb::init<double const>());
 
-    py::class_<Op::Rzz>(module, "Rzz")
-        .def(py::init<double const>());
+    nb::class_<Op::Rzz>(module, "Rzz")
+        .def(nb::init<double const>());
 }

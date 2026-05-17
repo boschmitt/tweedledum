@@ -4,33 +4,33 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include <pybind11/pybind11.h>
+#include <nanobind/nanobind.h>
 
 // Classical
-void init_kitty(pybind11::module& module);
-void init_mockturtle(pybind11::module& module);
-void init_classical_utils(pybind11::module& module);
+void init_kitty(nanobind::module_& module);
+void init_mockturtle(nanobind::module_& module);
+void init_classical_utils(nanobind::module_& module);
 
 // IR
-void init_Circuit(pybind11::module& module);
-void init_Instruction(pybind11::module& module);
-void init_Wires(pybind11::module& module);
+void init_Circuit(nanobind::module_& module);
+void init_Instruction(nanobind::module_& module);
+void init_Wires(nanobind::module_& module);
 
 // Operators
-void init_ext_operators(pybind11::module& module);
-void init_ising_operators(pybind11::module& module);
-void init_meta_operators(pybind11::module& module);
-void init_std_operators(pybind11::module& module);
+void init_ext_operators(nanobind::module_& module);
+void init_ising_operators(nanobind::module_& module);
+void init_meta_operators(nanobind::module_& module);
+void init_std_operators(nanobind::module_& module);
 
 // Passes
-void init_Passes(pybind11::module& module);
+void init_Passes(nanobind::module_& module);
 
 // Synthesis
-void init_Synthesis(pybind11::module& module);
+void init_Synthesis(nanobind::module_& module);
 
 // Target
-void init_Device(pybind11::module& module);
-void init_Mapping(pybind11::module& module);
+void init_Device(nanobind::module_& module);
+void init_Mapping(nanobind::module_& module);
 
 // Utils
-void init_utils(pybind11::module& module);
+void init_utils(nanobind::module_& module);

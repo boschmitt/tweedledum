@@ -4,11 +4,11 @@
 *-----------------------------------------------------------------------------*/
 #include "operators.h"
 
-void init_meta_operators(pybind11::module& module)
+void init_meta_operators(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
-    py::class_<Op::Barrier>(module, "Barrier")
-        .def(py::init<>());
+    nb::class_<Op::Barrier>(module, "Barrier")
+        .def(nb::init<>());
 }

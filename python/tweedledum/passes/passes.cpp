@@ -4,7 +4,8 @@
 *-----------------------------------------------------------------------------*/
 #include "../nlohmann_json.h"
 
-#include <pybind11/stl.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/vector.h>
 #include <tweedledum/IR/Circuit.h>
 #include <tweedledum/Passes/Analysis.h>
 #include <tweedledum/Passes/Decomposition.h>
@@ -12,19 +13,19 @@
 #include <tweedledum/Passes/Mapping.h>
 #include <tweedledum/Passes/Utility.h>
 
-void init_Passes(pybind11::module& module)
+void init_Passes(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
     // Analysis
-    module.def("compute_alap_layers", &compute_alap_layers, 
+    module.def("compute_alap_layers", &compute_alap_layers,
         "Compute instructions' ALAP layer.");
 
-    module.def("compute_asap_layers", &compute_asap_layers, 
+    module.def("compute_asap_layers", &compute_asap_layers,
         "Compute instructions' ASAP layer.");
 
-    module.def("compute_critical_paths", &compute_critical_paths, 
+    module.def("compute_critical_paths", &compute_critical_paths,
         "Compute circuit critical path(s).");
 
     module.def("compute_cuts", &compute_cuts, "Compute circuit cuts.");
@@ -35,19 +36,19 @@ void init_Passes(pybind11::module& module)
 
 
     // Decomposition
-    module.def("barenco_decomp", 
-        py::overload_cast<Circuit const&, nlohmann::json const&>(&barenco_decomp),
-        py::arg("circuit"), py::arg("config") = nlohmann::json(),
+    module.def("barenco_decomp",
+        nb::overload_cast<Circuit const&, nlohmann::json const&>(&barenco_decomp),
+        nb::arg("circuit"), nb::arg("config") = nlohmann::json(),
         "Barrenco decomposition pass.");
 
     module.def("bridge_decomp",
-        py::overload_cast<Device const&, Circuit const&, nlohmann::json const&>(&bridge_decomp),
-        py::arg("device"), py::arg("circuit"), py::arg("config") = nlohmann::json(),
+        nb::overload_cast<Device const&, Circuit const&, nlohmann::json const&>(&bridge_decomp),
+        nb::arg("device"), nb::arg("circuit"), nb::arg("config") = nlohmann::json(),
         "Bridge operators decomposition pass.");
 
     module.def("parity_decomp",
-        py::overload_cast<Circuit const&, nlohmann::json const&>(&parity_decomp),
-        py::arg("circuit"), py::arg("config") = nlohmann::json(),
+        nb::overload_cast<Circuit const&, nlohmann::json const&>(&parity_decomp),
+        nb::arg("circuit"), nb::arg("config") = nlohmann::json(),
         "Parity operators decomposition pass.");
 
     // Mapping
@@ -60,14 +61,14 @@ void init_Passes(pybind11::module& module)
     // Optimization
     module.def("gate_cancellation", &gate_cancellation, "Gate cancellation optimization.");
 
-    module.def("linear_resynth", &linear_resynth, 
-        py::arg("original"), py::arg("config") = nlohmann::json(),
+    module.def("linear_resynth", &linear_resynth,
+        nb::arg("original"), nb::arg("config") = nlohmann::json(),
         "Resynthesize linear parts of the quantum circuit.");
 
     module.def("phase_folding", &phase_folding, "Phase folding optimization.");
 
-    module.def("steiner_resynth", &steiner_resynth, 
-        py::arg("device"), py::arg("original"), py::arg("config") = nlohmann::json(),
+    module.def("steiner_resynth", &steiner_resynth,
+        nb::arg("device"), nb::arg("original"), nb::arg("config") = nlohmann::json(),
         "Coupling-aware resynthesize linear parts of the quantum circuit.");
 
     // Utility

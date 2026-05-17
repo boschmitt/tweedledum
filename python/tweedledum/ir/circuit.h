@@ -6,7 +6,7 @@
 
 #include "../operators/operators.h"
 
-#include <pybind11/pybind11.h>
+#include <nanobind/nanobind.h>
 #include <tweedledum/IR/Cbit.h>
 #include <tweedledum/IR/Circuit.h>
 #include <tweedledum/IR/Qubit.h>
@@ -15,7 +15,7 @@
 namespace tweedledum {
 
 template<>
-inline InstRef Circuit::apply_operator(pybind11::object const& obj,
+inline InstRef Circuit::apply_operator(nanobind::object const& obj,
     std::vector<Qubit> const& qubits, std::vector<Cbit> const& cbits)
 {
     return this->apply_operator(python::PyOperator(obj), qubits, cbits);

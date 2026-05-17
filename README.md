@@ -56,7 +56,7 @@ passes in python.
 [Known issues](#known-issues) with _macOS High Sierra (10.13)_ and _macOS Mojave (10.14)_.
 
 `tweedledum` has two python packages that can be installed using `pip`.  For
-both, you will at least __Python 3.6__.  The `tweedledum` package contains the
+both, you will at least __Python 3.9__.  The `tweedledum` package contains the
 latest stable release.  You can install it from PyPI using:
 
 * Latest stable release (Linux/Mac/Windows)
@@ -125,47 +125,35 @@ Once the examples have been built you can run it:
 
 ## C++ and Python
 
-The second workflow is a bit of a hack.  In Python we can install libraries in
-editable mode, meaning that code changes to the _Python code_ in the project
-don't require a reinstall to be applied. 
-
-If you want to install it in editable mode, you can do this with:
-```
-pip install -e .
-```
-
-The only problem now, is that if we change the C++ code, we will need to 
-reinstall the library.  Fortunately, there is a way to circumvent this 
-annoyance.  
-
-After installing in editable mode, you will see that in `python/tweedledum/` 
-there is a cpython shared library `_tweedledum.cpython-...` Remove this file:
+The Python bindings are built with [nanobind](https://github.com/wjakob/nanobind)
+and packaged via [scikit-build-core](https://github.com/scikit-build/scikit-build-core).
+To install the package, you'll first need a Python interpreter (>= 3.9) and
+`nanobind` available to CMake. The easiest setup is via
+[`uv`](https://docs.astral.sh/uv/):
 
 ```sh
-rm python/tweedledum/_tweedledum.cpython-...
+uv python install 3.12
+uv venv --python 3.12 .venv
+source .venv/bin/activate
+uv pip install scikit-build-core "nanobind>=2.12.0" ninja cmake
+uv pip install pytest numpy
+uv pip install -e . --no-build-isolation
 ```
 
-Now, we create a build directory as we did with the C++ workflow:
-```sh
-mkdir build      
-cd build
-```
+If you change the C++ code, re-running `uv pip install -e . --no-build-isolation`
+will trigger an incremental rebuild via scikit-build-core.
 
-We can manually build the cpython shared library using:
+Alternatively, if you want to drive the build manually from CMake (for instance
+to iterate on the C++ tests in the same tree), build the extension target
+directly. You'll need `nanobind` in the Python environment that CMake picks up,
+since the project uses `find_package(nanobind)` via `python -m nanobind --cmake_dir`:
+
 ```sh
+python -m pip install "nanobind>=2.12.0"
+mkdir build && cd build
+cmake .. -DTWEEDLEDUM_PYBINDS=ON
 make _tweedledum
 ```
-
-This will create the library in the `build/` directory. Now, all we need to
-create a symbolic link in `python/tweedledum/` that points the library in 
-`build/`:
-
-```sh
-ln -s _tweedledum.cpython-39-darwin.so ../python/tweedledum/
-```
-
-Now, whenever we change the C++ code and rebuild the python library, the changes
-won't require a reinstall of the library to be available.
 
 # Used third-party tools
 
@@ -184,7 +172,7 @@ third-party tools and services. Thanks a lot!
 - [**nlohmann/json**](https://github.com/nlohmann/json) - JSON for Modern C++
 - [**parallel_hashmap**](https://github.com/greg7mdp/parallel-hashmap) - A family of header-only, very fast and memory-friendly hashmap and btree containers.
 - [**percy**](https://github.com/lsils/percy) - C++ header-only exact synthesis library
-- [**pybind11**](https://github.com/pybind/pybind11) - Seamless operability between C++11 and Python
+- [**nanobind**](https://github.com/wjakob/nanobind) - Tiny and efficient C++/Python bindings
 - [**rang**](https://github.com/agauniyal/rang) - A Minimal, Header only Modern c++ library for terminal goodies
 
 ## Known issues

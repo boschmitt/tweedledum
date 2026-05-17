@@ -2,19 +2,20 @@
 | Part of Tweedledum Project.  This file is distributed under the MIT License.
 | See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
-#include <pybind11/stl.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/vector.h>
 #include <tweedledum/Target/Mapping.h>
 
-void init_Mapping(pybind11::module& module)
+void init_Mapping(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
-    py::class_<Placement>(module, "Placement")
-        .def("v_to_phy", py::overload_cast<>(&Placement::v_to_phy, py::const_))
-        .def("phy_to_v", py::overload_cast<>(&Placement::phy_to_v, py::const_));
+    nb::class_<Placement>(module, "Placement")
+        .def("v_to_phy", nb::overload_cast<>(&Placement::v_to_phy, nb::const_))
+        .def("phy_to_v", nb::overload_cast<>(&Placement::phy_to_v, nb::const_));
 
-    py::class_<Mapping>(module, "Mapping")
-        .def_readwrite("init_placement", &Mapping::init_placement)
-        .def_readwrite("placement", &Mapping::placement);
+    nb::class_<Mapping>(module, "Mapping")
+        .def_rw("init_placement", &Mapping::init_placement)
+        .def_rw("placement", &Mapping::placement);
 }

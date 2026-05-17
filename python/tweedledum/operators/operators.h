@@ -4,7 +4,8 @@
 *-----------------------------------------------------------------------------*/
 #pragma once
 
-#include <pybind11/pybind11.h>
+#include <nanobind/nanobind.h>
+#include <string_view>
 #include <tweedledum/IR/Instruction.h>
 #include <tweedledum/Operators/All.h>
 
@@ -17,11 +18,11 @@ public:
         return "py_op";
     }
 
-    PyOperator(pybind11::object const& handle)
+    PyOperator(nanobind::object const& handle)
         : handle_(handle)
     {}
 
-    pybind11::object obj() const
+    nanobind::object obj() const
     {
         return handle_;
     }
@@ -32,8 +33,7 @@ public:
     }
 
 private:
-    pybind11::object handle_;
+    nanobind::object handle_;
 };
 
-} // namespace tweedledum
-
+} // namespace tweedledum::python

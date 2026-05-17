@@ -79,12 +79,3 @@ if (NOT TARGET mockturtle)
   target_include_directories(mockturtle SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/mockturtle)
   target_link_libraries(mockturtle INTERFACE kitty lorina phmap percy nlohmann_json bill libabcesop abcresub)
 endif()
-
-# pybind11 2.6.0
-if(TWEEDLEDUM_USE_EXTERNAL_PYBIND11)
-    if (NOT TARGET pybind11)
-        find_package(pybind11 REQUIRED)
-    endif()
-else()
-    add_subdirectory(pybind11 EXCLUDE_FROM_ALL)
-endif()

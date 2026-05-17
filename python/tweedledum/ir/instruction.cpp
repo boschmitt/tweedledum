@@ -4,19 +4,21 @@
 *-----------------------------------------------------------------------------*/
 #include "../operators/operators.h"
 
-#include <pybind11/stl.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/string_view.h>
+#include <nanobind/stl/vector.h>
 #include <tweedledum/IR/Instruction.h>
 #include <tweedledum/Operators/Utils.h>
 
-void init_Instruction(pybind11::module& module)
+void init_Instruction(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
-    py::class_<InstRef>(module, "InstRef")
+    nb::class_<InstRef>(module, "InstRef")
         .def("uid", &InstRef::uid);
 
-    py::class_<Instruction>(module, "Instruction")
+    nb::class_<Instruction>(module, "Instruction")
         .def("kind", &Instruction::kind)
         .def("num_qubits", &Instruction::num_qubits)
         .def("num_cbits", &Instruction::num_cbits)

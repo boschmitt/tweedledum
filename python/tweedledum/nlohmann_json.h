@@ -1,184 +1,108 @@
 /*------------------------------------------------------------------------------
-| Part of Tweedledum Project.  
-|
-| I used to have my own conversion functions.  Now, they are pretty much what 
-| can be found in: (I really liked the macro things :)
-| https://github.com/pybind/pybind11_json/blob/master/include/pybind11_json/pybind11_json.hpp
-|
-| It does have small differences from the above (maybe not significant)!
-|
-| BSD 3-Clause License
-| 
-| Copyright (c) 2019,
-| All rights reserved.
-| 
-| Redistribution and use in source and binary forms, with or without
-| modification, are permitted provided that the following conditions are met:
-| 
-| * Redistributions of source code must retain the above copyright notice, this
-|   list of conditions and the following disclaimer.
-| 
-| * Redistributions in binary form must reproduce the above copyright notice,
-|   this list of conditions and the following disclaimer in the documentation
-|   and/or other materials provided with the distribution.
-| 
-| * Neither the name of the copyright holder nor the names of its
-|   contributors may be used to endorse or promote products derived from
-|   this software without specific prior written permission.
-| 
-| THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-| AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-| IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-| DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-| FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-| DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-| SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-| CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-| OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-| OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+| Part of Tweedledum Project.  This file is distributed under the MIT License.
+| See accompanying file /LICENSE for details.
 *-----------------------------------------------------------------------------*/
+#pragma once
+
+#include <nanobind/nanobind.h>
 #include <nlohmann/json.hpp>
-#include <pybind11/pybind11.h>
 #include <stdexcept>
+#include <string>
 
 namespace tweedledum {
 
-inline nlohmann::json to_json(pybind11::handle const& obj)
+inline nlohmann::json to_json(nanobind::handle const& obj)
 {
+    namespace nb = nanobind;
+
     if (obj.ptr() == nullptr || obj.is_none()) {
         return nullptr;
     }
-    if (pybind11::isinstance<pybind11::bool_>(obj)) {
-        return obj.cast<bool>();
+    if (PyBool_Check(obj.ptr())) {
+        return obj.ptr() == Py_True;
     }
-    if (pybind11::isinstance<pybind11::int_>(obj)) {
-        return obj.cast<long>();
+    if (PyLong_Check(obj.ptr())) {
+        return nb::cast<long>(obj);
     }
-    if (pybind11::isinstance<pybind11::float_>(obj)) {
-        return obj.cast<double>();
+    if (PyFloat_Check(obj.ptr())) {
+        return PyFloat_AsDouble(obj.ptr());
     }
-    if (pybind11::isinstance<pybind11::str>(obj)) {
-        return obj.cast<std::string>();
+    if (PyUnicode_Check(obj.ptr())) {
+        Py_ssize_t size = 0;
+        const char* data = PyUnicode_AsUTF8AndSize(obj.ptr(), &size);
+        return std::string(data, static_cast<size_t>(size));
     }
-    if (pybind11::isinstance<pybind11::tuple>(obj) || pybind11::isinstance<pybind11::list>(obj)) {
+    if (PyTuple_Check(obj.ptr()) || PyList_Check(obj.ptr())) {
         auto array = nlohmann::json::array();
-        for (pybind11::handle const& value : obj) {
+        for (nb::handle const& value : obj) {
             array.push_back(to_json(value));
         }
         return array;
     }
-    if (pybind11::isinstance<pybind11::dict>(obj)) {
+    if (PyDict_Check(obj.ptr())) {
         auto dict = nlohmann::json::object();
-        for (pybind11::handle const& key : obj) {
-            dict[pybind11::str(key).cast<std::string>()] = to_json(obj[key]);
+        PyObject* key = nullptr;
+        PyObject* value = nullptr;
+        Py_ssize_t pos = 0;
+        while (PyDict_Next(obj.ptr(), &pos, &key, &value)) {
+            nb::str key_str = nb::str(nb::handle(key));
+            Py_ssize_t size = 0;
+            const char* data = PyUnicode_AsUTF8AndSize(key_str.ptr(), &size);
+            dict[std::string(data, static_cast<size_t>(size))]
+                = to_json(nb::handle(value));
         }
         return dict;
     }
     throw std::runtime_error("to_json not implemented for this type of object: "
-                             + pybind11::repr(obj).cast<std::string>());
+                             + nb::cast<std::string>(nb::repr(obj)));
 }
 
-inline pybind11::object from_json(nlohmann::json const& json)
+inline nanobind::object from_json(nlohmann::json const& json)
 {
+    namespace nb = nanobind;
+
     if (json.is_array()) {
-        pybind11::list obj;
+        nb::list obj;
         for (auto const& element : json) {
             obj.append(from_json(element));
         }
-        return std::move(obj);
+        return obj;
     }
     if (json.is_boolean()) {
-        return pybind11::bool_(json.get<bool>());
+        return nb::cast(json.get<bool>());
     }
     if (json.is_null()) {
-        return pybind11::none();
+        return nb::none();
     }
     if (json.is_number_unsigned()) {
-        return pybind11::int_(json.get<unsigned long>());
+        return nb::cast(json.get<unsigned long>());
     }
     if (json.is_number_integer()) {
-        return pybind11::int_(json.get<long>());
+        return nb::cast(json.get<long>());
     }
     if (json.is_number_float()) {
-        return pybind11::float_(json.get<double>());
+        return nb::cast(json.get<double>());
     }
     if (json.is_string()) {
-        return pybind11::str(json.get<std::string>());
+        return nb::cast(json.get<std::string>());
     }
-    // If none of the above, then create a dict 
-    pybind11::dict obj;
+    // If none of the above, then create a dict
+    nb::dict obj;
     for (auto it = json.cbegin(); it != json.cend(); ++it) {
-        obj[pybind11::str(it.key())] = from_json(it.value());
+        obj[nb::cast(it.key())] = from_json(it.value());
     }
-    return std::move(obj);
+    return obj;
 }
 
-}
+} // namespace tweedledum
 
-namespace nlohmann {
+namespace nanobind::detail {
 
-#define JSON_SERIALIZER_DESERIALIZER(T)                \
-template <>                                            \
-struct adl_serializer<T>                               \
-{                                                      \
-    inline static void to_json(json& j, T const& obj)  \
-    {                                                  \
-        j = tweedledum::to_json(obj);                  \
-    }                                                  \
-                                                       \
-    inline static T from_json(json const& j)           \
-    {                                                  \
-        return tweedledum::from_json(j);               \
-    }                                                  \
-}
-
-JSON_SERIALIZER_DESERIALIZER(pybind11::bool_);
-JSON_SERIALIZER_DESERIALIZER(pybind11::dict);
-JSON_SERIALIZER_DESERIALIZER(pybind11::float_);
-JSON_SERIALIZER_DESERIALIZER(pybind11::int_);
-JSON_SERIALIZER_DESERIALIZER(pybind11::list);
-JSON_SERIALIZER_DESERIALIZER(pybind11::object);
-JSON_SERIALIZER_DESERIALIZER(pybind11::str);
-JSON_SERIALIZER_DESERIALIZER(pybind11::tuple);
-#undef JSON_SERIALIZER_DESERIALIZER
-
-#define JSON_SERIALIZER(T)                             \
-template <>                                            \
-struct adl_serializer<T>                               \
-{                                                      \
-    inline static void to_json(json& j, T const& obj)  \
-    {                                                  \
-        j = tweedledum::to_json(obj);                  \
-    }                                                  \
-}
-
-JSON_SERIALIZER(pybind11::handle);
-JSON_SERIALIZER(pybind11::detail::item_accessor);
-JSON_SERIALIZER(pybind11::detail::list_accessor);
-JSON_SERIALIZER(pybind11::detail::obj_attr_accessor);
-JSON_SERIALIZER(pybind11::detail::sequence_accessor);
-JSON_SERIALIZER(pybind11::detail::str_attr_accessor);
-JSON_SERIALIZER(pybind11::detail::tuple_accessor);
-#undef JSON_SERIALIZER
-}
-
-namespace pybind11::detail {
-
-template<>
+template <>
 struct type_caster<nlohmann::json> {
-public:
-    /**
-     * This macro establishes the name 'json' in function signatures and
-     * declares a local variable 'value' of type json
-     */
-    PYBIND11_TYPE_CASTER(nlohmann::json, _("json"));
+    NB_TYPE_CASTER(nlohmann::json, const_name("json"))
 
-    /**
-     * Conversion part 1 (Python->C++): convert a PyObject into a json instance
-     * or return false upon failure.  The second argument indicates whether
-     * implicit conversions should be applied.
-     */
-    bool load(handle src, bool)
+    bool from_python(handle src, uint8_t, cleanup_list*) noexcept
     {
         try {
             value = tweedledum::to_json(src);
@@ -188,18 +112,14 @@ public:
         }
     }
 
-     /**
-     * Conversion part 2 (C++ -> Python): convert a json instance into a Python
-     * object.  The second and third arguments are used to indicate the return
-     * value policy and parent object
-     * (for ``return_value_policy::reference_internal``) and are generally
-     * ignored by implicit casters.
-     */
-    static handle cast(nlohmann::json src, return_value_policy, handle)
+    static handle from_cpp(nlohmann::json const& src, rv_policy, cleanup_list*) noexcept
     {
-        object obj = tweedledum::from_json(src);
-        return obj.release();
+        try {
+            return tweedledum::from_json(src).release();
+        } catch (...) {
+            return handle();
+        }
     }
 };
 
-}
+} // namespace nanobind::detail

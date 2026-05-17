@@ -1,7 +1,7 @@
 # Distributed under the MIT License (See accompanying file /LICENSE)
 # CMake build : tweedledum library
-cmake_minimum_required(VERSION 3.16)
-project(tweedledum VERSION 1.1.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.18)
+project(tweedledum VERSION 1.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
@@ -11,7 +11,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 option(TWEEDLEDUM_EXAMPLES "Build examples" OFF)
 option(TWEEDLEDUM_PYBINDS "Build python bindings" ON)
 option(TWEEDLEDUM_TESTS "Build tests" OFF)
-option(TWEEDLEDUM_USE_EXTERNAL_PYBIND11 "Use an external pybind11 library" OFF)
 option(TWEEDLEDUM_ENABLE_COVERAGE "Enable coverage reporting for gcc/clang" OFF)
 option(ENABLE_BILL_Z3 "Enable Z3 interface for bill library" OFF)
 
@@ -40,7 +39,15 @@ add_subdirectory(external)
 # Python bindings
 # =============================================================================
 if(TWEEDLEDUM_PYBINDS AND TWEEDLEDUM_MASTER_PROJECT)
-    pybind11_add_module(_tweedledum MODULE)
+    find_package(Python 3.9 COMPONENTS Interpreter Development.Module REQUIRED)
+
+    # Locate nanobind via its Python package (pip install nanobind)
+    execute_process(
+        COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+        OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
+    find_package(nanobind CONFIG REQUIRED)
+
+    nanobind_add_module(_tweedledum NB_STATIC STABLE_ABI)
     target_include_directories(_tweedledum PRIVATE ${PROJECT_SOURCE_DIR}/include)
     target_link_libraries(_tweedledum PRIVATE
         Eigen3::Eigen3

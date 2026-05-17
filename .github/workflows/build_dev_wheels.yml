@@ -85,56 +85,56 @@ jobs:
         # Since this relies on QEMU, I separated the jobs here to
         # speedup the action
         - os: ubuntu-latest
-          build: "cp36-manylinux_aarch64"
-          name: Linux ARM 64-bit (py36-aarch64)
-          platform: aarch64
-        - os: ubuntu-latest
-          build: "cp37-manylinux_aarch64"
-          name: Linux ARM 64-bit (py37-aarch64)
-          platform: aarch64
-        - os: ubuntu-latest
-          build: "cp38-manylinux_aarch64"
-          name: Linux ARM 64-bit (py38-aarch64)
-          platform: aarch64
-        - os: ubuntu-latest
           build: "cp39-manylinux_aarch64"
           name: Linux ARM 64-bit (py39-aarch64)
           platform: aarch64
+        - os: ubuntu-latest
+          build: "cp310-manylinux_aarch64"
+          name: Linux ARM 64-bit (py310-aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp311-manylinux_aarch64"
+          name: Linux ARM 64-bit (py311-aarch64)
+          platform: aarch64
+        - os: ubuntu-latest
+          build: "cp312-manylinux_aarch64"
+          name: Linux ARM 64-bit (py312-aarch64)
+          platform: aarch64
         # Since this relies on QEMU, I separated the jobs here to
         # speedup the action
-        - os: ubuntu-latest
-          build: "cp36-manylinux_ppc64le"
-          name: Linux POWER8 64-bit (py36-ppc64le)
-          platform: ppc64le
-        - os: ubuntu-latest
-          build: "cp37-manylinux_ppc64le"
-          name: Linux POWER8 64-bit (py37-ppc64le)
-          platform: ppc64le
-        - os: ubuntu-latest
-          build: "cp38-manylinux_ppc64le"
-          name: Linux POWER8 64-bit (py38-ppc64le)
-          platform: ppc64le
         - os: ubuntu-latest
           build: "cp39-manylinux_ppc64le"
           name: Linux POWER8 64-bit (py39-ppc64le)
           platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp310-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py310-ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp311-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py311-ppc64le)
+          platform: ppc64le
+        - os: ubuntu-latest
+          build: "cp312-manylinux_ppc64le"
+          name: Linux POWER8 64-bit (py312-ppc64le)
+          platform: ppc64le
         # Since this relies on QEMU, I separated the jobs here to
         # speedup the action
         - os: ubuntu-latest
-          build: "cp36-manylinux_s390x"
-          name: Linux IBM/Z (py36-s390x)
-          platform: s390x
-        - os: ubuntu-latest
-          build: "cp37-manylinux_s390x"
-          name: Linux IBM/Z (py37-s390x)
-          platform: s390x
-        - os: ubuntu-latest
-          build: "cp38-manylinux_s390x"
-          name: Linux IBM/Z (py38-s390x)
-          platform: s390x
-        - os: ubuntu-latest
           build: "cp39-manylinux_s390x"
           name: Linux IBM/Z (py39-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp310-manylinux_s390x"
+          name: Linux IBM/Z (py310-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp311-manylinux_s390x"
+          name: Linux IBM/Z (py311-s390x)
+          platform: s390x
+        - os: ubuntu-latest
+          build: "cp312-manylinux_s390x"
+          name: Linux IBM/Z (py312-s390x)
           platform: s390x
 
     steps:
@@ -163,16 +163,16 @@ jobs:
             arch: ${{ matrix.arch }}
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.11.2
+        uses: pypa/cibuildwheel@v2.21.3
         env:
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_ARCHS: all
           CIBW_ENVIRONMENT_LINUX: "TWEEDLEDUM_DEV_VERSION=${{needs.setup_date.outputs.timestamp}}"
           CIBW_ENVIRONMENT_MACOS: "${{ matrix.flags }} _PYTHON_HOST_PLATFORM=macosx-${{ matrix.target }}-x86_64"
           CIBW_ENVIRONMENT_WINDOWS: "CC=cl.exe CXX=cl.exe"
-          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_REQUIRES: pytest numpy
           CIBW_TEST_COMMAND: pytest --import-mode importlib -v {project}/python/test/
-          CIBW_SKIP: "cp36*"
+          CIBW_SKIP: "cp36* cp37* cp38*"
           CMAKE_BUILD_PARALLEL_LEVEL: 2
           MACOSX_DEPLOYMENT_TARGET: ${{ matrix.target }}
           TWEEDLEDUM_DEV_VERSION: ${{needs.setup_date.outputs.timestamp}}

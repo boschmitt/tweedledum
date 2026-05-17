@@ -4,15 +4,17 @@
 *-----------------------------------------------------------------------------*/
 #include "../nlohmann_json.h"
 
-#include <pybind11/stl.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 #include <tweedledum/Target/Device.h>
 
-void init_Device(pybind11::module& module)
+void init_Device(nanobind::module_& module)
 {
     using namespace tweedledum;
-    namespace py = pybind11;
+    namespace nb = nanobind;
 
-    py::class_<Device>(module, "Device")
+    nb::class_<Device>(module, "Device")
         .def_static("grid", &Device::grid)
         .def_static("path", &Device::path)
         .def_static("ring", &Device::ring)

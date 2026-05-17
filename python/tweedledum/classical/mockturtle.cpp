@@ -8,25 +8,26 @@
 #include <mockturtle/io/verilog_reader.hpp>
 #include <mockturtle/io/write_verilog.hpp>
 #include <mockturtle/networks/xag.hpp>
-#include <pybind11/operators.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
+#include <nanobind/nanobind.h>
+#include <nanobind/operators.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 
-void init_mockturtle(pybind11::module& module)
+void init_mockturtle(nanobind::module_& module)
 {
-    namespace py = pybind11;
+    namespace nb = nanobind;
     using namespace mockturtle;
     using signal = xag_network::signal;
 
-    py::class_<signal>(module, "Signal")
+    nb::class_<signal>(module, "Signal")
         .def("__invert__", [](signal const& lhs) { return !lhs; })
-        .def(py::self == py::self)
-        .def(py::self != py::self);
+        .def(nb::self == nb::self)
+        .def(nb::self != nb::self);
 
-    py::class_<xag_network>(module, "LogicNetwork")
-        .def(py::init<>())
-        .def("create_pi", &xag_network::create_pi, py::arg("name") = "")
-        .def("create_po", &xag_network::create_po, py::arg("f"), py::arg("name") = "")
+    nb::class_<xag_network>(module, "LogicNetwork")
+        .def(nb::init<>())
+        .def("create_pi", &xag_network::create_pi, nb::arg("name") = "")
+        .def("create_po", &xag_network::create_po, nb::arg("f"), nb::arg("name") = "")
         // Operations
         .def("create_not", &xag_network::create_not)
         .def("create_and", &xag_network::create_and)
@@ -43,10 +44,11 @@ void init_mockturtle(pybind11::module& module)
         .def("num_pis", &xag_network::num_pis)
         .def("num_pos", &xag_network::num_pos)
         // Node and signals
-        .def("get_constant", &xag_network::get_constant)
+        .def("get_constant", [](xag_network const& xag, long value) {
+            return xag.get_constant(static_cast<bool>(value));
+        })
         .def("get_node", &xag_network::get_node)
         .def("pi_at", &xag_network::pi_at);
-
 
     // IO
     module.def("read_aiger", [](std::string const filename) {
@@ -72,7 +74,7 @@ void init_mockturtle(pybind11::module& module)
     }, "Write a LogicNetwork to a Verilog file.");
 
     // Optimization
-    module.def("exorcism", py::overload_cast<std::vector<kitty::cube> const&, uint32_t>(&exorcism));
+    module.def("exorcism", nb::overload_cast<std::vector<kitty::cube> const&, uint32_t>(&exorcism));
 
-    module.def("exorcism", py::overload_cast<kitty::dynamic_truth_table const&>(&exorcism));
+    module.def("exorcism", nb::overload_cast<kitty::dynamic_truth_table const&>(&exorcism));
 }
