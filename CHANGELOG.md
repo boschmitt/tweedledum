@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Replaced the Python binding layer: `pybind11` has been swapped out for
+  [nanobind](https://github.com/wjakob/nanobind) (>= 2.12.0). The public Python
+  API is unchanged.
+- Bumped the minimum supported Python version to **3.9** (required by both
+  nanobind 2.12 and CMake's `Development.Module` component).
+
+### Removed
+- The vendored `external/pybind11/` git subtree.
+- The `TWEEDLEDUM_USE_EXTERNAL_PYBIND11` CMake option.
+- Support for Python 3.6, 3.7, and 3.8 (matches nanobind 2.12 requirements).
+
+### Fixed
+- Added missing `<cstdint>` includes to `IR/Cbit.h` and `IR/Qubit.h`, and a
+  missing `<memory>` include to `Utils/SmallVector.h`; previously these
+  relied on transitive includes that GCC 13+ no longer provides.
 
 ## [1.1.0] - 2021-06-29
 In this release there was many cosmetic changes, such as using clang-format on
