@@ -29,6 +29,21 @@ public:
         return U(-theta_, -phi_, -lambda_);
     }
 
+    double theta() const
+    {
+        return theta_;
+    }
+
+    double phi() const
+    {
+        return phi_;
+    }
+
+    double lambda() const
+    {
+        return lambda_;
+    }
+
     UMatrix2 const matrix() const
     {
         using namespace std::complex_literals;
