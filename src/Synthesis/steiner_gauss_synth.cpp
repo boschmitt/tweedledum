@@ -10,7 +10,8 @@ namespace tweedledum {
 namespace {
 using AbstractGate = std::pair<uint32_t, uint32_t>;
 
-inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
+[[maybe_unused]] inline void synthesize_both(
+  Circuit& circuit, Device const& device, BMatrix matrix)
 {
     constexpr auto inf = std::numeric_limits<uint32_t>::max();
     std::vector<AbstractGate> gates;
@@ -142,6 +143,101 @@ inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
     }
 }
 
+inline auto synthesize_low(Device const& device, BMatrix& matrix)
+{
+    constexpr auto inf = std::numeric_limits<uint32_t>::max();
+    std::vector<AbstractGate> gates;
+    for (auto col = 0u; col < matrix.cols(); ++col) {
+        // Find pivot
+        uint32_t pivot = inf;
+        if (matrix(col, col) == MyBool(1u)) {
+            pivot = col;
+        } else {
+            // If the diagonal is not one, we need to look for a pivot, i.e, a
+            // row with an one, and move it to the diagonal.  Of course that we
+            // just don't take any pivot, we look for the one closer to the
+            // diagonal.
+            uint32_t min_dist = inf;
+            for (auto row = col + 1; row < matrix.rows(); ++row) {
+                if (matrix(row, col) == MyBool(0u)) {
+                    continue;
+                }
+                if (device.distance(row, col) < min_dist) {
+                    pivot = row;
+                    min_dist = device.distance(row, col);
+                }
+            }
+            assert(pivot != inf);
+            auto path = device.shortest_path(pivot, col);
+            uint32_t control = pivot;
+            for (uint32_t i = 1; i < path.size(); ++i) {
+                uint32_t const target = path.at(i);
+                if (matrix(target, col) == MyBool(1u)) {
+                    continue;
+                }
+                matrix.row(target) += matrix.row(control);
+                gates.emplace_back(control, target);
+                control = target;
+            }
+            assert(matrix(col, col) == MyBool(1u));
+        }
+
+        // Compute steiner tree covering the 1's in column i
+        pivot = col;
+        std::vector<uint32_t> terminals;
+        for (uint32_t row = col + 1; row < matrix.rows(); ++row) {
+            if (matrix(row, col) == MyBool(0u)) {
+                continue;
+            }
+            terminals.push_back(row);
+        }
+        if (terminals.empty()) {
+            continue;
+        }
+        auto s_tree = device.steiner_tree(terminals, pivot);
+
+        // Propagate 1's to column col for each Steiner point
+        for (auto const& [control, target] : s_tree) {
+            if (matrix(target, col) == MyBool(1u)) {
+                continue;
+            }
+            matrix.row(target) += matrix.row(control);
+            gates.emplace_back(control, target);
+        }
+
+        // Empty all 1's from column i in the Steiner tree
+        for (auto it = s_tree.rbegin(); it != s_tree.rend(); it++) {
+            auto const [control, target] = *it;
+            matrix.row(target) += matrix.row(control);
+            gates.emplace_back(control, target);
+        }
+    }
+    return gates;
+}
+
+inline void synthesize(Circuit& circuit, Device const& device, BMatrix matrix)
+{
+    std::vector<AbstractGate> lower = synthesize_low(device, matrix);
+    matrix.transposeInPlace();
+    std::vector<AbstractGate> upper = synthesize_low(device, matrix);
+    assert(matrix.isIdentity());
+
+    std::vector<AbstractGate> to_add;
+    to_add.reserve(lower.size() + upper.size());
+
+    // In the paper the authors adde gates to the begining of the gate list.
+    // Here, I do add to the back, then instead of reversing upper, I reverse
+    // lower.  I still need to switch control/target in upper!
+    std::for_each(upper.begin(), upper.end(),
+      [&](auto const& gate) { to_add.emplace_back(gate.second, gate.first); });
+
+    std::for_each(lower.rbegin(), lower.rend(),
+      [&](auto const& gate) { to_add.emplace_back(gate); });
+
+    for (auto const& [control, target] : to_add) {
+        circuit.apply_operator(Op::X(), {Qubit(control), Qubit(target)});
+    }
+}
 } // namespace
 
 void steiner_gauss_synth(Circuit& circuit, Device const& device,
