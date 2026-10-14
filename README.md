@@ -17,9 +17,10 @@
   </a>
 </p>
 
-    /!\ (Warning) If you have used tweedledum before: the master branch history is broken.
-    /!\ The new master branch is a completely rewrite of the library. The old version can be found
-    /!\ on **alpha** branch. (Sorry for the inconvenience!!---but it is for a great cause)
+
+> [!WARNING]
+> The master branch history has been intentionally reset. The new master is a complete rewrite of the library.
+> The old version is preserved on the **alpha** branch.(Sorry for the inconvenience!!---but it is for a great cause)
 
 **tweedledum** is a library for synthesis, compilation, and optimization of
 quantum circuits.  The library is written to be scalable up to problem sizes in
@@ -42,9 +43,9 @@ or synthesize circuits, you need to specifically call the algorithms you want.
 - __Opinionated, but not stubborn__.  Many passes and synthesis algorithms have
 many configuration parameters.  Tweedledum comes with reasonable defaults and 
 curated opinions of what value such parameters should take.  But in the end,
-it all up to you.
+it is all up to you.
 
-__Corollary__:  Because of it's flexibility, Tweedledum is capable of accepting
+__Corollary__:  Because of its flexibility, Tweedledum is capable of accepting
 gates/operators that are defined as python classes.  Indeed, any pythonic 
 framework can use the library as a circuit manager.  Meaning that the library 
 can be used to slowly transition the core and performance sensitive parts of a 
