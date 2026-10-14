@@ -43,9 +43,9 @@ or synthesize circuits, you need to specifically call the algorithms you want.
 - __Opinionated, but not stubborn__.  Many passes and synthesis algorithms have
 many configuration parameters.  Tweedledum comes with reasonable defaults and 
 curated opinions of what value such parameters should take.  But in the end,
-it all up to you.
+it is all up to you.
 
-__Corollary__:  Because of it's flexibility, Tweedledum is capable of accepting
+__Corollary__:  Because of its flexibility, Tweedledum is capable of accepting
 gates/operators that are defined as python classes.  Indeed, any pythonic 
 framework can use the library as a circuit manager.  Meaning that the library 
 can be used to slowly transition the core and performance sensitive parts of a 
