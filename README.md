@@ -17,13 +17,10 @@
   </a>
 </p>
 
-    /!\ (Warning) If you have used tweedledum before: the master branch history is broken.
-    /!\ The new master branch is a completely rewrite of the library. The old version can be found
-    /!\ on **alpha** branch. (Sorry for the inconvenience!!---but it is for a great cause)
 
 > [!WARNING]
-> The master branch history has been intentionally reset. The new master is a complete rewrite.
-> The old version is preserved on the **alpha** branch.
+> The master branch history has been intentionally reset. The new master is a complete rewrite of the library.
+> The old version is preserved on the **alpha** branch.(Sorry for the inconvenience!!---but it is for a great cause)
 
 **tweedledum** is a library for synthesis, compilation, and optimization of
 quantum circuits.  The library is written to be scalable up to problem sizes in
